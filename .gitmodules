@@ -1,0 +1,15 @@
+[submodule "external/dobby"]
+	path = external/dobby
+	url = https://github.com/JingMatrix/Dobby.git
+[submodule "external/fmt"]
+	path = external/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "external/lsplant"]
+	path = external/lsplant
+	url = https://github.com/JingMatrix/LSPlant.git
+[submodule "external/lsplt"]
+	path = external/lsplt
+	url = https://github.com/JingMatrix/LSPlt.git
+[submodule "external/xz-embedded"]
+	path = external/xz-embedded
+	url = https://github.com/tukaani-project/xz-embedded.git
