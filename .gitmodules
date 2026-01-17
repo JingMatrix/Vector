@@ -13,3 +13,9 @@
 [submodule "external/xz-embedded"]
 	path = external/xz-embedded
 	url = https://github.com/tukaani-project/xz-embedded.git
+[submodule "external/apache/commons-lang"]
+	path = external/apache/commons-lang
+	url = https://github.com/apache/commons-lang.git
+[submodule "external/axml/manifest-editor"]
+	path = external/axml/manifest-editor
+	url = https://github.com/JingMatrix/ManifestEditor.git
