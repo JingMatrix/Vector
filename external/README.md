@@ -20,3 +20,11 @@ They are included as git submodules to ensure version consistency and timely upd
 -   [LSPlt](https://github.com/JingMatrix/LSPlt):
     A library for PLT (Procedure Linkage Table) hooking. **Note:** This is included as a submodule for project convenience but is not compiled into the `external` C++ library itself.
 
+## Java libraries
+
+-   [apache/commons-lang](https://github.com/apache/commons-lang):
+    A package of Java utility classes for the classes that are in java.lang's hierarchy. Some classes are renamed and then used to implement the `XposedHelpers` API.
+
+-   [axml/manifest-editor](https://github.com/JingMatrix/ManifestEditor):
+    A a tool used to modify Android Manifest binary file. It is to parse manifestation files of Xposed modules.
+
