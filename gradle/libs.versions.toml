@@ -1,11 +1,11 @@
 [versions]
-agp = "8.13.1"
-kotlin = "2.3.10"
+agp = "9.1.0"
+kotlin = "2.3.20"
 nav = "2.9.7"
 appcenter = "5.0.5"
 glide = "5.0.5"
 okhttp = "5.3.2"
-ktfmt = "0.25.0"
+ktfmt = "0.26.0"
 coroutines = "1.10.2"
 
 [plugins]
@@ -30,11 +30,11 @@ rikkax-recyclerview = { module = "dev.rikka.rikkax.recyclerview:recyclerview-ktx
 rikkax-widget-borderview = { module = "dev.rikka.rikkax.widget:borderview", version = "1.1.0" }
 rikkax-widget-mainswitchbar = { module = "dev.rikka.rikkax.widget:mainswitchbar", version = "1.0.2" }
 
-androidx-activity = { module = "androidx.activity:activity", version = "1.12.4" }
+androidx-activity = { module = "androidx.activity:activity", version = "1.13.0" }
 androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
-androidx-browser = { module = "androidx.browser:browser", version = "1.9.0" }
+androidx-browser = { module = "androidx.browser:browser", version = "1.10.0" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version = "2.2.1" }
-androidx-core = { module = "androidx.core:core", version = "1.17.0" }
+androidx-core = { module = "androidx.core:core", version = "1.18.0" }
 androidx-fragment = { module = "androidx.fragment:fragment", version = "1.8.9" }
 androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "nav" }
 androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "nav" }
