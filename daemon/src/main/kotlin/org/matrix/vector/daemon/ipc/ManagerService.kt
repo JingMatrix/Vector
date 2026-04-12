@@ -239,8 +239,8 @@ object ManagerService : ILSPManagerService.Stub() {
   override fun isVerboseLog() = PreferenceStore.isVerboseLogEnabled() || BuildConfig.DEBUG
 
   override fun setVerboseLog(enabled: Boolean) {
-    if (isVerboseLog()) LogcatMonitor.startVerbose() else LogcatMonitor.stopVerbose()
     PreferenceStore.setVerboseLog(enabled)
+    if (isVerboseLog()) LogcatMonitor.startVerbose() else LogcatMonitor.stopVerbose()
   }
 
   override fun getVerboseLog() =

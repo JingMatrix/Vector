@@ -492,9 +492,10 @@ jboolean JNICALL IPCBridge::CallBooleanMethodV_Hook(JNIEnv *env, jobject obj, jm
         // If this caller is the one that just failed,
         // skip interception and go straight to the original function.
         if (current_caller_id == last_failed) {
-            // We "consume" the failed state by resetting it, so the *next* call is not skipped.
-            g_last_failed_id.store(~0, std::memory_order_relaxed);
             return GetInstance().call_boolean_method_v_backup_(env, obj, methodId, args);
+        } else if (last_failed != ~0) {
+            // Consume the failed state by resetting it, so the next call is not skipped.
+            g_last_failed_id.store(~0, std::memory_order_relaxed);
         }
     }
 

@@ -288,7 +288,7 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
     if ((app_id >= FIRST_ISOLATED_UID && app_id <= LAST_ISOLATED_UID) ||
         (app_id >= FIRST_APP_ZYGOTE_ISOLATED_UID && app_id <= LAST_APP_ZYGOTE_ISOLATED_UID) ||
         app_id == SHARED_RELRO_UID) {
-        LOGV("Skipping injection for '{}': is an isolated process (UID: %d).", nice_name_str.get(),
+        LOGV("Skipping injection for '{}': is an isolated process (UID: {}).", nice_name_str.get(),
              app_id);
         return;
     }
