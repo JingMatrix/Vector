@@ -493,17 +493,13 @@ jboolean JNICALL IPCBridge::CallBooleanMethodV_Hook(JNIEnv *env, jobject obj, jm
     if (methodId == GetInstance().exec_transact_backup_method_id_) {
         uint64_t current_caller_id = BinderCaller::GetId();
 
-        if (current_caller_id != 0 &&
-            current_caller_id == g_last_failed_id.load(std::memory_order_relaxed)) {
-            // If this caller is the one that just failed,
-            // skip interception and go straight to the original function.
-            // LOGV("Skip caller {} for bridge service.", current_caller_id);
-            return GetInstance().call_boolean_method_v_backup_(env, obj, methodId, args);
-        }
-
         jboolean res = false;
         // Attempt to handle the transaction with our replacement logic.
-        if (ExecTransact_Replace(&res, env, obj, args)) {
+        if (current_caller_id != 0 &&
+            // If this caller is the one that just failed,
+            // skip interception and go straight to the original function.
+            current_caller_id != g_last_failed_id.load(std::memory_order_relaxed) &&
+            ExecTransact_Replace(&res, env, obj, args)) {
             return res;  // If we handled it, return the result directly.
         }
         // If not handled, fall through to call the original method.
