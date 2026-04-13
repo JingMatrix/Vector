@@ -5,7 +5,7 @@ import org.matrix.vector.impl.di.VectorBootstrap
 
 /**
  * Intercepts the early ApplicationThread attachment phase. Triggers the legacy compatibility layer
- * to load modules into the process.
+ * to load modern modules into the process.
  */
 object AppAttachHooker : XposedInterface.Hooker {
     override fun intercept(chain: XposedInterface.Chain): Any? {

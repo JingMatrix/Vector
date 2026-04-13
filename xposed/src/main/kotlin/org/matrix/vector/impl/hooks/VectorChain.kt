@@ -22,7 +22,7 @@ class VectorChain(
     private val thisObj: Any?,
     private val args: Array<Any?>,
     private val hooks: Array<VectorHookRecord>,
-    private val index: Int,
+    private val hookIndex: Int,
     private val terminal: (thisObj: Any?, args: Array<Any?>) -> Any?,
 ) : Chain {
 
@@ -55,12 +55,13 @@ class VectorChain(
         proceedCalled = true
 
         // Reached the end of the modern hooks; trigger the original executable (and legacy hooks)
-        if (index >= hooks.size) {
+        if (hookIndex >= hooks.size) {
             return executeDownstream { terminal(thisObject, currentArgs) }
         }
 
-        val record = hooks[index]
-        val nextChain = VectorChain(executable, thisObject, currentArgs, hooks, index + 1, terminal)
+        val record = hooks[hookIndex]
+        val nextChain =
+            VectorChain(executable, thisObject, currentArgs, hooks, hookIndex + 1, terminal)
 
         return try {
             executeDownstream { record.hooker.intercept(nextChain) }

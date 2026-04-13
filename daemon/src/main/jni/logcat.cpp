@@ -34,8 +34,8 @@ constexpr std::array<char, ANDROID_LOG_SILENT + 1> kLogChar = {
 
 // Module tags are sorted for O(log N) binary search.
 // These always route to the 'modules' (Xposed) log stream.
-constexpr auto kModuleTags =
-    std::array{"VectorContext"sv, "VectorLegacyBridge"sv, "XSharedPreferences"sv};
+constexpr auto kModuleTags = std::array{"VectorContext"sv, "VectorLegacyBridge"sv,
+                                        "VectorModuleManager"sv, "XSharedPreferences"sv};
 
 // These route to the 'verbose' stream only.
 constexpr auto kExactTags = std::array{"APatchD"sv, "Dobby"sv,  "KernelSU"sv, "LSPlant"sv,

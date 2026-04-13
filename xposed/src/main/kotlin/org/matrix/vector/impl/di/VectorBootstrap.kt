@@ -22,7 +22,7 @@ fun interface OriginalInvoker {
  * methods at the appropriate lifecycle moments.
  */
 interface LegacyFrameworkDelegate {
-    /** Instructs the legacy bridge to load legacy modules. */
+    /** Instructs the legacy bridge to load modern modules. */
     fun loadModules(activityThread: Any)
 
     /** Dispatches a package load event to legacy XC_LoadPackage callbacks. */
