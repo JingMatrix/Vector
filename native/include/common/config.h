@@ -30,6 +30,9 @@ inline constexpr bool kIsDebugBuild = IsDebugBuild();
 #define LP_SELECT(lp32, lp64) lp32
 #endif
 
+#define V_STR(x) #x
+#define V_TOSTR(x) V_STR(x)
+
 /// The filename of the core Android Runtime (ART) library.
 inline constexpr auto kArtLibraryName = "libart.so";
 
@@ -43,9 +46,9 @@ inline constexpr auto kFrameworkLibraryName = "libandroidfw.so";
 inline constexpr auto kLinkerPath = "/linker";
 
 /// The version code of the library, populated by the build system.
-const int kVersionCode = VERSION_CODE;
+inline constexpr int kVersionCode = VERSION_CODE;
 
 /// The version name of the library, populated by the build system.
-const char *const kVersionName = VERSION_NAME;
+inline constexpr auto kVersionName = V_TOSTR(VERSION_NAME);
 
 }  // namespace vector::native
