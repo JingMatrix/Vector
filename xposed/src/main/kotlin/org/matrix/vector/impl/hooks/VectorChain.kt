@@ -44,27 +44,28 @@ class VectorChain(
 
     override fun proceed(): Any? = internalProceed(thisObj, args)
 
-    override fun proceed(args: Array<Any?>): Any? = internalProceed(thisObj, args)
+    override fun proceed(currentArgs: Array<Any?>): Any? = internalProceed(thisObj, currentArgs)
 
     override fun proceedWith(thisObject: Any): Any? = internalProceed(thisObject, args)
 
-    override fun proceedWith(thisObject: Any, args: Array<Any?>): Any? = internalProceed(thisObject, args)
+    override fun proceedWith(thisObject: Any, currentArgs: Array<Any?>): Any? =
+        internalProceed(thisObject, currentArgs)
 
     private fun internalProceed(thisObject: Any?, currentArgs: Array<Any?>): Any? {
         proceedCalled = true
 
         // Reached the end of the modern hooks; trigger the original executable (and legacy hooks)
         if (index >= hooks.size) {
-            return executeDownstream { terminal(thisObject, args) }
+            return executeDownstream { terminal(thisObject, currentArgs) }
         }
 
         val record = hooks[index]
-        val nextChain = VectorChain(executable, thisObject, args, hooks, index + 1, terminal)
+        val nextChain = VectorChain(executable, thisObject, currentArgs, hooks, index + 1, terminal)
 
         return try {
             executeDownstream { record.hooker.intercept(nextChain) }
         } catch (t: Throwable) {
-            handleInterceptorException(t, record, nextChain, thisObject, args)
+            handleInterceptorException(t, record, nextChain, thisObject, currentArgs)
         }
     }
 
