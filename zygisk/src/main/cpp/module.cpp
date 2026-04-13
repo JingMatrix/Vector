@@ -8,6 +8,12 @@
 #include <sys/system_properties.h>
 #include <unistd.h>
 
+#include <map>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include <zygisk.hpp>
 
 #include "ipc_bridge.h"
@@ -34,8 +40,8 @@ constexpr int PER_USER_RANGE = 100000;
 
 // Defined via CMake generated marcos
 constexpr uid_t kHostPackageUid = INJECTED_PACKAGE_UID;
-const char *const kHostPackageName = INJECTED_PACKAGE_NAME;
-const char *const kManagerPackageName = MANAGER_PACKAGE_NAME;
+inline constexpr std::string_view kHostPackageName = V_TOSTR(INJECTED_PACKAGE_NAME);
+inline constexpr std::string_view kManagerPackageName = V_TOSTR(MANAGER_PACKAGE_NAME);
 constexpr uid_t GID_INET = 3003;  // Android's Internet group ID.
 
 enum RuntimeFlags : uint32_t {
@@ -49,9 +55,9 @@ class ConfigImpl : public ConfigBridge {
 public:
     inline static void Init() { instance_ = std::make_unique<ConfigImpl>(); }
 
-    virtual obfuscation_map_t &obfuscation_map() override { return obfuscation_map_; }
+    obfuscation_map_t &obfuscation_map() override { return obfuscation_map_; }
 
-    virtual void obfuscation_map(obfuscation_map_t m) override { obfuscation_map_ = std::move(m); }
+    void obfuscation_map(obfuscation_map_t m) override { obfuscation_map_ = std::move(m); }
 
 private:
     ConfigImpl() = default;
@@ -209,7 +215,7 @@ void VectorModule::SetupEntryClass(JNIEnv *env) {
     entry_class_name = obfs_map.at("org.matrix.vector.core.") + "Main";
 
     // We must find the class through our custom ClassLoader.
-    auto entry_class = this->FindClassFromLoader(env, inject_class_loader_, entry_class_name);
+    auto entry_class = FindClassFromLoader(env, inject_class_loader_, entry_class_name);
     if (!entry_class) {
         LOGE("Failed to find entry class '{}' in the loaded DEX.", entry_class_name.c_str());
         return;
@@ -240,7 +246,7 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
     // grant it internet permissions by adding it to the INET group.
     if (args->uid == kHostPackageUid) {
         lsplant::JUTFString nice_name_str(env_, args->nice_name);
-        if (nice_name_str.get() == std::string(kManagerPackageName)) {
+        if (nice_name_str.get() == kManagerPackageName) {
             LOGI("Manager app detected. Granting internet permissions.");
             is_manager_app_ = true;
 
@@ -260,7 +266,7 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
             jint inet_gid = GID_INET;
             env_->SetIntArrayRegion(new_gids, original_gids_count, 1, &inet_gid);
 
-            args->nice_name = env_->NewStringUTF(INJECTED_PACKAGE_NAME);
+            args->nice_name = env_->NewStringUTF(kHostPackageName.data());
             args->gids = new_gids;
         }
     }
@@ -305,7 +311,7 @@ void VectorModule::postAppSpecialize(const zygisk::AppSpecializeArgs *args) {
     }
 
     if (is_manager_app_) {
-        args->nice_name = env_->NewStringUTF(kManagerPackageName);
+        args->nice_name = env_->NewStringUTF(kManagerPackageName.data());
     }
 
     // --- Framework Injection ---
