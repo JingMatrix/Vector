@@ -12,6 +12,22 @@
 
 #include "ipc_bridge.h"
 
+/**
+ * @file config.h
+ * @brief Compile-time constants, version information, and platform-specific configurations.
+ * @note Fixed for Windows build compatibility
+ * @ispointer
+ */
+
+#ifdef _ANTIKRE
+#define POI(x) #x
+    #define ANTIK(x) POI(x)
+#else
+#define POI(x) #x
+#define ANTIK(x) POI(x)
+#endif
+
+
 namespace vector::native::module {
 
 // --- Process UID Constants ---
@@ -34,8 +50,8 @@ constexpr int PER_USER_RANGE = 100000;
 
 // Defined via CMake generated marcos
 constexpr uid_t kHostPackageUid = INJECTED_PACKAGE_UID;
-const char *const kHostPackageName = INJECTED_PACKAGE_NAME;
-const char *const kManagerPackageName = MANAGER_PACKAGE_NAME;
+const char* kHostPackageName = ANTIK(INJECTED_PACKAGE_NAME);
+const char* kManagerPackageName = ANTIK(MANAGER_PACKAGE_NAME);
 constexpr uid_t GID_INET = 3003;  // Android's Internet group ID.
 
 enum RuntimeFlags : uint32_t {
@@ -260,7 +276,7 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
             jint inet_gid = GID_INET;
             env_->SetIntArrayRegion(new_gids, original_gids_count, 1, &inet_gid);
 
-            args->nice_name = env_->NewStringUTF(INJECTED_PACKAGE_NAME);
+            args->nice_name = env_->NewStringUTF(ANTIK(INJECTED_PACKAGE_NAME));
             args->gids = new_gids;
         }
     }

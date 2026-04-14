@@ -7,16 +7,16 @@
 
 namespace vector::native {
 
-[[nodiscard]] constexpr bool IsDebugBuild() {
+    [[nodiscard]] constexpr bool IsDebugBuild() {
 #ifdef NDEBUG
-    return false;
+        return false;
 #else
-    return true;
+        return true;
 #endif
-}
+    }
 
 /// A compile-time constant indicating if this is a debug build.
-inline constexpr bool kIsDebugBuild = IsDebugBuild();
+    inline constexpr bool kIsDebugBuild = IsDebugBuild();
 
 /**
  * @def LP_SELECT(lp32, lp64)
@@ -31,21 +31,21 @@ inline constexpr bool kIsDebugBuild = IsDebugBuild();
 #endif
 
 /// The filename of the core Android Runtime (ART) library.
-inline constexpr auto kArtLibraryName = "libart.so";
+    inline constexpr auto kArtLibraryName = "libart.so";
 
 /// The filename of the Android Binder library.
-inline constexpr auto kBinderLibraryName = "libbinder.so";
+    inline constexpr auto kBinderLibraryName = "libbinder.so";
 
 /// The filename of the Android Framework library.
-inline constexpr auto kFrameworkLibraryName = "libandroidfw.so";
+    inline constexpr auto kFrameworkLibraryName = "libandroidfw.so";
 
 /// The path to the dynamic linker.
-inline constexpr auto kLinkerPath = "/linker";
+    inline constexpr auto kLinkerPath = "/linker";
 
 /// The version code of the library, populated by the build system.
-const int kVersionCode = VERSION_CODE;
+    const int kVersionCode = VERSION_CODE;
 
 /// The version name of the library, populated by the build system.
-const char *const kVersionName = VERSION_NAME;
+    inline constexpr auto kVersionName = VERSION_NAME;
 
 }  // namespace vector::native
