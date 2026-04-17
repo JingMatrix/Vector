@@ -83,6 +83,8 @@ object ConfigCache {
   }
 
   private fun setupMiscPath() {
+    if (state.miscPath != null) return
+
     val pathStr = PreferenceStore.getModulePrefs("lspd", 0, "config")["misc_path"] as? String
     val path =
         if (pathStr == null) {
@@ -423,7 +425,7 @@ object ConfigCache {
   }
 
   fun getPrefsPath(packageName: String, uid: Int): String {
-    ensureCacheReady()
+    setupMiscPath()
     val basePath = state.miscPath ?: throw IllegalStateException("Fatal: miscPath not initialized!")
 
     val userId = uid / PER_USER_RANGE
