@@ -30,7 +30,7 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
         return when (val currentType = type) {
             is Invoker.Type.Origin -> {
                 try {
-                    HookBridge.invokeOriginalMethod(executable, thisObject, args)
+                    HookBridge.invokeOriginalMethod(executable, thisObject, *args)
                 } catch (e: InvocationTargetException) {
                     throw e.cause ?: e
                 }
