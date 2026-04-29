@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
 import org.lsposed.manager.BuildConfig
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
@@ -63,8 +64,14 @@ import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.basic.Button
 
-@Composable
-fun HomeScreen(padding: PaddingValues) {
+@Serializable
+data class HomeScreen(val dummy: Int = 0) : AbstractScreen() {
+    @Composable
+    override fun Display(
+        padding: PaddingValues,
+        onNavigate: (AbstractScreen) -> Unit,
+        onBack: () -> Unit
+    ) {
     val context = LocalContext.current
     val scrollBehavior = MiuixScrollBehavior()
 
@@ -261,6 +268,9 @@ fun HomeScreen(padding: PaddingValues) {
             Text(text = stringResource(android.R.string.ok))
         }
     }
+    }
+
+    override fun getNeedDestroyAfterBack(): Boolean = false
 }
 
 @Composable

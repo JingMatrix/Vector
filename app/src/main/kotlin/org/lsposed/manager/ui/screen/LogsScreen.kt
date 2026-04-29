@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import org.lsposed.manager.App
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
@@ -54,8 +55,22 @@ import java.io.InputStreamReader
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@Serializable
+data class LogsScreen(val dummy: Int = 0) : AbstractScreen() {
+    @Composable
+    override fun Display(
+        padding: PaddingValues,
+        onNavigate: (AbstractScreen) -> Unit,
+        onBack: () -> Unit
+    ) {
+        LogsContent(padding)
+    }
+
+    override fun getNeedDestroyAfterBack(): Boolean = false
+}
+
 @Composable
-fun LogsScreen(padding: PaddingValues) {
+private fun LogsContent(padding: PaddingValues) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scrollBehavior = MiuixScrollBehavior()

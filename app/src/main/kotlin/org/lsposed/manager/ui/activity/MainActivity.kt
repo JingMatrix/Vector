@@ -23,32 +23,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.compose.BackHandler
-import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation3.runtime.NavKey
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.ui.NavDisplay
-import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import org.lsposed.manager.App
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
-import org.lsposed.manager.ui.screen.AppListScreen
-import org.lsposed.manager.ui.screen.HomeScreen
-import org.lsposed.manager.ui.screen.LogsScreen
-import org.lsposed.manager.ui.screen.ModulesScreen
-import org.lsposed.manager.ui.screen.SettingsScreen
+import org.lsposed.manager.ui.screen.*
 import org.lsposed.manager.ui.theme.VectorTheme
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
@@ -58,20 +45,6 @@ import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Album
 import top.yukonga.miuix.kmp.icon.extended.File
 import top.yukonga.miuix.kmp.icon.extended.Settings
-import kotlin.math.abs
-
-sealed interface Screen : NavKey {
-    @Serializable
-    data class Main(val targetPage: Int = 1, val selectedUserId: Int = 0) : Screen
-
-    @Serializable
-    data class AppList(
-        val packageName: String,
-        val userId: Int,
-        val fromPage: Int = 1,
-        val fromUserId: Int = 0
-    ) : Screen
-}
 
 class MainActivity : FragmentActivity() {
 
@@ -135,185 +108,193 @@ class MainActivity : FragmentActivity() {
         actionBar?.hide()
 
         val initialPage = handleIntent(intent)
+        val isBinderAlive = ConfigManager.isBinderAlive()
 
         setContent {
             VectorTheme {
-                val isBinderAlive = remember { ConfigManager.isBinderAlive() }
-                val backStack = remember {
-                    mutableStateListOf<NavKey>(Screen.Main(initialPage))
-                }
-
-                val entryProvider = remember(backStack) {
-                    entryProvider<NavKey> {
-                        entry<Screen.Main> { screen ->
-                            MainPagerScreen(
-                                isBinderAlive = isBinderAlive,
-                                initialPage = screen.targetPage,
-                                initialSelectedUserId = screen.selectedUserId,
-                                onNavigateToAppList = { packageName, userId, fromPage, fromUserId ->
-                                    backStack.add(Screen.AppList(packageName, userId, fromPage, fromUserId))
-                                }
-                            )
-                        }
-                        entry<Screen.AppList> { screen ->
-                            AppListScreen(
-                                packageName = screen.packageName,
-                                userId = screen.userId,
-                                onBack = {
-                                    if (backStack.size > 1) {
-                                        backStack.removeLast()
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                val entries = rememberDecoratedNavEntries(
-                    backStack = backStack,
-                    entryProvider = entryProvider
-                )
-
-                NavDisplay(
-                    entries = entries,
-                    onBack = {
-                        if (backStack.size > 1) {
-                            backStack.removeLast()
-                        }
-                    }
-                )
+                MainScreen(initialPage = initialPage, isBinderAlive = isBinderAlive)
             }
         }
     }
 
     @Composable
-    private fun MainPagerScreen(
-        isBinderAlive: Boolean,
-        initialPage: Int = 1,
-        initialSelectedUserId: Int = 0,
-        onNavigateToAppList: (String, Int, Int, Int) -> Unit
-    ) {
-        val scope = rememberCoroutineScope()
+    private fun MainScreen(initialPage: Int, isBinderAlive: Boolean) {
+        // TabScreens 数组：保存每个标签页的单例 Screen 实例
+        val tabScreens = remember {
+            arrayOf(
+                ModulesScreen(),
+                HomeScreen(),
+                if (isBinderAlive) LogsScreen() else SettingsScreen(),
+                SettingsScreen()
+            )
+        }
 
-        val pageCount = if (isBinderAlive) 4 else 3
-        val pagerState = rememberPagerState(
-            initialPage = initialPage,
-            pageCount = { pageCount }
-        )
-
-        var lastMainPage by remember { mutableIntStateOf(0) }
-
-        BackHandler(enabled = pagerState.currentPage != 1) {
-            scope.launch {
-                animateToPage(pagerState, 1)
+        // 全局导航栈：底部永远是 Home，中间是当前选中的非 Home 标签页，顶部是二级页面
+        val backStack = remember {
+            // 构造栈：底部永远是 Home
+            if (initialPage == 1) {
+                // 初始页面是 Home，只放 Home
+                mutableStateListOf<AbstractScreen>(tabScreens[1])
+            } else {
+                // 初始页面不是 Home，底部放 Home，上面放初始页面
+                mutableStateListOf<AbstractScreen>(tabScreens[1], tabScreens[initialPage])
             }
         }
+
+        // 当前选中的标签页索引
+        var currentTabIndex by remember {
+            mutableIntStateOf(initialPage)
+        }
+
+        val entryProvider = remember(backStack) {
+            entryProvider<AbstractScreen> {
+                entry<HomeScreen> { screen ->
+                    screen.Display(
+                        padding = androidx.compose.foundation.layout.PaddingValues(),
+                        onNavigate = { newScreen ->
+                            backStack.add(newScreen)
+                        },
+                        onBack = {}
+                    )
+                }
+                entry<ModulesScreen> { screen ->
+                    screen.Display(
+                        padding = androidx.compose.foundation.layout.PaddingValues(),
+                        onNavigate = { newScreen ->
+                            backStack.add(newScreen)
+                        },
+                        onBack = {}
+                    )
+                }
+                entry<LogsScreen> { screen ->
+                    screen.Display(
+                        padding = androidx.compose.foundation.layout.PaddingValues(),
+                        onNavigate = { newScreen ->
+                            backStack.add(newScreen)
+                        },
+                        onBack = {}
+                    )
+                }
+                entry<SettingsScreen> { screen ->
+                    screen.Display(
+                        padding = androidx.compose.foundation.layout.PaddingValues(),
+                        onNavigate = { newScreen ->
+                            backStack.add(newScreen)
+                        },
+                        onBack = {}
+                    )
+                }
+                entry<AppListScreen> { screen ->
+                    screen.Display(
+                        padding = androidx.compose.foundation.layout.PaddingValues(),
+                        onNavigate = { newScreen ->
+                            backStack.add(newScreen)
+                        },
+                        onBack = {
+                            if (backStack.size > 1) {
+                                backStack.removeLast()
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        val entries = rememberDecoratedNavEntries(
+            backStack = backStack,
+            entryProvider = entryProvider
+        )
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 BottomNavigationBar(
-                    pagerState = pagerState,
-                    isBinderAlive = isBinderAlive
+                    currentTab = currentTabIndex,
+                    isBinderAlive = isBinderAlive,
+                    onTabSelected = { newTabIndex ->
+                        val newScreen = tabScreens[newTabIndex]
+
+                        // 切换逻辑
+                        when {
+                            // 非 Home → Home：弹栈到只剩 Home
+                            currentTabIndex != 1 && newTabIndex == 1 -> {
+                                while (backStack.size > 1) {
+                                    backStack.removeLast()
+                                }
+                            }
+                            // Home → 非 Home：压入新的 Tab Screen
+                            currentTabIndex == 1 && newTabIndex != 1 -> {
+                                backStack.add(newScreen)
+                            }
+                            // 非 Home → 非 Home：先弹栈到 Home，再压入新的 Tab Screen
+                            currentTabIndex != 1 && newTabIndex != 1 -> {
+                                while (backStack.size > 1) {
+                                    backStack.removeLast()
+                                }
+                                backStack.add(newScreen)
+                            }
+                        }
+
+                        currentTabIndex = newTabIndex
+                    }
                 )
             }
         ) { padding ->
-            HorizontalPager(
-                state = pagerState,
-                beyondViewportPageCount = 2,
-                userScrollEnabled = true,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                when {
-                    page == 0 -> {
-                        LaunchedEffect(pagerState.currentPage) {
-                            if (pagerState.currentPage == 0) {
-                                lastMainPage = 0
-                            }
+            NavDisplay(
+                entries = entries,
+                onBack = {
+                    if (backStack.size > 1) {
+                        val removedScreen = backStack.removeLast()
+                        if (removedScreen.getNeedDestroyAfterBack()) {
+                            // 需要销毁
                         }
-                        ModulesScreen(
-                            padding = padding,
-                            initialSelectedUserId = initialSelectedUserId,
-                            onModuleClick = { packageName, userId, selectedUserId ->
-                                onNavigateToAppList(packageName, userId, 0, selectedUserId)
-                            }
-                        )
+                        val topScreen = backStack.lastOrNull()
+                        val newTabIndex = tabScreens.indexOf(topScreen)
+                        if (newTabIndex != -1) {
+                            currentTabIndex = newTabIndex
+                        }
                     }
-                    page == 1 -> HomeScreen(padding)
-                    page == 2 && isBinderAlive -> LogsScreen(padding)
-                    page == (if (isBinderAlive) 3 else 2) -> SettingsScreen(padding)
                 }
-            }
+            )
         }
     }
 
     @Composable
     private fun BottomNavigationBar(
-        pagerState: PagerState,
-        isBinderAlive: Boolean
+        currentTab: Int,
+        isBinderAlive: Boolean,
+        onTabSelected: (Int) -> Unit
     ) {
-        val scope = rememberCoroutineScope()
-        val currentPage = pagerState.currentPage
-
         NavigationBar {
             NavigationBarItem(
-                selected = currentPage == 0,
-                onClick = {
-                    scope.launch {
-                        animateToPage(pagerState, 0)
-                    }
-                },
+                selected = currentTab == 0,
+                onClick = { onTabSelected(0) },
                 icon = MiuixIcons.All,
                 label = getString(R.string.Modules)
             )
 
             NavigationBarItem(
-                selected = currentPage == 1,
-                onClick = {
-                    scope.launch {
-                        animateToPage(pagerState, 1)
-                    }
-                },
+                selected = currentTab == 1,
+                onClick = { onTabSelected(1) },
                 icon = MiuixIcons.Album,
                 label = getString(R.string.overview)
             )
 
             if (isBinderAlive) {
                 NavigationBarItem(
-                    selected = currentPage == 2,
-                    onClick = {
-                        scope.launch {
-                            animateToPage(pagerState, 2)
-                        }
-                    },
+                    selected = currentTab == 2,
+                    onClick = { onTabSelected(2) },
                     icon = MiuixIcons.File,
                     label = getString(R.string.Logs)
                 )
             }
 
             NavigationBarItem(
-                selected = currentPage == (if (isBinderAlive) 3 else 2),
-                onClick = {
-                    scope.launch {
-                        animateToPage(pagerState, if (isBinderAlive) 3 else 2)
-                    }
-                },
+                selected = currentTab == (if (isBinderAlive) 3 else 2),
+                onClick = { onTabSelected(if (isBinderAlive) 3 else 2) },
                 icon = MiuixIcons.Settings,
                 label = getString(R.string.Settings)
             )
         }
-    }
-
-    private suspend fun animateToPage(pagerState: PagerState, targetPage: Int) {
-        val distance = abs(targetPage - pagerState.currentPage).coerceAtLeast(1)
-        val duration = 100 * distance + 100
-
-        pagerState.animateScrollToPage(
-            page = targetPage,
-            animationSpec = tween(
-                durationMillis = duration,
-                easing = EaseInOut
-            )
-        )
     }
 }
