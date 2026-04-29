@@ -41,7 +41,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
-import org.lsposed.manager.adapters.AppHelper;
+import org.lsposed.manager.util.AppHelper;
 import org.lsposed.manager.receivers.LSPManagerServiceHolder;
 import org.lsposed.manager.util.ModuleUtil;
 

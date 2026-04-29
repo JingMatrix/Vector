@@ -19,7 +19,7 @@
  * Copyright (C) 2026 Vector Contributors
  */
 
-package org.lsposed.manager.adapters;
+package org.lsposed.manager.util;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;

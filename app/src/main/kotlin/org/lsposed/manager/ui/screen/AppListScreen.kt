@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
 import org.lsposed.lspd.models.UserInfo
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
-import org.lsposed.manager.adapters.AppHelper
+import org.lsposed.manager.util.AppHelper
 import org.lsposed.manager.util.ApplicationWithEquals
 import org.lsposed.manager.util.ModuleUtil
 import top.yukonga.miuix.kmp.basic.Button
