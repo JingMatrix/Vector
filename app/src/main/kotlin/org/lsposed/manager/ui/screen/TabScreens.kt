@@ -69,11 +69,11 @@ data class TabScreens(
             pageCount = { pageCount }
         )
 
-        LaunchedEffect(pagerState.currentPage) {
-            currentTabIndex = pagerState.currentPage
+        LaunchedEffect(pagerState.settledPage) {
+            currentTabIndex = pagerState.settledPage
         }
 
-        BackHandler(enabled = pagerState.currentPage != 1) {
+        BackHandler(enabled = pagerState.settledPage != 1) {
             scope.launch {
                 val distance = abs(1 - pagerState.currentPage).coerceAtLeast(1)
                 val duration = 100 * distance + 100
@@ -89,7 +89,7 @@ data class TabScreens(
             bottomBar = {
                 NavigationBar {
                     NavigationBarItem(
-                        selected = pagerState.currentPage == 0,
+                        selected = pagerState.settledPage == 0,
                         onClick = {
                             scope.launch {
                                 val distance = abs(0 - pagerState.currentPage).coerceAtLeast(1)
@@ -105,7 +105,7 @@ data class TabScreens(
                     )
 
                     NavigationBarItem(
-                        selected = pagerState.currentPage == 1,
+                        selected = pagerState.settledPage == 1,
                         onClick = {
                             scope.launch {
                                 val distance = abs(1 - pagerState.currentPage).coerceAtLeast(1)
@@ -122,7 +122,7 @@ data class TabScreens(
 
                     if (isBinderAlive) {
                         NavigationBarItem(
-                            selected = pagerState.currentPage == 2,
+                            selected = pagerState.settledPage == 2,
                             onClick = {
                                 scope.launch {
                                     val distance = abs(2 - pagerState.currentPage).coerceAtLeast(1)
@@ -139,7 +139,7 @@ data class TabScreens(
                     }
 
                     NavigationBarItem(
-                        selected = pagerState.currentPage == (if (isBinderAlive) 3 else 2),
+                        selected = pagerState.settledPage == (if (isBinderAlive) 3 else 2),
                         onClick = {
                             scope.launch {
                                 val targetPage = if (isBinderAlive) 3 else 2
