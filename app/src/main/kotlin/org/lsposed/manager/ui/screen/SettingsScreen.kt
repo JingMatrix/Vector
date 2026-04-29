@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.lsposed.manager.App
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
@@ -57,8 +58,22 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@Serializable
+data class SettingsScreen(val dummy: Int = 0) : AbstractScreen() {
+    @Composable
+    override fun Display(
+        padding: PaddingValues,
+        onNavigate: (AbstractScreen) -> Unit,
+        onBack: () -> Unit
+    ) {
+        SettingsContent(padding)
+    }
+
+    override fun getNeedDestroyAfterBack(): Boolean = false
+}
+
 @Composable
-fun SettingsScreen(
+private fun SettingsContent(
     padding: PaddingValues
 ) {
     val context = LocalContext.current

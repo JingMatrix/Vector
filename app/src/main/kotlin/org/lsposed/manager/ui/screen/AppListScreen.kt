@@ -24,7 +24,6 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -43,13 +42,12 @@ import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.lsposed.lspd.models.UserInfo
+import kotlinx.serialization.Serializable
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
 import org.lsposed.manager.util.AppHelper
 import org.lsposed.manager.util.ApplicationWithEquals
 import org.lsposed.manager.util.ModuleUtil
-import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -62,10 +60,35 @@ import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+@Serializable
+data class AppListScreen(
+    val packageName: String,
+    val userId: Int,
+    val fromSelectedUserId: Int = 0
+) : AbstractScreen() {
+
+    @Composable
+    override fun Display(
+        padding: PaddingValues,
+        onNavigate: (AbstractScreen) -> Unit,
+        onBack: () -> Unit
+    ) {
+        AppListContent(
+            packageName = packageName,
+            userId = userId,
+            padding = padding,
+            onBack = onBack
+        )
+    }
+
+    override fun getNeedDestroyAfterBack(): Boolean = true
+}
+
 @Composable
-fun AppListScreen(
+private fun AppListContent(
     packageName: String,
     userId: Int,
+    padding: PaddingValues,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -160,7 +183,7 @@ fun AppListScreen(
                 }
             )
         }
-    ) { padding ->
+    ) { innerPadding ->
         // 强制停止对话框
         if (showForceStopDialog) {
             OverlayDialog(//这个只能在Sc
@@ -237,7 +260,7 @@ fun AppListScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
         ) {
             if (isLoading) {

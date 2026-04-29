@@ -43,6 +43,7 @@ import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import org.lsposed.lspd.models.UserInfo
 import org.lsposed.manager.ConfigManager
 import org.lsposed.manager.R
@@ -58,10 +59,37 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+@Serializable
+data class ModulesScreen(//持久化数据保存
+    var selectedUserId: Int = 0
+) : AbstractScreen() {
+    @Composable
+    override fun Display(
+        padding: PaddingValues,
+        onNavigate: (AbstractScreen) -> Unit,
+        onBack: () -> Unit
+    ) {
+        ModulesContent(
+            padding = padding,
+            initialSelectedUserId = selectedUserId,
+            onSelectedUserIdChanged = { newUserId ->
+                selectedUserId = newUserId
+            },
+            onModuleClick = { packageName, userId, newSelectedUserId ->
+                selectedUserId = newSelectedUserId
+                onNavigate(AppListScreen(packageName, userId, newSelectedUserId))
+            }
+        )
+    }
+
+    override fun getNeedDestroyAfterBack(): Boolean = false
+}
+
 @Composable
-fun ModulesScreen(
+private fun ModulesContent(
     padding: PaddingValues,
     initialSelectedUserId: Int = 0,
+    onSelectedUserIdChanged: (Int) -> Unit = {},
     onModuleClick: (String, Int, Int) -> Unit  // packageName, userId, selectedUserId
 ) {
     val context = LocalContext.current
@@ -135,7 +163,13 @@ fun ModulesScreen(
                         if (user.name.isEmpty()) "User ${user.id}" else user.name
                     },
                     selectedTabIndex = selectedUserIndex,
-                    onTabSelected = { selectedUserIndex = it }
+                    onTabSelected = { newIndex ->
+                        selectedUserIndex = newIndex
+                        // 同步更新到 ModulesScreen.selectedUserId
+                        if (users.isNotEmpty() && newIndex < users.size) {
+                            onSelectedUserIdChanged(users[newIndex].id)
+                        }
+                    }
                 )
             }
 
@@ -286,6 +320,7 @@ fun ModuleListForUser(
                 modules = sortedModules
                 moduleStates = states
                 isLoading = false
+                onRefresh() // 刷新启用的模块数量显示
             }
         }
     }
