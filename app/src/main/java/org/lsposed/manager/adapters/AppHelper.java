@@ -1,21 +1,22 @@
 /*
- * This file is part of LSPosed.
+ * This file is part of Vector.
  *
- * LSPosed is free software: you can redistribute it and/or modify
+ * Vector is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * LSPosed is distributed in the hope that it will be useful,
+ * Vector is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Vector.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Copyright (C) 2020 EdXposed Contributors
  * Copyright (C) 2021 LSPosed Contributors
+ * Copyright (C) 2026 Vector Contributors
  */
 
 package org.lsposed.manager.adapters;
@@ -90,29 +91,6 @@ public class AppHelper {
                 ris.get(0).activityInfo.name);
         intent.putExtra("lsp_no_switch_to_user", (ris.get(0).activityInfo.flags & FLAG_SHOW_FOR_ALL_USERS) != 0);
         return intent;
-    }
-
-    public static boolean onOptionsItemSelected(MenuItem item, SharedPreferences preferences) {
-        int itemId = item.getItemId();
-        int i = preferences.getInt("list_sort", 0);
-        if (itemId == R.id.item_sort_by_name) {
-            i = (i % 2 == 0) ? 0 : 1;
-        } else if (itemId == R.id.item_sort_by_package_name) {
-            i = (i % 2 == 0) ? 2 : 3;
-        } else if (itemId == R.id.item_sort_by_install_time) {
-            i = (i % 2 == 0) ? 4 : 5;
-        } else if (itemId == R.id.item_sort_by_update_time) {
-            i = (i % 2 == 0) ? 6 : 7;
-        } else if (itemId == R.id.reverse) {
-            if (i % 2 == 0) i++;
-            else i--;
-        } else {
-            return false;
-        }
-        preferences.edit().putInt("list_sort", i).apply();
-        if (item.isCheckable())
-            item.setChecked(!item.isChecked());
-        return true;
     }
 
     public static Comparator<PackageInfo> getAppListComparator(int sort, PackageManager pm) {

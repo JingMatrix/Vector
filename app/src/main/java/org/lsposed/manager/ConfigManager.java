@@ -1,20 +1,21 @@
 /*
- * This file is part of LSPosed.
+ * This file is part of Vector.
  *
- * LSPosed is free software: you can redistribute it and/or modify
+ * Vector is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * LSPosed is distributed in the hope that it will be useful,
+ * Vector is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Vector.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Copyright (C) 2021 LSPosed Contributors
+ * Copyright (C) 2026 Vector Contributors
  */
 
 package org.lsposed.manager;
@@ -30,8 +31,8 @@ import android.util.Log;
 import org.lsposed.lspd.ILSPManagerService;
 import org.lsposed.lspd.models.Application;
 import org.lsposed.lspd.models.UserInfo;
-import org.lsposed.manager.adapters.ScopeAdapter;
 import org.lsposed.manager.receivers.LSPManagerServiceHolder;
+import org.lsposed.manager.util.ApplicationWithEquals;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -100,7 +101,7 @@ public class ConfigManager {
         }
     }
 
-    public static boolean setModuleScope(String packageName, boolean legacy, Set<ScopeAdapter.ApplicationWithEquals> applications) {
+    public static boolean setModuleScope(String packageName, boolean legacy, Set<ApplicationWithEquals> applications) {
         try {
             List<Application> list = new ArrayList<>();
             applications.forEach(application -> {
@@ -122,8 +123,8 @@ public class ConfigManager {
         }
     }
 
-    public static List<ScopeAdapter.ApplicationWithEquals> getModuleScope(String packageName) {
-        List<ScopeAdapter.ApplicationWithEquals> list = new ArrayList<>();
+    public static List<ApplicationWithEquals> getModuleScope(String packageName) {
+        List<ApplicationWithEquals> list = new ArrayList<>();
         try {
             var applications = LSPManagerServiceHolder.getService().getModuleScope(packageName);
             if (applications == null) {
@@ -131,7 +132,7 @@ public class ConfigManager {
             }
             applications.forEach(application -> {
                 if (!application.packageName.equals(packageName)) {
-                    list.add(new ScopeAdapter.ApplicationWithEquals(application));
+                    list.add(new ApplicationWithEquals(application));
                 }
             });
         } catch (RemoteException e) {

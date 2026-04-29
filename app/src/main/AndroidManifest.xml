@@ -57,6 +57,12 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- Compose version for gradual migration -->
+        <activity
+            android:name=".ui.activity.MainActivityCompose"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

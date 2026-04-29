@@ -35,8 +35,6 @@ import androidx.core.util.Pair;
 import org.lsposed.lspd.models.UserInfo;
 import org.lsposed.manager.App;
 import org.lsposed.manager.ConfigManager;
-import org.lsposed.manager.repo.RepoLoader;
-import org.lsposed.manager.repo.model.OnlineModule;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -364,12 +362,6 @@ public final class ModuleUtil {
                         list = Arrays.asList(scopeListString.split(";"));
                 }
             } catch (Exception ignored) {
-            }
-            if (list == null) {
-                OnlineModule module = RepoLoader.getInstance().getOnlineModule(packageName);
-                if (module != null && module.getScope() != null) {
-                    list = module.getScope();
-                }
             }
             if (list != null) {
                 //For historical reasons, legacy modules use the opposite name.

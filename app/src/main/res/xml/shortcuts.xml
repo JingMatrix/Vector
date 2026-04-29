@@ -46,18 +46,6 @@
     </shortcut>
     <shortcut
         android:enabled="true"
-        android:icon="@drawable/shortcut_ic_repo"
-        android:shortcutId="repo"
-        android:shortcutLongLabel="@string/module_repo"
-        android:shortcutShortLabel="@string/module_repo">
-        <intent
-            android:action="android.intent.action.MAIN"
-            android:data="repo"
-            android:targetClass="org.lsposed.manager.ui.activity.MainActivity"
-            android:targetPackage="org.lsposed.manager" />
-    </shortcut>
-    <shortcut
-        android:enabled="true"
         android:icon="@drawable/shortcut_ic_settings"
         android:shortcutId="settings"
         android:shortcutLongLabel="@string/Settings"

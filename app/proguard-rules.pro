@@ -32,7 +32,34 @@
 -dontwarn org.openjsse.javax.net.ssl.SSLParameters
 -dontwarn org.openjsse.javax.net.ssl.SSLSocket
 -dontwarn org.openjsse.net.ssl.OpenJSSE
+-dontwarn androidx.window.**
 
 -keepclassmembers class * implements android.os.Parcelable {
     public static final ** CREATOR;
+}
+
+# Jetpack Compose
+-keep class androidx.compose.** { *; }
+-keep interface androidx.compose.** { *; }
+-keepclassmembers class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+
+# MIUIX
+-keep class top.yukonga.miuix.** { *; }
+-keep interface top.yukonga.miuix.** { *; }
+-keepclassmembers class top.yukonga.miuix.** { *; }
+-dontwarn top.yukonga.miuix.**
+
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+
+# Keep Composable functions
+-keep @androidx.compose.runtime.Composable class * { *; }
+-keep @androidx.compose.runtime.Composable interface * { *; }
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable *;
 }
