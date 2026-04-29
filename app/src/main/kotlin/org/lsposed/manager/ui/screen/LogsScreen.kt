@@ -63,14 +63,6 @@ data class LogsScreen(val dummy: Int = 0) : AbstractScreen() {
         onNavigate: (AbstractScreen) -> Unit,
         onBack: () -> Unit
     ) {
-        LogsContent(padding)
-    }
-
-    override fun getNeedDestroyAfterBack(): Boolean = false
-}
-
-@Composable
-private fun LogsContent(padding: PaddingValues) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scrollBehavior = MiuixScrollBehavior()
@@ -225,4 +217,8 @@ private fun LogsContent(padding: PaddingValues) {
             }
         }
     }
+}
+
+
+    override fun getNeedDestroyAfterBack(): Boolean = false
 }
