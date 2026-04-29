@@ -20,14 +20,16 @@
 package org.lsposed.manager.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.lsposed.manager.R
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -38,16 +40,15 @@ import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.Album
 import top.yukonga.miuix.kmp.icon.extended.File
 import top.yukonga.miuix.kmp.icon.extended.Settings
+import kotlin.math.abs
 
 @Serializable
 data class TabScreens(
     val isBinderAlive: Boolean = true
 ) : AbstractScreen() {
 
-    // 当前选中的标签页索引
-    var currentTabIndex by mutableIntStateOf(1) // 默认 Home
+    var currentTabIndex by mutableIntStateOf(1)
 
-    // 各个标签页的 Screen 实例（单例）
     val modulesScreen = ModulesScreen()
     val homeScreen = HomeScreen()
     val logsScreen = LogsScreen()
@@ -60,10 +61,27 @@ data class TabScreens(
         onBack: () -> Unit
     ) {
         val context = LocalContext.current
+        val scope = rememberCoroutineScope()
 
-        // 处理返回键：非 Home 页面返回到 Home，Home 页面调用 onBack（退出应用）
-        BackHandler(enabled = currentTabIndex != 1) {
-            currentTabIndex = 1 // 返回到 Home
+        val pageCount = if (isBinderAlive) 4 else 3
+        val pagerState = rememberPagerState(
+            initialPage = currentTabIndex,
+            pageCount = { pageCount }
+        )
+
+        LaunchedEffect(pagerState.currentPage) {
+            currentTabIndex = pagerState.currentPage
+        }
+
+        BackHandler(enabled = pagerState.currentPage != 1) {
+            scope.launch {
+                val distance = abs(1 - pagerState.currentPage).coerceAtLeast(1)
+                val duration = 100 * distance + 100
+                pagerState.animateScrollToPage(
+                    page = 1,
+                    animationSpec = tween(durationMillis = duration, easing = EaseInOut)
+                )
+            }
         }
 
         Scaffold(
@@ -71,47 +89,90 @@ data class TabScreens(
             bottomBar = {
                 NavigationBar {
                     NavigationBarItem(
-                        selected = currentTabIndex == 0,
-                        onClick = { currentTabIndex = 0 },
+                        selected = pagerState.currentPage == 0,
+                        onClick = {
+                            scope.launch {
+                                val distance = abs(0 - pagerState.currentPage).coerceAtLeast(1)
+                                val duration = 100 * distance + 100
+                                pagerState.animateScrollToPage(
+                                    page = 0,
+                                    animationSpec = tween(durationMillis = duration, easing = EaseInOut)
+                                )
+                            }
+                        },
                         icon = MiuixIcons.All,
                         label = context.getString(R.string.Modules)
                     )
 
                     NavigationBarItem(
-                        selected = currentTabIndex == 1,
-                        onClick = { currentTabIndex = 1 },
+                        selected = pagerState.currentPage == 1,
+                        onClick = {
+                            scope.launch {
+                                val distance = abs(1 - pagerState.currentPage).coerceAtLeast(1)
+                                val duration = 100 * distance + 100
+                                pagerState.animateScrollToPage(
+                                    page = 1,
+                                    animationSpec = tween(durationMillis = duration, easing = EaseInOut)
+                                )
+                            }
+                        },
                         icon = MiuixIcons.Album,
                         label = context.getString(R.string.overview)
                     )
 
                     if (isBinderAlive) {
                         NavigationBarItem(
-                            selected = currentTabIndex == 2,
-                            onClick = { currentTabIndex = 2 },
+                            selected = pagerState.currentPage == 2,
+                            onClick = {
+                                scope.launch {
+                                    val distance = abs(2 - pagerState.currentPage).coerceAtLeast(1)
+                                    val duration = 100 * distance + 100
+                                    pagerState.animateScrollToPage(
+                                        page = 2,
+                                        animationSpec = tween(durationMillis = duration, easing = EaseInOut)
+                                    )
+                                }
+                            },
                             icon = MiuixIcons.File,
                             label = context.getString(R.string.Logs)
                         )
                     }
 
                     NavigationBarItem(
-                        selected = currentTabIndex == (if (isBinderAlive) 3 else 2),
-                        onClick = { currentTabIndex = if (isBinderAlive) 3 else 2 },
+                        selected = pagerState.currentPage == (if (isBinderAlive) 3 else 2),
+                        onClick = {
+                            scope.launch {
+                                val targetPage = if (isBinderAlive) 3 else 2
+                                val distance = abs(targetPage - pagerState.currentPage).coerceAtLeast(1)
+                                val duration = 100 * distance + 100
+                                pagerState.animateScrollToPage(
+                                    page = targetPage,
+                                    animationSpec = tween(durationMillis = duration, easing = EaseInOut)
+                                )
+                            }
+                        },
                         icon = MiuixIcons.Settings,
                         label = context.getString(R.string.Settings)
                     )
                 }
             }
         ) { innerPadding ->
-            // 根据 currentTabIndex 显示对应的 Screen
-            when (currentTabIndex) {
-                0 -> modulesScreen.Display(innerPadding, onNavigate, onBack)
-                1 -> homeScreen.Display(innerPadding, onNavigate, onBack)
-                2 -> if (isBinderAlive) {
-                    logsScreen.Display(innerPadding, onNavigate, onBack)
-                } else {
-                    settingsScreen.Display(innerPadding, onNavigate, onBack)
+            HorizontalPager(
+                state = pagerState,
+                beyondViewportPageCount = 2,
+                userScrollEnabled = true,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> modulesScreen.Display(innerPadding, onNavigate, onBack)
+                    1 -> homeScreen.Display(innerPadding, onNavigate, onBack)
+                    2 -> if (isBinderAlive) {
+                        logsScreen.Display(innerPadding, onNavigate, onBack)
+                    } else {
+                        settingsScreen.Display(innerPadding, onNavigate, onBack)
+                    }
+                    3 -> settingsScreen.Display(innerPadding, onNavigate, onBack)
                 }
-                3 -> settingsScreen.Display(innerPadding, onNavigate, onBack)
             }
         }
     }
