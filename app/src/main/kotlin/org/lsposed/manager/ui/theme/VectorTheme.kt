@@ -29,7 +29,7 @@ import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 
 @Composable
 fun VectorTheme(
-    darkMode: Boolean = isSystemInDarkTheme(),
+    darkMode: Boolean = isSystemInDarkTheme(),//MIUIX 没有动态颜色
     content: @Composable () -> Unit
 ) {
     val colorSchemeMode = if (darkMode) {

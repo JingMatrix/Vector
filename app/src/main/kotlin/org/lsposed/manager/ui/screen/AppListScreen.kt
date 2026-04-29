@@ -163,7 +163,7 @@ fun AppListScreen(
     ) { padding ->
         // 强制停止对话框
         if (showForceStopDialog) {
-            OverlayDialog(
+            OverlayDialog(//这个只能在Sc
                 show = showForceStopDialog,
                 title = stringResource(R.string.force_stop_dlg_title),
                 summary = stringResource(R.string.force_stop_dlg_text),
@@ -175,15 +175,6 @@ fun AppListScreen(
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        TextButton(
-                            text = stringResource(android.R.string.cancel),
-                            onClick = {
-                                showForceStopDialog = false
-                                pendingToggle = null
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(20.dp))
                         TextButton(
                             text = stringResource(android.R.string.ok),
                             onClick = {
@@ -197,6 +188,15 @@ fun AppListScreen(
                             },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.textButtonColorsPrimary()
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = stringResource(android.R.string.cancel),
+                            onClick = {
+                                showForceStopDialog = false
+                                pendingToggle = null
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -215,12 +215,6 @@ fun AppListScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         TextButton(
-                            text = stringResource(android.R.string.cancel),
-                            onClick = { showRebootDialog = false },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(20.dp))
-                        TextButton(
                             text = stringResource(R.string.reboot),
                             onClick = {
                                 ConfigManager.reboot()
@@ -228,6 +222,12 @@ fun AppListScreen(
                             },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.textButtonColorsPrimary()
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = stringResource(android.R.string.cancel),
+                            onClick = { showRebootDialog = false },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -257,93 +257,25 @@ fun AppListScreen(
                     }
                 }
             } else {
-                // 推荐应用列表（如果有）
-                if (recommendedApps.isNotEmpty()) {
-                    item {
-                        Card(modifier = Modifier.padding(vertical = 6.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.requested_by_module),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MiuixTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
+                // 合并显示所有应用，推荐应用排在前面
+                val sortedApps = apps.sortedWith(
+                    compareByDescending<PackageInfo> { recommendedApps.contains(it.packageName) }
+                        .thenBy { it.packageName }
+                )
 
-                    items(
-                        apps.filter { recommendedApps.contains(it.packageName) },
-                        key = { "${it.packageName}_recommended" }
-                    ) { app ->
-                        AppItem(
-                            app = app,
-                            pm = pm,
-                            userId = userId,
-                            isEnabled = scopeStates["${app.packageName}_${userId}"] ?: false,
-                            isRecommended = true,
-                            onToggle = { enabled ->
-                                scope.launch(Dispatchers.IO) {
-                                    updateScope(
-                                        packageName = packageName,
-                                        appPackageName = app.packageName,
-                                        userId = userId,
-                                        enabled = enabled,
-                                        moduleUtil = moduleUtil,
-                                        onSuccess = { newStates ->
-                                            scopeStates = newStates
-                                        },
-                                        onNeedReboot = {
-                                            showRebootDialog = true
-                                        }
-                                    )
-                                }
-                            },
-                            onClick = {
-                                val currentState = scopeStates["${app.packageName}_${userId}"] ?: false
-                                scope.launch(Dispatchers.IO) {
-                                    updateScope(
-                                        packageName = packageName,
-                                        appPackageName = app.packageName,
-                                        userId = userId,
-                                        enabled = !currentState,
-                                        moduleUtil = moduleUtil,
-                                        onSuccess = { newStates ->
-                                            scopeStates = newStates
-                                        },
-                                        onNeedReboot = {
-                                            showRebootDialog = true
-                                        }
-                                    )
-                                }
-                            },
-                            onLongClick = {
-                                if (app.packageName != "system") {
-                                    pendingToggle = app.packageName to scopeStates["${app.packageName}_${userId}"]!!
-                                    showForceStopDialog = true
-                                }
-                            }
-                        )
-                    }
-                }
-
-                // 所有应用列表
                 items(
-                    apps.filter { !recommendedApps.contains(it.packageName) },
+                    sortedApps,
                     key = { "${it.packageName}_${it.applicationInfo?.uid ?: 0}" }
                 ) { app ->
                     val appInfo = app.applicationInfo
                     if (appInfo != null) {
+                        val isRecommended = recommendedApps.contains(app.packageName)
                         AppItem(
                             app = app,
                             pm = pm,
                             userId = userId,
                             isEnabled = scopeStates["${app.packageName}_${userId}"] ?: false,
-                            isRecommended = false,
+                            isRecommended = isRecommended,
                             onToggle = { enabled ->
                                 scope.launch(Dispatchers.IO) {
                                     updateScope(

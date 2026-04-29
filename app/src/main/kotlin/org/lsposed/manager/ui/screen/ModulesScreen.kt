@@ -174,14 +174,6 @@ fun ModulesScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         TextButton(
-                            text = context.getString(android.R.string.cancel),
-                            onClick = {
-                                showInstallDialog = false
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(20.dp))
-                        TextButton(
                             text = context.getString(android.R.string.ok),
                             onClick = {
                                 val module = selectedModule!!
@@ -205,6 +197,14 @@ fun ModulesScreen(
                             },
                             modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.textButtonColorsPrimary()
+                        )
+                        Spacer(Modifier.width(20.dp))
+                        TextButton(
+                            text = context.getString(android.R.string.cancel),
+                            onClick = {
+                                showInstallDialog = false
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -348,8 +348,7 @@ fun ModuleListForUser(
                         onModuleClick(module.packageName, module.userId, userId)
                     },
                     onLongClick = {
-                        // 只有用户0的模块才能安装到其他用户
-                        if (module.userId == 0 && users.size > 1) {
+                        if (users.size > 1) {
                             // 找到所有未安装该模块的其他用户
                             val targetUsers = users.filter { user ->
                                 user.id != 0 && moduleUtil.getModule(module.packageName, user.id) == null
