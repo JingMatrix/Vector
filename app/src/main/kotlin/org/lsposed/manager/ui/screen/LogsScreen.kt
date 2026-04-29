@@ -68,11 +68,9 @@ fun LogsScreen(padding: PaddingValues) {
 
     // 监听 isRefreshing 状态，执行实际的日志加载
     LaunchedEffect(isRefreshing) {
-        Log.d(App.TAG, "LaunchedEffect triggered: isRefreshing=$isRefreshing")
         if (isRefreshing) {
             try {
                 val verbose = selectedTabIndex == 1
-                Log.d(App.TAG, "Starting to load logs, verbose=$verbose")
                 val logs = withContext(Dispatchers.IO) {
                     val parcel = ConfigManager.getLog(verbose)
                     if (parcel != null) {
@@ -83,16 +81,12 @@ fun LogsScreen(padding: PaddingValues) {
                         emptyList()
                     }
                 }
-                Log.d(App.TAG, "Loaded ${logs.size} log lines")
                 logLines = logs
             } catch (e: Throwable) {
-                Log.e(App.TAG, "Failed to load logs", e)
                 val stackTrace = Log.getStackTraceString(e).split("\n")
                 logLines = stackTrace
             } finally {
-                Log.d(App.TAG, "Setting isRefreshing = false")
                 isRefreshing = false
-                Log.d(App.TAG, "isRefreshing is now: $isRefreshing")
             }
         }
     }

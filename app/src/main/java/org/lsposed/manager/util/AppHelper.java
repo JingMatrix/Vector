@@ -137,4 +137,17 @@ public class AppHelper {
         if (info == null || info.applicationInfo == null) return null;
         return appLabel.computeIfAbsent(info, i -> i.applicationInfo.loadLabel(pm));
     }
+
+    public static boolean shouldShowApp(PackageInfo app, int moduleUserId, String currentPackageName) {
+        if (app == null || app.applicationInfo == null) return false;
+
+        int appUserId = app.applicationInfo.uid / 100000;
+        String appPackageName = app.packageName;
+
+        if ("system".equals(appPackageName) && appUserId != 0) return false;
+        if (appPackageName.equals(currentPackageName)) return false;
+        if ("org.lsposed.manager".equals(appPackageName)) return false;
+
+        return appUserId == moduleUserId;
+    }
 }
