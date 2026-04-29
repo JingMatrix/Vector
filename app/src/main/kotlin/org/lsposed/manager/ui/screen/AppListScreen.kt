@@ -67,6 +67,7 @@ data class AppListScreen(
     val fromSelectedUserId: Int = 0
 ) : AbstractScreen() {
 
+    @Composable
     override fun Display(
         padding: PaddingValues,
         onNavigate: (AbstractScreen) -> Unit,
