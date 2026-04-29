@@ -73,24 +73,6 @@ data class AppListScreen(
         onNavigate: (AbstractScreen) -> Unit,
         onBack: () -> Unit
     ) {
-        AppListContent(
-            packageName = packageName,
-            userId = userId,
-            padding = padding,
-            onBack = onBack
-        )
-    }
-
-    override fun getNeedDestroyAfterBack(): Boolean = true
-}
-
-@Composable
-private fun AppListContent(
-    packageName: String,
-    userId: Int,
-    padding: PaddingValues,
-    onBack: () -> Unit
-) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val moduleUtil = remember { ModuleUtil.getInstance() }
@@ -482,3 +464,8 @@ fun AppItem(
         }
     }
 }
+
+
+    override fun getNeedDestroyAfterBack(): Boolean = true
+}
+
