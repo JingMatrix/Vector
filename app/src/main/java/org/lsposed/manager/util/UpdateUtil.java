@@ -55,13 +55,12 @@ public class UpdateUtil {
                 if (!response.isSuccessful()) return;
                 var body = response.body();
                 if (body == null) return;
-                String api = ConfigManager.isBinderAlive() ? ConfigManager.getApi() : "riru";
                 try {
                     var info = JsonParser.parseReader(body.charStream()).getAsJsonObject();
                     var notes = info.get("body").getAsString();
                     var assetsArray = info.getAsJsonArray("assets");
                     for (var assets : assetsArray) {
-                        checkAssets(assets.getAsJsonObject(), notes, api.toLowerCase(Locale.ROOT));
+                        checkAssets(assets.getAsJsonObject(), notes);
                     }
                 } catch (Throwable t) {
                     Log.e(App.TAG, t.getMessage(), t);
@@ -79,11 +78,10 @@ public class UpdateUtil {
         App.getOkHttpClient().newCall(request).enqueue(callback);
     }
 
-    private static void checkAssets(JsonObject assets, String releaseNotes, String api) {
+    private static void checkAssets(JsonObject assets, String releaseNotes) {
         var pref = App.getPreferences();
         var name = assets.get("name").getAsString();
         var splitName = name.split("-");
-        if (!splitName[3].equals(api)) return;
         pref.edit()
                 .putInt("latest_version", Integer.parseInt(splitName[2]))
                 .putLong("latest_check", Instant.now().getEpochSecond())
@@ -138,12 +136,5 @@ public class UpdateUtil {
             return null;
         }
         return zip;
-    }
-
-    public static boolean canInstall() {
-        if (!ConfigManager.isBinderAlive()) return false;
-        var pref = App.getPreferences();
-        var zip = pref.getString("zip_file", null);
-        return zip != null && new File(zip).isFile();
     }
 }

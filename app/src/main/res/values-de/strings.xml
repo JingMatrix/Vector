@@ -139,12 +139,15 @@ JJ108</string>
     <string name="no_scope_selected">Du hast keine App ausgewählt. Weiter?</string>
     <string name="menu_show_games">Spiele</string>
     <string name="menu_show_modules">Module</string>
-    <string name="menu_show_denylist">Verweigerungsliste</string>
     <string name="failed_to_save_scope_list">Scope-Liste speichern fehlgeschlagen</string>
     <string name="app_version">Version: %1$s</string>
+    <string name="menu_select">Auswählen</string>
     <string name="use_recommended">Empfohlen</string>
     <string name="no_scope_selected_has_recommended">Du hast keine App ausgewählt. Empfohlene Apps auswählen?</string>
     <string name="use_recommended_message">Empfohlene Apps auswählen?</string>
+    <string name="menu_select_all">Alle Auswählen</string>
+    <string name="menu_select_none">Keine Auswahl</string>
+    <string name="menu_auto_include">Automatisch einbinden</string>
     <string name="module_is_not_activated_yet">Das LSPosed-Modul wurde noch nicht aktiviert</string>
     <string name="requested_by_module">Empfohlen</string>
     <string name="update_available">Aktualisierung verfügbar: %1$s</string>
@@ -159,8 +162,6 @@ JJ108</string>
     <string name="reboot_required">Neustart erforderlich, um diese Änderung zu übernehmen</string>
     <string name="reboot">Neustart</string>
     <string name="menu_hide">Ausblenden</string>
-    <string name="deny_list">%s ist auf Verweigerungsliste. Dies könnte ohne Auswirkung bleiben.</string>
-    <string name="deny_list_info">Auf Verweigerungsliste</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">In anderer App anzeigen</string>
     <string name="module_app_info">App-Information</string>
@@ -197,13 +198,10 @@ JJ108</string>
     <string name="settings_unsupported_pin_shortcut_summary">Der aktuelle Standard-Launcher unterstützt keine Pin-Verknüpfungen</string>
     <string name="settings_enable_status_notification">Status-Benachrichtigung</string>
     <string name="settings_enable_status_notification_summary">Eine Benachrichtigung anzeigen, die den parasitären Manager öffnen kann</string>
-    <string name="disable_status_notification_error">Keine Verknüpfung, Benachrichtigung kann nicht deaktiviert werden</string>
     <string name="settings_update_channel">Update-Kanal</string>
     <string name="update_channel_stable">Stabil</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Nightly Build</string>
-    <string name="settings_xposed_api_call_protection">Xposed API-Aufrufschutz</string>
-    <string name="settings_xposed_api_call_protection_summary">Dynamisch geladenen Modulcode blockieren, um Xposed API zu verwenden. Einige Module werden nicht mehr funktionieren, aber die Sicherheit profitiert davon</string>
     <!-- Module Repo -->
     <string name="module_readme">Liesmich</string>
     <string name="module_releases">Veröffentlichungen</string>

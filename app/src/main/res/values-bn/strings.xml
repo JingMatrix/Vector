@@ -136,7 +136,6 @@
     <string name="no_scope_selected">আপনি কোনো অ্যাপ নির্বাচন করেননি। চালিয়ে যান?</string>
     <string name="menu_show_games">গেমস</string>
     <string name="menu_show_modules">মডিউল</string>
-    <string name="menu_show_denylist">অস্বীকারকারী</string>
     <string name="failed_to_save_scope_list">সুযোগ তালিকা সংরক্ষণ করতে ব্যর্থ হয়েছে</string>
     <string name="app_version">সংস্করণ: %1$s</string>
     <string name="use_recommended">প্রস্তাবিত</string>
@@ -156,8 +155,6 @@
     <string name="reboot_required">এই পরিবর্তনটি প্রয়োগ করার জন্য রিবুট প্রয়োজন</string>
     <string name="reboot">রিবুট করুন</string>
     <string name="menu_hide">লুকান</string>
-    <string name="deny_list">%s ডিনালিস্টে রয়েছে। এটি কার্যকর নাও হতে পারে।</string>
-    <string name="deny_list_info">ডিনালিস্টে</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">অন্য অ্যাপে দেখুন</string>
     <string name="module_app_info">অ্যাপের তথ্য</string>
@@ -194,13 +191,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">বর্তমান ডিফল্ট লঞ্চার পিন শর্টকাট সমর্থন করে না</string>
     <string name="settings_enable_status_notification">স্থিতি বিজ্ঞপ্তি</string>
     <string name="settings_enable_status_notification_summary">পরজীবী ম্যানেজার খুলতে পারে এমন একটি বিজ্ঞপ্তি দেখান</string>
-    <string name="disable_status_notification_error">কোন শর্টকাট, বিজ্ঞপ্তি নিষ্ক্রিয় করতে পারবেন না</string>
     <string name="settings_update_channel">চ্যানেল আপডেট করুন</string>
     <string name="update_channel_stable">স্থিতিশীল</string>
     <string name="update_channel_bate">বেটা</string>
     <string name="update_channel_nightly">রাতারাতি নির্মাণ</string>
-    <string name="settings_xposed_api_call_protection">Xposed API কল সুরক্ষা</string>
-    <string name="settings_xposed_api_call_protection_summary">এক্সপোজড এপিআই ব্যবহার করতে গতিশীলভাবে লোড করা মডিউল কোড ব্লক করুন, এটি কিছু মডিউল ভেঙে ফেলতে পারে তবে নিরাপত্তার সুবিধা পাবে</string>
     <!-- Module Repo -->
     <string name="module_readme">রিডমি</string>
     <string name="module_releases">মুক্তি দেয়</string>

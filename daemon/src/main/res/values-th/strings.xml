@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">อัปเดตโมดูล Xposed จำเป็นต้องรีสตาร์ทเครื่อง</string>
     <string name="xposed_module_updated_notification_content_system">%s ได้รับการอัปเดตแล้ว เนื่องจาก Scope มี System Framework จึงจำเป็นต้องรีสตาร์ทเครื่องเพื่อใช้การเปลี่ยนแปลง</string>
     <string name="module_updated_channel_name">การอัปเดตโมดูลเสร็จสมบูรณ์</string>
-    <string name="status_channel_name">สถานะ LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed โหลดแล้ว</string>
-    <string name="lsposed_running_notification_content">แตะการแจ้งเตือนเพื่อเปิดตัวจัดการ</string>
+    <string name="status_channel_name">สถานะ Vector</string>
+    <string name="vector_running_notification_title">Vector โหลดแล้ว</string>
+    <string name="vector_running_notification_content">แตะการแจ้งเตือนเพื่อเปิดตัวจัดการ</string>
     <string name="xposed_module_request_scope_title">คำขอ Scope</string>
     <string name="xposed_module_request_scope_content">%1$s ผูัใช้นี้ %2$s ขอให้เพิ่ม %3$s ใน List ของ scope.</string>
     <string name="scope_channel_name">คำขอ Scope.</string>
     <string name="scope_approve">อนุมัติ</string>
     <string name="scope_deny">ปฎิเสธ</string>
-    <string name="nerver_ask_again">ไม่เคยถาม</string>
+    <string name="never_ask_again">ไม่เคยถาม</string>
 </resources>

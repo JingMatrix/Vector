@@ -63,7 +63,7 @@ public class ConfigManager {
         }
     }
 
-    public static int getXposedVersionCode() {
+    public static long getXposedVersionCode() {
         try {
             return LSPManagerServiceHolder.getService().getXposedVersionCode();
         } catch (RemoteException e) {
@@ -171,25 +171,6 @@ public class ConfigManager {
     public static boolean setVerboseLogEnabled(boolean enabled) {
         try {
             LSPManagerServiceHolder.getService().setVerboseLog(enabled);
-            return true;
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-            return false;
-        }
-    }
-
-    public static boolean isLogWatchdogEnabled() {
-        try {
-            return LSPManagerServiceHolder.getService().isLogWatchdogEnabled();
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-            return false;
-        }
-    }
-
-    public static boolean setLogWatchdog(boolean enabled) {
-        try {
-            LSPManagerServiceHolder.getService().setLogWatchdog(enabled);
             return true;
         } catch (RemoteException e) {
             Log.e(App.TAG, Log.getStackTraceString(e));
@@ -329,52 +310,6 @@ public class ConfigManager {
     public static boolean setHiddenIcon(boolean hide) {
         try {
             LSPManagerServiceHolder.getService().setHiddenIcon(hide);
-            return true;
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-            return false;
-        }
-    }
-
-    public static String getApi() {
-        try {
-            return LSPManagerServiceHolder.getService().getApi();
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-            return e.toString();
-        }
-    }
-
-    public static List<String> getDenyListPackages() {
-        List<String> list = new ArrayList<>();
-        try {
-            list.addAll(LSPManagerServiceHolder.getService().getDenyListPackages());
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-        }
-        return list;
-    }
-
-    public static void flashZip(String zipPath, ParcelFileDescriptor outputStream) {
-        try {
-            LSPManagerServiceHolder.getService().flashZip(zipPath, outputStream);
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-        }
-    }
-
-    public static boolean isDexObfuscateEnabled() {
-        try {
-            return LSPManagerServiceHolder.getService().getDexObfuscate();
-        } catch (RemoteException e) {
-            Log.e(App.TAG, Log.getStackTraceString(e));
-            return false;
-        }
-    }
-
-    public static boolean setDexObfuscateEnabled(boolean enabled) {
-        try {
-            LSPManagerServiceHolder.getService().setDexObfuscate(enabled);
             return true;
         } catch (RemoteException e) {
             Log.e(App.TAG, Log.getStackTraceString(e));

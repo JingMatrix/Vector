@@ -47,7 +47,6 @@ import org.lsposed.manager.R;
 import org.lsposed.manager.databinding.DialogAboutBinding;
 import org.lsposed.manager.databinding.FragmentHomeBinding;
 import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
-import org.lsposed.manager.ui.dialog.FlashDialogBuilder;
 import org.lsposed.manager.ui.dialog.WelcomeDialog;
 import org.lsposed.manager.util.NavUtil;
 import org.lsposed.manager.util.UpdateUtil;
@@ -116,11 +115,7 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
                 binding.updateSummary.setText(getString(R.string.please_update_summary));
                 binding.statusIcon.setImageResource(R.drawable.ic_round_update_24);
                 binding.updateBtn.setOnClickListener(v -> {
-                    if (UpdateUtil.canInstall()) {
-                        new FlashDialogBuilder(activity, null).show();
-                    } else {
-                        NavUtil.startURL(activity, getString(R.string.latest_url));
-                    }
+                    NavUtil.startURL(activity, getString(R.string.latest_url));
                 });
                 binding.updateCard.setVisibility(View.VISIBLE);
             } else {
@@ -150,8 +145,8 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
                 binding.statusTitle.setText(R.string.activated);
                 binding.statusIcon.setImageResource(R.drawable.ic_round_check_circle_24);
             }
-            binding.statusSummary.setText(String.format(LocaleDelegate.getDefaultLocale(), "%s (%d) - %s",
-                    ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode(), ConfigManager.getApi()));
+            binding.statusSummary.setText(String.format(LocaleDelegate.getDefaultLocale(), "%s (%d)",
+                    ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode()));
             binding.developerWarningCard.setVisibility(isDeveloper() ? View.VISIBLE : View.GONE);
         } else {
             boolean isMagiskInstalled = ConfigManager.isMagiskInstalled();
@@ -160,11 +155,7 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
                 binding.updateSummary.setText(R.string.install_summary);
                 binding.statusIcon.setImageResource(R.drawable.ic_round_error_outline_24);
                 binding.updateBtn.setOnClickListener(v -> {
-                    if (UpdateUtil.canInstall()) {
-                        new FlashDialogBuilder(activity, null).show();
-                    } else {
-                        NavUtil.startURL(activity, getString(R.string.install_url));
-                    }
+                    NavUtil.startURL(activity, getString(R.string.install_url));
                 });
                 binding.updateCard.setVisibility(View.VISIBLE);
             } else {
@@ -177,7 +168,6 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
 
         if (ConfigManager.isBinderAlive()) {
             binding.apiVersion.setText(String.valueOf(ConfigManager.getXposedApiVersion()));
-            binding.api.setText(ConfigManager.isDexObfuscateEnabled() ? R.string.enabled : R.string.not_enabled);
             binding.frameworkVersion.setText(String.format(LocaleDelegate.getDefaultLocale(), "%1$s (%2$d)", ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode()));
             binding.managerPackageName.setText(activity.getPackageName());
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -196,7 +186,6 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
             }
         } else {
             binding.apiVersion.setText(R.string.not_installed);
-            binding.api.setText(R.string.not_installed);
             binding.frameworkVersion.setText(R.string.not_installed);
             binding.managerPackageName.setText(activity.getPackageName());
         }
@@ -212,10 +201,6 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
         String info = activity.getString(R.string.info_api_version) +
                 "\n" +
                 binding.apiVersion.getText() +
-                "\n\n" +
-                activity.getString(R.string.settings_xposed_api_call_protection) +
-                "\n" +
-                binding.api.getText() +
                 "\n\n" +
                 activity.getString(R.string.info_dex2oat_wrapper) +
                 "\n" +
@@ -242,7 +227,6 @@ public class HomeFragment extends BaseFragment implements MenuProvider {
                 binding.systemAbi.getText();
         var map = new HashMap<String, String>();
         map.put("apiVersion", binding.apiVersion.getText().toString());
-        map.put("api", binding.api.getText().toString());
         map.put("frameworkVersion", binding.frameworkVersion.getText().toString());
         map.put("systemAbi", Arrays.toString(Build.SUPPORTED_ABIS));
         binding.copyInfo.setOnClickListener(v -> {

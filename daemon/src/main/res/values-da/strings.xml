@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Xposed modul opdateret, system genstart kræves</string>
     <string name="xposed_module_updated_notification_content_system">%s er blevet opdateret, da anvendelsesområdet indeholder System Framework, krævede genstart for at anvende ændringer</string>
     <string name="module_updated_channel_name">Modulopdatering afsluttet</string>
-    <string name="status_channel_name">LSPosed status</string>
-    <string name="lsposed_running_notification_title">LSPosed indlæst</string>
-    <string name="lsposed_running_notification_content">Tryk på meddelelsen for at åbne administratoren</string>
+    <string name="status_channel_name">Vector status</string>
+    <string name="vector_running_notification_title">Vector indlæst</string>
+    <string name="vector_running_notification_content">Tryk på meddelelsen for at åbne administratoren</string>
     <string name="xposed_module_request_scope_title">Anmodning om anvendelsesområde</string>
     <string name="xposed_module_request_scope_content">%1$s på anmodninger fra brugeren %2$s om at tilføje %3$s til sit anvendelsesområde.</string>
     <string name="scope_channel_name">Anmodning om anvendelsesområde</string>
     <string name="scope_approve">Godkend</string>
     <string name="scope_deny">Afvis</string>
-    <string name="nerver_ask_again">Spørg aldrig</string>
+    <string name="never_ask_again">Spørg aldrig</string>
 </resources>

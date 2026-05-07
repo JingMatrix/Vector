@@ -140,7 +140,6 @@
     <string name="no_scope_selected">Nevybrali ste žiadnu aplikáciu. Pokračovať?</string>
     <string name="menu_show_games">Hry</string>
     <string name="menu_show_modules">Moduly</string>
-    <string name="menu_show_denylist">Denylist</string>
     <string name="failed_to_save_scope_list">Nepodarilo sa uložiť zoznam oblastí</string>
     <string name="app_version">Verzia: %1$s</string>
     <string name="use_recommended">Odporúčané stránky</string>
@@ -160,8 +159,6 @@
     <string name="reboot_required">Na uplatnenie tejto zmeny je potrebný reštart</string>
     <string name="reboot">Reštart</string>
     <string name="menu_hide">Skryť</string>
-    <string name="deny_list">%s je na denyliste. Nemusí nadobudnúť účinnosť.</string>
-    <string name="deny_list_info">Na denyliste</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Zobraziť v inej aplikácii</string>
     <string name="module_app_info">Informácie o aplikácii</string>
@@ -198,13 +195,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Súčasný predvolený spúšťač nepodporuje pripnuté skratky</string>
     <string name="settings_enable_status_notification">Oznámenie o stave</string>
     <string name="settings_enable_status_notification_summary">Zobrazenie oznámenia, ktoré môže otvoriť parazitický správca</string>
-    <string name="disable_status_notification_error">Žiadna skratka, nie je možné vypnúť upozornenie</string>
     <string name="settings_update_channel">Aktualizačný kanál</string>
     <string name="update_channel_stable">Stabilné</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Nočné zostavenie</string>
-    <string name="settings_xposed_api_call_protection">Ochrana volaní Xposed API</string>
-    <string name="settings_xposed_api_call_protection_summary">Blokovať dynamicky načítaný kód modulu, aby používal Xposed API, čo môže rozbiť niektoré moduly, ale prospeje bezpečnosti</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Uvoľňuje</string>

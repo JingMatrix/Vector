@@ -276,19 +276,6 @@
                             style="@style/DeviceInfoDialogLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/settings_xposed_api_call_protection" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/api"
-                            style="@style/DeviceInfoDialogValue"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/not_installed" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            style="@style/DeviceInfoDialogLabel"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
                             android:text="@string/info_dex2oat_wrapper" />
 
                         <com.google.android.material.textview.MaterialTextView

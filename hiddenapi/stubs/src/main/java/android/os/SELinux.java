@@ -9,6 +9,10 @@ public class SELinux {
         throw new UnsupportedOperationException("Stub");
     }
 
+    public static String getFileContext(String path) {
+        throw new UnsupportedOperationException("Stub");
+    }
+
     public static boolean setFSCreateContext(String context){
         throw new UnsupportedOperationException("Stub");
     }

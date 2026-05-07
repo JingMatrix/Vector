@@ -10,12 +10,12 @@
     <string name="xposed_module_updated_notification_content_system">%s යාවත්කාලීන කර ඇත, විෂය පථයේ පද්ධති රාමුව අඩංගු බැවින්, වෙනස්කම් යෙදීමට නැවත පණගැන්වීම අවශ්‍ය වේ</string>
     <string name="module_updated_channel_name">මොඩියුල යාවත්කාලීන කිරීම සම්පූර්ණයි</string>
     <string name="status_channel_name">එල්එස්පී තත්ත්වය</string>
-    <string name="lsposed_running_notification_title">LSPposed පටවා ඇත</string>
-    <string name="lsposed_running_notification_content">කළමනාකරු විවෘත කිරීමට දැනුම්දීම තට්ටු කරන්න</string>
+    <string name="vector_running_notification_title">LSPposed පටවා ඇත</string>
+    <string name="vector_running_notification_content">කළමනාකරු විවෘත කිරීමට දැනුම්දීම තට්ටු කරන්න</string>
     <string name="xposed_module_request_scope_title">විෂය පථය ඉල්ලීම</string>
     <string name="xposed_module_request_scope_content">පරිශීලක %2$s හි %1$s එහි විෂය පථයට %3$s එකතු කරන ලෙස ඉල්ලා සිටී.</string>
     <string name="scope_channel_name">විෂය පථය ඉල්ලීම</string>
     <string name="scope_approve">අනුමත කරන්න</string>
     <string name="scope_deny">ප්රතික්ෂේප කරන්න</string>
-    <string name="nerver_ask_again">කවදාවත් අහන්න එපා</string>
+    <string name="never_ask_again">කවදාවත් අහන්න එපා</string>
 </resources>

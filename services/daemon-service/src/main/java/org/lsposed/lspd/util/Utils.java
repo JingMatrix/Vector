@@ -29,12 +29,25 @@ import java.time.zone.ZoneRulesException;
 
 public class Utils {
 
-    public static final String LOG_TAG = "LSPosed";
+    public static final String LOG_TAG = "Vector";
     public static final boolean isMIUI = !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name"));
     public static final boolean isLENOVO = !TextUtils.isEmpty(SystemProperties.get("ro.lenovo.region"));
 
     public class Log {
+        public static final int VERBOSE = android.util.Log.VERBOSE;
+        public static final int DEBUG = android.util.Log.DEBUG;
+        public static final int INFO = android.util.Log.INFO;
+        public static final int WARN = android.util.Log.WARN;
+        public static final int ERROR = android.util.Log.ERROR;
+        public static final int ASSERT = android.util.Log.ASSERT;
+
         public static boolean muted = false;
+
+        public static void println(int priority, String tag, String msg) {
+            // Respect the muted flag for everything except ERROR/ASSERT
+            if (muted && priority < android.util.Log.ERROR) return;
+            android.util.Log.println(priority, tag, msg);
+        }
 
         public static String getStackTraceString(Throwable tr) {
             return android.util.Log.getStackTraceString(tr);
@@ -94,6 +107,14 @@ public class Utils {
 
     public static void logD(String msg, Throwable throwable) {
         Log.d(LOG_TAG, msg, throwable);
+    }
+
+    public static void logV(Object msg) {
+        Log.v(LOG_TAG, msg.toString());
+    }
+
+    public static void logV(String msg, Throwable throwable) {
+        Log.v(LOG_TAG, msg, throwable);
     }
 
     public static void logW(String msg) {

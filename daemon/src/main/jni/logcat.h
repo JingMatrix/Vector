@@ -1,9 +1,8 @@
 #pragma once
 
+#include <android/log.h>
 #include <stdint.h>
 #include <sys/types.h>
-
-#include <android/log.h>
 
 #define NS_PER_SEC 1000000000L
 #define MS_PER_NSEC 1000000
@@ -43,15 +42,13 @@ struct log_msg {
         struct logger_entry entry;
     };
 #ifdef __cplusplus
-    log_id_t id() {
-        return static_cast<log_id_t>(entry.lid);
-    }
+    log_id_t id() { return static_cast<log_id_t>(entry.lid); }
 #endif
 };
 struct logger;
 struct logger_list;
 
-long android_logger_get_log_size(struct logger* logger);
+long android_logger_get_log_size(struct logger *logger);
 int android_logger_set_log_size(struct logger *logger, unsigned long size);
 struct logger_list *android_logger_list_alloc(int mode, unsigned int tail, pid_t pid);
 void android_logger_list_free(struct logger_list *logger_list);

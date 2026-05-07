@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Módulo Atualizado. É necessário reiniciar o sistema</string>
     <string name="xposed_module_updated_notification_content_system">%s foi atualizado. Como o escopo contém o Framework do Sistema, é necessário reiniciar para aplicar as mudanças</string>
     <string name="module_updated_channel_name">Atualização do módulo concluída</string>
-    <string name="status_channel_name">Estado do LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed carregado</string>
-    <string name="lsposed_running_notification_content">Toque na notificação para abrir o gerenciador</string>
+    <string name="status_channel_name">Estado do Vector</string>
+    <string name="vector_running_notification_title">Vector carregado</string>
+    <string name="vector_running_notification_content">Toque na notificação para abrir o gerenciador</string>
     <string name="xposed_module_request_scope_title">Pedido de âmbito de aplicação</string>
     <string name="xposed_module_request_scope_content">%1$s sobre o utilizador %2$s pede para acrescentar %3$s ao seu âmbito de aplicação.</string>
     <string name="scope_channel_name">Pedido de âmbito de aplicação</string>
     <string name="scope_approve">Aprovar</string>
     <string name="scope_deny">Negar</string>
-    <string name="nerver_ask_again">Nunca Pergunte</string>
+    <string name="never_ask_again">Nunca Pergunte</string>
 </resources>

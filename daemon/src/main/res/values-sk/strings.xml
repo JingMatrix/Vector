@@ -10,12 +10,12 @@
     <string name="xposed_module_updated_notification_content_system">%s bola aktualizovaná, pretože rozsah obsahuje System Framework, potrebný reštart na uplatnenie zmien</string>
     <string name="module_updated_channel_name">Aktualizácia modulu dokončená</string>
     <string name="status_channel_name">LSPonúkaný stav</string>
-    <string name="lsposed_running_notification_title">LSPosed naložené</string>
-    <string name="lsposed_running_notification_content">Ťuknutím na oznámenie otvorte správcu</string>
+    <string name="vector_running_notification_title">Vector naložené</string>
+    <string name="vector_running_notification_content">Ťuknutím na oznámenie otvorte správcu</string>
     <string name="xposed_module_request_scope_title">Žiadosť o rozsah</string>
     <string name="xposed_module_request_scope_content">%1$s na žiadosti používateľa %2$s o pridanie stránky %3$s do jej rozsahu.</string>
     <string name="scope_channel_name">Žiadosť o rozsah</string>
     <string name="scope_approve">Schváliť</string>
     <string name="scope_deny">Odmietnuť</string>
-    <string name="nerver_ask_again">Nikdy sa nepýtajte</string>
+    <string name="never_ask_again">Nikdy sa nepýtajte</string>
 </resources>

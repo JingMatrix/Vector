@@ -137,7 +137,6 @@
     <string name="no_scope_selected">Nem választott ki egyetlen alkalmazást sem. Folytatja?</string>
     <string name="menu_show_games">Játékok</string>
     <string name="menu_show_modules">Modulok</string>
-    <string name="menu_show_denylist">Tiltólista</string>
     <string name="failed_to_save_scope_list">Nem sikerült elmenteni a hatókör listát</string>
     <string name="app_version">Verzió: %1$s</string>
     <string name="use_recommended">Ajánlott</string>
@@ -157,8 +156,6 @@
     <string name="reboot_required">A módosítás érvényesítéséhez újraindítás szükséges</string>
     <string name="reboot">Újraindítás</string>
     <string name="menu_hide">Rejtsd el</string>
-    <string name="deny_list">%s a denyliston van. Lehet, hogy nem lép hatályba.</string>
-    <string name="deny_list_info">A denylistán</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Megtekintés más alkalmazásban</string>
     <string name="module_app_info">Alkalmazás információ</string>
@@ -195,13 +192,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">A jelenlegi alapértelmezett indítóprogram nem támogatja a pin parancsikonokat</string>
     <string name="settings_enable_status_notification">Állapot értesítés</string>
     <string name="settings_enable_status_notification_summary">Értesítés megjelenítése, amely megnyithatja a parazita-kezelőt</string>
-    <string name="disable_status_notification_error">Nincs parancsikon, nem lehet letiltani az értesítést</string>
     <string name="settings_update_channel">Frissítési csatorna</string>
     <string name="update_channel_stable">Stabil</string>
     <string name="update_channel_bate">Béta</string>
     <string name="update_channel_nightly">Nightly</string>
-    <string name="settings_xposed_api_call_protection">Xposed API hívásvédelem</string>
-    <string name="settings_xposed_api_call_protection_summary">A dinamikusan betöltött modul kódjának blokkolása az Xposed API használatához, ez néhány modult tönkretehet, de a biztonság javára válik</string>
     <!-- Module Repo -->
     <string name="module_readme">Olvass el</string>
     <string name="module_releases">Kiadások</string>

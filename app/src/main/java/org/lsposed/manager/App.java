@@ -97,7 +97,6 @@ public class App extends Application {
                 var list = AppHelper.getAppList(false);
                 var pm = App.getInstance().getPackageManager();
                 list.parallelStream().forEach(i -> AppHelper.getAppLabel(i, pm));
-                AppHelper.getDenyList(false);
                 ModuleUtil.getInstance();
                 RepoLoader.getInstance();
             });

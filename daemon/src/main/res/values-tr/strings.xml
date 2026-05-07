@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Xposed modülü güncellendi, sistemin yeniden başlatılması gerekiyor</string>
     <string name="xposed_module_updated_notification_content_system">%s Güncelleme kapsamı Sistem Çerçevesi içerdiğinden, değişiklikleri uygulamak için yeniden başlatma gereklidir</string>
     <string name="module_updated_channel_name">Modül güncellemesi tamamlandı</string>
-    <string name="status_channel_name">LSPosed durumu</string>
-    <string name="lsposed_running_notification_title">LSPosed yüklendi</string>
-    <string name="lsposed_running_notification_content">Yöneticiyi açmak için bildirime dokunun</string>
+    <string name="status_channel_name">Vector durumu</string>
+    <string name="vector_running_notification_title">Vector yüklendi</string>
+    <string name="vector_running_notification_content">Yöneticiyi açmak için bildirime dokunun</string>
     <string name="xposed_module_request_scope_title">Kapsam Talebi</string>
     <string name="xposed_module_request_scope_content">Kullanıcı %2$s %1$s kapsamına %3$s eklemek ister.</string>
     <string name="scope_channel_name">Kapsam talebi</string>
     <string name="scope_approve">Onayla</string>
     <string name="scope_deny">Reddet</string>
-    <string name="nerver_ask_again">Asla Sorma</string>
+    <string name="never_ask_again">Asla Sorma</string>
 </resources>

@@ -155,13 +155,6 @@ public class AppHelper {
         return appList;
     }
 
-    synchronized public static List<String> getDenyList(boolean force) {
-        if (denyList == null || force) {
-            denyList = ConfigManager.getDenyListPackages();
-        }
-        return denyList;
-    }
-
     public static CharSequence getAppLabel(PackageInfo info, PackageManager pm) {
         if (info == null || info.applicationInfo == null) return null;
         return appLabel.computeIfAbsent(info, i -> i.applicationInfo.loadLabel(pm));

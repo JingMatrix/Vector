@@ -140,7 +140,6 @@ JingMatrix</string>
     <string name="no_scope_selected">Vous n\'avez sélectionné aucune application. Continuer ?</string>
     <string name="menu_show_games">Jeux</string>
     <string name="menu_show_modules">Modules</string>
-    <string name="menu_show_denylist">Liste de refus</string>
     <string name="failed_to_save_scope_list">Échec de l\'enregistrement de la liste des périmètres d\'applications</string>
     <string name="app_version">Version : %1$s</string>
     <string name="menu_select">Choisir</string>
@@ -164,8 +163,6 @@ JingMatrix</string>
     <string name="reboot_required">Un redémarrage est requis pour appliquer les changements</string>
     <string name="reboot">Redémarrer</string>
     <string name="menu_hide">Masquage</string>
-    <string name="deny_list">%s est sur la liste de refus. Cela pourrait ne pas avoir d\'effet.</string>
-    <string name="deny_list_info">Sur liste de refus</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Afficher dans une autre application</string>
     <string name="module_app_info">Informations d\’application</string>
@@ -174,8 +171,6 @@ JingMatrix</string>
     <string name="settings_group_framework">Sous-système</string>
     <string name="settings_disable_verbose_log">Désactiver les journaux détaillés</string>
     <string name="settings_disable_verbose_log_summary">Les journaux détaillés sont requis pour signaler des problèmes</string>
-    <string name="settings_enable_log_watchdog">Activer le chien de garde de journal</string>
-    <string name="settings_enable_log_watchdog_summary">Le chien de garde du journal LSPosed modifie les propriétés du système, qui peuvent être exploitées pour détecter LSPosed</string>
     <string name="pure_black_dark_theme">Thème noir et sombre</string>
     <string name="pure_black_dark_theme_summary">Utiliser le thème noir pur si le thème noir est activé</string>
     <string name="settings_group_theme">Thème</string>
@@ -204,13 +199,10 @@ JingMatrix</string>
     <string name="settings_unsupported_pin_shortcut_summary">Le lanceur par défaut actuel ne supporte pas les raccourcis épinglés</string>
     <string name="settings_enable_status_notification">Notification d\'état</string>
     <string name="settings_enable_status_notification_summary">Afficher une notification qui peut ouvrir le gestionnaire de parasites</string>
-    <string name="disable_status_notification_error">Pas de raccourcis, la notification ne peut pas être désactivée</string>
     <string name="settings_update_channel">Canal de mise à jour</string>
     <string name="update_channel_stable">Stable</string>
     <string name="update_channel_bate">Bêta</string>
     <string name="update_channel_nightly">Alpha</string>
-    <string name="settings_xposed_api_call_protection">Protection des appels API Xposed</string>
-    <string name="settings_xposed_api_call_protection_summary">Bloquer dynamiquement le code de module chargé pour utiliser l\'API Xposed, celà peut casser certains modules mais être bénéfique à la sécurité</string>
     <!-- Module Repo -->
     <string name="module_readme">Lisez-moi</string>
     <string name="module_releases">Versions</string>

@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Модуль Xposed обновлён, требуется перезагрузка устройства</string>
     <string name="xposed_module_updated_notification_content_system">%s обновлён; ввиду того, что системный фреймворк (System Framework) в его «охвате», требуется перезагрузка для применения изменений</string>
     <string name="module_updated_channel_name">Обновление модуля завершено</string>
-    <string name="status_channel_name">Статус LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed загружен</string>
-    <string name="lsposed_running_notification_content">Нажмите уведомление, чтобы открыть LSPosed Manager</string>
+    <string name="status_channel_name">Статус Vector</string>
+    <string name="vector_running_notification_title">Vector загружен</string>
+    <string name="vector_running_notification_content">Нажмите уведомление, чтобы открыть Vector Manager</string>
     <string name="xposed_module_request_scope_title">Запрос «охвата»</string>
     <string name="xposed_module_request_scope_content">%1$s (пользователь %2$s): запрашивается добавление %3$s в «охват».</string>
     <string name="scope_channel_name">Запрос «охвата»</string>
     <string name="scope_approve">Принять</string>
     <string name="scope_deny">Отклонить</string>
-    <string name="nerver_ask_again">Больше не спрашивать</string>
+    <string name="never_ask_again">Больше не спрашивать</string>
 </resources>

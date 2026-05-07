@@ -3,21 +3,23 @@
 #include <android/log.h>
 #include <jni.h>
 #include <sys/system_properties.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <array>
-#include <atomic>
-#include <functional>
-#include <string>
+#include <string_view>
 #include <thread>
 
 using namespace std::string_view_literals;
 using namespace std::chrono_literals;
 
-constexpr size_t kMaxLogSize = 4 * 1024 * 1024;
-constexpr long kLogBufferSize = 128 * 1024;
+// Log rotation thresholds
+constexpr size_t kMaxLogSize = 4 * 1024 * 1024;  // 4MB per part
+constexpr long kLogBufferSize = 128 * 1024;      // Internal logd buffer size (128KB)
 
 namespace {
+// Standard Logcat priority characters
 constexpr std::array<char, ANDROID_LOG_SILENT + 1> kLogChar = {
     /*ANDROID_LOG_UNKNOWN*/ '?',
     /*ANDROID_LOG_DEFAULT*/ '?',
@@ -30,339 +32,217 @@ constexpr std::array<char, ANDROID_LOG_SILENT + 1> kLogChar = {
     /*ANDROID_LOG_SILENT*/ 'S',
 };
 
-long ParseUint(const char *s) {
-    if (s[0] == '\0') return -1;
+// Module tags are sorted for O(log N) binary search.
+// These always route to the 'modules' (Xposed) log stream.
+constexpr auto kModuleTags = std::array{"VectorContext"sv, "VectorLegacyBridge"sv,
+                                        "VectorModuleManager"sv, "XSharedPreferences"sv};
 
-    while (isspace(*s)) {
-        s++;
+// These route to the 'verbose' stream only.
+constexpr auto kExactTags = std::array{"APatchD"sv, "Dobby"sv,  "KernelSU"sv, "LSPlant"sv,
+                                       "LSPlt"sv,   "Magisk"sv, "SELinux"sv,  "TEESimulator"sv};
+
+// Partial matches for dynamic components like Zygisk modules or Vector/LSPosed components.
+constexpr auto kPrefixTags = std::array{"LSPosed"sv, "Vector"sv, "dex2oat"sv, "zygisk"sv};
+
+// RAII Wrapper for File Descriptors to ensure files are closed during JNI rotation.
+struct UniqueFd {
+    int fd = -1;
+    ~UniqueFd() {
+        if (fd >= 0) close(fd);
     }
-
-    if (s[0] == '-') {
-        return -1;
+    void reset(int n) {
+        if (fd >= 0) close(fd);
+        fd = n;
     }
-
-    int base = (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) ? 16 : 10;
-    char *end;
-    auto result = strtoull(s, &end, base);
-    if (end == s) {
-        return -1;
-    }
-    if (*end != '\0') {
-        const char *suffixes = "bkmgtpe";
-        const char *suffix;
-        if ((suffix = strchr(suffixes, tolower(*end))) == nullptr ||
-            __builtin_mul_overflow(result, 1ULL << (10 * (suffix - suffixes)), &result)) {
-            return -1;
-        }
-    }
-    if (std::numeric_limits<size_t>::max() < result) {
-        return -1;
-    }
-    return static_cast<size_t>(result);
-}
-
-inline long GetByteProp(std::string_view prop, long def = -1) {
-    std::array<char, PROP_VALUE_MAX> buf{};
-    if (__system_property_get(prop.data(), buf.data()) < 0) return def;
-    return ParseUint(buf.data());
-}
-
-inline std::string GetStrProp(std::string_view prop, std::string def = {}) {
-    std::array<char, PROP_VALUE_MAX> buf{};
-    if (__system_property_get(prop.data(), buf.data()) < 0) return def;
-    return {buf.data()};
-}
-
-inline bool SetIntProp(std::string_view prop, int val) {
-    auto buf = std::to_string(val);
-    return __system_property_set(prop.data(), buf.data()) >= 0;
-}
-
-inline bool SetStrProp(std::string_view prop, std::string_view val) {
-    return __system_property_set(prop.data(), val.data()) >= 0;
-}
-
-}  // namespace
-
-class UniqueFile : public std::unique_ptr<FILE, std::function<void(FILE *)>> {
-    inline static deleter_type deleter = [](auto f) { f &&f != stdout &&fclose(f); };
-
-public:
-    explicit UniqueFile(FILE *f) : std::unique_ptr<FILE, std::function<void(FILE *)>>(f, deleter) {}
-
-    UniqueFile(int fd, const char *mode) : UniqueFile(fd > 0 ? fdopen(fd, mode) : stdout) {};
-
-    UniqueFile() : UniqueFile(stdout) {};
+    operator int() const { return fd; }
 };
+}  // namespace
 
 class Logcat {
 public:
-    explicit Logcat(JNIEnv *env, jobject thiz, jmethodID method)
+    Logcat(JNIEnv* env, jobject thiz, jmethodID method)
         : env_(env), thiz_(thiz), refresh_fd_method_(method) {}
 
     [[noreturn]] void Run();
 
 private:
-    inline void RefreshFd(bool is_verbose);
-
-    inline void Log(std::string_view str);
-
+    void RefreshFd(bool is_verbose);
+    size_t FastWrite(const AndroidLogEntry& entry, int fd);
+    void LogRaw(std::string_view str);
     void OnCrash(int err);
+    void ProcessBuffer(struct log_msg* buf);
 
-    void ProcessBuffer(struct log_msg *buf);
-
-    static size_t PrintLogLine(const AndroidLogEntry &entry, FILE *out);
-
-    void StartLogWatchDog();
-
-    JNIEnv *env_;
+    JNIEnv* env_;
     jobject thiz_;
     jmethodID refresh_fd_method_;
 
-    UniqueFile modules_file_{};
-    size_t modules_file_part_ = 0;
-    size_t modules_print_count_ = 0;
+    UniqueFd modules_fd_{};
+    size_t modules_written_ = 0;
+    size_t modules_part_ = 0;
 
-    UniqueFile verbose_file_{};
-    size_t verbose_file_part_ = 0;
-    size_t verbose_print_count_ = 0;
+    UniqueFd verbose_fd_{};
+    size_t verbose_written_ = 0;
+    size_t verbose_part_ = 0;
 
     pid_t my_pid_ = getpid();
-
-    bool verbose_ = true;
-    std::atomic<bool> enable_watchdog = std::atomic<bool>(false);
+    bool verbose_enabled_ = true;
 };
 
-size_t Logcat::PrintLogLine(const AndroidLogEntry &entry, FILE *out) {
-    if (!out) return 0;
-    constexpr static size_t kMaxTimeBuff = 64;
-    struct tm tm{};
-    std::array<char, kMaxTimeBuff> time_buff{};
+// 'Scatter-Gather' I/O (writev)
+size_t Logcat::FastWrite(const AndroidLogEntry& entry, int fd) {
+    if (fd < 0) return 0;
 
-    auto now = entry.tv_sec;
-    auto nsec = entry.tv_nsec;
-    auto message_len = entry.messageLen;
-    const auto *message = entry.message;
-    if (now < 0) {
-        nsec = NS_PER_SEC - nsec;
-    }
-    if (message_len >= 1 && message[message_len - 1] == '\n') {
-        --message_len;
-    }
-    localtime_r(&now, &tm);
-    strftime(time_buff.data(), time_buff.size(), "%Y-%m-%dT%H:%M:%S", &tm);
-    int len =
-        fprintf(out, "[ %s.%03ld %8d:%6d:%6d %c/%-15.*s ] %.*s\n", time_buff.data(),
-                nsec / MS_PER_NSEC, entry.uid, entry.pid, entry.tid, kLogChar[entry.priority],
-                static_cast<int>(entry.tagLen), entry.tag, static_cast<int>(message_len), message);
-    fflush(out);
-    // trigger overflow when failed to generate a new fd
-    if (len <= 0) len = kMaxLogSize;
-    return static_cast<size_t>(len);
+    char time_buf[32], meta_buf[96];
+    struct tm tm_info;
+    time_t sec = entry.tv_sec;
+    localtime_r(&sec, &tm_info);
+
+    // Format fixed-width metadata
+    size_t t_len = strftime(time_buf, sizeof(time_buf), "%Y-%m-%dT%H:%M:%S", &tm_info);
+    int m_len = snprintf(meta_buf, sizeof(meta_buf), ".%03ld %8d:%6d:%6d %c/%-15.*s ] ",
+                         entry.tv_nsec / 1000000, entry.uid, entry.pid, entry.tid,
+                         kLogChar[entry.priority], (int)entry.tagLen, entry.tag);
+
+    // Ensure line has a trailing newline
+    bool add_nl = (entry.messageLen == 0 || entry.message[entry.messageLen - 1] != '\n');
+    struct iovec iov[5] = {{(void*)"[ ", 2},
+                           {time_buf, t_len},
+                           {meta_buf, (size_t)m_len},
+                           {(void*)entry.message, entry.messageLen},
+                           {(void*)"\n", add_nl ? 1U : 0U}};
+
+    ssize_t n = writev(fd, iov, 5);
+    // If write fails, return kMaxLogSize to force a rotation attempt.
+    return (n <= 0) ? kMaxLogSize : static_cast<size_t>(n);
 }
 
+void Logcat::LogRaw(std::string_view str) {
+    if (verbose_enabled_ && verbose_fd_ >= 0) write(verbose_fd_, str.data(), str.size());
+    if (modules_fd_ >= 0) write(modules_fd_, str.data(), str.size());
+}
+
+// RefreshFd: Handshakes with the Kotlin layer to swap file descriptors.
 void Logcat::RefreshFd(bool is_verbose) {
-    constexpr auto start = "----part %zu start----\n";
-    constexpr auto end = "-----part %zu end----\n";
-    if (is_verbose) {
-        verbose_print_count_ = 0;
-        fprintf(verbose_file_.get(), end, verbose_file_part_);
-        fflush(verbose_file_.get());
-        verbose_file_ = UniqueFile(env_->CallIntMethod(thiz_, refresh_fd_method_, JNI_TRUE), "a");
-        verbose_file_part_++;
-        fprintf(verbose_file_.get(), start, verbose_file_part_);
-        fflush(verbose_file_.get());
-    } else {
-        modules_print_count_ = 0;
-        fprintf(modules_file_.get(), end, modules_file_part_);
-        fflush(modules_file_.get());
-        modules_file_ = UniqueFile(env_->CallIntMethod(thiz_, refresh_fd_method_, JNI_FALSE), "a");
-        modules_file_part_++;
-        fprintf(modules_file_.get(), start, modules_file_part_);
-        fflush(modules_file_.get());
+    char buf[64];
+    auto& fd_obj = is_verbose ? verbose_fd_ : modules_fd_;
+    auto& part = is_verbose ? verbose_part_ : modules_part_;
+
+    if (fd_obj >= 0) {
+        int len = snprintf(buf, sizeof(buf), "-----part %zu end----\n", part);
+        write(fd_obj, buf, len);
+    }
+
+    // Call Kotlin refreshFd(boolean) to get a new detatched FD
+    int new_fd = env_->CallIntMethod(thiz_, refresh_fd_method_, is_verbose ? JNI_TRUE : JNI_FALSE);
+    fd_obj.reset(new_fd);  // UniqueFd handles closing the old FD
+    part++;
+    if (is_verbose)
+        verbose_written_ = 0;
+    else
+        modules_written_ = 0;
+
+    if (fd_obj >= 0) {
+        int len = snprintf(buf, sizeof(buf), "----part %zu start----\n", part);
+        write(fd_obj, buf, len);
     }
 }
 
-inline void Logcat::Log(std::string_view str) {
-    if (verbose_) {
-        fprintf(verbose_file_.get(), "%.*s", static_cast<int>(str.size()), str.data());
-        fflush(verbose_file_.get());
-    }
-    fprintf(modules_file_.get(), "%.*s", static_cast<int>(str.size()), str.data());
-    fflush(modules_file_.get());
-}
-
+// OnCrash: Handles logd daemon resets.
 void Logcat::OnCrash(int err) {
-    using namespace std::string_literals;
-    constexpr size_t max_restart_logd_wait = 1U << 10;
-    static size_t kLogdCrashCount = 0;
-    static size_t kLogdRestartWait = 1 << 3;
-    if (++kLogdCrashCount >= kLogdRestartWait) {
-        Log("\nLogd crashed too many times, trying manually start...\n");
+    static size_t crash_count = 0;
+    static size_t restart_wait = 8;
+    if (++crash_count >= restart_wait) {
+        LogRaw("\nLogd crashed too many times, trying manually start...\n");
         __system_property_set("ctl.restart", "logd");
-        if (kLogdRestartWait < max_restart_logd_wait) {
-            kLogdRestartWait <<= 1;
-        } else {
-            kLogdCrashCount = 0;
-        }
+        if (restart_wait < 1024)
+            restart_wait <<= 1;
+        else
+            crash_count = 0;
     } else {
-        Log("\nLogd maybe crashed (err="s + strerror(err) + "), retrying in 1s...\n");
+        std::string err_msg =
+            "\nLogd maybe crashed (err=" + std::string(strerror(err)) + "), retrying in 1s...\n";
+        LogRaw(err_msg);
     }
-
     std::this_thread::sleep_for(1s);
 }
 
-void Logcat::ProcessBuffer(struct log_msg *buf) {
+void Logcat::ProcessBuffer(struct log_msg* buf) {
     AndroidLogEntry entry;
     if (android_log_processLogBuffer(&buf->entry, &entry) < 0) return;
 
-    entry.tagLen--;
+    // Zero-copy tag extraction (excluding null terminator)
+    std::string_view tag(entry.tag, entry.tagLen > 0 ? entry.tagLen - 1 : 0);
 
-    std::string_view tag(entry.tag, entry.tagLen);
-    bool shortcut = false;
-    if (tag == "LSPosed-Bridge"sv || tag == "XSharedPreferences"sv || tag == "LSPosedContext")
-        [[unlikely]] {
-        modules_print_count_ += PrintLogLine(entry, modules_file_.get());
-        shortcut = true;
+    // Check if tag is in the Module list
+    bool is_module = std::binary_search(kModuleTags.begin(), kModuleTags.end(), tag);
+    if (is_module) {
+        modules_written_ += FastWrite(entry, modules_fd_);
     }
-    if (verbose_ && (shortcut || buf->id() == log_id::LOG_ID_CRASH || entry.pid == my_pid_ ||
-                     tag == "APatchD"sv || tag == "Dobby"sv || tag.starts_with("dex2oat"sv) ||
-                     tag == "KernelSU"sv || tag == "LSPlant"sv || tag == "LSPlt"sv ||
-                     tag.starts_with("LSPosed"sv) || tag == "Magisk"sv || tag == "SELinux"sv ||
-                     tag.starts_with("zygisk"sv))) [[unlikely]] {
-        verbose_print_count_ += PrintLogLine(entry, verbose_file_.get());
+
+    // Filtering logic for Verbose stream
+    bool match_exact = std::binary_search(kExactTags.begin(), kExactTags.end(), tag);
+    bool match_prefix = std::any_of(kPrefixTags.begin(), kPrefixTags.end(),
+                                    [&](auto p) { return tag.starts_with(p); });
+    if (verbose_enabled_ && (entry.pid == my_pid_ || is_module || buf->id() == LOG_ID_CRASH ||
+                             match_exact || match_prefix)) {
+        verbose_written_ += FastWrite(entry, verbose_fd_);
     }
-    if (entry.pid == my_pid_ && tag == "LSPosedLogcat"sv) [[unlikely]] {
+
+    // Feedback Loop: The daemon listens to its own Logcat output for remote commands.
+    if (entry.pid == my_pid_ && tag == "VectorLogcat"sv) {
         std::string_view msg(entry.message, entry.messageLen);
         if (msg == "!!start_verbose!!"sv) {
-            verbose_ = true;
-            verbose_print_count_ += PrintLogLine(entry, verbose_file_.get());
+            verbose_enabled_ = true;
+            verbose_written_ += FastWrite(entry, verbose_fd_);
         } else if (msg == "!!stop_verbose!!"sv) {
-            verbose_ = false;
+            verbose_enabled_ = false;
         } else if (msg == "!!refresh_modules!!"sv) {
             RefreshFd(false);
         } else if (msg == "!!refresh_verbose!!"sv) {
             RefreshFd(true);
-        } else if (msg == "!!start_watchdog!!"sv) {
-            if (!enable_watchdog) StartLogWatchDog();
-            enable_watchdog = true;
-            enable_watchdog.notify_one();
-        } else if (msg == "!!stop_watchdog!!"sv) {
-            enable_watchdog = false;
-            enable_watchdog.notify_one();
-            std::system("resetprop -p --delete persist.logd.size");
-            std::system("resetprop -p --delete persist.logd.size.crash");
-            std::system("resetprop -p --delete persist.logd.size.main");
-            std::system("resetprop -p --delete persist.logd.size.system");
-
-            // Terminate the watchdog thread by exiting __system_property_wait firs firstt
-            std::system("setprop persist.log.tag V");
-            std::system("resetprop -p --delete persist.log.tag");
         }
     }
 }
 
-void Logcat::StartLogWatchDog() {
-    constexpr static auto kLogdSizeProp = "persist.logd.size"sv;
-    constexpr static auto kLogdTagProp = "persist.log.tag"sv;
-    constexpr static auto kLogdCrashSizeProp = "persist.logd.size.crash"sv;
-    constexpr static auto kLogdMainSizeProp = "persist.logd.size.main"sv;
-    constexpr static auto kLogdSystemSizeProp = "persist.logd.size.system"sv;
-    constexpr static long kErr = -1;
-    std::thread watchdog([this] {
-        Log("[LogWatchDog started]\n");
-        while (true) {
-            enable_watchdog.wait(false);  // Blocking current thread until enable_watchdog is true;
-            auto logd_size = GetByteProp(kLogdSizeProp);
-            auto logd_tag = GetStrProp(kLogdTagProp);
-            auto logd_crash_size = GetByteProp(kLogdCrashSizeProp);
-            auto logd_main_size = GetByteProp(kLogdMainSizeProp);
-            auto logd_system_size = GetByteProp(kLogdSystemSizeProp);
-            Log("[LogWatchDog running] log.tag: " + logd_tag +
-                "; logd.[default, crash, main, system].size: [" + std::to_string(logd_size) + "," +
-                std::to_string(logd_crash_size) + "," + std::to_string(logd_main_size) + "," +
-                std::to_string(logd_system_size) + "]\n");
-            if (!logd_tag.empty() ||
-                !((logd_crash_size == kErr && logd_main_size == kErr && logd_system_size == kErr &&
-                   logd_size != kErr && logd_size >= kLogBufferSize) ||
-                  (logd_crash_size != kErr && logd_crash_size >= kLogBufferSize &&
-                   logd_main_size != kErr && logd_main_size >= kLogBufferSize &&
-                   logd_system_size != kErr && logd_system_size >= kLogBufferSize))) {
-                SetIntProp(kLogdSizeProp, std::max(kLogBufferSize, logd_size));
-                SetIntProp(kLogdCrashSizeProp, std::max(kLogBufferSize, logd_crash_size));
-                SetIntProp(kLogdMainSizeProp, std::max(kLogBufferSize, logd_main_size));
-                SetIntProp(kLogdSystemSizeProp, std::max(kLogBufferSize, logd_system_size));
-                SetStrProp(kLogdTagProp, "");
-                SetStrProp("ctl.start", "logd-reinit");
-            }
-            const auto *pi = __system_property_find(kLogdTagProp.data());
-            uint32_t serial = 0;
-            if (pi != nullptr) {
-                __system_property_read_callback(
-                    pi, [](auto *c, auto, auto, auto s) { *reinterpret_cast<uint32_t *>(c) = s; },
-                    &serial);
-            }
-            if (!__system_property_wait(pi, serial, &serial, nullptr)) break;
-            if (pi != nullptr) {
-                if (enable_watchdog) {
-                    Log("\nProp persist.log.tag changed, resetting log settings\n");
-                } else {
-                    break;  // End current thread as expected
-                }
-            } else {
-                // log tag prop was not found; to avoid frequently trigger wait, sleep for a while
-                std::this_thread::sleep_for(1s);
-            }
-        }
-        Log("[LogWatchDog stopped]\n");
-    });
-    pthread_setname_np(watchdog.native_handle(), "watchdog");
-    watchdog.detach();
-}
-
 void Logcat::Run() {
-    constexpr size_t tail_after_crash = 10U;
-    size_t tail = 0;
+    size_t tail = 0;  // Start with no history
     RefreshFd(true);
     RefreshFd(false);
 
     while (true) {
-        std::unique_ptr<logger_list, decltype(&android_logger_list_free)> logger_list{
-            android_logger_list_alloc(0, tail, 0), &android_logger_list_free};
-        tail = tail_after_crash;
+        // tail=10 on reconnect ensures that if the logger crashes, we resume with the last 10 lines
+        // of context to help debug the crash itself.
+        auto* list = android_logger_list_alloc(0, tail, 0);
+        tail = 10;
 
-        for (log_id id : {LOG_ID_MAIN, LOG_ID_CRASH}) {
-            auto *logger = android_logger_open(logger_list.get(), id);
-            if (logger == nullptr) continue;
-            if (auto size = android_logger_get_log_size(logger);
-                size >= 0 && static_cast<size_t>(size) < kLogBufferSize) {
+        for (log_id_t id : {LOG_ID_MAIN, LOG_ID_CRASH}) {
+            auto* logger = android_logger_open(list, id);
+            if (logger && android_logger_get_log_size(logger) < kLogBufferSize) {
                 android_logger_set_log_size(logger, kLogBufferSize);
             }
         }
 
-        struct log_msg msg{};
-
-        while (true) {
-            if (android_logger_list_read(logger_list.get(), &msg) <= 0) [[unlikely]]
-                break;
-
+        struct log_msg msg;
+        // This blocks while waiting for new logs from the logd Unix Socket
+        while (android_logger_list_read(list, &msg) > 0) {
             ProcessBuffer(&msg);
 
-            if (verbose_print_count_ >= kMaxLogSize) [[unlikely]]
-                RefreshFd(true);
-            if (modules_print_count_ >= kMaxLogSize) [[unlikely]]
+            // Check for rotation triggers
+            if (modules_written_ >= kMaxLogSize) [[unlikely]]
                 RefreshFd(false);
+            if (verbose_written_ >= kMaxLogSize) [[unlikely]]
+                RefreshFd(true);
         }
 
+        android_logger_list_free(list);
         OnCrash(errno);
     }
 }
 
 extern "C" JNIEXPORT void JNICALL
-// NOLINTNEXTLINE
-Java_org_lsposed_lspd_service_LogcatService_runLogcat(JNIEnv *env, jobject thiz) {
+Java_org_matrix_vector_daemon_env_LogcatMonitor_runLogcat(JNIEnv* env, jobject thiz) {
     jclass clazz = env->GetObjectClass(thiz);
     jmethodID method = env->GetMethodID(clazz, "refreshFd", "(Z)I");
-    Logcat logcat(env, thiz, method);
-    logcat.Run();
+    Logcat daemon(env, thiz, method);
+    daemon.Run();
 }

@@ -140,7 +140,6 @@
     <string name="no_scope_selected">Nepasirinkote jokios programos. Tęsti?</string>
     <string name="menu_show_games">Žaidimai</string>
     <string name="menu_show_modules">Moduliai</string>
-    <string name="menu_show_denylist">Denylist</string>
     <string name="failed_to_save_scope_list">Nepavyko išsaugoti srities sąrašo</string>
     <string name="app_version">Versija: %1$s</string>
     <string name="use_recommended">Rekomenduojama</string>
@@ -160,8 +159,6 @@
     <string name="reboot_required">Kad šis pakeitimas būtų pritaikytas, reikia perkrauti kompiuterį</string>
     <string name="reboot">Perkraukite</string>
     <string name="menu_hide">Paslėpti</string>
-    <string name="deny_list">%s yra denylist. Jis gali neįsigalioti.</string>
-    <string name="deny_list_info">Dėl denylist</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Peržiūrėti kitoje programoje</string>
     <string name="module_app_info">Programėlės informacija</string>
@@ -198,13 +195,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Dabartinė numatytoji paleidimo programa nepalaiko prisegamų nuorodų</string>
     <string name="settings_enable_status_notification">Pranešimas apie būseną</string>
     <string name="settings_enable_status_notification_summary">Rodyti pranešimą, kad galima atidaryti parazitinį tvarkytuvą</string>
-    <string name="disable_status_notification_error">Nėra sparčiųjų klavišų, negalima išjungti pranešimo</string>
     <string name="settings_update_channel">Atnaujinti kanalą</string>
     <string name="update_channel_stable">Stabilus</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Naktinis kūrimas</string>
-    <string name="settings_xposed_api_call_protection">\"Xposed API\" skambučių apsauga</string>
-    <string name="settings_xposed_api_call_protection_summary">Blokuoti dinamiškai įkeltą modulio kodą, kad būtų galima naudoti Xposed API, tai gali pažeisti kai kuriuos modulius, bet naudinga saugumui</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Leidiniai</string>

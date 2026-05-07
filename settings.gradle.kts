@@ -13,28 +13,22 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal {
-            content {
-                includeGroup("io.github.libxposed")
-            }
-        }
-    }
-    versionCatalogs {
-        create("libs")
     }
 }
 
-rootProject.name = "LSPosed"
+rootProject.name = "Vector"
+
 include(
-    ":apache",
     ":app",
-    ":axml",
-    ":core",
     ":daemon",
     ":dex2oat",
+    ":external:axml",
+    ":external:apache",
     ":hiddenapi:stubs",
     ":hiddenapi:bridge",
-    ":magisk-loader",
+    ":legacy",
     ":services:manager-service",
     ":services:daemon-service",
+    ":xposed",
+    ":zygisk",
 )

@@ -137,7 +137,6 @@ Nên gỡ cài đặt ứng dụng hiện tại.</string>
     <string name="no_scope_selected">Bạn đã không lựa chọn bất kỳ ứng dụng nào. Tiếp tục chứ?</string>
     <string name="menu_show_games">Trò chơi</string>
     <string name="menu_show_modules">Mô-đun</string>
-    <string name="menu_show_denylist">Danh sách từ chối</string>
     <string name="failed_to_save_scope_list">Lưu danh sách phạm vi thất bại</string>
     <string name="app_version">Phiên bản: %1$s</string>
     <string name="use_recommended">Được khuyến cáo</string>
@@ -157,8 +156,6 @@ Nên gỡ cài đặt ứng dụng hiện tại.</string>
     <string name="reboot_required">Khởi động lại là bắt buộc cho thay đổi này</string>
     <string name="reboot">Khởi động lại</string>
     <string name="menu_hide">Ẩn</string>
-    <string name="deny_list">%s đã trong danh sách từ chối. Nó có thể không có hiệu lực.</string>
-    <string name="deny_list_info">Trong danh sách từ chối</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Xem trong ứng dụng khác</string>
     <string name="module_app_info">Thông tin ứng dụng</string>
@@ -167,8 +164,6 @@ Nên gỡ cài đặt ứng dụng hiện tại.</string>
     <string name="settings_group_framework">Khung hệ thống</string>
     <string name="settings_disable_verbose_log">Vô hiệu hoá nhật ký chi tiết</string>
     <string name="settings_disable_verbose_log_summary">Báo cáo sự cố yêu cầu bao gồm nhật ký chi tiết</string>
-    <string name="settings_enable_log_watchdog">Bật chức năng giám sát nhật ký</string>
-    <string name="settings_enable_log_watchdog_summary">Log watchdog sửa đổi các thuộc tính hệ thống của LSPosed, có thể được khai thác để phát hiện LSPosed</string>
     <string name="pure_black_dark_theme">Chủ đề Đen - Tối</string>
     <string name="pure_black_dark_theme_summary">Sử dụng chủ đề đen nếu chủ đề tối được bật</string>
     <string name="settings_group_theme">Chủ đề</string>
@@ -197,14 +192,10 @@ Nên gỡ cài đặt ứng dụng hiện tại.</string>
     <string name="settings_unsupported_pin_shortcut_summary">Trình khởi chạy hiện tại không hỗ trợ tạo lối tắt</string>
     <string name="settings_enable_status_notification">Thông báo trạng thái</string>
     <string name="settings_enable_status_notification_summary">Hiện thông báo để mở trình quản lý phụ thuộc</string>
-    <string name="disable_status_notification_error">Không có lối tắt nên không thể tắt thông báo</string>
     <string name="settings_update_channel">Kênh cập nhật</string>
     <string name="update_channel_stable">Ổn định</string>
     <string name="update_channel_bate">Thử nghiệm</string>
     <string name="update_channel_nightly">Bản dựng hàng đêm</string>
-    <string name="settings_xposed_api_call_protection">Bảo vệ kết nối</string>
-    <string name="settings_xposed_api_call_protection_summary">Chặn mã tiện ích hoạt động được sử dụng.
-Có thể làm hỏng một số tiện ích bổ sung nhưng có lợi cho bảo mật</string>
     <!-- Module Repo -->
     <string name="module_readme">Đọc</string>
     <string name="module_releases">Bản phát hành</string>

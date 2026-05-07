@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Xposed-module is opgedateer, stelselherlaai vereis</string>
     <string name="xposed_module_updated_notification_content_system">%s is opgedateer, aangesien die omvang System Framework bevat, vereis herlaai om veranderinge toe te pas</string>
     <string name="module_updated_channel_name">Module-opdatering voltooi</string>
-    <string name="status_channel_name">LSPosed status</string>
-    <string name="lsposed_running_notification_title">LSPosed gelaai</string>
-    <string name="lsposed_running_notification_content">Tik die kennisgewing om bestuurder oop te maak</string>
+    <string name="status_channel_name">Vector status</string>
+    <string name="vector_running_notification_title">Vector gelaai</string>
+    <string name="vector_running_notification_content">Tik die kennisgewing om bestuurder oop te maak</string>
     <string name="xposed_module_request_scope_title">Omvang Versoek</string>
     <string name="xposed_module_request_scope_content">%1$s op gebruiker %2$s versoek om %3$s by sy omvang te voeg.</string>
     <string name="scope_channel_name">Omvang versoek</string>
     <string name="scope_approve">Keur goed</string>
     <string name="scope_deny">Ontken</string>
-    <string name="nerver_ask_again">Moet nooit vra nie</string>
+    <string name="never_ask_again">Moet nooit vra nie</string>
 </resources>

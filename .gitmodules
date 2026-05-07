@@ -7,15 +7,21 @@
 [submodule "external/fmt"]
 	path = external/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "patch/libs/manifest-editor"]
-    path = axml/libs/manifest-editor
-    url = https://github.com/JingMatrix/ManifestEditor.git
 [submodule "external/xz-embedded"]
 	path = external/xz-embedded
-	url = https://github.com/tukaani-project/xz-embedded
-[submodule "apache/commons-lang"]
-	path = apache/commons-lang
-	url = https://github.com/apache/commons-lang
+	url = https://github.com/tukaani-project/xz-embedded.git
 [submodule "external/lsplt"]
 	path = external/lsplt
 	url = https://github.com/JingMatrix/LSPlt
+[submodule "services/libxposed"]
+	path = services/libxposed
+	url = https://github.com/libxposed/service.git
+[submodule "xposed/libxposed"]
+	path = xposed/libxposed
+	url = https://github.com/libxposed/api.git
+[submodule "external/apache/commons-lang"]
+	path = external/apache/commons-lang
+	url = https://github.com/apache/commons-lang.git
+[submodule "external/axml/manifest-editor"]
+	path = external/axml/manifest-editor
+	url = https://github.com/JingMatrix/ManifestEditor.git

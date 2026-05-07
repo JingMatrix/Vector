@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Modul Xposed diperbarui, diperlukan memulai ulang sistem</string>
     <string name="xposed_module_updated_notification_content_system">%s telah diperbarui, karena cakupannya berisi Kerangka Sistem, diperlukan mulai ulang untuk menerapkan perubahan</string>
     <string name="module_updated_channel_name">Pembaruan modul selesai</string>
-    <string name="status_channel_name">Status LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed dimuat</string>
-    <string name="lsposed_running_notification_content">Ketuk notifikasi untuk membuka pengelola</string>
+    <string name="status_channel_name">Status Vector</string>
+    <string name="vector_running_notification_title">Vector dimuat</string>
+    <string name="vector_running_notification_content">Ketuk notifikasi untuk membuka pengelola</string>
     <string name="xposed_module_request_scope_title">Permintaan Cakupan</string>
     <string name="xposed_module_request_scope_content">%1$s pada pengguna %2$s meminta untuk menambahkan %3$s ke dalam cakupannya.</string>
     <string name="scope_channel_name">Permintaan cakupan</string>
     <string name="scope_approve">Menyetujui</string>
     <string name="scope_deny">Menolak</string>
-    <string name="nerver_ask_again">Jangan Pernah Bertanya</string>
+    <string name="never_ask_again">Jangan Pernah Bertanya</string>
 </resources>

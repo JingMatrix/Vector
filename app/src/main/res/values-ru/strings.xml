@@ -142,7 +142,6 @@
     <string name="no_scope_selected">Вы не выбрали ни одного приложения. Продолжить?</string>
     <string name="menu_show_games">Игры</string>
     <string name="menu_show_modules">Модули</string>
-    <string name="menu_show_denylist">DenyList</string>
     <string name="failed_to_save_scope_list">Ошибка сохранения списка «охвата»</string>
     <string name="app_version">Версия: %1$s</string>
     <string name="menu_select">Выберите</string>
@@ -166,8 +165,6 @@
     <string name="reboot_required">Для применения требуется перезагрузка</string>
     <string name="reboot">Перезагрузить</string>
     <string name="menu_hide">Скрыть</string>
-    <string name="deny_list">%s находится в DenyList. Это может ни к чему не привести.</string>
-    <string name="deny_list_info">В DenyList</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Посмотреть в другом приложении</string>
     <string name="module_app_info">О приложении</string>
@@ -176,8 +173,6 @@
     <string name="settings_group_framework">Framework</string>
     <string name="settings_disable_verbose_log">Выключить подробный журнал</string>
     <string name="settings_disable_verbose_log_summary">Отчёт об ошибке требует включение подробного журнала</string>
-    <string name="settings_enable_log_watchdog">Включить отслеживание журнала</string>
-    <string name="settings_enable_log_watchdog_summary">Отслеживание журнала LSPosed (log watchdog) изменяет системные настройки, которыми можно обнаружить LSPosed</string>
     <string name="pure_black_dark_theme">Чёрная тема</string>
     <string name="pure_black_dark_theme_summary">Использовать чёрную тему, когда включена тёмная тема</string>
     <string name="settings_group_theme">Тема</string>
@@ -206,13 +201,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Текущий лаунчер по умолчанию не поддерживает закрепление ярлыков</string>
     <string name="settings_enable_status_notification">Уведомление о состоянии</string>
     <string name="settings_enable_status_notification_summary">Показывать уведомление, через которое можно открыть parasitic-менеджер (т. е. LSPosed в скрытом режиме)</string>
-    <string name="disable_status_notification_error">Отсутствует ярлык, невозможно отключить уведомление</string>
     <string name="settings_update_channel">Канал обновлений</string>
     <string name="update_channel_stable">Стабильные версии</string>
     <string name="update_channel_bate">Бета-версии</string>
     <string name="update_channel_nightly">Еженочные версии</string>
-    <string name="settings_xposed_api_call_protection">Защита запросов Xposed API</string>
-    <string name="settings_xposed_api_call_protection_summary">Блокировка динамически загружаемого кода модуля для использования Xposed API, это может нарушить работу некоторых модулей, но повысит безопасность</string>
     <!-- Module Repo -->
     <string name="module_readme">ПрочтиМеня</string>
     <string name="module_releases">Версии</string>

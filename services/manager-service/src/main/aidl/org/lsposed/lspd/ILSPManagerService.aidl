@@ -12,8 +12,6 @@ interface ILSPManagerService {
     const int DEX2OAT_SELINUX_PERMISSIVE = 3;
     const int DEX2OAT_SEPOLICY_INCORRECT = 4;
 
-    String getApi() = 1;
-
     ParcelableListSlice<PackageInfo> getInstalledPackagesFromAllUsers(int flags, boolean filterNoProcess) = 2;
 
     String[] enabledModules() = 3;
@@ -34,7 +32,7 @@ interface ILSPManagerService {
 
     ParcelFileDescriptor getModulesLog() = 17;
 
-    int getXposedVersionCode() = 18;
+    long getXposedVersionCode() = 18;
 
     String getXposedVersionName() = 19;
 
@@ -70,15 +68,7 @@ interface ILSPManagerService {
 
     void restartFor(in Intent intent) = 35;
 
-    oneway void flashZip(String zipPath, in ParcelFileDescriptor outputStream) = 39;
-
     boolean performDexOptMode(String packageName) = 40;
-
-    List<String> getDenyListPackages() = 41;
-
-    boolean getDexObfuscate() = 42;
-
-    void setDexObfuscate(boolean enable) = 43;
 
     int getDex2OatWrapperCompatibility() = 44;
 
@@ -87,10 +77,6 @@ interface ILSPManagerService {
     boolean enableStatusNotification() = 47;
 
     void setEnableStatusNotification(boolean enable) = 48;
-
-    void setLogWatchdog(boolean enable) = 49;
-
-    boolean isLogWatchdogEnabled() = 50;
 
     boolean getAutoInclude(String packageName) = 51;
 

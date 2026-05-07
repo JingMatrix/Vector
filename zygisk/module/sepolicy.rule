@@ -1,0 +1,15 @@
+allow dex2oat dex2oat_exec file execute_no_trans
+allow dex2oat system_linker_exec file execute_no_trans
+
+allow shell shell dir write
+
+type xposed_file file_type
+typeattribute xposed_file mlstrustedobject
+allow {dex2oat installd isolated_app shell} xposed_file {file dir} *
+
+allow dex2oat {unlabeled tmpfs} file *
+allow zygote dex2oat unix_stream_socket *
+
+type xposed_data file_type
+typeattribute xposed_data mlstrustedobject
+allow * xposed_data {file dir} *

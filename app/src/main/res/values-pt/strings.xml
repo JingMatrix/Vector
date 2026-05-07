@@ -136,7 +136,6 @@
     <string name="no_scope_selected">Você não selecionou nenhum aplicativo. Deseja continuar?</string>
     <string name="menu_show_games">Jogos</string>
     <string name="menu_show_modules">Módulos</string>
-    <string name="menu_show_denylist">Lista de Negação</string>
     <string name="failed_to_save_scope_list">Falha ao salvar lista de escopos</string>
     <string name="app_version">Versão: %1$s</string>
     <string name="use_recommended">Recomendações</string>
@@ -156,8 +155,6 @@
     <string name="reboot_required">Necessário reiniciar para aplicar alteração</string>
     <string name="reboot">Reiniciar</string>
     <string name="menu_hide">Esconder</string>
-    <string name="deny_list">%s está na lista de negação. Pode não ter efeito.</string>
-    <string name="deny_list_info">Na lista de negação</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Ver na Play Store</string>
     <string name="module_app_info">Informações do app</string>
@@ -194,13 +191,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">O lançador padrão actual não suporta atalhos de pinos</string>
     <string name="settings_enable_status_notification">Notificação de estado</string>
     <string name="settings_enable_status_notification_summary">Mostrar uma notificação que possa abrir o gerenciador parasita</string>
-    <string name="disable_status_notification_error">Nenhum atalho, não é possível desativar a notificação</string>
     <string name="settings_update_channel">Canal de Atualizações</string>
     <string name="update_channel_stable">Estável</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Nightly</string>
-    <string name="settings_xposed_api_call_protection">Proteção da API do Xposed</string>
-    <string name="settings_xposed_api_call_protection_summary">Bloquear módulos carregados dinamicamente de usarem a API do Xposed, isso pode travar alguns módulos, mas melhora a segurança</string>
     <!-- Module Repo -->
     <string name="module_readme">Leia-me</string>
     <string name="module_releases">Versões</string>

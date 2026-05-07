@@ -1,125 +1,111 @@
-/*
- * This file is part of LSPosed.
- *
- * LSPosed is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * LSPosed is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2021 LSPosed Contributors
- */
-
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.ide.common.signing.KeystoreHelper
 import java.io.PrintStream
-
-plugins {
-    alias(libs.plugins.agp.app)
-    alias(libs.plugins.lsplugin.resopt)
-}
-
-val daemonName = "LSPosed"
-
-val injectedPackageName: String by rootProject.extra
-val injectedPackageUid: Int by rootProject.extra
-
-val agpVersion: String by project
+import java.util.UUID
 
 val defaultManagerPackageName: String by rootProject.extra
+val injectedPackageName: String by rootProject.extra
+val injectedPackageUid: Int by rootProject.extra
+val versionCodeProvider: Provider<String> by rootProject.extra
+val versionNameProvider: Provider<String> by rootProject.extra
+
+plugins {
+  alias(libs.plugins.agp.app)
+  alias(libs.plugins.kotlin)
+  alias(libs.plugins.ktfmt)
+}
 
 android {
-    buildFeatures {
-        prefab = true
-        buildConfig = true
+  defaultConfig {
+    buildConfigField(
+        "String",
+        "DEFAULT_MANAGER_PACKAGE_NAME",
+        """"$defaultManagerPackageName"""",
+    )
+    buildConfigField("String", "FRAMEWORK_NAME", """"${rootProject.name}"""")
+    buildConfigField("String", "MANAGER_INJECTED_PKG_NAME", """"$injectedPackageName"""")
+    buildConfigField("int", "MANAGER_INJECTED_UID", """$injectedPackageUid""")
+    buildConfigField("String", "VERSION_NAME", """"${versionNameProvider.get()}"""")
+    buildConfigField("long", "VERSION_CODE", versionCodeProvider.get())
+
+    val cliToken = UUID.randomUUID()
+    // Inject the MSB and LSB as Long constants
+    buildConfigField("Long", "CLI_TOKEN_MSB", "${cliToken.mostSignificantBits}L")
+    buildConfigField("Long", "CLI_TOKEN_LSB", "${cliToken.leastSignificantBits}L")
+  }
+
+  buildTypes {
+    all { externalNativeBuild { cmake { arguments += "-DANDROID_ALLOW_UNDEFINED_SYMBOLS=true" } } }
+    release {
+      isMinifyEnabled = true
+      proguardFiles("proguard-rules.pro")
     }
+  }
 
-    defaultConfig {
-        applicationId = "org.lsposed.daemon"
+  externalNativeBuild { cmake { path("src/main/jni/CMakeLists.txt") } }
 
-        buildConfigField(
-            "String",
-            "DEFAULT_MANAGER_PACKAGE_NAME",
-            """"$defaultManagerPackageName""""
-        )
-        buildConfigField("String", "MANAGER_INJECTED_PKG_NAME", """"$injectedPackageName"""")
-        buildConfigField("int", "MANAGER_INJECTED_UID", """$injectedPackageUid""")
-    }
-
-    buildTypes {
-        all {
-            externalNativeBuild {
-                cmake {
-                    arguments += "-DANDROID_ALLOW_UNDEFINED_SYMBOLS=true"
-                }
-            }
-        }
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles("proguard-rules.pro")
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path("src/main/jni/CMakeLists.txt")
-        }
-    }
-
-    namespace = "org.lsposed.daemon"
+  namespace = "org.matrix.vector.daemon"
 }
 
 android.applicationVariants.all {
-    val variantCapped = name.replaceFirstChar { it.uppercase() }
-    val variantLowered = name.lowercase()
+  val variantCapped = name.replaceFirstChar { it.uppercase() }
+  val variantLowered = name.lowercase()
 
-    val outSrcDir =
-        layout.buildDirectory.dir("generated/source/signInfo/${variantLowered}").get()
-    val signInfoTask = tasks.register("generate${variantCapped}SignInfo") {
+  val outSrcDir = layout.buildDirectory.dir("generated/source/signInfo/${variantLowered}").get()
+  val signInfoTask =
+      tasks.register("generate${variantCapped}SignInfo") {
         dependsOn(":app:validateSigning${variantCapped}")
-        val sign = rootProject.project(":app").extensions
-            .getByType(ApplicationExtension::class.java)
-            .buildTypes.named(variantLowered).get().signingConfig
-        val outSrc = file("$outSrcDir/org/lsposed/lspd/util/SignInfo.java")
+        val sign =
+            rootProject
+                .project(":app")
+                .extensions
+                .getByType(ApplicationExtension::class.java)
+                .buildTypes
+                .named(variantLowered)
+                .get()
+                .signingConfig
+        val outSrc = file("$outSrcDir/org/matrix/vector/daemon/utils/SignInfo.kt")
         outputs.file(outSrc)
         doLast {
-            outSrc.parentFile.mkdirs()
-            val certificateInfo = KeystoreHelper.getCertificateInfo(
-                sign?.storeType,
-                sign?.storeFile,
-                sign?.storePassword,
-                sign?.keyPassword,
-                sign?.keyAlias
-            )
-            PrintStream(outSrc).print(
-                """
-                |package org.lsposed.lspd.util;
-                |public final class SignInfo {
-                |    public static final byte[] CERTIFICATE = {${
+          outSrc.parentFile.mkdirs()
+          val certificateInfo =
+              KeystoreHelper.getCertificateInfo(
+                  sign?.storeType,
+                  sign?.storeFile,
+                  sign?.storePassword,
+                  sign?.keyPassword,
+                  sign?.keyAlias,
+              )
+
+          PrintStream(outSrc)
+              .print(
+                  """
+                |package org.matrix.vector.daemon.utils
+                |
+                |object SignInfo {
+                |    @JvmField
+                |    val CERTIFICATE = byteArrayOf(${
                     certificateInfo.certificate.encoded.joinToString(",")
-                }};
-                |}""".trimMargin()
-            )
+                })
+                |}"""
+                      .trimMargin())
         }
-    }
-    registerJavaGeneratingTask(signInfoTask, outSrcDir.asFile)
+      }
+  // registeoJavaGeneratingTask(signInfoTask, outSrcDir.asFile)
+
+  kotlin.sourceSets.getByName(variantLowered) { kotlin.srcDir(signInfoTask.map { outSrcDir }) }
 }
 
 dependencies {
-    implementation(libs.libxposed.`interface`)
-    implementation(libs.agp.apksig)
-    implementation(projects.apache)
-    implementation(projects.hiddenapi.bridge)
-    implementation(projects.services.daemonService)
-    implementation(projects.services.managerService)
-    compileOnly(libs.androidx.annotation)
-    compileOnly(projects.hiddenapi.stubs)
+  implementation(libs.agp.apksig)
+  implementation(libs.gson)
+  implementation(libs.picocli)
+  implementation(libs.kotlinx.coroutines.android)
+  implementation(libs.kotlinx.coroutines.core)
+  implementation(projects.external.apache)
+  implementation(projects.hiddenapi.bridge)
+  implementation(projects.services.daemonService)
+  implementation(projects.services.managerService)
+  compileOnly(libs.androidx.annotation)
+  compileOnly(projects.hiddenapi.stubs)
 }

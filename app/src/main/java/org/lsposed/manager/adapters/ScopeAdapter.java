@@ -104,7 +104,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
     private Set<ApplicationWithEquals> checkedList = new HashSet<>();
     private List<AppInfo> searchList = new ArrayList<>();
     private List<AppInfo> showList = new ArrayList<>();
-    private List<String> denyList = new ArrayList<>();
 
     public RecyclerView.Adapter<RecyclerView.ViewHolder> switchAdaptor = new RecyclerView.Adapter<>() {
         @NonNull
@@ -169,11 +168,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         }
         if (tmpChkList.contains(app)) {
             return false;
-        }
-        if (preferences.getBoolean("filter_denylist", false)) {
-            if (denyList.contains(info.packageName)) {
-                return true;
-            }
         }
         if (preferences.getBoolean("filter_modules", true)) {
             if (ModuleUtil.getInstance().getModule(info.packageName, info.applicationInfo.uid / App.PER_USER_RANGE) != null) {
@@ -271,9 +265,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         } else if (itemId == R.id.item_filter_modules) {
             item.setChecked(!item.isChecked());
             preferences.edit().putBoolean("filter_modules", item.isChecked()).apply();
-        } else if (itemId == R.id.item_filter_denylist) {
-            item.setChecked(!item.isChecked());
-            preferences.edit().putBoolean("filter_denylist", item.isChecked()).apply();
         } else if (itemId == R.id.backup) {
             LocalDateTime now = LocalDateTime.now();
             try {
@@ -368,7 +359,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         menu.findItem(R.id.item_filter_system).setChecked(preferences.getBoolean("filter_system_apps", true));
         menu.findItem(R.id.item_filter_games).setChecked(preferences.getBoolean("filter_games", true));
         menu.findItem(R.id.item_filter_modules).setChecked(preferences.getBoolean("filter_modules", true));
-        menu.findItem(R.id.item_filter_denylist).setChecked(preferences.getBoolean("filter_denylist", false));
         switch (preferences.getInt("list_sort", 0)) {
             case 7 -> {
                 menu.findItem(R.id.item_sort_by_update_time).setChecked(true);
@@ -405,8 +395,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         AppInfo appInfo = showList.get(position);
-        boolean deny = denyList.contains(appInfo.packageName);
-        holder.root.setAlpha(!deny && enabled ? 1.0f : .5f);
+        holder.root.setAlpha(enabled ? 1.0f : .5f);
         boolean system = appInfo.packageName.equals("system");
         CharSequence appName;
         int userId = appInfo.applicationInfo.uid / App.PER_USER_RANGE;
@@ -451,20 +440,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
                 sb.setSpan(styleSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
             sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        }
-        if (deny) {
-            if (sb.length() != 0) sb.append("\n");
-            String denylist = activity.getString(R.string.deny_list_info);
-            sb.append(denylist);
-            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), com.google.android.material.R.attr.colorError));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-                sb.setSpan(typefaceSpan, sb.length() - denylist.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            } else {
-                final StyleSpan styleSpan = new StyleSpan(Typeface.BOLD);
-                sb.setSpan(styleSpan, sb.length() - denylist.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            }
-            sb.setSpan(foregroundColorSpan, sb.length() - denylist.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
         }
         if (sb.length() == 0) {
             holder.hint.setVisibility(View.GONE);
@@ -527,7 +502,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         enabled = moduleUtil.isModuleEnabled(module.packageName);
         fragment.runAsync(() -> {
             List<PackageInfo> appList = AppHelper.getAppList(force);
-            denyList = AppHelper.getDenyList(force);
             var tmpRecList = new HashSet<ApplicationWithEquals>();
             var tmpChkList = new HashSet<>(ConfigManager.getModuleScope(module.packageName));
             final var tmpList = new ArrayList<AppInfo>();
@@ -599,8 +573,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
             buttonView.setChecked(!isChecked);
         } else if (appInfo.packageName.equals("system")) {
             fragment.showHint(R.string.reboot_required, true, R.string.reboot, v -> ConfigManager.reboot());
-        } else if (denyList.contains(appInfo.packageName)) {
-            fragment.showHint(activity.getString(R.string.deny_list, appInfo.label), true);
         }
         checkedList = tmpChkList;
     }

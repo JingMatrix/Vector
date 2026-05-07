@@ -22,7 +22,7 @@
     <string name="overview">概要</string>
     <string name="Modules">モジュール</string>
     <plurals name="modules_enabled_count">
-        <item quantity="other">%d個のモジュールが有効</item>
+        <item quantity="other">%d 個のモジュールが有効です</item>
     </plurals>
     <string name="Logs">ログ</string>
     <string name="Settings">設定</string>
@@ -34,53 +34,53 @@
     <string name="module_repo_published_time">公開日時: %s</string>
     <string name="module_repo_updated_time">更新日時: %s</string>
     <plurals name="module_repo_upgradable">
-        <item quantity="other">%d 個のモジュールが更新可能</item>
+        <item quantity="other">%d 個のモジュールが更新可能です</item>
     </plurals>
-    <string name="about_view_source_code"><![CDATA[%1$s でソースコードを閲覧<br/>%2$s チャンネルに参加]]></string>
+    <string name="about_view_source_code"><![CDATA[ソースコードを閲覧するにはこちら: %1$s<br/>チャンネルに参加するにはこちら: %2$s]]></string>
     <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">yoshi818, a1678991, りお(koko0628)</string>
     <string name="install">インストール</string>
-    <string name="install_summary">タップしてLSPosedをインストールします</string>
+    <string name="install_summary">タップして LSPosed をインストールします</string>
     <string name="not_installed">インストールされていません</string>
-    <string name="not_install_summary">LSPosedはインストールされていません</string>
+    <string name="not_install_summary">LSPosed はインストールされていません</string>
     <string name="activated">有効化済み</string>
     <string name="partial_activated">部分的に有効化済み</string>
-    <string name="selinux_policy_not_loaded_summary">SEPolicyが正しく読み込まれていません</string>
+    <string name="selinux_policy_not_loaded_summary">SEPolicy が正しく読み込まれていません</string>
     <string name="selinux_policy_not_loaded"><![CDATA[一部の機能は動作しません。<br/>これを<a href="https://github.com/topjohnwu/Magisk/issues"><b>Magisk</b></a>の開発者に報告してください。]]></string>
     <string name="system_inject_fail_summary">システムフレームワークへのパッチに失敗しました</string>
     <string name="system_inject_fail"><![CDATA[これは稀な現象であり、<b>Magisk</b>または低品質のMagiskモジュールが原因である可能性があります。<br/>LSPosed以外のMagiskモジュールを一時的に無効化してみるか、完全なログを開発者に送信してください。]]></string>
     <string name="system_prop_incorrect_summary">システム設定が正しくありません</string>
     <string name="system_prop_incorrect"><![CDATA[必須のシステム設定が変更もしくは削除されています。<br/>モジュールが無効化される場合があります。]]></string>
     <string name="need_update">更新が必要です</string>
-    <string name="please_update_summary">最新バージョンのLSPosedをインストールして下さい</string>
+    <string name="please_update_summary">最新バージョンの LSPosed をインストールして下さい</string>
     <string name="developer_warning_title">モジュール開発者向けのヒント</string>
-    <string name="developer_warning_summary">Android Studioでデプロイの最適化を無効にするか、「gradlew installDebug」コマンドを使用してインストールしてください。この操作を行わないとモジュールのapkは更新できません。</string>
-    <string name="info_api_version">APIバージョン</string>
+    <string name="developer_warning_summary">Android Studio でデプロイの最適化を無効にするか、「gradlew installDebug」コマンドを使用してインストールしてください。この操作を行わないとモジュールの apk は更新できません。</string>
+    <string name="info_api_version">API バージョン</string>
     <string name="info_framework_version">フレームワークバージョン</string>
     <string name="info_manager_package_name">マネージャーパッケージ名</string>
     <string name="info_system_version">システムバージョン</string>
     <string name="info_device">デバイス</string>
-    <string name="info_system_abi">システムABI</string>
-    <string name="info_dex2oat_wrapper">Dex最適化ラッパー</string>
+    <string name="info_system_abi">システム ABI</string>
+    <string name="info_dex2oat_wrapper">Dex 最適化ラッパー</string>
     <string name="enabled">有効</string>
     <string name="not_enabled">無効</string>
     <string name="supported">対応</string>
     <string name="unsupported">非対応</string>
-    <string name="android_version_unsatisfied">Androidのバージョンが適合しません</string>
+    <string name="android_version_unsatisfied">Android のバージョンが適合しません</string>
     <string name="crashed">クラッシュしました</string>
     <string name="mount_failed">マウントに失敗しました</string>
-    <string name="selinux_permissive">SELinuxはPermissiveです</string>
-    <string name="sepolicy_incorrect">SELinuxのポリシーが正しくありません</string>
-    <string name="update_lsposed">LSPosedを更新</string>
-    <string name="update_lsposed_msg">LSPosedを更新してもよろしいですか？更新の完了後、このデバイスは再起動します</string>
+    <string name="selinux_permissive">SELinux は Permissive です</string>
+    <string name="sepolicy_incorrect">SELinux のポリシーが正しくありません</string>
+    <string name="update_lsposed">LSPosed を更新</string>
+    <string name="update_lsposed_msg">LSPosed を更新してもよろしいですか？更新の完了後、このデバイスは再起動します</string>
     <string name="info_copied">クリップボードにコピーされました</string>
     <!-- WelcomeDialog -->
-    <string name="parasitic_welcome">LSPosedへようこそ</string>
+    <string name="parasitic_welcome">LSPosed へようこそ</string>
     <string name="parasitic_welcome_summary">パラサイトマネージャーを使用しています。これにより、ショートカットを作成したり、通知から開いたりできます。</string>
     <string name="parasitic_welcome_summary_no_shortcut_support">通知から開くことができるパラサイトマネージャーを使用しています。</string>
     <string name="create_shortcut">ショートカットを作成</string>
     <string name="never_show">再度表示しない</string>
     <string name="app_welcome">パラサイトマネージャーを使用することを推奨します</string>
-    <string name="app_welcome_summary">LSPosedは検出を回避するためのシステムパラサイトに対応し、通知からパラサイトマネージャーを開くことができるようになりました。現在のアプリケーションをアンインストールすることをお勧めします。</string>
+    <string name="app_welcome_summary">LSPosed は検出を回避するためのシステムパラサイトに対応し、通知からパラサイトマネージャーを開くことができるようになりました。現在のアプリケーションをアンインストールすることをおすすめします。</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">保存</string>
     <string name="nav_item_logs_verbose">詳細ログ</string>
@@ -100,22 +100,22 @@
     <string name="disabled_verbose_log">詳細ログは無効です</string>
     <!-- ModulesActivity -->
     <string name="module_empty_description">(説明はありません)</string>
-    <string name="warning_xposed_min_version">このモジュールは新しいバージョンのXposed(%d)が必要なので有効化できません</string>
-    <string name="warning_target_version_higher">このモジュールは新しいXposedバージョン(%d)用に設計されているため、一部の機能が動作しない可能性があります</string>
-    <string name="no_min_version_specified">このモジュールは必要なXposedのバージョンを指定していません。</string>
-    <string name="warning_min_version_too_low">このモジュールはXposedバージョン %1$d用に作成されましたが、バージョン %2$dでの互換性のない変更により無効化されました。</string>
-    <string name="warning_installed_on_external_storage">このモジュールはSDカードにインストールされているため読み込むことができません。内部ストレージに移動してください。</string>
+    <string name="warning_xposed_min_version">このモジュールは新しいバージョンの Xposed (%d) が必要なので有効化できません</string>
+    <string name="warning_target_version_higher">このモジュールは新しい Xposed バージョン (%d) 用に設計されているため、一部の機能が動作しない可能性があります</string>
+    <string name="no_min_version_specified">このモジュールは必要な Xposed のバージョンを指定していません。</string>
+    <string name="warning_min_version_too_low">このモジュールは Xposed バージョン %1$d 用に作成されましたが、バージョン %2$dでの互換性のない変更により無効化されました。</string>
+    <string name="warning_installed_on_external_storage">このモジュールは SD カードにインストールされているため読み込むことができません。内部ストレージに移動してください。</string>
     <string name="module_uninstall">アンインストール</string>
     <string name="module_settings">モジュール設定</string>
     <string name="view_in_repo">リポジトリで表示</string>
     <string name="module_uninstall_message">このモジュールをアンインストールしますか？</string>
-    <string name="module_uninstalled">%1$sをアンインインストールしました</string>
+    <string name="module_uninstalled">「%1$s」をアンインインストールしました</string>
     <string name="module_uninstall_failed">アンインストールに成功</string>
     <string name="add_module_to_user">ユーザへモジュールを追加</string>
-    <string name="module_installed">ユーザー %2$s へ %1$s を追加</string>
+    <string name="module_installed">%1$s をユーザー %2$s へ追加</string>
     <string name="module_install_failed">モジュールの追加に失敗しました</string>
     <string name="install_to_user">ユーザー %s へインストール</string>
-    <string name="install_to_user_message">ユーザー %2$s へ %1$s をインストールしますか？LSPosed経由での強制インストールは問題が発生する場合があるため、手動でインストールすることをおすすめします。</string>
+    <string name="install_to_user_message">ユーザー %2$s へ %1$s をインストールしますか？LSPosed 経由での強制インストールは問題が発生する場合があるため、手動でインストールすることをおすすめします。</string>
     <string name="expand">開く</string>
     <string name="collapse">閉じる</string>
     <!-- AppListActivity -->
@@ -123,8 +123,8 @@
     <string name="compile_speed_msg">最適化中…</string>
     <string name="compile_done">最適化が完了しました</string>
     <string name="app_launch">起動</string>
-    <string name="compile_failed">最適化に失敗: return value is empty</string>
-    <string name="compile_failed_with_info">最適化に失敗: </string>
+    <string name="compile_failed">最適化に失敗しました: 戻り値が空です</string>
+    <string name="compile_failed_with_info">最適化に失敗しました: </string>
     <string name="sort_by_name">アプリ名</string>
     <string name="sort_by_package_name">パッケージ名</string>
     <string name="sort_by_install_time">インストール日時</string>
@@ -136,18 +136,17 @@
     <string name="no_scope_selected">アプリが選択されていません。よろしいですか？</string>
     <string name="menu_show_games">ゲーム</string>
     <string name="menu_show_modules">モジュール</string>
-    <string name="menu_show_denylist">Denylist</string>
     <string name="failed_to_save_scope_list">スコープリストの保存に失敗しました</string>
     <string name="app_version">バージョン: %1$s</string>
     <string name="menu_select">選択</string>
-    <string name="use_recommended">おすすめ</string>
+    <string name="use_recommended">推奨</string>
     <string name="no_scope_selected_has_recommended">アプリが選択されていません。おすすめのアプリを選択しますか？</string>
     <string name="use_recommended_message">おすすめのアプリを選択しますか？</string>
     <string name="menu_select_all">すべて</string>
     <string name="menu_select_none">なし</string>
     <string name="menu_auto_include">自動的に含む</string>
-    <string name="module_is_not_activated_yet">Xposedモジュールが有効化されていません</string>
-    <string name="requested_by_module">おすすめ</string>
+    <string name="module_is_not_activated_yet">Xposed モジュールが有効化されていません</string>
+    <string name="requested_by_module">推奨</string>
     <string name="update_available">アップデートが利用可能です: %1$s</string>
     <string name="module_disabled_no_selection">アプリが選択されていないため、モジュール「%s」は無効になっています。</string>
     <string name="android_framework">システムフレームワーク</string>
@@ -160,18 +159,14 @@
     <string name="reboot_required">この設定を適用するには再起動が必要です</string>
     <string name="reboot">再起動</string>
     <string name="menu_hide">非表示</string>
-    <string name="deny_list">%sがDenyListに登録されています。効果がないかもしれません。</string>
-    <string name="deny_list_info">DenyListに登録されています</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">他のアプリで表示</string>
     <string name="module_app_info">アプリの情報</string>
-    <string name="list_empty">¯\\\\_(ツ)_\/¯\nリストは空です</string>
+    <string name="list_empty">¯\\_(ツ)_\/¯\nリストは空です</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">フレームワーク</string>
     <string name="settings_disable_verbose_log">詳細ログの無効化</string>
-    <string name="settings_disable_verbose_log_summary">問題を報告する際は、詳細なログを含めるようリクエストしてください</string>
-    <string name="settings_enable_log_watchdog">ログウォッチドッグを有効化</string>
-    <string name="settings_enable_log_watchdog_summary">LSPosedのログウォッチドッグはシステムプロパティを変更し、LSPosedを検出するために悪用される可能性があります。</string>
+    <string name="settings_disable_verbose_log_summary">問題を報告する際は、詳細なログを含めるようにしてください</string>
     <string name="pure_black_dark_theme">黒のダークテーマ</string>
     <string name="pure_black_dark_theme_summary">ダークテーマが有効になっている場合は、ピュアブラックテーマを使用します</string>
     <string name="settings_group_theme">テーマ</string>
@@ -180,33 +175,30 @@
     <string name="settings_restore_summery">モジュールリストとスコープリストを復元します</string>
     <string name="settings_backup">バックアップ</string>
     <string name="settings_backup_failed2">バックアップに失敗しました:\n%s</string>
-    <string name="enable_documentui">DocumentUIを有効にしてください。</string>
+    <string name="enable_documentui">DocumentUI を有効にしてください</string>
     <string name="settings_restore">復元</string>
     <string name="settings_restore_failed2">復元に失敗しました:\n%s</string>
     <string name="group_network">ネットワーク</string>
     <string name="dns_over_http">DNS over HTTPS</string>
-    <string name="dns_over_http_summary">一部の国向けのDNSポイズニング回避策</string>
+    <string name="dns_over_http_summary">一部の国向けの DNS ポイズニング回避策</string>
     <string name="theme_color">テーマカラー</string>
     <string name="theme_color_system">システムテーマカラー</string>
     <string name="settings_show_hidden_icon_apps_enabled">ランチャーアイコンを強制的に表示</string>
-    <string name="settings_show_hidden_icon_apps_enabled_summary">Android 10以降、アプリはランチャーアイコンを隠すことができなくなりました。このシステム機能を無効にするには、トグルをオフにしてください。</string>
+    <string name="settings_show_hidden_icon_apps_enabled_summary">Android 10 以降、アプリはランチャーアイコンを隠すことができなくなりました。このシステム機能を無効にするには、トグルをオフにしてください。</string>
     <string name="settings_group_system">システム</string>
     <string name="settings_language">言語</string>
     <string name="settings_translation_contributors">翻訳貢献者</string>
     <string name="settings_translation">翻訳に貢献</string>
-    <string name="settings_translation_summary">%sの翻訳にご協力ください</string>
+    <string name="settings_translation_summary">%s の翻訳にご協力ください</string>
     <string name="settings_create_shortcut_summary">パラサイトマネージャーを開くことができるショートカットを作成します</string>
     <string name="settings_shortcut_pinned_hint">ショートカットのピン留め</string>
     <string name="settings_unsupported_pin_shortcut_summary">現在のデフォルトランチャーはショートカットのピン留めをサポートしていません</string>
     <string name="settings_enable_status_notification">ステータス通知</string>
     <string name="settings_enable_status_notification_summary">パラサイトマネージャーを開くことができる通知を表示します</string>
-    <string name="disable_status_notification_error">ショートカットがないため、通知を無効にできません</string>
     <string name="settings_update_channel">更新チャンネル</string>
     <string name="update_channel_stable">安定版</string>
     <string name="update_channel_bate">ベータ版</string>
     <string name="update_channel_nightly">ナイトリービルド</string>
-    <string name="settings_xposed_api_call_protection">Xposed APIの呼び出し保護</string>
-    <string name="settings_xposed_api_call_protection_summary">動的にロードされたモジュールコードがXposed APIを使用するのをブロックします。これにより一部のモジュールが動作しなくなる可能性がありますが、セキュリティが向上します。</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">リリース</string>
@@ -218,11 +210,11 @@
     <string name="menu_open_in_browser">ブラウザで表示</string>
     <string name="module_release_load_more">以前のバージョンを表示</string>
     <string name="module_release_no_more">これ以上のリリースはありません</string>
-    <string name="repo_load_failed">モジュールリポジトリの読み込みに失敗: %s</string>
+    <string name="repo_load_failed">モジュールリポジトリの読み込みに失敗しました: %s</string>
     <string name="sort_upgradable_first">更新があるモジュールを先頭に表示</string>
     <string name="installed">インストール済み</string>
     <plurals name="module_release_assets_download_count">
-        <item quantity="other">%d件のダウンロード</item>
+        <item quantity="other">%d 件のダウンロード</item>
     </plurals>
     <!-- Colors -->
     <string name="color_sakura">桜色</string>

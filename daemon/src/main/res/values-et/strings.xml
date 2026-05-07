@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Xposed moodul uuendatud, süsteemi taaskäivitamine vajalik</string>
     <string name="xposed_module_updated_notification_content_system">%s on uuendatud, kuna reguleerimisala sisaldab System Framework, vajalik taaskäivitamine, et rakendada muudatusi</string>
     <string name="module_updated_channel_name">Mooduli uuendamine lõpetatud</string>
-    <string name="status_channel_name">LSPosedi staatus</string>
-    <string name="lsposed_running_notification_title">LSPosed laaditud</string>
-    <string name="lsposed_running_notification_content">Halduri avamiseks puudutage märguannet</string>
+    <string name="status_channel_name">Vectori staatus</string>
+    <string name="vector_running_notification_title">Vector laaditud</string>
+    <string name="vector_running_notification_content">Halduri avamiseks puudutage märguannet</string>
     <string name="xposed_module_request_scope_title">Ulatuse Taotlus</string>
     <string name="xposed_module_request_scope_content">%1$s kasutajal %2$s taotleb %3$s lisamist oma ulatusse.</string>
     <string name="scope_channel_name">Ulatuse taotlus</string>
     <string name="scope_approve">Kinnita</string>
     <string name="scope_deny">Keela</string>
-    <string name="nerver_ask_again">Ära Enam Küsi</string>
+    <string name="never_ask_again">Ära Enam Küsi</string>
 </resources>

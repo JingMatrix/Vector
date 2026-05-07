@@ -80,7 +80,7 @@ public class SettingsFragment extends BaseFragment {
             getChildFragmentManager().beginTransaction().add(R.id.setting_container, new PreferenceFragment()).commitNow();
         }
         if (ConfigManager.isBinderAlive()) {
-            binding.toolbar.setSubtitle(String.format(LocaleDelegate.getDefaultLocale(), "%s (%d) - %s", ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode(), ConfigManager.getApi()));
+            binding.toolbar.setSubtitle(String.format(LocaleDelegate.getDefaultLocale(), "%s (%d)", ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode()));
         } else {
             binding.toolbar.setSubtitle(String.format(LocaleDelegate.getDefaultLocale(), "%s (%d) - %s", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, getString(R.string.not_installed)));
         }
@@ -134,18 +134,6 @@ public class SettingsFragment extends BaseFragment {
             parentFragment = null;
         }
 
-        private boolean setNotificationPreferenceEnabled(MaterialSwitchPreference notificationPreference, boolean preferenceEnabled) {
-            var notificationEnabled = ConfigManager.enableStatusNotification();
-            if (notificationPreference != null) {
-                notificationPreference.setEnabled(!notificationEnabled || preferenceEnabled);
-                notificationPreference.setSummaryOn(preferenceEnabled ?
-                        notificationPreference.getContext().getString(R.string.settings_enable_status_notification_summary) :
-                        notificationPreference.getContext().getString(R.string.settings_enable_status_notification_summary) + "\n" +
-                                notificationPreference.getContext().getString(R.string.disable_status_notification_error));
-            }
-            return notificationEnabled;
-        }
-
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             final String SYSTEM = "SYSTEM";
@@ -161,37 +149,17 @@ public class SettingsFragment extends BaseFragment {
                 prefVerboseLogs.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setVerboseLogEnabled(!(boolean) newValue));
             }
 
-            MaterialSwitchPreference prefLogWatchDog = findPreference("enable_log_watchdog");
-            if (prefLogWatchDog != null) {
-                prefLogWatchDog.setEnabled(!BuildConfig.DEBUG && installed);
-                if (BuildConfig.DEBUG) ConfigManager.setLogWatchdog(true);
-                prefLogWatchDog.setChecked(!installed || ConfigManager.isLogWatchdogEnabled());
-                prefLogWatchDog.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setLogWatchdog((boolean) newValue));
-            }
-
-            MaterialSwitchPreference prefDexObfuscate = findPreference("enable_dex_obfuscate");
-            if (prefDexObfuscate != null) {
-                prefDexObfuscate.setEnabled(installed);
-                prefDexObfuscate.setChecked(!installed || ConfigManager.isDexObfuscateEnabled());
-                prefDexObfuscate.setOnPreferenceChangeListener((preference, newValue) -> {
-                    parentFragment.showHint(R.string.reboot_required, true, R.string.reboot, v -> ConfigManager.reboot());
-                    return ConfigManager.setDexObfuscateEnabled((boolean) newValue);
-                });
-            }
-
             MaterialSwitchPreference notificationPreference = findPreference("enable_status_notification");
             if (notificationPreference != null) {
                 notificationPreference.setVisible(installed);
                 if (installed) {
-                    notificationPreference.setChecked(setNotificationPreferenceEnabled(notificationPreference, !App.isParasitic || ShortcutUtil.isLaunchShortcutPinned()));
+                    notificationPreference.setChecked(ConfigManager.enableStatusNotification());
+                    notificationPreference.setSummaryOn(R.string.settings_enable_status_notification_summary);
+                    notificationPreference.setEnabled(true);
                 }
-                notificationPreference.setOnPreferenceChangeListener((p, v) -> {
-                    var succeeded = ConfigManager.setEnableStatusNotification((boolean) v);
-                    if ((boolean) v && App.isParasitic && !ShortcutUtil.isLaunchShortcutPinned()) {
-                        setNotificationPreferenceEnabled(notificationPreference, false);
-                    }
-                    return succeeded;
-                });
+                notificationPreference.setOnPreferenceChangeListener((p, v) ->
+                    ConfigManager.setEnableStatusNotification((boolean) v)
+                );
             }
 
             Preference shortcut = findPreference("add_shortcut");
@@ -203,7 +171,6 @@ public class SettingsFragment extends BaseFragment {
                 }
                 shortcut.setOnPreferenceClickListener(preference -> {
                     if (!ShortcutUtil.requestPinLaunchShortcut(() -> {
-                        setNotificationPreferenceEnabled(notificationPreference, true);
                         App.getPreferences().edit().putBoolean("never_show_welcome", true).apply();
                         parentFragment.showHint(R.string.settings_shortcut_pinned_hint, false);
                     })) {

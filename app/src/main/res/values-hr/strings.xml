@@ -138,7 +138,6 @@
     <string name="no_scope_selected">Niste odabrali nijednu aplikaciju. Nastaviti?</string>
     <string name="menu_show_games">Igre</string>
     <string name="menu_show_modules">Moduli</string>
-    <string name="menu_show_denylist">Lista zabrane</string>
     <string name="failed_to_save_scope_list">Spremanje popisa opsega primjene nije uspjelo</string>
     <string name="app_version">Verzija: %1$s</string>
     <string name="use_recommended">Preporučeno</string>
@@ -158,8 +157,6 @@
     <string name="reboot_required">Za primjenu ove promjene potrebno je ponovno pokretanje</string>
     <string name="reboot">Ponovno podizanje sustava</string>
     <string name="menu_hide">Sakrij</string>
-    <string name="deny_list">%s je na listi zabrane. Možda neće imati efekta.</string>
-    <string name="deny_list_info">Na popisu zabrane</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Pogledaj u drugoj aplikaciji</string>
     <string name="module_app_info">Informacije o aplikaciji</string>
@@ -196,13 +193,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Trenutačni zadani pokretač ne podržava prečace pribadače</string>
     <string name="settings_enable_status_notification">Obavijest o statusu</string>
     <string name="settings_enable_status_notification_summary">Prikaži obavijest koja može otvoriti parazitski upravitelj</string>
-    <string name="disable_status_notification_error">Nema prečaca, nije moguće onemogućiti obavijest</string>
     <string name="settings_update_channel">Ažurirajte kanal</string>
     <string name="update_channel_stable">Stabilan</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Noćna izgradnja</string>
-    <string name="settings_xposed_api_call_protection">Xposed API zaštita poziva</string>
-    <string name="settings_xposed_api_call_protection_summary">Blokirajte dinamički učitani kod modula za korištenje Xposed API-ja, to može pokvariti neke module, ali doprinosi sigurnosti</string>
     <!-- Module Repo -->
     <string name="module_readme">Pročitaj me</string>
     <string name="module_releases">Izdanja</string>

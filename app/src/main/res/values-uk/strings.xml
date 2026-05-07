@@ -142,7 +142,6 @@
     <string name="no_scope_selected">Ви не вибрали жодної програми. Продовжити?</string>
     <string name="menu_show_games">Ігри</string>
     <string name="menu_show_modules">Модулі</string>
-    <string name="menu_show_denylist">Чорний список</string>
     <string name="failed_to_save_scope_list">Не вдалося зберегти список областей</string>
     <string name="app_version">Версія: %1$s</string>
     <string name="menu_select">Виберіть</string>
@@ -166,8 +165,6 @@
     <string name="reboot_required">Для застосування цієї зміни потрібне перезавантаження</string>
     <string name="reboot">Перезавантажити</string>
     <string name="menu_hide">Приховати</string>
-    <string name="deny_list">%s в чорному списку. На цю програму не буде вплинуто.</string>
-    <string name="deny_list_info">У чорному списку</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">Переглянути в іншому додатку</string>
     <string name="module_app_info">Про програму</string>
@@ -176,8 +173,6 @@
     <string name="settings_group_framework">Framework</string>
     <string name="settings_disable_verbose_log">Вимкнути детальні журнали</string>
     <string name="settings_disable_verbose_log_summary">Вимоги до звітів про проблеми, що виникають, включати розгорнуті журнали</string>
-    <string name="settings_enable_log_watchdog">Увімкнути відстеження журналу</string>
-    <string name="settings_enable_log_watchdog_summary">Відстеження журналу LSPosed (log watchdog) змінює системні налаштування, якими можна виявити LSPosed</string>
     <string name="pure_black_dark_theme">Чорна тема</string>
     <string name="pure_black_dark_theme_summary">Використовувати повністю чорну тему, коли темну тему увімкнено</string>
     <string name="settings_group_theme">Тема</string>
@@ -206,13 +201,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Поточна панель запуску за замовчуванням не підтримує шорткати пін-кодів</string>
     <string name="settings_enable_status_notification">Повідомлення про статус</string>
     <string name="settings_enable_status_notification_summary">Показати повідомлення, яке може відкрити паразитний менеджер</string>
-    <string name="disable_status_notification_error">Немає ярлика, не можна відключити сповіщення</string>
     <string name="settings_update_channel">Канал оновлень</string>
     <string name="update_channel_stable">Стабільний</string>
     <string name="update_channel_bate">Бета-версія</string>
     <string name="update_channel_nightly">Нічна збірка</string>
-    <string name="settings_xposed_api_call_protection">Захист викликів Xposed API</string>
-    <string name="settings_xposed_api_call_protection_summary">Блокування динамічно завантаженого коду модуля для використання Xposed API, це може призвести до поломки деяких модулів, але покращить безпеку</string>
     <!-- Module Repo -->
     <string name="module_readme">Опис</string>
     <string name="module_releases">Релізи</string>

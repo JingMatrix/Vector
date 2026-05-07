@@ -136,7 +136,6 @@
     <string name="no_scope_selected">未選擇任何應用程式，是否繼續？</string>
     <string name="menu_show_games">遊戲</string>
     <string name="menu_show_modules">模組</string>
-    <string name="menu_show_denylist">Magisk 排除清單</string>
     <string name="failed_to_save_scope_list">作用範圍清單儲存失敗</string>
     <string name="app_version">版本：%1$s</string>
     <string name="menu_select">選擇</string>
@@ -160,8 +159,6 @@
     <string name="reboot_required">重啟以套用變更</string>
     <string name="reboot">重啟系統</string>
     <string name="menu_hide">隱藏</string>
-    <string name="deny_list">%s 在排除清單中，模組可能無法生效。</string>
-    <string name="deny_list_info">在排除清單內</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">在其他應用程式中檢視</string>
     <string name="module_app_info">應用程式資訊</string>
@@ -170,8 +167,6 @@
     <string name="settings_group_framework">框架</string>
     <string name="settings_disable_verbose_log">禁用詳細紀錄檔</string>
     <string name="settings_disable_verbose_log_summary">回報問題要求包含詳細記錄檔</string>
-    <string name="settings_enable_log_watchdog">啟用日誌監控</string>
-    <string name="settings_enable_log_watchdog_summary">LSPosed 的日誌監控會修改系統屬性，可能被利用來偵測 LSPosed</string>
     <string name="pure_black_dark_theme">使用純黑深色主題</string>
     <string name="pure_black_dark_theme_summary">使用純黑色背景當深色模式已啟用</string>
     <string name="settings_group_theme">主題</string>
@@ -200,13 +195,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">目前的預設啟動器不支援釘選捷徑</string>
     <string name="settings_enable_status_notification">狀態通知</string>
     <string name="settings_enable_status_notification_summary">顯示通知以便開啟寄生管理員</string>
-    <string name="disable_status_notification_error">沒有捷徑，無法停用通知</string>
     <string name="settings_update_channel">更新頻道</string>
     <string name="update_channel_stable">穩定版</string>
     <string name="update_channel_bate">測試版</string>
     <string name="update_channel_nightly">每夜構建</string>
-    <string name="settings_xposed_api_call_protection">Xposed API 呼叫保護</string>
-    <string name="settings_xposed_api_call_protection_summary">封鎖動態載入的模組代碼以使用 Xposed API，這可能會損毀某些模組但有利於安全性</string>
     <!-- Module Repo -->
     <string name="module_readme">自述文件</string>
     <string name="module_releases">版本</string>

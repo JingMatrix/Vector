@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Modulo Xposed aggiornato, è necessario il riavvio del sistema</string>
     <string name="xposed_module_updated_notification_content_system">%s è stato aggiornato. Poiché è abilitato per il framework di sistema, è necessario riavviare per applicare le modifiche</string>
     <string name="module_updated_channel_name">Aggiornamento del modulo completato</string>
-    <string name="status_channel_name">Stato LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed caricato</string>
-    <string name="lsposed_running_notification_content">Tocca la notifica per aprire il manager</string>
+    <string name="status_channel_name">Stato Vector</string>
+    <string name="vector_running_notification_title">Vector caricato</string>
+    <string name="vector_running_notification_content">Tocca la notifica per aprire il manager</string>
     <string name="xposed_module_request_scope_title">Richiesta attivazione</string>
     <string name="xposed_module_request_scope_content">%1$s sull\'utente %2$s richiede di aggiungere %3$s alle sue attivazioni.</string>
     <string name="scope_channel_name">Richiesta attivazione</string>
     <string name="scope_approve">Approva</string>
     <string name="scope_deny">Nega</string>
-    <string name="nerver_ask_again">Non chiedere mai</string>
+    <string name="never_ask_again">Non chiedere mai</string>
 </resources>

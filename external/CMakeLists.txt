@@ -1,11 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+
 project(external)
 
-macro(SET_OPTION option value)
-    set(${option} ${value} CACHE INTERNAL "" FORCE)
-endmacro()
-
-SET_OPTION(Plugin.SymbolResolver OFF)
-SET_OPTION(FMT_INSTALL OFF)
+set(CMAKE_CXX_STANDARD 23)
 
 set(XZ_SOURCES
 	xz_crc32.c
@@ -19,7 +16,10 @@ add_library(xz_static STATIC ${XZ_SOURCES})
 target_compile_options(xz_static PRIVATE -DXZ_USE_CRC64)
 target_include_directories(xz_static PRIVATE ${XZ_INCLUDES})
 
-OPTION(LSPLANT_BUILD_SHARED OFF)
+option(LSPLANT_BUILD_SHARED OFF)
+option(Plugin.SymbolResolver OFF)
+option(FMT_INSTALL OFF)
+
 add_subdirectory(dobby)
 add_subdirectory(fmt)
 add_subdirectory(lsplant/lsplant/src/main/jni)

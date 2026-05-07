@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Modulul Xposed a fost actualizat, este necesară repornirea sistemului</string>
     <string name="xposed_module_updated_notification_content_system">Modulul %s a fost actualizat. Este necesară repornirea dispozitivului, deoarece Sistemul Android face parte din configurația modulului.</string>
     <string name="module_updated_channel_name">Actualizarea modulelor este completă</string>
-    <string name="status_channel_name">Stare LSPosed</string>
-    <string name="lsposed_running_notification_title">LSPosed încărcat</string>
-    <string name="lsposed_running_notification_content">Apăsați pentru a deschide managerul</string>
+    <string name="status_channel_name">Stare Vector</string>
+    <string name="vector_running_notification_title">Vector încărcat</string>
+    <string name="vector_running_notification_content">Apăsați pentru a deschide managerul</string>
     <string name="xposed_module_request_scope_title">Cerere de modificare configurație</string>
     <string name="xposed_module_request_scope_content">Modulul %1$s, instalat pentru utilizatorul %2$s, dorește să adauge %3$s în configurația sa.</string>
     <string name="scope_channel_name">Cerere de modificare configurație</string>
     <string name="scope_approve">Aprobați</string>
     <string name="scope_deny">Refuzați</string>
-    <string name="nerver_ask_again">Nu afișați din nou</string>
+    <string name="never_ask_again">Nu afișați din nou</string>
 </resources>

@@ -9,13 +9,13 @@
     <string name="xposed_module_updated_notification_title_system">Xposed-Modul aktualisiert, Systemneustart erforderlich</string>
     <string name="xposed_module_updated_notification_content_system">%s wurde aktualisiert, da der Geltungsbereich System-Framework enthält, ist ein Neustart erforderlich, damit die Änderungen übernommen werden</string>
     <string name="module_updated_channel_name">Modulaktualisierung abgeschlossen</string>
-    <string name="status_channel_name">LSPosed-Status</string>
-    <string name="lsposed_running_notification_title">LSPosed geladen</string>
-    <string name="lsposed_running_notification_content">Auf die Benachrichtigung tippen, um den Manager zu öffnen</string>
+    <string name="status_channel_name">Vector-Status</string>
+    <string name="vector_running_notification_title">Vector geladen</string>
+    <string name="vector_running_notification_content">Auf die Benachrichtigung tippen, um den Manager zu öffnen</string>
     <string name="xposed_module_request_scope_title">Scope-Anfrage</string>
     <string name="xposed_module_request_scope_content">%1$s von Benutzer %2$s fordert an, %3$s zu seinem Scope-Bereich hinzuzufügen.</string>
     <string name="scope_channel_name">Scope-Anfrage</string>
     <string name="scope_approve">Genehmigen</string>
     <string name="scope_deny">Verweigern</string>
-    <string name="nerver_ask_again">Niemals fragen</string>
+    <string name="never_ask_again">Niemals fragen</string>
 </resources>

@@ -135,7 +135,6 @@
     <string name="no_scope_selected">คุณไม่ได้เลือกแอพใด ๆ ดำเนินการต่อ?</string>
     <string name="menu_show_games">เกม</string>
     <string name="menu_show_modules">โมดูล</string>
-    <string name="menu_show_denylist">ปฏิเสธ</string>
     <string name="failed_to_save_scope_list">ไม่สามารถบันทึกรายการขอบเขต</string>
     <string name="app_version">เวอร์ชั่น: %1$s</string>
     <string name="use_recommended">ที่แนะนำ</string>
@@ -155,8 +154,6 @@
     <string name="reboot_required">จำเป็นต้องรีบูตเพื่อให้การเปลี่ยนแปลงนี้มีผล</string>
     <string name="reboot">รีบูต</string>
     <string name="menu_hide">ซ่อน</string>
-    <string name="deny_list">%s อยู่ในรายการปฏิเสธ อาจไม่มีผล</string>
-    <string name="deny_list_info">เกี่ยวกับผู้ปฏิเสธ</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">ดูในแอปอื่น</string>
     <string name="module_app_info">ข้อมูลแอพ</string>
@@ -193,13 +190,10 @@
     <string name="settings_unsupported_pin_shortcut_summary">Launcher เริ่มต้นปัจจุบันไม่รองรับทางลัด PIN</string>
     <string name="settings_enable_status_notification">การแจ้งเตือนสถานะ</string>
     <string name="settings_enable_status_notification_summary">แสดงการแจ้งเตือนที่สามารถเปิดตัวจัดการปรสิต</string>
-    <string name="disable_status_notification_error">ไม่มีทางลัด ไม่สามารถปิดการแจ้งเตือนได้</string>
     <string name="settings_update_channel">อัพเดทช่อง</string>
     <string name="update_channel_stable">มั่นคง</string>
     <string name="update_channel_bate">เบต้า</string>
     <string name="update_channel_nightly">สร้างทุกคืน</string>
-    <string name="settings_xposed_api_call_protection">การป้องกันการโทร Xposed API</string>
-    <string name="settings_xposed_api_call_protection_summary">บล็อกโค้ดโมดูลที่โหลดแบบไดนามิกเพื่อใช้ Xposed API ซึ่งอาจทำให้บางโมดูลเสียหายแต่ได้ประโยชน์ด้านความปลอดภัย</string>
     <!-- Module Repo -->
     <string name="module_readme">ต้องอ่าน</string>
     <string name="module_releases">เผยแพร่</string>

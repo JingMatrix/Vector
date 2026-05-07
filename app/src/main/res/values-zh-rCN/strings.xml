@@ -137,7 +137,6 @@ JingMatrix</string>
     <string name="no_scope_selected">未选择任何应用。继续？</string>
     <string name="menu_show_games">游戏</string>
     <string name="menu_show_modules">模块</string>
-    <string name="menu_show_denylist">排除列表</string>
     <string name="failed_to_save_scope_list">作用域列表保存失败</string>
     <string name="app_version">版本：%1$s</string>
     <string name="menu_select">选择</string>
@@ -161,8 +160,6 @@ JingMatrix</string>
     <string name="reboot_required">重启以应用此更改</string>
     <string name="reboot">重启系统</string>
     <string name="menu_hide">隐藏</string>
-    <string name="deny_list">%s 在排除列表内。模块可能会不生效</string>
-    <string name="deny_list_info">在排除列表内</string>
     <!-- ModulesActivity and AppListActivity -->
     <string name="modules_other_app">在其它应用中查看</string>
     <string name="module_app_info">应用信息</string>
@@ -171,8 +168,6 @@ JingMatrix</string>
     <string name="settings_group_framework">框架</string>
     <string name="settings_disable_verbose_log">禁用详细日志</string>
     <string name="settings_disable_verbose_log_summary">报告问题要求包含详细日志</string>
-    <string name="settings_enable_log_watchdog">启用日志监控</string>
-    <string name="settings_enable_log_watchdog_summary">LSPosed 的日志监视修改了系统属性，可以被利用来检测 LSPosed</string>
     <string name="pure_black_dark_theme">纯黑主题</string>
     <string name="pure_black_dark_theme_summary">当深色主题启用时使用纯黑主题</string>
     <string name="settings_group_theme">主题</string>
@@ -201,13 +196,10 @@ JingMatrix</string>
     <string name="settings_unsupported_pin_shortcut_summary">当前默认桌面不支持固定快捷方式</string>
     <string name="settings_enable_status_notification">状态通知</string>
     <string name="settings_enable_status_notification_summary">显示一个通知以打开寄生管理器</string>
-    <string name="disable_status_notification_error">没有快捷方式，无法禁用通知</string>
     <string name="settings_update_channel">模块更新通道</string>
     <string name="update_channel_stable">稳定版</string>
     <string name="update_channel_bate">测试版</string>
     <string name="update_channel_nightly">每夜版</string>
-    <string name="settings_xposed_api_call_protection">Xposed API 调用保护</string>
-    <string name="settings_xposed_api_call_protection_summary">阻止模块动态加载的代码使用 Xposed API，这会使某些模块失效，但有利于安全性</string>
     <!-- Module Repo -->
     <string name="module_readme">自述文件</string>
     <string name="module_releases">版本</string>

@@ -1,0 +1,46 @@
+#!/system/bin/sh
+
+dir="${0%/*}"
+tmpDaemonApk="/data/local/tmp/daemon.apk"
+debug="@DEBUG@"
+
+# Safely check for debug APK and set classpath
+if [ -r "$tmpDaemonApk" ]; then
+  java_options="-Djava.class.path=$tmpDaemonApk"
+  debug="true"
+else
+  java_options="-Djava.class.path=$dir/daemon.apk"
+fi
+
+# Apply debug options based on Android SDK version.
+# Reference: https://developer.android.com/ndk/guides/wrap-script#debugging_when_using_wrapsh
+if [ "$debug" = "true" ]; then
+  os_version=$(getprop ro.build.version.sdk)
+  if [ "$os_version" -eq "27" ]; then
+    java_options="$java_options -Xrunjdwp:transport=dt_android_adb,suspend=n,server=y -Xcompiler-option --debuggable"
+  elif [ "$os_version" -eq "28" ]; then
+    java_options="$java_options -XjdwpProvider:adbconnection -XjdwpOptions:suspend=n,server=y -Xcompiler-option --debuggable"
+  else
+    java_options="$java_options -XjdwpProvider:adbconnection -XjdwpOptions:suspend=n,server=y"
+  fi
+fi
+
+# Mount an empty temporary file system over /data/resource-cache to avoid possible overlay conflicts.
+# Note that this script runs inside an isolated mount namespace (via unshare).
+mount tmpfs -t tmpfs /data/resource-cache
+
+# Wait for Zygote socket using a polling loop
+if [ ! -S "/dev/socket/zygote" ]; then
+  # Wait up to ~10 seconds to avoid an infinite hang if something breaks
+  wait_count=0
+  while [ ! -S "/dev/socket/zygote" ] &&[ "$wait_count" -lt 100 ]; do
+    sleep 0.1
+    wait_count=$((wait_count + 1))
+  done
+  [ "$debug" = "true" ] && log -p v -t "Vector" "zygote started"
+fi
+
+[ "$debug" = "true" ] && log -p d -t "Vector" "Starting daemon $*"
+
+# Launch the daemon
+exec /system/bin/app_process $java_options /system/bin --nice-name=lspd org.matrix.vector.daemon.VectorDaemon "$@" >/dev/null 2>&1

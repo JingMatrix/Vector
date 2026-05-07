@@ -1,45 +1,65 @@
-/*
- * This file is part of LSPosed.
- *
- * LSPosed is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * LSPosed is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2022 LSPosed Contributors
- */
-
 #pragma once
-#include <string>
-#include <parallel_hashmap/phmap.h>
-#include "utils/jni_helper.hpp"
 
-class WA: public dex::Writer::Allocator {
-    // addr: {size, fd}
-    phmap::flat_hash_map<void*, std::pair<size_t, int>> allocated_;
+#include <android/sharedmem.h>
+#include <slicer/writer.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+#include "logging.h"
+
+// Custom allocator for dex::Writer that creates an ashmem region.
+// Manages the virtual memory mapping lifecycle to prevent memory leaks.
+class DexAllocator : public dex::Writer::Allocator {
+    void* mapped_mem_ = nullptr;
+    size_t mapped_size_ = 0;
+    int fd_ = -1;
+
 public:
     inline void* Allocate(size_t size) override {
-        auto fd = ASharedMemory_create("", size);
-        auto *mem = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-        allocated_[mem] = {size, fd};
-        return mem;
+        LOGV("DexAllocator: attempting to allocate %zu bytes", size);
+
+        fd_ = ASharedMemory_create("obfuscated_dex", size);
+        if (fd_ < 0) {
+            // Log the specific error
+            PLOGE("DexAllocator: ASharedMemory_create");
+            return nullptr;
+        }
+
+        mapped_size_ = size;
+        // MAP_SHARED is required for the output buffer so that Slicer's writes
+        // are immediately reflected in the underlying file descriptor.
+        mapped_mem_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, 0);
+
+        if (mapped_mem_ == MAP_FAILED) {
+            PLOGE("DexAllocator: mmap");
+            close(fd_);
+            fd_ = -1;
+            mapped_mem_ = nullptr;
+        }
+
+        LOGV("DexAllocator: success, mapped at %p, fd=%d", mapped_mem_, fd_);
+        return mapped_mem_;
     }
+
     inline void Free(void* ptr) override {
-        auto alloc_data = allocated_.at(ptr);
-        close(alloc_data.second);
-        allocated_.erase(ptr);
+        if (ptr == mapped_mem_ && mapped_mem_ != nullptr) {
+            munmap(mapped_mem_, mapped_size_);
+            close(fd_);
+            mapped_mem_ = nullptr;
+            fd_ = -1;
+            mapped_size_ = 0;
+        }
     }
-    inline int GetFd(void* ptr) {
-        auto alloc_data = allocated_.find(ptr);
-        if (alloc_data == allocated_.end()) return -1;
-        return (*alloc_data).second.second;
+
+    inline int GetFd() const { return fd_; }
+
+    inline ~DexAllocator() {
+        // Unmap the virtual memory upon destruction to prevent memory leaks.
+        if (mapped_mem_ != nullptr && mapped_mem_ != MAP_FAILED) {
+            munmap(mapped_mem_, mapped_size_);
+        }
+        // Notice: We do NOT close(fd_) here!
+        // The file descriptor is extracted via GetFd() and handed over to Java's SharedMemory,
+        // which assumes lifecycle ownership of it.
     }
 };
