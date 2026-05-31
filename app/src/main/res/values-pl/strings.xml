@@ -175,7 +175,6 @@
     <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia szczegółowych dzienników</string>
     <string name="pure_black_dark_theme">Czarny ciemny motyw</string>
     <string name="pure_black_dark_theme_summary">Użyj czarnego motywu, jeśli ciemny motyw jest włączony</string>
-    <string name="app_name">Vector</string>
     <string name="Dark_theme">Ciemny motyw</string>
     <string name="dark_theme_off">Zawsze wyłączony</string>
     <string name="dark_theme_on">Zawsze włączony</string>
