@@ -48,8 +48,8 @@
     <string name="install_summary">Naciśnij, aby zainstalować Vector</string>
     <string name="not_installed">Nie zainstalowane</string>
     <string name="not_install_summary">Vector nie jest zainstalowany</string>
-    <string name="activated">Aktywowane</string>
-    <string name="partial_activated">Częściowo aktywowane</string>
+    <string name="activated">Aktywowany</string>
+    <string name="partial_activated">Częściowo aktywowany</string>
     <string name="selinux_policy_not_loaded_summary">Zasady bezpieczeństwa są nieprawidłowo załadowane</string>
     <string name="selinux_policy_not_loaded"><![CDATA[Niektóre funkcje nie będą działać.<br/>Proszę zgłosić to do programisty <a href="https://github.com/topjohnwu/Magisk/issues"><b>Magisk</b></a>.]]></string>
     <string name="system_inject_fail_summary">Wstrzyknięcie do struktury systemu nie powiodło się</string>
