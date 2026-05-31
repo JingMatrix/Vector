@@ -1,21 +1,174 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Notification -->
-    <string name="module_is_not_activated_yet">Moduł Xposed nie jest jeszcze aktywowany</string>
-    <string name="module_is_not_activated_yet_main_user_detailed">%1$s został zainstalowany, ale nie jest jeszcze aktywny</string>
-    <string name="module_is_not_activated_yet_multi_user_detailed">%1$s został zainstalowany na użytkowniku %2$s, ale nie jest jeszcze aktywowany</string>
-    <string name="xposed_module_updated_notification_title">Moduł Xposed zaktualizowany</string>
-    <string name="xposed_module_updated_notification_content">%s został zaktualizowany, wymuś zatrzymanie i ponownie uruchom aplikacje w jego zakresie</string>
-    <string name="xposed_module_updated_notification_title_system">Zaktualizowano moduł Xposed, wymagane ponowne uruchomienie systemu</string>
-    <string name="xposed_module_updated_notification_content_system">%s został zaktualizowany, ponieważ zakres zawiera System Framework, wymagany restart aby zastosować zmiany</string>
-    <string name="module_updated_channel_name">Aktualizowanie modułu zakończone</string>
-    <string name="status_channel_name">Status Vector</string>
-    <string name="vector_running_notification_title">Vector załadowany</string>
-    <string name="vector_running_notification_content">Kliknij powiadomienie, by włączyć menadżer</string>
-    <string name="xposed_module_request_scope_title">Żądanie Zakresu</string>
-    <string name="xposed_module_request_scope_content">%1$s w użytkowniku %2$s żąda dodania %3$s do jego zakresu.</string>
-    <string name="scope_channel_name">Żądanie zakresu</string>
-    <string name="scope_approve">Zatwierdź</string>
-    <string name="scope_deny">Odrzuć</string>
-    <string name="never_ask_again">Nigdy nie pytaj</string>
-</resources>
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file id="16" original="/master/daemon/strings.xml" source-language="en" target-language="pl" datatype="plaintext" project-id="697797" tool-id="crowdin">
+    <header>
+      <tool tool-id="crowdin" tool-name="Crowdin" tool-version="1.1"/>
+    </header>
+    <body>
+      <trans-unit id="790" resname="module_is_not_activated_yet" approved="yes">
+        <source>Module is not activated yet</source>
+        <target state="final">Moduł nie jest jeszcze aktywowany</target>
+        <context-group purpose="information">
+          <context context-type="source">module_is_not_activated_yet
+Notification</context>
+        </context-group>
+        <note from="Sergiu-Antoniu Alexa (antoniu200)" priority="4">@jingmatrix Given the project was renamed, do we still want to use the Xposed name, especially given the current string no longer mentions &quot;Xposed&quot;?</note>
+        <note from="Jianyu MA (jingmatrix)" priority="4">You are right, it is better to removed `Xposed` here. Thanks</note>
+      </trans-unit>
+      <trans-unit id="576" resname="module_is_not_activated_yet_main_user_detailed" approved="yes">
+        <source>%1$s has been installed, but is not activated yet</source>
+        <target state="final">%1$s został zainstalowany, ale nie jest jeszcze aktywny</target>
+        <context-group purpose="information">
+          <context context-type="source">module_is_not_activated_yet_main_user_detailed</context>
+        </context-group>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s установлен, но пока не активирован&quot;</note>
+        <note from="Hani Mohamed (hani091010177)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s تم التثبيت ولكنه لم يفعل بعدLSPosed&quot;</note>
+      </trans-unit>
+      <trans-unit id="578" resname="module_is_not_activated_yet_multi_user_detailed" approved="yes">
+        <source>%1$s has been installed to user %2$s, but is not activated yet</source>
+        <target state="final">%1$s został zainstalowany dla użytkownika %2$s, ale nie został jeszcze aktywowany</target>
+        <context-group purpose="information">
+          <context context-type="source">module_is_not_activated_yet_multi_user_detailed</context>
+        </context-group>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s установлен (пользователь %2$s), но пока не активирован&quot;</note>
+        <note from="BurakKondu" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s, %2$s kullanıcısına yüklendi ancak henüz etkinleştirilmedi&quot;</note>
+        <note from="Ismael Rafaele (Berserkr2k)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s ha sido instalado para el usuario %2$s, pero no está activado todavía&quot;</note>
+      </trans-unit>
+      <trans-unit id="792" resname="xposed_module_updated_notification_title" approved="yes">
+        <source>Module updated</source>
+        <target state="final">Moduł zaktualizowany</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_updated_notification_title</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="582" resname="xposed_module_updated_notification_content" approved="yes">
+        <source>%s has been updated, please force stop and restart apps in its scope</source>
+        <target state="final">%s został zaktualizowany, proszę wymusić zatrzymanie i zrestartowanie aplikacji w jego zakresie</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_updated_notification_content</context>
+        </context-group>
+        <note from="REMOVED_USER" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%s foi atualizado. Force a parada e reinicie os apps que estão em seu escopo.&quot;</note>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%s обновлён, выполните остановку приложений в его «охвате» и перезапустите их&quot;</note>
+        <note from="Manuel Vazquez (jomavakkc33)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;squaredDot%s ha sido actualizado, fuerce la detención y el reinicio de las aplicaciones en su alcance&quot;</note>
+        <note from="Ismael Rafaele (Berserkr2k)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%s ha sido actualizado, fuerza la detención y el reinicio de las aplicaciones en su ámbito&quot;</note>
+      </trans-unit>
+      <trans-unit id="794" resname="xposed_module_updated_notification_title_system" approved="yes">
+        <source>Module updated, system reboot required</source>
+        <target state="final">Moduł zaktualizowany, ale wymagany jest restart systemu</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_updated_notification_title_system</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="586" resname="xposed_module_updated_notification_content_system" approved="yes">
+        <source>%s has been updated, since the scope contains System Framework, required reboot to apply changes</source>
+        <target state="final">%s został zaktualizowany, ponieważ zakres zawiera strukturę systemu, wymagany restart, aby zastosować zmiany</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_updated_notification_content_system</context>
+        </context-group>
+        <note from="REMOVED_USER" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%s foi atualizado. Como o escopo contém o Framework do Sistema, é necessário reiniciar para aplicar as mudanças.&quot;</note>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%s обновлён; ввиду того, что системный фреймворк (System Framework) в его «охвате», требуется перезагрузка для применения изменений&quot;</note>
+      </trans-unit>
+      <trans-unit id="588" resname="module_updated_channel_name" approved="yes">
+        <source>Module update complete</source>
+        <target state="final">Aktualizacja modułu zakończona</target>
+        <context-group purpose="information">
+          <context context-type="source">module_updated_channel_name</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="796" resname="status_channel_name" approved="yes">
+        <source>Vector status</source>
+        <target state="final">Status Vector</target>
+        <context-group purpose="information">
+          <context context-type="source">status_channel_name</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="798" resname="vector_running_notification_title" approved="yes">
+        <source>Vector loaded</source>
+        <target state="final">Vector załadowany</target>
+        <context-group purpose="information">
+          <context context-type="source">vector_running_notification_title</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="800" resname="vector_running_notification_content" approved="yes">
+        <source>Tap the notification to open manager</source>
+        <target state="final">Naciśnij powiadomienie, by włączyć menedżer</target>
+        <context-group purpose="information">
+          <context context-type="source">vector_running_notification_content</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="596" resname="xposed_module_request_scope_title" approved="yes">
+        <source>Scope Request</source>
+        <target state="final">Żądanie zakresu</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_request_scope_title</context>
+        </context-group>
+        <note from="REMOVED_USER" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;Solicitação de escopo&quot;</note>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;Запрос «охвата»&quot;</note>
+        <note from="Ismael Rafaele (Berserkr2k)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;Solicitud de ámbito&quot;</note>
+      </trans-unit>
+      <trans-unit id="598" resname="xposed_module_request_scope_content" approved="yes">
+        <source>%1$s on user %2$s requests to add %3$s to its scope.</source>
+        <target state="final">%1$s dla użytkownika %2$s żąda dodania %3$s do jego zakresu.</target>
+        <context-group purpose="information">
+          <context context-type="source">xposed_module_request_scope_content</context>
+        </context-group>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;%1$s (пользователь %2$s): запрашивается добавление %3$s в «охват».&quot;</note>
+        <note from="りお (koko0628)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;ユーザー %2$s の %1$s が %3$s をその範囲に追加するようリクエストしています。&quot;</note>
+      </trans-unit>
+      <trans-unit id="600" resname="scope_channel_name" approved="yes">
+        <source>Scope request</source>
+        <target state="final">Żądanie zakresu</target>
+        <context-group purpose="information">
+          <context context-type="source">scope_channel_name</context>
+        </context-group>
+        <note from="Gregory Kholmogorov (ded_Arkash)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;Запрос «охвата»&quot;</note>
+        <note from="りお (koko0628)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;スコープのリクエスト&quot;</note>
+        <note from="Ismael Rafaele (Berserkr2k)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;Solicitud de ámbito&quot;</note>
+      </trans-unit>
+      <trans-unit id="602" resname="scope_approve" approved="yes">
+        <source>Approve</source>
+        <target state="final">Zatwierdź</target>
+        <context-group purpose="information">
+          <context context-type="source">scope_approve</context>
+        </context-group>
+        <note from="りお (koko0628)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;許可&quot;</note>
+      </trans-unit>
+      <trans-unit id="604" resname="scope_deny" approved="yes">
+        <source>Deny</source>
+        <target state="final">Odrzuć</target>
+        <context-group purpose="information">
+          <context context-type="source">scope_deny</context>
+        </context-group>
+        <note from="りお (koko0628)" priority="4">The currently approved translation is not correct. Please review my suggestion:
+&quot;拒否&quot;</note>
+      </trans-unit>
+      <trans-unit id="802" resname="never_ask_again" approved="yes">
+        <source>Never Ask</source>
+        <target state="final">Nigdy nie pytaj</target>
+        <context-group purpose="information">
+          <context context-type="source">never_ask_again</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
