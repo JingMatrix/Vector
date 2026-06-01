@@ -92,7 +92,7 @@ androidComponents {
                 from("$projectDir/module") {
                     include("module.prop")
                     expand(
-                        "versionName" to "3043",
+                        "versionName" to "2.0",
                         "versionCode" to "3043",
                     )
                 }
