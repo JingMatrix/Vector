@@ -89,7 +89,7 @@ Vector obsługuje zarówno starsze, jak i nowsze standardy przechwytywania, aby 
 > [!NOTE]
 > Vector obsługuje API `libxposed` za pośrednictwem dwóch podmodułów Git: [API modułów](./xposed/) i [API usług](./services/).
 >
-> Udana kompilacja gałęzi [master](https://github.com/JingMatrix/Vector/tree/master) w GitHub Actions wskazuje, że Vector w pełni obsługuje te API w tych konkretnych zatwierdzeniach.
+> Udana kompilacja gałęzi [PL](https://github.com/JingMatrix/Vector/tree/master) w GitHub Actions wskazuje, że Vector w pełni obsługuje te API w tych konkretnych zatwierdzeniach.
 > Zaleca się, aby programiści sprawdzili te same zatwierdzenia, co Vector.
 
 ---
