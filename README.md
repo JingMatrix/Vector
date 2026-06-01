@@ -77,19 +77,20 @@ Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku a
 
 ---
 
-### Developer Resources
+### Zasoby dla programistów
 
-Vector supports both legacy and modern hooking standards to ensure broad module compatibility.
+Vector obsługuje zarówno starsze, jak i nowsze standardy przechwytywania, aby zapewnić szeroką kompatybilność modułów.
 
-*   [Legacy Xposed API](https://api.xposed.info/)
-*   [Modern libxposed API](https://libxposed.github.io/api/)
-*   [Xposed Module Repository](https://github.com/Xposed-Modules-Repo)
+* [starsze API Xposed](https://api.xposed.info/)
+* [Nowoczesne API libxposed](https://libxposed.github.io/api/)
+* [Repozytorium modułów Xposed](https://github.com/Xposed-Modules-Repo)
+
 
 > [!NOTE]
-> Vector supports the `libxposed` API via two git submodules: the [module API](./xposed/) and the [service API](./services/).
+> Vector obsługuje API `libxposed` za pośrednictwem dwóch podmodułów Git: [API modułów](./xposed/) i [API usług](./services/).
 >
-> A successful GitHub Actions build of the [master](https://github.com/JingMatrix/Vector/tree/master) branch indicates that Vector fully supports these APIs at those specific commits.
-> Developers are suggested to check out the same commits as Vector.
+> Udana kompilacja gałęzi [master](https://github.com/JingMatrix/Vector/tree/master) w GitHub Actions wskazuje, że Vector w pełni obsługuje te API w tych konkretnych zatwierdzeniach.
+> Zaleca się, aby programiści sprawdzili te same zatwierdzenia, co Vector.
 
 ---
 
