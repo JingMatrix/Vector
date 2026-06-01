@@ -120,3 +120,4 @@ Ten projekt jest możliwy dzięki następującym projektom open source:
 ### Licencja
 
 Vector jest licencjonowany na podstawie [GNU General Public License v3](http://www.gnu.org/copyleft/gpl.html).
+
