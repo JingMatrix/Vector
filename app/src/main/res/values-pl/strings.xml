@@ -173,7 +173,7 @@
     <string name="settings_group_framework">Struktura</string>
     <string name="settings_disable_verbose_log">Wyłącz szczegółowe dzienniki</string>
     <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia szczegółowych dzienników</string>
-    <string name="pure_black_dark_theme">Czarny ciemny motyw</string>
+    <string name="pure_black_dark_theme">Czysty czarny ciemny motyw</string>
     <string name="pure_black_dark_theme_summary">Użyj czarnego motywu, jeśli ciemny motyw jest włączony</string>
     <string name="dark_theme">Ciemny motyw</string>
     <string name="dark_theme_off">Zawsze wyłączony</string>
