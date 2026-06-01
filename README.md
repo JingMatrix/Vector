@@ -17,8 +17,9 @@
 
 Vector to moduł Zygisk, który zapewnia strukturę do hakowania art, zachowując spójność API z oryginalnym xposed. Został on opracowany na bazie [lsplant](https://github.com/JingMatrix/LSPlant), aby zapewnić stabilne środowisko instrumentacji na poziomie natywnym.
 
-Struktura umożliwia modułom modyfikację działania systemu i aplikacji w pamięci. Ponieważ pliki APK nie są modyfikowane, zmiany są nieniszczące, łatwo odwracalne poprzez ponowne uruchomienie i kompatybilne z różnymi ROM-ami i wersjami Androida.
+Vector umożliwia modułom modyfikację działania systemu i aplikacji w pamięci. Ponieważ pliki APK nie są modyfikowane, zmiany są nieniszczące, łatwo odwracalne poprzez ponowne uruchomienie i kompatybilne z różnymi ROM-ami i wersjami Androida.
 
+Mój fork, skupia się na poprawnym tłumaczeniu na język polski. Działanie i funkcje są takie same jak w oryginalnym projekcie.
 ---
 
 ### Zgodność
@@ -26,7 +27,7 @@ Struktura umożliwia modułom modyfikację działania systemu i aplikacji w pami
 Vector obsługuje urządzenia z systemem **Android 8.1 do Android 17 Beta**.
 
 > [!TIP]
-> Ta struktura wymaga najnowszej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
+> Vector wymaga najnowszej wersji Magisk lub KernelSU z włączonym Zygiskiem.
 
 ---
 
@@ -66,13 +67,6 @@ Jeśli napotkasz problemy lub chcesz pomóc w ulepszeniu projektu, skorzystaj z 
 * **Rozwiązywanie problemów:** Przed zgłoszeniem błędów zapoznaj się z [poradnikiem](https://github.com/JingMatrix/Vector/issues/123).
 * **Dyskusje:** Dołącz do naszej społeczności w [Dyskusjach GitHub](https://github.com/JingMatrix/Vector/discussions).
 * **Lokalizacja:** Pomóż w tłumaczeniu projektu za pośrednictwem [Crowdin](https://crowdin.com/project/lsposed_jingmatrix).
-
-> [!IMPORTANT]
-> Zgłoszenia błędów będą akceptowane tylko wtedy, gdy dotyczą **najnowszej wersji debugowania**.
-
-*Uwaga dla osób mówiących po chińsku:*
-
-Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku polskim. Prosimy o korzystanie z [DeepL](https://www.deepl.com/zh/translator) lub innych narzędzi do tłumaczeń, aby przesłać swoją opinię.
 
 ---
 
