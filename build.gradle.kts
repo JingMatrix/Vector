@@ -52,7 +52,7 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
         return if (result.exitValue == 0 && output.toString().isNotBlank()) {
             output.toString().lineSequence().first().removePrefix("v")
         } else {
-            "1.0"
+            "2.0"
         }
     }
 }
