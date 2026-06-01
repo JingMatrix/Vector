@@ -26,7 +26,7 @@ Struktura umożliwia modułom modyfikację działania systemu i aplikacji w pami
 Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 
 > [!TIP]
-> Ten framework wymaga najnowszej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
+> Ta struktura wymaga najnowszej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
 
 ---
 
