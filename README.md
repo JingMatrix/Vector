@@ -21,31 +21,31 @@ Framework umożliwia modułom modyfikację działania systemu i aplikacji w pami
 
 ---
 
-### Compatibility
+### Zgodność
 
-Vector supports devices running **Android 8.1 through Android 17 Beta**.
+Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 
 > [!TIP]
-> This framework requires a recent installation of Magisk or KernelSU with Zygisk enabled.
+> Ten framework wymaga niedawnej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
 
 ---
 
-### Installation
+### Instalacja
 
-1. Download the latest release as a system module.
-2. Install the module via your root manager (Magisk/KernelSU).
-3. Ensure a Zygisk environment (e.g., [NeoZygisk](https://github.com/JingMatrix/NeoZygisk)).
-4. Reboot the device.
-5. Access management settings via the system notification.
+1. Pobierz najnowszą wersję jako moduł systemowy.
+2. Zainstaluj moduł za pomocą konta root (magisk/kernelsu).
+3. Upewnij się, że środowisko zygisk (np. [neozygisk](https://github.com/JingMatrix/NeoZygisk)).
+4. Uruchom ponownie urządzenie.
+5. Uzyskaj dostęp do ustawień zarządzania za pomocą powiadomienia systemowego.
 
 ---
 
-### Downloads
+### Pobieranie
 
-| Channel | Source |
+| kanał | źródło |
 | :--- | :--- |
-| **Stable Releases** | [GitHub Releases](https://github.com/JingMatrix/Vector/releases) |
-| **Canary (CI) Builds** | [GitHub Actions](https://github.com/JingMatrix/Vector/actions/workflows/core.yml?query=branch%3Amaster) |
+| **Wersje stabilne** | [Wersje GitHub](https://github.com/JingMatrix/Vector/releases) |
+| **Kompilacje Canary (CI)** | [Akcje GitHub](https://github.com/JingMatrix/Vector/actions/workflows/core.yml?query=branch%3Amaster) |
 
 > [!NOTE]
 > Debug builds are recommended for users encountering issues or performing troubleshooting.
