@@ -101,7 +101,7 @@ subprojects {
 
                 val flags =
                     listOf(
-                        "-DVERSION_CODE=3043
+                        "-DVERSION_CODE=3043"
                         "-DVERSION_NAME='\"${versionNameProvider.get()}\"'",
                     )
 
