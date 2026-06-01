@@ -59,6 +59,8 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
 
 // This defers the execution of the git commands and allows Gradle to cache the results.
 
+val versionCodeProvider by extra("3043")
+val versionNameProvider by extra("2.0")
 
 val injectedPackageName by extra("com.android.shell")
 val injectedPackageUid by extra(2000)
