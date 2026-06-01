@@ -15,11 +15,12 @@
 
 ### Wprowadzenie
 
+Mój fork, skupia się na poprawnym tłumaczeniu na język polski. Działanie i funkcje są takie same jak w oryginalnym projekcie.
+
 Vector to moduł Zygisk, który zapewnia strukturę do hakowania art, zachowując spójność API z oryginalnym xposed. Został on opracowany na bazie [lsplant](https://github.com/JingMatrix/LSPlant), aby zapewnić stabilne środowisko instrumentacji na poziomie natywnym.
 
 Vector umożliwia modułom modyfikację działania systemu i aplikacji w pamięci. Ponieważ pliki APK nie są modyfikowane, zmiany są nieniszczące, łatwo odwracalne poprzez ponowne uruchomienie i kompatybilne z różnymi ROM-ami i wersjami Androida.
 
-Mój fork, skupia się na poprawnym tłumaczeniu na język polski. Działanie i funkcje są takie same jak w oryginalnym projekcie.
 ---
 
 ### Zgodność
