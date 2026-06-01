@@ -62,7 +62,6 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
 val versionCodeProvider by extra(providers.provider { 3043 })
 val versionNameProvider by extra(providers.provider { "2.0" })
 
-
 val injectedPackageName by extra("com.android.shell")
 val injectedPackageUid by extra(2000)
 val defaultManagerPackageName by extra("org.lsposed.manager")
