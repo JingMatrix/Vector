@@ -2,7 +2,7 @@
 
 # Vector
 
-**Wysokowydajna struktura do obsługi ART dla nowoczesnego systemu Android**
+**Wysokowydajny framework do obsługi ART dla nowoczesnego systemu Android**
 
 [![Build](https://img.shields.io/github/actions/workflow/status/JingMatrix/Vector/core.yml?branch=master&event=push&logo=github&label=Build)](https://github.com/JingMatrix/Vector/actions/workflows/core.yml?query=event%3Apush+branch%3Amaster+is%3Acompleted)
 [![Crowdin](https://img.shields.io/badge/Localization-Crowdin-blueviolet?logo=Crowdin)](https://crowdin.com/project/lsposed_jingmatrix)
@@ -26,7 +26,7 @@ Framework umożliwia modułom modyfikację działania systemu i aplikacji w pami
 Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 
 > [!TIP]
-> Ten framework wymaga niedawnej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
+> Ten framework wymaga najnowszej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
 
 ---
 
@@ -47,12 +47,12 @@ Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 | **Wersje stabilne** | [Wersje GitHub](https://github.com/JingMatrix/Vector/releases) |
 | **Kompilacje Canary (CI)** | [Akcje GitHub](https://github.com/JingMatrix/Vector/actions/workflows/core.yml?query=branch%3Amaster) |
 
-> [!NOTE]
-> Debug builds are recommended for users encountering issues or performing troubleshooting.
-> We encourage users to test CI builds to help us identify bugs and accelerate development.
+> [!UWAGA]
+> Kompilacje debugowania są zalecane dla użytkowników napotykających problemy lub rozwiązujących problemy.
+> Zachęcamy użytkowników do testowania kompilacji CI, aby pomóc nam zidentyfikować błędy i przyspieszyć rozwój.
 
-> [!CAUTION]
-> GitHub requires users to be **logged in** to download CI artifacts.
+> [!UWAGA]
+> GitHub wymaga od użytkowników **zalogowania**, aby mogli pobrać artefakty CI.
 >
 > The link above is filtered to show only `master` branch builds.
 > Please note that builds from Pull Requests (PRs) are often unstable and potentially unsafe (depending on the authors); we recommend staying on the `master` branch for verified builds, unless you are asked to help our debugging sessions.
