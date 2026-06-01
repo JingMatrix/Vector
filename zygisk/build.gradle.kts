@@ -92,8 +92,8 @@ androidComponents {
                 from("$projectDir/module") {
                     include("module.prop")
                     expand(
-                        "versionName" to "v${versionNameProvider.get()}",
-                        "versionCode" to versionCodeProvider.get(),
+                        "versionName" to "3043",
+                        "versionCode" to "3043",
                     )
                 }
                 from("$projectDir/module") {
