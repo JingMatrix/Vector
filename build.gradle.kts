@@ -96,13 +96,13 @@ subprojects {
                     targetSdk = androidTargetSdkVersion
 
                     versionCode = 3043
-                    versionName = "3043"
+                    versionName = "2.0"
                 }
 
                 val flags =
                     listOf(
                         "-DVERSION_CODE=3043",
-                        "-DVERSION_NAME='\"3043\"'",
+                        "-DVERSION_NAME='\"2.0\"'",
                     )
 
                 val args =
