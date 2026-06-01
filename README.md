@@ -68,8 +68,7 @@ Jeśli napotkasz problemy lub chcesz pomóc w ulepszeniu projektu, skorzystaj z 
 * **Lokalizacja:** Pomóż w tłumaczeniu projektu za pośrednictwem [Crowdin](https://crowdin.com/project/lsposed_jingmatrix).
 
 > [!IMPORTANT]
-
-Zgłoszenia błędów są akceptowane tylko wtedy, gdy dotyczą **najnowszej wersji debugowej**.
+> Zgłoszenia błędów będą akceptowane tylko wtedy, gdy dotyczą **najnowszej wersji debugowania**.
 
 *Uwaga dla osób mówiących po chińsku:*
 
