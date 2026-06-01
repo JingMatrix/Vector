@@ -23,7 +23,7 @@ Struktura umożliwia modułom modyfikację działania systemu i aplikacji w pami
 
 ### Zgodność
 
-Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
+Vector obsługuje urządzenia z systemem **Android 8.1 do Android 17 Beta**.
 
 > [!TIP]
 > Ta struktura wymaga najnowszej instalacji Magisk lub KernelSU z włączonym Zygiskiem.
@@ -44,8 +44,8 @@ Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 
 | Kanał | Źródło |
 | :--- | :--- |
-| **Wersje stabilne** | [Wersje GitHub](https://github.com/JingMatrix/Vector/releases) |
-| **Kompilacje Canary (CI)** | [Akcje GitHub](https://github.com/JingMatrix/Vector/actions/workflows/core.yml?query=branch%3Amaster) |
+| **Wersje stabilne** | [Wersje GitHub](https://github.com/Kuchta2100/Vector/releases) |
+| **Kompilacje Canary (CI)** | [Akcje GitHub](https://github.com/Kuchta2100/Vector/actions/workflows/core.yml?query=branch%3Amaster) |
 
 > [!CAUTION]
 > Kompilacje debugowania są zalecane dla użytkowników napotykających problemy lub rozwiązujących problemy.
