@@ -92,9 +92,9 @@ Vector supports both legacy and modern hooking standards to ensure broad module 
 
 ---
 
-### Credits
+### Podziękowania
 
-This project is made possible by the following open-source contributions:
+Ten projekt jest możliwy dzięki następującym projektom open source:
 
 *   [Magisk](https://github.com/topjohnwu/Magisk/): The foundation of Android customization.
 *   [LSPlant](https://github.com/JingMatrix/LSPlant): The core ART hooking engine.
@@ -115,6 +115,6 @@ This project is made possible by the following open-source contributions:
 
 ---
 
-### License
+### Licencja
 
-Vector is licensed under the [GNU General Public License v3](http://www.gnu.org/copyleft/gpl.html).
+Vector jest licencjonowany na podstawie [GNU General Public License v3](http://www.gnu.org/copyleft/gpl.html).
