@@ -81,7 +81,7 @@ Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku a
 
 Vector obsługuje zarówno starsze, jak i nowsze standardy przechwytywania, aby zapewnić szeroką kompatybilność modułów.
 
-* [starsze API Xposed](https://api.xposed.info/)
+* [Starsze API Xposed](https://api.xposed.info/)
 * [Nowoczesne API libxposed](https://libxposed.github.io/api/)
 * [Repozytorium modułów Xposed](https://github.com/Xposed-Modules-Repo)
 
@@ -98,17 +98,17 @@ Vector obsługuje zarówno starsze, jak i nowsze standardy przechwytywania, aby 
 
 Ten projekt jest możliwy dzięki następującym projektom open source:
 
-*   [Magisk](https://github.com/topjohnwu/Magisk/): The foundation of Android customization.
-*   [LSPlant](https://github.com/JingMatrix/LSPlant): The core ART hooking engine.
-*   [XposedBridge](https://github.com/rovo89/XposedBridge): The standard Xposed APIs.
-*   [Dobby](https://github.com/JingMatrix/Dobby): Inline hooking implementation.
-*   [LSPosed](https://github.com/LSPosed/LSPosed): Upstream source.
-*   [xz-embedded](https://github.com/tukaani-project/xz-embedded): Library decompression utilities.
+* [magisk](https://github.com/topjohnwu/Magisk/): Podstawy personalizacji Androida.
+* [LSPlant](https://github.com/JingMatrix/LSPlant): Podstawowy silnik przechwytywania ART.
+* [XposedBridge](https://github.com/rovo89/XposedBridge): Standardowe API Xposed.
+* [Dobby](https://github.com/JingMatrix/Dobby): Implementacja przechwytywania inline.
+* [LSPosed](https://github.com/LSPosed/LSPosed): Źródło źródłowe.
+* [xz-embedded](https://github.com/tukaani-project/xz-embedded): Narzędzia do dekompresji bibliotek.
 
 <details>
-<summary>Legacy and Historical Dependencies</summary>
+<summary>Starsze i historyczne zależności</summary>
 
-- ~~[Riru](https://github.com/RikkaApps/Riru)~~
+- ~~[riru](https://github.com/RikkaApps/Riru)~~
 - ~~[SandHook](https://github.com/ganyao114/SandHook/)~~
 - ~~[YAHFA](https://github.com/rk700/YAHFA)~~
 - ~~[dexmaker](https://github.com/linkedin/dexmaker)~~
