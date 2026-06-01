@@ -67,7 +67,7 @@ Jeśli napotkasz problemy lub chcesz pomóc w ulepszeniu projektu, skorzystaj z 
 * **Dyskusje:** Dołącz do naszej społeczności w [Dyskusjach GitHub](https://github.com/JingMatrix/Vector/discussions).
 * **Lokalizacja:** Pomóż w tłumaczeniu projektu za pośrednictwem [Crowdin](https://crowdin.com/project/lsposed_jingmatrix).
 
-[!IMPORTANT]
+> [!IMPORTANT]
 
 Zgłoszenia błędów są akceptowane tylko wtedy, gdy dotyczą **najnowszej wersji debugowej**.
 
