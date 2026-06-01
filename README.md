@@ -59,20 +59,21 @@ Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 
 ---
 
-### Support and Contribution
+### Wsparcie i wkład
 
-If you encounter issues or wish to help improve the project, please refer to the resources below.
+Jeśli napotkasz problemy lub chcesz pomóc w ulepszeniu projektu, skorzystaj z poniższych zasobów.
 
-*   **Troubleshooting:** Consult the [guide](https://github.com/JingMatrix/Vector/issues/123) before reporting bugs.
-*   **Discussions:** Join our community on [GitHub Discussions](https://github.com/JingMatrix/Vector/discussions).
-*   **Localization:** Help translate the project via [Crowdin](https://crowdin.com/project/lsposed_jingmatrix).
+* **Rozwiązywanie problemów:** Przed zgłoszeniem błędów zapoznaj się z [poradnikiem](https://github.com/JingMatrix/Vector/issues/123).
+* **Dyskusje:** Dołącz do naszej społeczności w [Dyskusjach GitHub](https://github.com/JingMatrix/Vector/discussions).
+* **Lokalizacja:** Pomóż w tłumaczeniu projektu za pośrednictwem [Crowdin](https://crowdin.com/project/lsposed_jingmatrix).
 
-> [!IMPORTANT]
-> Bug reports are only accepted if they are based on the **latest debug build**.
->
-> *Notice for Chinese speakers:*
->
-> 为了提高沟通效率，本项目仅接受英文 Issue。请使用 [DeepL](https://www.deepl.com/zh/translator) 或其他翻译工具提交您的反馈。
+[!IMPORTANT]
+
+Zgłoszenia błędów są akceptowane tylko wtedy, gdy dotyczą **najnowszej wersji debugowej**.
+
+*Uwaga dla osób mówiących po chińsku:*
+
+Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku angielskim. Prosimy o korzystanie z [DeepL](https://www.deepl.com/zh/translator) lub innych narzędzi do tłumaczeń, aby przesłać swoją opinię.
 
 ---
 
