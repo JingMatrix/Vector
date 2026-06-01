@@ -55,7 +55,7 @@ Vector obsługuje urządzenia z systemem **Android 8.1 do Androida 17 Beta**.
 > GitHub wymaga od użytkowników **zalogowania**, aby mogli pobrać artefakty CI.
 >
 > Powyższy link jest filtrowany tak, aby wyświetlać tylko kompilacje z gałęzi `PL`.
-> Należy pamiętać, że kompilacje z żądań ściągnięcia (PR) są często niestabilne i potencjalnie niebezpieczne (w zależności od autorów); zalecamy pozostanie na gałęzi `master` w przypadku zweryfikowanych kompilacji, chyba że zostaniesz poproszony o pomoc w naszych sesjach debugowania.
+> Należy pamiętać, że kompilacje z żądań ściągnięcia (PR) są często niestabilne i potencjalnie niebezpieczne (w zależności od autorów); zalecamy pozostanie na gałęzi `PL` w przypadku zweryfikowanych kompilacji, chyba że zostaniesz poproszony o pomoc w naszych sesjach debugowania.
 
 ---
 
@@ -73,7 +73,7 @@ Zgłoszenia błędów są akceptowane tylko wtedy, gdy dotyczą **najnowszej wer
 
 *Uwaga dla osób mówiących po chińsku:*
 
-Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku angielskim. Prosimy o korzystanie z [DeepL](https://www.deepl.com/zh/translator) lub innych narzędzi do tłumaczeń, aby przesłać swoją opinię.
+Aby usprawnić komunikację, ten projekt akceptuje tylko zgłoszenia w języku polskim. Prosimy o korzystanie z [DeepL](https://www.deepl.com/zh/translator) lub innych narzędzi do tłumaczeń, aby przesłać swoją opinię.
 
 ---
 
