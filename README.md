@@ -104,16 +104,6 @@ Ten projekt jest możliwy dzięki następującym projektom open source:
 * [LSPosed](https://github.com/LSPosed/LSPosed): Źródło źródłowe.
 * [xz-embedded](https://github.com/tukaani-project/xz-embedded): Narzędzia do dekompresji bibliotek.
 
-<details>
-<summary>Starsze i historyczne zależności</summary>
-
-- ~~[riru](https://github.com/RikkaApps/Riru)~~
-- ~~[SandHook](https://github.com/ganyao114/SandHook/)~~
-- ~~[YAHFA](https://github.com/rk700/YAHFA)~~
-- ~~[dexmaker](https://github.com/linkedin/dexmaker)~~
-- ~~[DexBuilder](https://github.com/LSPosed/DexBuilder)~~
-</details>
-
 ---
 
 ### Licencja
