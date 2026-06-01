@@ -26,7 +26,7 @@ android {
     buildConfigField("String", "MANAGER_INJECTED_PKG_NAME", """"$injectedPackageName"""")
     buildConfigField("int", "MANAGER_INJECTED_UID", """$injectedPackageUid""")
     buildConfigField("String", "VERSION_NAME", """"${versionNameProvider.get()}"""")
-    buildConfigField("long", "VERSION_CODE", versionCodeProvider.get())
+    buildConfigField("long", "VERSION_CODE", versionCodeProvider.get() + "L")
 
     val cliToken = UUID.randomUUID()
     // Inject the MSB and LSB as Long constants
