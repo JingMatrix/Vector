@@ -1,9 +1,9 @@
-name: Core
+name: Vector
 
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ PL ]
     tags: [ v* ]
   pull_request:
   merge_group:
@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
 
       - name: Write key
-        if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/master' ) || github.ref_type == 'tag' }}
+        if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/Vector' ) || github.ref_type == 'tag' }}
         run: |
           if [ ! -z "${{ secrets.KEY_STORE }}" ]; then
             echo androidStorePassword='${{ secrets.KEY_STORE_PASSWORD }}' >> gradle.properties
