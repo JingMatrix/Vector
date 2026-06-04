@@ -48,8 +48,8 @@
     <string name="install_summary">Naciśnij, aby zainstalować Vector</string>
     <string name="not_installed">Nie zainstalowane</string>
     <string name="not_install_summary">Vector nie jest zainstalowany</string>
-    <string name="activated">Aktywowany</string>
-    <string name="partial_activated">Częściowo aktywowany</string>
+    <string name="activated">Aktywowane</string>
+    <string name="partial_activated">Częściowo aktywowane</string>
     <string name="selinux_policy_not_loaded_summary">Zasady bezpieczeństwa są nieprawidłowo załadowane</string>
     <string name="selinux_policy_not_loaded"><![CDATA[Niektóre funkcje nie będą działać.<br/>Proszę zgłosić to do programisty <a href="https://github.com/topjohnwu/Magisk/issues"><b>Magisk</b></a>.]]></string>
     <string name="system_inject_fail_summary">Wstrzyknięcie do struktury systemu nie powiodło się</string>
@@ -173,12 +173,8 @@
     <string name="settings_group_framework">Struktura</string>
     <string name="settings_disable_verbose_log">Wyłącz szczegółowe dzienniki</string>
     <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia szczegółowych dzienników</string>
-    <string name="pure_black_dark_theme">Czysty czarny ciemny motyw</string>
+    <string name="pure_black_dark_theme">Czarny ciemny motyw</string>
     <string name="pure_black_dark_theme_summary">Użyj czarnego motywu, jeśli ciemny motyw jest włączony</string>
-    <string name="dark_theme">Ciemny motyw</string>
-    <string name="dark_theme_off">Zawsze wyłączony</string>
-    <string name="dark_theme_on">Zawsze włączony</string>
-    <string name="follow_system">Według systemu</string>
     <string name="settings_group_theme">Motyw</string>
     <string name="settings_backup_and_restore">Kopia zapasowa i przywracanie</string>
     <string name="settings_backup_summery">Kopia zapasowa listy modułów i zakresów.</string>
@@ -230,23 +226,23 @@
         <item quantity="other">%d pobranych</item>
     </plurals>
     <!-- Colors -->
-    <string name="color_sakura">Jasnoróżowy</string>
-    <string name="color_red">Czerwony</string>
-    <string name="color_pink">Różowy</string>
-    <string name="color_purple">Fioletowy</string>
-    <string name="color_deep_purple">Głęboki fioletowy</string>
-    <string name="color_indigo">Indygo</string>
-    <string name="color_blue">Niebieski</string>
-    <string name="color_light_blue">Jasnoniebieski</string>
-    <string name="color_cyan">Cyjanowy</string>
-    <string name="color_teal">Turkusowy</string>
-    <string name="color_green">Zielony</string>
-    <string name="color_light_green">Jasnozielony</string>
-    <string name="color_lime">Limonkowy</string>
-    <string name="color_yellow">Żółty</string>
-    <string name="color_amber">Bursztynowy</string>
-    <string name="color_orange">Pomarańczowy</string>
-    <string name="color_deep_orange">Głęboki pomarańczowy</string>
-    <string name="color_brown">Brązowy</string>
-    <string name="color_blue_grey">Niebiesko szary</string>
+    <string name="color_sakura">Jasny różowy</string>
+    <string name="color_red">Jasny koralowy</string>
+    <string name="color_pink">Pastelowy różowy</string>
+    <string name="color_purple">Jasny fioletowy</string>
+    <string name="color_deep_purple">Pastelowy fioletowy</string>
+    <string name="color_indigo">Pastelowy niebieski</string>
+    <string name="color_blue">Jasny niebieski</string>
+    <string name="color_light_blue">Jasny błękitny</string>
+    <string name="color_cyan">Jasny cyjan</string>
+    <string name="color_teal">Jasny turkusowy</string>
+    <string name="color_green">Jasny zielony</string>
+    <string name="color_light_green">Pastelowy zielony</string>
+    <string name="color_lime">Pastelowy limonkowy</string>
+    <string name="color_yellow">Ciemny żółty</string>
+    <string name="color_amber">Jasny bursztynowy</string>
+    <string name="color_orange">Pastelowy pomarańczowy</string>
+    <string name="color_deep_orange">Pastelowy koralowy</string>
+    <string name="color_brown">Pastelowy łososiowy</string>
+    <string name="color_blue_grey">Pastelowy błękitny</string>
 </resources>
