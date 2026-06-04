@@ -176,6 +176,10 @@
     <string name="pure_black_dark_theme">Czarny ciemny motyw</string>
     <string name="pure_black_dark_theme_summary">Użyj czarnego motywu, jeśli ciemny motyw jest włączony</string>
     <string name="settings_group_theme">Motyw</string>
+    <string name="dark_theme">Ciemny motyw</string>
+    <string name="dark_theme_off">Zawsze wyłączony</string>
+    <string name="dark_theme_on">Zawsze włączony</string>
+    <string name="follow_system">Według systemu</string>
     <string name="settings_backup_and_restore">Kopia zapasowa i przywracanie</string>
     <string name="settings_backup_summery">Kopia zapasowa listy modułów i zakresów.</string>
     <string name="settings_restore_summery">Przywróć listę modułów i zakresów.</string>
