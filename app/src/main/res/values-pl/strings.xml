@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ This file is part of LSPosed.
-  ~
-  ~ LSPosed is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ LSPosed is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
-  ~
-  ~ Copyright (C) 2021 LSPosed Contributors
+  ~ Ten plik jest częścią Vector.
+~
+~ LSPosed jest wolnym oprogramowaniem: możesz je redystrybuować i/lub modyfikować
+~ zgodnie z warunkami Powszechnej Licencji Publicznej GNU, opublikowanej przez
+~ Fundację Wolnego Oprogramowania, w wersji 3 Licencji lub
+~ (według własnego wyboru) dowolnej późniejszej wersji.
+~
+~ LSPosed jest rozpowszechniany z nadzieją, że okaże się użyteczny,
+~ jednak BEZ ŻADNEJ GWARANCJI; nawet bez domniemanej gwarancji
+~ PRZYDATNOŚCI HANDLOWEJ lub PRZYDATNOŚCI DO OKREŚLONEGO CELU. Więcej informacji można znaleźć w
+~ Powszechnej Licencji Publicznej GNU.
+~
+~ Powinieneś otrzymać kopię Powszechnej Licencji Publicznej GNU
+~ wraz z LSPosed. W przeciwnym razie zapoznaj się z informacjami na stronie <https://www.gnu.org/licenses/>.
+~
+~ Copyright (C) 2026 Współtwórcy LSPosed
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/xposed_module_updated_notification_*,@string/module_is_not_activated_*">
-    <!-- MainActivity -->
+    <!-- Główne -->
     <string name="overview">Przegląd</string>
     <string name="Modules">Moduły</string>
     <plurals name="modules_enabled_count">
@@ -79,7 +79,7 @@
     <string name="update_lsposed">Zaktualizuj Vector</string>
     <string name="update_lsposed_msg">Czy chcesz zatwierdzić aktualizację Vector? Urządzenie zostanie zrestartowane po zakończeniu aktualizacji</string>
     <string name="info_copied">Skopiowano do schowka</string>
-    <!-- WelcomeDialog -->
+    <!-- Powitanie-->
     <string name="parasitic_welcome">Witaj w Vector</string>
     <string name="parasitic_welcome_summary">Używasz menadżera pasożytniczego, do którego możesz utworzyć skrót lub otworzyć go z powiadomienia.</string>
     <string name="parasitic_welcome_summary_no_shortcut_support">Używasz menadżera pasożytniczego, który możesz otworzyć z powiadomienia.</string>
@@ -87,7 +87,7 @@
     <string name="never_show">Nigdy nie pokazuj</string>
     <string name="app_welcome">Zalecany menedżer pasożytniczy</string>
     <string name="app_welcome_summary">Vector obsługuje teraz pasożytnictwo systemowe, aby uniknąć wykrycia. Menedżer pasożytniczy można uruchomić z poziomu powiadomienia. Zaleca się odinstalowanie bieżącej aplikacji.</string>
-    <!-- LogsActivity -->
+    <!-- Dzienniki-->
     <string name="menuSaveToSd">Zapisz</string>
     <string name="nav_item_logs_verbose">Szczegółowe dzienniki</string>
     <string name="nav_item_logs_module">Dzienniki modułów</string>
@@ -104,7 +104,7 @@
     <string name="menu_enable_word_wrap">Zawijanie wierszy</string>
     <string name="enabled_verbose_log">Szczegółowy dziennik włączony</string>
     <string name="disabled_verbose_log">Szczegółowy dziennik wyłączony</string>
-    <!-- ModulesActivity -->
+    <!-- Moduły -->
     <string name="module_empty_description">(nie podano opisu)</string>
     <string name="warning_xposed_min_version">Ten moduł wymaga nowszej wersji Xposed (%d) przez co nie może być aktywowany</string>
     <string name="warning_target_version_higher">Ten moduł został zaprojektowany dla nowej wersji Xposed (%d) i dlatego niektóre funkcje mogą nie działać</string>
@@ -124,7 +124,7 @@
     <string name="install_to_user_message">Chcesz zainstalować %1$s dla użytkownika %2$s? Zalecana jest ręczna instalacja, wymuszanie instalacji przez Vector może powodować problemy.</string>
     <string name="expand">rozwiń</string>
     <string name="collapse">zwiń</string>
-    <!-- AppListActivity -->
+    <!-- Lista aplikacji -->
     <string name="compile_speed">Ponownie zoptymalizuj</string>
     <string name="compile_speed_msg">Optymalizowanie…</string>
     <string name="compile_done">Optymalizacja zakończona</string>
@@ -165,11 +165,11 @@
     <string name="reboot_required">Restart jest wymagany, aby ta zmiana została zastosowana</string>
     <string name="reboot">Restart</string>
     <string name="menu_hide">Ukryj</string>
-    <!-- ModulesActivity and AppListActivity -->
+    <!-- Moduły i Lista aplikacji-->
     <string name="modules_other_app">Wyświetl w innej aplikacji</string>
     <string name="module_app_info">Informacje o aplikacji</string>
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nNic tu nie ma</string>
-    <!-- SettingsActivity -->
+    <!-- Ustawienia-->
     <string name="settings_group_framework">Struktura</string>
     <string name="settings_disable_verbose_log">Wyłącz szczegółowe dzienniki</string>
     <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia szczegółowych dzienników</string>
@@ -209,7 +209,7 @@
     <string name="update_channel_stable">Stabilny</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Kompilacja nocna</string>
-    <!-- Module Repo -->
+    <!-- Repozytorium modułów-->
     <string name="module_readme">Przeczytaj mnie</string>
     <string name="module_releases">Wydania</string>
     <string name="module_information">Informacje</string>
@@ -229,24 +229,24 @@
         <item quantity="many">%d pobranych</item>
         <item quantity="other">%d pobranych</item>
     </plurals>
-    <!-- Colors -->
-    <string name="color_sakura">Jasny różowy</string>
-    <string name="color_red">Czerwony</string>
-    <string name="color_pink">Różowy</string>
-    <string name="color_purple">Purpurowy</string>
-    <string name="color_deep_purple">Głęboki purpurowy</string>
-    <string name="color_indigo">Indygo</string>
-    <string name="color_blue">Niebieski</string>
-    <string name="color_light_blue">Jasny niebieski</string>
-    <string name="color_cyan">Cyjanowy</string>
-    <string name="color_teal">Cyraneczkowy</string>
-    <string name="color_green">Zielony</string>
-    <string name="color_light_green">Jasny zielony</string>
-    <string name="color_lime">Limonkowy</string>
-    <string name="color_yellow">Żółty</string>
-    <string name="color_amber">Bursztynowy</string>
-    <string name="color_orange">Pomarańczowy</string>
-    <string name="color_deep_orange">Głęboki pomarańczowy</string>
-    <string name="color_brown">Brązowy</string>
-    <string name="color_blue_grey">Niebiesko szary</string>
+    <!-- Kolory -->
+   <string name="color_amber">Bursztynowy</string>
+   <string name="color_brown">Brązowy</string>
+   <string name="color_cyan">Cyjanowy</string>
+   <string name="color_teal">Cyraneczkowy</string>
+   <string name="color_red">Czerwony</string>
+   <string name="color_indigo">Indygo</string>
+   <string name="color_lime">Limonkowy</string>
+   <string name="color_blue">Niebieski</string>
+   <string name="color_light_blue">Jasny niebieski</string>
+   <string name="color_blue_grey">Niebiesko szary</string>
+   <string name="color_orange">Pomarańczowy</string>
+   <string name="color_deep_orange">Głęboki pomarańczowy</string>
+   <string name="color_purple">Purpurowy</string>
+   <string name="color_deep_purple">Głęboki purpurowy</string>
+   <string name="color_pink">Różowy</string>
+   <string name="color_sakura">Jasny różowy</string>
+   <string name="color_green">Zielony</string>
+   <string name="color_light_green">Jasny zielony</string>
+   <string name="color_yellow">Żółty</string>
 </resources>
