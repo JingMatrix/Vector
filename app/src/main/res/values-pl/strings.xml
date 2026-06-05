@@ -231,22 +231,22 @@
     </plurals>
     <!-- Colors -->
     <string name="color_sakura">Jasny różowy</string>
-    <string name="color_red">Jasny koralowy</string>
-    <string name="color_pink">Pastelowy różowy</string>
-    <string name="color_purple">Jasny fioletowy</string>
-    <string name="color_deep_purple">Pastelowy fioletowy</string>
-    <string name="color_indigo">Pastelowy niebieski</string>
-    <string name="color_blue">Jasny niebieski</string>
-    <string name="color_light_blue">Jasny błękitny</string>
-    <string name="color_cyan">Jasny cyjan</string>
-    <string name="color_teal">Jasny turkusowy</string>
-    <string name="color_green">Jasny zielony</string>
-    <string name="color_light_green">Pastelowy zielony</string>
-    <string name="color_lime">Pastelowy limonkowy</string>
-    <string name="color_yellow">Ciemny żółty</string>
-    <string name="color_amber">Jasny bursztynowy</string>
-    <string name="color_orange">Pastelowy pomarańczowy</string>
-    <string name="color_deep_orange">Pastelowy koralowy</string>
-    <string name="color_brown">Pastelowy łososiowy</string>
-    <string name="color_blue_grey">Pastelowy błękitny</string>
+    <string name="color_red">Czerwony</string>
+    <string name="color_pink">Różowy</string>
+    <string name="color_purple">Purpurowy</string>
+    <string name="color_deep_purple">Głęboki purpurowy</string>
+    <string name="color_indigo">Indygo</string>
+    <string name="color_blue">Niebieski</string>
+    <string name="color_light_blue">Jasny niebieski</string>
+    <string name="color_cyan">Cyjanowy</string>
+    <string name="color_teal">Cyraneczkowy</string>
+    <string name="color_green">Zielony</string>
+    <string name="color_light_green">Jasny zielony</string>
+    <string name="color_lime">Limonkowy</string>
+    <string name="color_yellow">Żółty</string>
+    <string name="color_amber">Bursztynowy</string>
+    <string name="color_orange">Pomarańczowy</string>
+    <string name="color_deep_orange">Głęboki pomarańczowy</string>
+    <string name="color_brown">Brązowy</string>
+    <string name="color_blue_grey">Niebiesko szary</string>
 </resources>
