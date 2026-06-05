@@ -113,7 +113,7 @@ materialThemeBuilder {
     // Add Material Design 3 color tokens (such as palettePrimary100) in generated theme
     // rikka.material:material >= 2.0.0 provides such attributes
     // Enable this if your are using rikka.material:material
-    generatePalette = true
+    generatePalette = false
 }
 
 dependencies {
