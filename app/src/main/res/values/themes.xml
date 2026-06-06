@@ -51,6 +51,7 @@
         <item name="android:colorAccent">?colorPrimary</item>
         <!-- Preference switch -->
         <item name="android:colorControlActivated">?colorPrimary</item>
+        <item name="android:theme">@style/ThemeOverlay.Dark.Red</item>
     </style>
 
     <style name="Theme" parent="Base.AppTheme" />
