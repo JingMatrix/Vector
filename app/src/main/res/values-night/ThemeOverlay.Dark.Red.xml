@@ -1,5 +1,5 @@
 <resources>
-    <style name="ThemeOverlay.Dark.Red">
+    <style name="ThemeOverlay.Red">
         <item name="colorPrimary">#FF0000</item>
         <item name="colorPrimaryContainer">#FF0000</item>
         <item name="colorSecondary">#FF0000</item>
