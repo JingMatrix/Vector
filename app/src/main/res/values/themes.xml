@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?><!--
   ~ This file is part of LSPosed.
   ~
-  ~ LSPosed is free software: you can redistribute it and/or modify
+  ~ Vector is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
   ~ the Free Software Foundation, either version 3 of the License, or
   ~ (at your option) any later version.
   ~
-  ~ LSPosed is distributed in the hope that it will be useful,
+  ~ Vector is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
   ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU General Public License for more details.
@@ -19,7 +19,7 @@
 
 <resources>
 
-    <style name="Base.AppTheme.Light" parent="Theme.Material3.DynamicColors.Light.Rikka">
+    <style name="Base.AppTheme.Light" parent="Theme.Material3.Light.Rikka">
         <item name="android:windowLightStatusBar">true</item>
         <item name="colorPrimaryVariant">@color/primary_dark_light_light_status_bar</item>
 
@@ -39,7 +39,7 @@
 
     <style name="Theme.Light" parent="Base.AppTheme.Light" />
 
-    <style name="Base.AppTheme" parent="Theme.Material3.DynamicColors.Dark.Rikka">
+    <style name="Base.AppTheme" parent="Theme.Material3.Dark.Rikka">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
