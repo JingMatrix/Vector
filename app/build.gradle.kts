@@ -83,7 +83,7 @@ materialThemeBuilder {
     themes {
         for ((name, color) in
             listOf(
-                "Red" to "8B0000",
+                "Red" to "FF0000",
                 "Pink" to "FFC0CB",
                 "Purple" to "800080",
                 "DeepPurple" to "36013F",
