@@ -6,6 +6,5 @@
         <item name="colorSecondaryContainer">#FF0000</item>
         <item name="colorTertiary">#FF0000</item>
         <item name="colorTertiaryContainer">#FF0000</item>
-        <item name="surfaceTint">#FF0000</item>
     </style>
 </resources>
