@@ -1,4 +1,3 @@
-
 name: Vector-PL-Release
 
 on:
@@ -38,6 +37,11 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Accept Android Licenses
+        run: |
+          # Akceptujemy wszystkie licencje, żeby Gradle mógł sam pobierać pakiety
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
@@ -46,6 +50,8 @@ jobs:
           echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
           echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
           echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
+          # Włączamy automatyczne pobieranie brakujących komponentów SDK/NDK przez Gradle
+          echo 'android.builder.sdkDownload=true' >> ~/.gradle/gradle.properties
 
       - name: Setup ninja
         uses: seanmiddleditch/gha-setup-ninja@v6
@@ -53,7 +59,7 @@ jobs:
           version: 1.12.1
 
       - name: Build
-        run: ./gradlew zipAll --android-licenses
+        run: ./gradlew zipAll
 
       - name: Release
         uses: softprops/action-gh-release@v2
