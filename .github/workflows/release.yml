@@ -42,23 +42,34 @@ jobs:
         with:
           packages: 'ndk-bundle'
 
-      - name: Install latest system Ninja
+      - name: Install latest system Ninja and force override SDK
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
+          
+          # Brutalne nadpisanie starego ninja w Android SDK najnowszą wersją systemową
+          NINJA_SYSTEM_PATH=$(which ninja)
+          SDK_NINJA_PATH="/usr/local/lib/android/sdk/cmake/3.31.5/bin/ninja"
+          
+          if [ -f "$SDK_NINJA_PATH" ]; then
+            rm "$SDK_NINJA_PATH"
+            ln -s "$NINJA_SYSTEM_PATH" "$SDK_NINJA_PATH"
+            echo "Sukces: Nadpisano Ninja w SDK wersją systemową."
+          else
+            # Jeśli ścieżka się różni, tworzymy folder i link na zapas
+            mkdir -p "$(dirname "$SDK_NINJA_PATH")"
+            ln -s "$NINJA_SYSTEM_PATH" "$SDK_NINJA_PATH"
+            echo "Utworzono link awaryjny dla Ninja w SDK."
+          fi
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Configure Gradle properties and override Ninja
+      - name: Configure Gradle properties
         run: |
           echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
           echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
           echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
-          
-          # Wymuszenie użycia systemowego (najnowszego) Ninja zamiast starego z Android SDK
-          NINJA_PATH=$(which ninja)
-          echo "android.externalNativeBuild.ninja.path=$NINJA_PATH" >> gradle.properties
 
       - name: Build
         run: ./gradlew zipAll
