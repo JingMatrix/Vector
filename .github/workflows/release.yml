@@ -37,15 +37,15 @@ jobs:
           distribution: temurin
           java-version: 21
 
-            - name: Accept Licenses
+      - name: Accept Licenses
         run: |
           mkdir -p "$ANDROID_HOME/licenses"
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-ndk-license"
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo "d56f5187473751e9e7351025576751241198640c" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "84831b9409646a918e30573bab4c9c91346d8a43" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "2e28a57e32407746506f526362947230500135d5" >> "$ANDROID_HOME/licenses/android-sdk-license"
-
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
