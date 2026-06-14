@@ -1,3 +1,4 @@
+
 name: Vector-PL-Release
 
 on:
@@ -37,11 +38,11 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Install NDK and Accept Licenses
-        run: |
-          # Instalujemy konkretną, najnowszą stabilną wersję NDK r27 bezpośrednio przez sdkmanager
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973"
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v3
+        with:
+          # Automatycznie instaluje najnowsze stabilne NDK i akceptuje licencje
+          packages: 'ndk-bundle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -51,8 +52,6 @@ jobs:
           echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
           echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
           echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
-          # Podpowiadamy Gradle, gdzie fizycznie leży zainstalowane przed chwilą NDK
-          echo "ndk.dir=$ANDROID_HOME/ndk/27.0.12077973" >> ~/.gradle/gradle.properties
 
       - name: Setup ninja
         uses: seanmiddleditch/gha-setup-ninja@v6
