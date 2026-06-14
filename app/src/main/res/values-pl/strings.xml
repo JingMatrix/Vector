@@ -152,7 +152,7 @@
   <string name="android_framework">Struktura systemu</string>
   <string name="menu_backup_and_restore">Kopia</string>
   <string name="menu_backup">Wykonaj kopię</string>
-  <string name="menu_restore">Przywróć</string>
+  <string name="menu_restore">Przywróć kopię</string>
   <string name="force_stop">Wymuś zatrzymanie</string>
   <string name="force_stop_dlg_title">Wymusić zatrzymanie?</string>
   <string name="force_stop_dlg_text">Jeśli wymusisz zatrzymanie aplikacji, może ona zachowywać się nieprawidłowo.</string>
