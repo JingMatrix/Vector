@@ -1,248 +1,251 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ This file is part of LSPosed.
-  ~
-  ~ LSPosed is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or
-  ~ (at your option) any later version.
-  ~
-  ~ LSPosed is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
-  ~
-  ~ Copyright (C) 2021 LSPosed Contributors
-  -->
+~ Ten plik jest częścią Vector.
+~
+~ Vector jest wolnym oprogramowaniem: możesz je redystrybuować i/lub modyfikować
+~ zgodnie z warunkami Powszechnej Licencji Publicznej, opublikowanej przez
+~ Fundację Wolnego Oprogramowania, w wersji 3 Licencji lub
+~ (według własnego wyboru) dowolnej późniejszej wersji.
+~
+~ Vector jest rozpowszechniany z nadzieją, że okaże się użyteczny,
+~ jednak BEZ ŻADNEJ GWARANCJI; nawet bez domniemanej gwarancji
+~ PRZYDATNOŚCI HANDLOWEJ lub PRZYDATNOŚCI DO OKREŚLONEGO CELU. Więcej informacji można znaleźć w
+~ Powszechnej Licencji Publicznej.
+~
+~ Powinieneś otrzymać kopię Powszechnej Licencji Publicznej
+~ wraz z Vector. W przeciwnym razie zapoznaj się z informacjami na stronie <https://www.gnu.org/licenses/>.
+~
+~ Prawo autorskie (C) 2026 współtwórcy Vector -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/xposed_module_updated_notification_*,@string/module_is_not_activated_*">
-    <!-- MainActivity -->
-    <string name="overview">Przegląd</string>
-    <string name="Modules">Moduły</string>
-    <plurals name="modules_enabled_count">
-        <item quantity="one">%d moduł aktywowany</item>
-        <item quantity="few">Aktywowano %d modułu/ów</item>
-        <item quantity="many">Włączono %d moduły/ów</item>
-        <item quantity="other">Włączono %d moduły/ów</item>
-    </plurals>
-    <string name="Logs">Logi</string>
-    <string name="Settings">Ustawienia</string>
-    <string name="feedback_or_suggestion">Opinie lub sugestie</string>
-    <string name="About">O aplikacji</string>
-    <string name="report_issue">Zgłoś problem</string>
-    <string name="module_repo">Repozytorium</string>
-    <string name="module_repo_up_to_date">Wszystkie moduły są aktualne</string>
-    <string name="module_repo_published_time">Opublikowano na stronie %s</string>
-    <string name="module_repo_updated_time">Zaktualizowany na stronie %s</string>
-    <plurals name="module_repo_upgradable">
-        <item quantity="one">%d moduł możliwy do aktualizacji</item>
-        <item quantity="few">%d moduły z możliwością aktualizacji</item>
-        <item quantity="many">%d moduły z możliwością aktualizacji</item>
-        <item quantity="other">%d modułów z możliwością aktualizacji</item>
-    </plurals>
-    <string name="about_view_source_code"><![CDATA[Zobacz kod źródłowy na %1$s<br/>Dołącz do naszego kanału %2$s]]></string>
-    <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">Adiker, xAzvest</string>
-    <string name="install">Instaluj</string>
-    <string name="install_summary">Dotknij, aby zainstalować LSPosed</string>
-    <string name="not_installed">Nie zainstalowano</string>
-    <string name="not_install_summary">LSPosed nie jest zainstalowany</string>
-    <string name="activated">Aktywowano</string>
-    <string name="partial_activated">Częściowo aktywowano</string>
-    <string name="selinux_policy_not_loaded_summary">SEPolicy nie jest prawidłowo załadowane</string>
-    <string name="selinux_policy_not_loaded"><![CDATA[Niektóre funkcje nie będą działać.<br/>Proszę to zgłosić do twórcy <a href="https://github.com/topjohnwu/Magisk/issues"><b>Magiska</b></a>.]]></string>
-    <string name="system_inject_fail_summary">Wstrzyknięcie Frameworku Systemowego nie powiodło się</string>
-    <string name="system_inject_fail"><![CDATA[Jest to rzadkie i może być spowodowane przez <b>Magiska</b> lub niektóre moduły Magisk niskiej jakości.<br/>Spróbuj wyłączyć moduły Magisk inne niż Riru i LSPosed lub przesłać pełny log programistom.]]></string>
-    <string name="system_prop_incorrect_summary">Nieprawidłowy system prop</string>
-    <string name="system_prop_incorrect"><![CDATA[Niektóre niezbędne właściwości systemowe zostały usunięte lub zmienione.<br/>Moduły mogą czasami działać niepoprawnie.]]></string>
-    <string name="need_update">Konieczna aktualizacja</string>
-    <string name="please_update_summary">Proszę zainstalować najnowszą wersję LSPosed</string>
-    <string name="developer_warning_title">Porady dla programisty modułów</string>
-    <string name="developer_warning_summary">Wyłącz optymalizacje wdrażania w Android Studio lub użyj polecenia `gradlew installDebug`, aby zainstalować. W przeciwnym razie moduł APK nie zostanie zaktualizowany.</string>
-    <string name="info_api_version">Wersja API</string>
-    <string name="info_framework_version">Wersja frameworka</string>
-    <string name="info_manager_package_name">Nazwa pakietu menedżera</string>
-    <string name="info_system_version">Wersja systemu</string>
-    <string name="info_device">Urządzenie</string>
-    <string name="info_system_abi">ABI systemu</string>
-    <string name="info_dex2oat_wrapper">Optymalizator Dex Optimizer Wrapper</string>
-    <string name="enabled">Włączone</string>
-    <string name="not_enabled">Wyłączone</string>
-    <string name="supported">Obsługiwana strona</string>
-    <string name="unsupported">Nieobsługiwane</string>
-    <string name="android_version_unsatisfied">Niezadowolenie z wersji na Androida</string>
-    <string name="crashed">Rozbita</string>
-    <string name="mount_failed">Montowanie nie powiodło się</string>
-    <string name="selinux_permissive">SELinux jest permisywny</string>
-    <string name="sepolicy_incorrect">Zasady SELinuxa są nieprawidłowe</string>
-    <string name="update_lsposed">Zaktualizuj LSPosed</string>
-    <string name="update_lsposed_msg">Czy chcesz zatwierdzić aktualizację LSPosed? Urządzenie zostanie uruchomione ponownie po zakończeniu aktualizacji</string>
-    <string name="info_copied">Skopiowane do schowka</string>
-    <!-- WelcomeDialog -->
-    <string name="parasitic_welcome">Witamy w LSPosed</string>
-    <string name="parasitic_welcome_summary">Używasz menedżera pasożytów, który może utworzyć skrót na ekranie głównym lub nadal być otwieranym z powiadomienia.</string>
-    <string name="parasitic_welcome_summary_no_shortcut_support">Używasz menedżera pasożytów, który może być otwierany z powiadomienia.</string>
-    <string name="create_shortcut">Utwórz skrót</string>
-    <string name="never_show">Nigdy nie pokazuj</string>
-    <string name="app_welcome">Zalecany Menedżer Pasożytowy</string>
-    <string name="app_welcome_summary">LSPosed teraz obsługuje pasożytowanie systemowe by uniknąć wykrycia, możesz otworzyć menedżera pasożytów z okna powiadomień. Zalecane jest odinstalowanie obecnej aplikacji.</string>
-    <!-- LogsActivity -->
-    <string name="menuSaveToSd">Zapisz</string>
-    <string name="nav_item_logs_verbose">Logi verbose</string>
-    <string name="nav_item_logs_module">Logi modułów</string>
-    <string name="logs_saving">Zapisywanie dziennika, poczekaj</string>
-    <string name="logs_saved">Zapisane logi</string>
-    <string name="logs_save_failed2">Nie udało się zapisać:\n%s</string>
-    <string name="menuClearLog">Wyczyść log teraz</string>
-    <string name="logs_cleared">Logi zostały pomyślnie wyczyszczone.</string>
-    <string name="scroll_top">Przewiń na górę</string>
-    <string name="loading">Ładowanie…</string>
-    <string name="scroll_bottom">Przewiń na dół</string>
-    <string name="menuReload">Przeładuj</string>
-    <string name="logs_clear_failed_2">Nie udało się wyczyścić logu</string>
-    <string name="menu_enable_word_wrap">Zawijanie wierszy</string>
-    <string name="enabled_verbose_log">Logi verbose włączone</string>
-    <string name="disabled_verbose_log">Logi verbose wyłączone</string>
-    <!-- ModulesActivity -->
-    <string name="module_empty_description">(nie podano opisu)</string>
-    <string name="warning_xposed_min_version">Ten moduł wymaga nowszej wersji Xposed (%d) przez co nie może być aktywowany</string>
-    <string name="warning_target_version_higher">Ten moduł został zaprojektowany dla nowej wersji Xposed (%d) i dlatego niektóre funkcje mogą nie działać</string>
-    <string name="no_min_version_specified">Ten moduł nie określa wymaganej wersji Xposed.</string>
-    <string name="warning_min_version_too_low">Ten moduł został utworzony dla Xposed w wersji %1$d, ale ze względu na niekompatybilne zmiany w wersji %2$d, został wyłączony</string>
-    <string name="warning_installed_on_external_storage">Ten moduł nie może być załadowany, ponieważ jest zainstalowany na karcie SD, przenieś go do pamięci wewnętrznej</string>
-    <string name="module_uninstall">Odinstaluj</string>
-    <string name="module_settings">Ustawienia modułu</string>
-    <string name="view_in_repo">Wyświetl w repozytorium</string>
-    <string name="module_uninstall_message">Czy chcesz odinstalować ten moduł?</string>
-    <string name="module_uninstalled">Odinstalowano %1$s</string>
-    <string name="module_uninstall_failed">Odinstalowanie nie powiodło się</string>
-    <string name="add_module_to_user">Dodaj moduł do użytkownika</string>
-    <string name="module_installed">Dodano %1$s do użytkownika %2$s</string>
-    <string name="module_install_failed">Dodawanie modułu nie powiodło się</string>
-    <string name="install_to_user">Zainstaluj dla użytkownika %s</string>
-    <string name="install_to_user_message">Chcesz zainstalować %1$s dla użytkownika %2$s? Zalecana jest ręczna instalacja, wymuszanie instalacji przez LSPosed może powodować problemy.</string>
-    <string name="expand">rozwiń</string>
-    <string name="collapse">zwiń</string>
-    <!-- AppListActivity -->
-    <string name="compile_speed">Ponownie zoptymalizuj</string>
-    <string name="compile_speed_msg">Optymalizowanie…</string>
-    <string name="compile_done">Optymalizacja zakończona</string>
-    <string name="app_launch">Uruchom</string>
-    <string name="compile_failed">Optymalizacja nie powiodła się: zwrócona wartość jest pusta</string>
-    <string name="compile_failed_with_info">Optymalizacja nie powiodła się: </string>
-    <string name="sort_by_name">Nazwa aplikacji</string>
-    <string name="sort_by_package_name">Nazwa pakietu</string>
-    <string name="sort_by_install_time">Czas instalacji</string>
-    <string name="sort_by_update_time">Czas aktualizacji</string>
-    <string name="sort_reverse">Odwróć</string>
-    <string name="menu_show_system_apps">Aplikacje systemowe</string>
-    <string name="menu_sort">Sortowanie</string>
-    <string name="enable_module">Włącz moduł</string>
-    <string name="no_scope_selected">Nie wybrałeś żadnej aplikacji. Kontynuować?</string>
-    <string name="menu_show_games">Gry</string>
-    <string name="menu_show_modules">Moduły</string>
-    <string name="failed_to_save_scope_list">Nie udało się zapisać listy zakresu</string>
-    <string name="app_version">Wersja: %1$s</string>
-    <string name="menu_select">Zaznacz</string>
-    <string name="use_recommended">Zalecane</string>
-    <string name="no_scope_selected_has_recommended">Nie wybrałeś żadnej aplikacji. Wybrać rekomendowane aplikacje?</string>
-    <string name="use_recommended_message">Wybrać zalecane aplikacje?</string>
-    <string name="menu_select_all">Wszystkie</string>
-    <string name="menu_select_none">Żadne</string>
-    <string name="menu_auto_include">Automatycznie</string>
-    <string name="module_is_not_activated_yet">Moduł Xposed nie jest jeszcze aktywowany</string>
-    <string name="requested_by_module">Zalecane</string>
-    <string name="update_available">Dostępna aktualizacja: %1$s</string>
-    <string name="module_disabled_no_selection">Moduł %s został wyłączony, ponieważ nie wybrano żadnej aplikacji.</string>
-    <string name="android_framework">System Framework</string>
-    <string name="menu_backup_and_restore">Kopia zapasowa</string>
-    <string name="menu_backup">Kopia zapasowa</string>
-    <string name="menu_restore">Przywróć</string>
-    <string name="force_stop">Wymuś zatrzymanie</string>
-    <string name="force_stop_dlg_title">Wymusić zatrzymanie?</string>
-    <string name="force_stop_dlg_text">Jeśli wymusisz zatrzymanie aplikacji, może ona zadziałać nieprawidłowo.</string>
-    <string name="reboot_required">Restart jest wymagany aby ta zmiana została zastosowana</string>
-    <string name="reboot">Restart</string>
-    <string name="menu_hide">Ukryj</string>
-    <!-- ModulesActivity and AppListActivity -->
-    <string name="modules_other_app">Wyświetl w innej aplikacji</string>
-    <string name="module_app_info">Informacje o aplikacji</string>
-    <string name="list_empty">¯\\\\_(ツ)_\/¯\nNic tu nie ma</string>
-    <!-- SettingsActivity -->
-    <string name="settings_group_framework">Framework</string>
-    <string name="settings_disable_verbose_log">Wyłącz logi</string>
-    <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia pełnych dzienników</string>
-    <string name="pure_black_dark_theme">Czarny ciemny motyw</string>
-    <string name="pure_black_dark_theme_summary">Użyj czarnego motywu, jeśli ciemny motyw jest włączony</string>
-    <string name="settings_group_theme">Motyw</string>
-    <string name="settings_backup_and_restore">Kopia zapasowa i przywracanie</string>
-    <string name="settings_backup_summery">Kopia zapasowa listy modułów i zakresów.</string>
-    <string name="settings_restore_summery">Przywrócenie listy modułów i listy zakresów.</string>
-    <string name="settings_backup">Kopia zapasowa</string>
-    <string name="settings_backup_failed2">Nie udało się utworzyć kopii zapasowej:\n%s</string>
-    <string name="enable_documentui">Proszę włączyć DocumentUI</string>
-    <string name="settings_restore">Przywróć</string>
-    <string name="settings_restore_failed2">Nie udało się przywrócić:\n%s</string>
-    <string name="group_network">Sieć</string>
-    <string name="dns_over_http">DNS przez HTTPS</string>
-    <string name="dns_over_http_summary">Obejście zatruwania DNS w niektórych krajach</string>
-    <string name="theme_color">Kolor motywu</string>
-    <string name="theme_color_system">Kolor akcentu systemowego</string>
-    <string name="settings_show_hidden_icon_apps_enabled">Wymuś aplikacjom pokazywanie ikon launchera</string>
-    <string name="settings_show_hidden_icon_apps_enabled_summary">Po Android 10 aplikacje nie mogą ukrywać swoich ikon launchera. Wyłącz przełącznik, aby zablokować tę funkcję systemową.</string>
-    <string name="settings_group_system">System</string>
-    <string name="settings_language">Język</string>
-    <string name="settings_translation_contributors">Tłumacze</string>
-    <string name="settings_translation">Weź udział w tłumaczeniu</string>
-    <string name="settings_translation_summary">Pomóż nam przetłumaczyć %s na Twój język</string>
-    <string name="settings_create_shortcut_summary">Utwórz skrót, za pomocą którego otworzysz menadżera \"pasożytów\"</string>
-    <string name="settings_shortcut_pinned_hint">Skrót przypięty</string>
-    <string name="settings_unsupported_pin_shortcut_summary">Bieżący domyślny launcher nie wspiera skrótów pinezkowych</string>
-    <string name="settings_enable_status_notification">Status powiadomień</string>
-    <string name="settings_enable_status_notification_summary">Pokazuj powiadomienie, za pomocą którego otworzysz menadżera pasożytów</string>
-    <string name="settings_update_channel">Kanał aktualizacji</string>
-    <string name="update_channel_stable">Stabilny</string>
-    <string name="update_channel_bate">Beta</string>
-    <string name="update_channel_nightly">Wersja nocna</string>
-    <!-- Module Repo -->
-    <string name="module_readme">Readme</string>
-    <string name="module_releases">Wersje</string>
-    <string name="module_information">Informacje</string>
-    <string name="module_information_homepage">Strona główna</string>
-    <string name="module_information_source_url">Kod źródłowy</string>
-    <string name="module_information_collaborators">Współtwórcy</string>
-    <string name="module_release_view_assets">Assety</string>
-    <string name="menu_open_in_browser">Otwórz w przeglądarce</string>
-    <string name="module_release_load_more">Pokaż starsze wersje</string>
-    <string name="module_release_no_more">Nie ma więcej wersji</string>
-    <string name="repo_load_failed">Nie udało się załadować repozytorium modułu: %s</string>
-    <string name="sort_upgradable_first">Możliwość uaktualnienia w pierwszej kolejności</string>
-    <string name="installed">Zainstalowane</string>
-    <plurals name="module_release_assets_download_count">
-        <item quantity="one">%d pobierz</item>
-        <item quantity="few">%d pobieranie</item>
-        <item quantity="many">%d pobieranie</item>
-        <item quantity="other">%d pobrania</item>
-    </plurals>
-    <!-- Colors -->
-    <string name="color_sakura">Sakura</string>
-    <string name="color_red">Czerwony</string>
-    <string name="color_pink">Różowy</string>
-    <string name="color_purple">Fioletowy</string>
-    <string name="color_deep_purple">Ciemny fioletowy</string>
-    <string name="color_indigo">Indigo</string>
-    <string name="color_blue">Niebieski</string>
-    <string name="color_light_blue">Jasnoniebieski</string>
-    <string name="color_cyan">Cyjanowy</string>
-    <string name="color_teal">Turkusowy</string>
-    <string name="color_green">Zielony</string>
-    <string name="color_light_green">Jasnozielony</string>
-    <string name="color_lime">Limonkowy</string>
-    <string name="color_yellow">Żółty</string>
-    <string name="color_amber">Bursztynowy</string>
-    <string name="color_orange">Pomarańczowy</string>
-    <string name="color_deep_orange">Ciemny pomarańczowy</string>
-    <string name="color_brown">Brązowy</string>
-    <string name="color_blue_grey">Niebiesko szary</string>
+  <!-- Główne -->
+  <string name="overview">Przegląd</string>
+  <string name="Modules">Moduły</string>
+  <plurals name="modules_enabled_count">
+    <item quantity="one">Włączono %d moduł</item>
+    <item quantity="few">Włączono %d moduły</item>
+    <item quantity="many">Włączono %d modułów</item>
+    <item quantity="other">Włączono %d modułów</item>
+  </plurals>
+  <string name="Logs">Dzienniki</string>
+  <string name="Settings">Ustawienia</string>
+  <string name="feedback_or_suggestion">Opinia lub sugestia</string>
+  <string name="About">O aplikacji</string>
+  <string name="report_issue">Zgłoś problem</string>
+  <string name="module_repo">Katalog</string>
+  <string name="module_repo_up_to_date">Wszystkie moduły są aktualne</string>
+  <string name="module_repo_published_time">Opublikowano w %s</string>
+  <string name="module_repo_updated_time">Zaktualizowano w %s</string>
+  <plurals name="module_repo_upgradable">
+    <item quantity="one">%d moduł do aktualizacji</item>
+    <item quantity="few">%d moduły do aktualizacji</item>
+    <item quantity="many">%d modułów do aktualizacji</item>
+    <item quantity="other">%d modułów do aktualizacji</item>
+  </plurals>
+  <string name="about_view_source_code"><![CDATA[Zobacz kod źródłowy na %1$s<br/>Dołącz do naszego kanału %2$s]]></string>
+  <string name="translators" comment="Drodzy tłumacze, dodajcie tutaj swoją stronę główną, stosując się do podanego formatu. Może być więcej niż jeden tłumacz. Możecie więc śmiało dodawać swoje.">Łukasz Kuchta</string>
+  <string name="install">Zainstaluj</string>
+  <string name="install_summary">Naciśnij, aby zainstalować Vector</string>
+  <string name="not_installed">Nie zainstalowany</string>
+  <string name="not_install_summary">Vector nie jest zainstalowany</string>
+  <string name="activated">Aktywowany</string>
+  <string name="partial_activated">Częściowo aktywowany</string>
+  <string name="selinux_policy_not_loaded_summary">Zasady bezpieczeństwa są nieprawidłowo załadowane</string>
+  <string name="selinux_policy_not_loaded"><![CDATA[Niektóre funkcje nie będą działać.<br/>Proszę zgłosić to do programisty <a href="https://github.com/topjohnwu/Magisk/issues"><b>Magisk</b></a>.]]></string>
+  <string name="system_inject_fail_summary">Wstrzyknięcie do struktury systemu nie powiodło się</string>
+  <string name="system_inject_fail"><![CDATA[Jest to rzadkie i może być spowodowane przez <b>Magiska</b> lub niektóre moduły Magisk niskiej jakości.<br/>Spróbuj wyłączyć moduły Magisk inne niż Riru i Vector lub prześlij szczegółowy dziennik programistom.]]></string>
+  <string name="system_prop_incorrect_summary">Nieprawidłowa właściwość systemu</string>
+  <string name="system_prop_incorrect"><![CDATA[Niektóre niezbędne właściwości systemowe zostały usunięte lub zmienione.<br/>Moduły mogą czasami działać niepoprawnie.]]></string>
+  <string name="need_update">Konieczna aktualizacja</string>
+  <string name="please_update_summary">Proszę zainstalować najnowszą wersję Vector</string>
+  <string name="developer_warning_title">Wskazówki dla programistów modułów</string>
+  <string name="developer_warning_summary">Proszę wyłączyć optymalizację wdrażania w Android Studio, lub użyć polecenia \'gradlew installDebug\', aby zainstalować. W przeciwnym razie plik APK modułu nie zostanie zaktualizowany.</string>
+  <string name="info_api_version">Wersja interfejsu programowania aplikacji</string>
+  <string name="info_framework_version">Wersja modułu</string>
+  <string name="info_manager_package_name">Nazwa pakietu menedżera</string>
+  <string name="info_system_version">Wersja systemu</string>
+  <string name="info_device">Urządzenie</string>
+  <string name="info_system_abi">Systemowy interfejs binarny aplikacji</string>
+  <string name="info_dex2oat_wrapper">Pośrednik optymalizacji DEX</string>
+  <string name="enabled">Włączony</string>
+  <string name="not_enabled">Nie włączony</string>
+  <string name="supported">Wspierany</string>
+  <string name="unsupported">Nie wspierany</string>
+  <string name="android_version_unsatisfied">Nieobsługiwana wersja Android</string>
+  <string name="crashed">Uległ awarii</string>
+  <string name="mount_failed">Montowanie nie powiodło się</string>
+  <string name="selinux_permissive">Zasady bezpieczeństwa są zezwalające</string>
+  <string name="sepolicy_incorrect">Zasady bezpieczeństwa są nieprawidłowe</string>
+  <string name="update_lsposed">Zaktualizuj Vector</string>
+  <string name="update_lsposed_msg">Czy chcesz zatwierdzić aktualizację Vector? Urządzenie zostanie zrestartowane po zakończeniu aktualizacji</string>
+  <string name="info_copied">Skopiowano do schowka</string>
+  <!-- Powitanie-->
+  <string name="parasitic_welcome">Witaj w Vector</string>
+  <string name="parasitic_welcome_summary">Używasz menadżera pasożytniczego, do którego możesz utworzyć skrót lub otworzyć go z powiadomienia.</string>
+  <string name="parasitic_welcome_summary_no_shortcut_support">Używasz menadżera pasożytniczego, który możesz otworzyć z powiadomienia.</string>
+  <string name="create_shortcut">Utwórz skrót</string>
+  <string name="never_show">Nigdy nie pokazuj</string>
+  <string name="app_welcome">Zalecany jest menedżer pasożytniczy</string>
+  <string name="app_welcome_summary">Vector obsługuje teraz pasożytnictwo systemowe, aby uniknąć wykrycia. Menedżer pasożytniczy można uruchomić z poziomu powiadomienia. Zaleca się odinstalowanie bieżącej aplikacji.</string>
+  <!-- Dzienniki-->
+  <string name="menuSaveToSd">Zapisz</string>
+  <string name="nav_item_logs_verbose">Szczegółowe dzienniki</string>
+  <string name="nav_item_logs_module">Dzienniki modułów</string>
+  <string name="logs_saving">Zapisywanie dziennika, poczekaj</string>
+  <string name="logs_saved">Dzienniki zapisane</string>
+  <string name="logs_save_failed2">Nie udało się zapisać:\n%s</string>
+  <string name="menuClearLog">Wyczyść dzienniki teraz</string>
+  <string name="logs_cleared">Dzienniki zostały pomyślnie wyczyszczone.</string>
+  <string name="scroll_top">Przewiń na górę</string>
+  <string name="loading">Ładowanie&#x2026;</string>
+  <string name="scroll_bottom">Przewiń na dół</string>
+  <string name="menuReload">Przeładuj</string>
+  <string name="logs_clear_failed_2">Nie udało się wyczyścić dzienników</string>
+  <string name="menu_enable_word_wrap">Zawijanie wierszy</string>
+  <string name="enabled_verbose_log">Szczegółowe dzienniki  są włączone</string>
+  <string name="disabled_verbose_log">Szczegółowe dzienniki są wyłączone</string>
+  <!-- Moduły -->
+  <string name="module_empty_description">(nie podano opisu)</string>
+  <string name="warning_xposed_min_version">Ten moduł wymaga nowszej wersji xposed (%d) przez co nie może być aktywowany</string>
+  <string name="warning_target_version_higher">Ten moduł został zaprojektowany dla nowej wersji xposed (%d) i dlatego niektóre funkcje mogą nie działać</string>
+  <string name="no_min_version_specified">Ten moduł nie określa wymaganej wersji xposed.</string>
+  <string name="warning_min_version_too_low">Ten moduł został utworzony dla xposed w wersji %1$d, ale ze względu na niekompatybilne zmiany w wersji %2$d, został wyłączony</string>
+  <string name="warning_installed_on_external_storage">Ten moduł nie może być załadowany, ponieważ jest zainstalowany na karcie SD, przenieś go do pamięci wewnętrznej</string>
+  <string name="module_uninstall">Odinstaluj</string>
+  <string name="module_settings">Ustawienia modułu</string>
+  <string name="view_in_repo">Zobacz w katalogu</string>
+  <string name="module_uninstall_message">Czy chcesz odinstalować ten moduł?</string>
+  <string name="module_uninstalled">Odinstalowano %1$s</string>
+  <string name="module_uninstall_failed">Odinstalowanie nie powiodło się</string>
+  <string name="add_module_to_user">Dodaj moduł dla użytkownika</string>
+  <string name="module_installed">Dodano %1$s dla użytkownika %2$s</string>
+  <string name="module_install_failed">Dodawanie modułu nie powiodło się</string>
+  <string name="install_to_user">Zainstaluj dla użytkownika %s</string>
+  <string name="install_to_user_message">Chcesz zainstalować %1$s dla użytkownika %2$s? Zalecana jest ręczna instalacja, wymuszanie instalacji przez Vector może powodować problemy.</string>
+  <string name="expand">rozwiń</string>
+  <string name="collapse">zwiń</string>
+  <!-- Lista aplikacji -->
+  <string name="compile_speed">Zoptymalizuj ponownie</string>
+  <string name="compile_speed_msg">Optymalizowanie&#x2026;</string>
+  <string name="compile_done">Optymalizacja zakończona</string>
+  <string name="app_launch">Uruchom</string>
+  <string name="compile_failed">Optymalizacja nie powiodła się: zwrócona wartość jest pusta</string>
+  <string name="compile_failed_with_info">Optymalizacja nie powiodła się: </string>
+  <string name="menu_show_system_apps">Aplikacje systemowe</string>
+  <string name="menu_sort">Sortowanie</string>
+  <string name="enable_module">Włącz moduł</string>
+  <string name="no_scope_selected">Nie wybrałeś żadnej aplikacji. Kontynuować?</string>
+  <string name="menu_show_games">Gry</string>
+  <string name="menu_show_modules">Moduły</string>
+  <string name="failed_to_save_scope_list">Nie udało się zapisać listy zakresu</string>
+  <string name="app_version">Wersja: %1$s</string>
+  <string name="menu_select">Wybierz</string>
+  <string name="use_recommended">Zalecane</string>
+  <string name="no_scope_selected_has_recommended">Nie wybrałeś żadnej aplikacji. Wybrać zalecane aplikacje?</string>
+  <string name="use_recommended_message">Wybrać zalecane aplikacje?</string>
+  <string name="menu_select_all">Wszystkie</string>
+  <string name="menu_select_none">Żadne</string>
+  <string name="menu_auto_include">Automatyczne dołączanie</string>
+  <string name="module_is_not_activated_yet">Moduł xposed nie jest jeszcze aktywowany</string>
+  <string name="requested_by_module">Zalecane</string>
+  <string name="update_available">Dostępna aktualizacja: %1$s</string>
+  <string name="module_disabled_no_selection">Moduł %s został wyłączony, ponieważ nie wybrano żadnej aplikacji.</string>
+  <string name="android_framework">Struktura systemu</string>
+  <string name="menu_backup_and_restore">Kopia</string>
+  <string name="menu_backup">Wykonaj kopię</string>
+  <string name="menu_restore">Przywróć kopię</string>
+  <string name="force_stop">Wymuś zatrzymanie</string>
+  <string name="force_stop_dlg_title">Wymusić zatrzymanie?</string>
+  <string name="force_stop_dlg_text">Jeśli wymusisz zatrzymanie aplikacji, może ona zachowywać się nieprawidłowo.</string>
+  <string name="reboot_required">Restart jest wymagany, aby ta zmiana została zastosowana</string>
+  <string name="reboot">Restart</string>
+  <string name="menu_hide">Ukryj</string>
+  <!-- Moduły i Lista aplikacji-->
+  <string name="modules_other_app">Wyświetl w innej aplikacji</string>
+  <string name="module_app_info">Informacje o aplikacji</string>
+  <string name="list_empty">¯\\_(ツ)_/¯\nNic tu nie ma</string>
+  <!-- Ustawienia-->
+  <string name="settings_group_framework">Struktura</string>
+  <string name="settings_disable_verbose_log">Wyłącz szczegółowe dzienniki</string>
+  <string name="settings_disable_verbose_log_summary">Zgłaszanie problemów wymaga dołączenia szczegółowych dzienników</string>
+  <string name="pure_black_dark_theme">Czysty czarny ciemny motyw</string>
+  <string name="pure_black_dark_theme_summary">Użyj czystego czarnego motywu, jeśli ciemny motyw jest włączony</string>
+  <string name="settings_group_theme">Motyw</string>
+  <string name="dark_theme">Ciemny motyw</string>
+  <string name="dark_theme_off">Zawsze wyłączony</string>
+  <string name="dark_theme_on">Zawsze włączony</string>
+  <string name="follow_system">Według systemu</string>
+  <string name="settings_backup_and_restore">Kopia i przywracanie</string>
+  <string name="settings_backup_summery">Kopia listy modułów i zakresów.</string>
+  <string name="settings_restore_summery">Przywróć listę modułów i zakresów.</string>
+  <string name="settings_backup">Kopia zapasowa</string>
+  <string name="settings_backup_failed2">Nie udało się utworzyć kopii:\n%s</string>
+  <string name="enable_documentui">Proszę włączyć interfejs dokumentów</string>
+  <string name="settings_restore">Przywróć</string>
+  <string name="settings_restore_failed2">Nie udało się przywrócić:\n%s</string>
+  <string name="group_network">Sieć</string>
+  <string name="dns_over_http">DNS przez HTTPS</string>
+  <string name="dns_over_http_summary">Obejście zatruwania DNS w niektórych krajach</string>
+  <string name="theme_color">Kolor motywu</string>
+  <string name="theme_color_system">Kolor akcentu systemowego</string>
+  <string name="settings_show_hidden_icon_apps_enabled">Wymuś wyświetlanie ikon uruchamiania aplikacji</string>
+  <string name="settings_show_hidden_icon_apps_enabled_summary">Po Android 10 aplikacje nie mogą ukrywać ikon uruchamiania. Aby wyłączyć tę funkcję systemową, należy wyłączyć przełącznik.</string>
+  <string name="settings_group_system">System</string>
+  <string name="settings_language">Język</string>
+  <string name="settings_translation_contributors">Autor tłumaczenia</string>
+  <string name="settings_translation">Weź udział w tłumaczeniu</string>
+  <string name="settings_translation_summary">Pomóż nam przetłumaczyć %s na twój język</string>
+  <string name="settings_create_shortcut_summary">Utwórz skrót, który może otworzyć menedżer pasożytniczy</string>
+  <string name="settings_shortcut_pinned_hint">Skrót przypięty</string>
+  <string name="settings_unsupported_pin_shortcut_summary">Bieżący domyślny launcher nie wspiera przypinania skrótów</string>
+  <string name="settings_enable_status_notification">Status powiadomień</string>
+  <string name="settings_enable_status_notification_summary">Pokaż powiadomienie, które może otworzyć menedżer pasożytniczy</string>
+  <string name="settings_update_channel">Kanał aktualizacji</string>
+  <string name="update_channel_stable">Stabilny</string>
+  <string name="update_channel_bate">Beta</string>
+  <string name="update_channel_nightly">Nocny</string>
+  <!-- Repozytorium modułów-->
+  <string name="module_readme">Przeczytaj</string>
+  <string name="module_releases">Wydania</string>
+  <string name="module_information">Informacje</string>
+  <string name="module_information_homepage">Strona główna</string>
+  <string name="module_information_source_url">Kod źródłowy</string>
+  <string name="module_information_collaborators">Współtwórcy</string>
+  <string name="module_release_view_assets">Zasoby</string>
+  <string name="menu_open_in_browser">Otwórz w przeglądarce</string>
+  <string name="module_release_load_more">Pokaż starsze wersje</string>
+  <string name="module_release_no_more">Nie ma więcej wersji</string>
+  <string name="repo_load_failed">Nie udało się załadować repozytorium modułu: %s</string>
+  <string name="sort_upgradable_first">Najpierw aktualizacje</string>
+  <string name="sort_by_name">Według nazwy aplikacji</string>
+  <string name="sort_by_update_time">Według czasu aktualizacji</string>
+  <string name="sort_by_package_name">Według nazwy pakietu</string>
+  <string name="sort_by_install_time">Według czasu instalacji</string>
+  <string name="sort_reverse">Odwrócone sortowanie</string>
+  <string name="installed">Zainstalowane</string>
+  <plurals name="module_release_assets_download_count">
+    <item quantity="one">%d pobrany</item>
+    <item quantity="few">%d pobrane</item>
+    <item quantity="many">%d pobranych</item>
+    <item quantity="other">%d pobranych</item>
+  </plurals>
+  <!-- Kolory -->
+  <string name="color_amber">Bursztynowy</string>
+  <string name="color_brown">Brązowy</string>
+  <string name="color_cyan">Cyjanowy</string>
+  <string name="color_teal">Cyraneczkowy</string>
+  <string name="color_red">Czerwony</string>
+  <string name="color_indigo">Indygo</string>
+  <string name="color_lime">Limonkowy</string>
+  <string name="color_blue">Niebieski</string>
+  <string name="color_light_blue">Jasny niebieski</string>
+  <string name="color_blue_grey">Niebiesko szary</string>
+  <string name="color_orange">Pomarańczowy</string>
+  <string name="color_deep_orange">Głęboki pomarańczowy</string>
+  <string name="color_purple">Purpurowy</string>
+  <string name="color_deep_purple">Głęboki purpurowy</string>
+  <string name="color_pink">Różowy</string>
+  <string name="color_sakura">Jasny różowy</string>
+  <string name="color_green">Zielony</string>
+  <string name="color_light_green">Jasny zielony</string>
+  <string name="color_yellow">Żółty</string>
 </resources>

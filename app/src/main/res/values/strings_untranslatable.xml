@@ -1,25 +1,25 @@
 <!--
-  ~ This file is part of LSPosed.
+  ~ This file is part of Vector.
   ~
-  ~ LSPosed is free software: you can redistribute it and/or modify
+  ~ Vector is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
   ~ the Free Software Foundation, either version 3 of the License, or
   ~ (at your option) any later version.
   ~
-  ~ LSPosed is distributed in the hope that it will be useful,
+  ~ Vector is distributed in the hope that it will be useful,
   ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
   ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   ~ GNU General Public License for more details.
   ~
   ~ You should have received a copy of the GNU General Public License
-  ~ along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
+  ~ along with Vector.  If not, see <https://www.gnu.org/licenses/>.
   ~
-  ~ Copyright (C) 2021 LSPosed Contributors
+  ~ Copyright (C) 2026 Vector Contributors
   -->
 
 <resources>
-    <string name="app_name" translatable="false">LSPosed</string>
-    <string name="install_url" translatable="false">https://github.com/JingMatrix/LSPosed#install</string>
-    <string name="latest_url" translatable="false">https://github.com/JingMatrix/LSPosed/releases/latest</string>
+    <string name="app_name" translatable="false">Vector</string>
+    <string name="install_url" translatable="false">https://github.com/JingMatrix/Vector#install</string>
+    <string name="latest_url" translatable="false">https://github.com/JingMatrix/Vector/releases/latest</string>
     <string name="settings_group_repo" translatable="false">@string/module_repo</string>
 </resources>

@@ -1,22 +1,21 @@
 /*
- * This file is part of LSPosed.
- *
- * LSPosed is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * LSPosed is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
- *
- * Copyright (C) 2020 EdXposed Contributors
- * Copyright (C) 2021 LSPosed Contributors
- */
+* This file is part of Vector.
+*
+* Vector is free software: you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published
+* by the Free Software Foundation.
+*
+* Vector is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty
+* OF MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. For more information, see the
+* GNU General Public License.
+*
+* You should have received a copy of the GNU General Public License
+* along with Vector. Otherwise, see <https://www.gnu.org/licenses/>.
+*
+* Copyright (C) 2026 by EdXposed contributors
+* Copyright (C) 2026 by Vector contributors
+*/
 
 package org.lsposed.manager.repo;
 
@@ -76,11 +75,7 @@ public class RepoLoader {
     private final Path repoFile = Paths.get(App.getInstance().getFilesDir().getAbsolutePath(), "repo.json");
     private final Set<RepoListener> listeners = ConcurrentHashMap.newKeySet();
     private boolean repoLoaded = false;
-    private static final String originRepoUrl = "https://modules.lsposed.org/";
-    private static final String backupRepoUrl = "https://modules-blogcdn.lsposed.org/";
-
-    private static final String secondBackupRepoUrl = "https://modules-cloudflare.lsposed.org/";
-    private static String repoUrl = originRepoUrl;
+    private static final String repoUrl = "https://backup.modules.lsposed.org/";
     private final Resources resources = App.getInstance().getResources();
     private final String[] channels = resources.getStringArray(R.array.update_channel_values);
 
@@ -121,13 +116,6 @@ public class RepoLoader {
             Log.e(App.TAG, "load remote data", e);
             for (RepoListener listener : listeners) {
                 listener.onThrowable(e);
-            }
-            if (repoUrl.equals(originRepoUrl)) {
-                repoUrl = backupRepoUrl;
-                loadRemoteData();
-            } else if (repoUrl.equals(backupRepoUrl)) {
-                repoUrl = secondBackupRepoUrl;
-                loadRemoteData();
             }
         }
     }
@@ -252,16 +240,8 @@ public class RepoLoader {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                if (repoUrl.equals(originRepoUrl)) {
-                    repoUrl = backupRepoUrl;
-                    loadRemoteReleases(packageName);
-                } else if (repoUrl.equals(backupRepoUrl)) {
-                    repoUrl = secondBackupRepoUrl;
-                    loadRemoteReleases(packageName);
-                } else {
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(e);
-                    }
+                for (RepoListener listener : listeners) {
+                    listener.onThrowable(e);
                 }
             }
 
