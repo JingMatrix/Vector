@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Latest NDK and Accept Licenses
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk-bundle"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk"
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Setup Gradle
