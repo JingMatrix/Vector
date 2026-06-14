@@ -37,10 +37,10 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Update SDK Manager and Accept Licenses
+      - name: Install Latest NDK and Accept Licenses
         run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --update
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.13113456"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk-bundle"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
