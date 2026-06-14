@@ -74,7 +74,7 @@ androidComponents {
         // Stage all files in a temporary directory inside 'build' before zipping
         val tempModuleDir = project.layout.buildDirectory.dir("module/${variant.name}")
         val zipFileName =
-            "Vector-2.0.3043-$variantCapped.zip"
+            "Vector-PL-2.0.3043-$variantCapped.zip"
 
         // Using Sync ensures that stale files from previous runs are removed.
         val prepareModuleFilesTask =
