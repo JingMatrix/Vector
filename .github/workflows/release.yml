@@ -74,11 +74,11 @@ jobs:
       - name: Build
         run: ./gradlew zipAll
 
-      - name: Release
+      - name: Vector-PL-2.0.3043
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: 2.0
-          name: Release
+          tag_name: "2.0"
+          name: Vector-PL-2.0.3043
           files: |
             zygisk/release/Vector-PL-2.0.3043-Release.zip
             zygisk/release/Vector-PL-2.0.3043-Debug.zip
