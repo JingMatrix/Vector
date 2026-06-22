@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cstring>
 #include <map>
 #include <mutex>
 #include <random>
@@ -36,6 +37,237 @@ jclass class_shared_memory = nullptr;
 jmethodID method_shared_memory_ctor = nullptr;
 
 }  // anonymous namespace
+
+static bool rangeFits(size_t file_size, dex::u4 offset, size_t byte_count) {
+    auto start = static_cast<size_t>(offset);
+    return start <= file_size && byte_count <= file_size - start;
+}
+
+static bool isAligned(dex::u4 value, dex::u4 alignment) {
+    return value % alignment == 0;
+}
+
+static bool isStandardDexMagic(const dex::u1 *magic) {
+    return std::memcmp(magic, "dex\n", 4) == 0 && magic[4] >= '0' && magic[4] <= '9' &&
+           magic[5] >= '0' && magic[5] <= '9' && magic[6] >= '0' && magic[6] <= '9' &&
+           magic[7] == '\0';
+}
+
+static bool sectionFits(size_t file_size, dex::u4 offset, dex::u4 count, size_t item_size,
+                        const char *name) {
+    if (count == 0) {
+        if (offset == 0) return true;
+        LOGW("Invalid DEX %s section: empty section has non-zero offset %u", name, offset);
+        return false;
+    }
+    if (offset == 0 || !isAligned(offset, 4)) {
+        LOGW("Invalid DEX %s section: offset=%u count=%u", name, offset, count);
+        return false;
+    }
+    auto start = static_cast<size_t>(offset);
+    if (start > file_size || count > (file_size - start) / item_size) {
+        LOGW("Invalid DEX %s section: offset=%u count=%u item_size=%zu file_size=%zu", name,
+             offset, count, item_size, file_size);
+        return false;
+    }
+    return true;
+}
+
+static bool dataRangeFits(const dex::Header *header, size_t file_size, dex::u4 offset,
+                          size_t byte_count, const char *name, bool allow_zero) {
+    if (offset == 0) return allow_zero;
+    if (offset < header->data_off || !rangeFits(file_size, offset, byte_count)) {
+        LOGW("Invalid DEX %s offset: offset=%u data_off=%u size=%zu file_size=%zu", name, offset,
+             header->data_off, byte_count, file_size);
+        return false;
+    }
+    return true;
+}
+
+static bool typeListFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                         dex::u4 offset, const char *name) {
+    if (offset == 0) return true;
+    if (!isAligned(offset, 4) ||
+        !dataRangeFits(header, file_size, offset, sizeof(dex::TypeList), name, false)) {
+        return false;
+    }
+
+    const auto *type_list = reinterpret_cast<const dex::TypeList *>(base + offset);
+    auto start = static_cast<size_t>(offset) + sizeof(dex::u4);
+    if (start > file_size || type_list->size > (file_size - start) / sizeof(dex::TypeItem)) {
+        LOGW("Invalid DEX %s type list: offset=%u count=%u file_size=%zu", name, offset,
+             type_list->size, file_size);
+        return false;
+    }
+
+    for (dex::u4 i = 0; i < type_list->size; ++i) {
+        if (type_list->list[i].type_idx >= header->type_ids_size) {
+            LOGW("Invalid DEX %s type list item: type_idx=%u type_count=%u", name,
+                 type_list->list[i].type_idx, header->type_ids_size);
+            return false;
+        }
+    }
+    return true;
+}
+
+// Slicer's own structural checks compile out under NDEBUG, so validate the
+// table ranges and indexed references that CreateFullIr() will touch first.
+static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
+    if (mapped_size < sizeof(dex::Header)) {
+        LOGW("Invalid DEX: mapped size %zu is smaller than header size %zu", mapped_size,
+             sizeof(dex::Header));
+        return false;
+    }
+
+    const auto *base = reinterpret_cast<const dex::u1 *>(dex_data);
+    const auto *header = reinterpret_cast<const dex::Header *>(base);
+    if (!isStandardDexMagic(header->magic)) {
+        LOGW("Invalid DEX: unsupported magic");
+        return false;
+    }
+
+    auto file_size = static_cast<size_t>(header->file_size);
+    if (file_size < sizeof(dex::Header) || file_size > mapped_size) {
+        LOGW("Invalid DEX: file_size=%zu mapped_size=%zu", file_size, mapped_size);
+        return false;
+    }
+    if (header->header_size != sizeof(dex::Header)) {
+        LOGW("Invalid DEX: unsupported header_size=%u", header->header_size);
+        return false;
+    }
+    if (header->endian_tag != dex::kEndianConstant) {
+        LOGW("Invalid DEX: unsupported endian tag 0x%x", header->endian_tag);
+        return false;
+    }
+    if (header->link_size != 0 || header->link_off != 0) {
+        LOGW("Invalid DEX: link section is not supported");
+        return false;
+    }
+    if ((header->data_size != 0 && (header->data_off == 0 || !isAligned(header->data_off, 4))) ||
+        !rangeFits(file_size, header->data_off, header->data_size)) {
+        LOGW("Invalid DEX data section: offset=%u size=%u file_size=%zu", header->data_off,
+             header->data_size, file_size);
+        return false;
+    }
+    if (header->type_ids_size >= 65536 || header->proto_ids_size >= 65536) {
+        LOGW("Invalid DEX: type_ids_size=%u proto_ids_size=%u", header->type_ids_size,
+             header->proto_ids_size);
+        return false;
+    }
+
+    if (header->map_off == 0 || !isAligned(header->map_off, 4) ||
+        header->map_off < header->data_off || !rangeFits(file_size, header->map_off, sizeof(dex::u4))) {
+        LOGW("Invalid DEX map section: offset=%u data_off=%u file_size=%zu", header->map_off,
+             header->data_off, file_size);
+        return false;
+    }
+    const auto *map_list = reinterpret_cast<const dex::MapList *>(base + header->map_off);
+    auto map_items_start = static_cast<size_t>(header->map_off) + sizeof(dex::u4);
+    if (map_list->size == 0 ||
+        map_items_start > file_size ||
+        map_list->size > (file_size - map_items_start) / sizeof(dex::MapItem)) {
+        LOGW("Invalid DEX map list: offset=%u count=%u file_size=%zu", header->map_off,
+             map_list->size, file_size);
+        return false;
+    }
+
+    if (!sectionFits(file_size, header->string_ids_off, header->string_ids_size,
+                     sizeof(dex::StringId), "string_ids") ||
+        !sectionFits(file_size, header->type_ids_off, header->type_ids_size, sizeof(dex::TypeId),
+                     "type_ids") ||
+        !sectionFits(file_size, header->proto_ids_off, header->proto_ids_size,
+                     sizeof(dex::ProtoId), "proto_ids") ||
+        !sectionFits(file_size, header->field_ids_off, header->field_ids_size,
+                     sizeof(dex::FieldId), "field_ids") ||
+        !sectionFits(file_size, header->method_ids_off, header->method_ids_size,
+                     sizeof(dex::MethodId), "method_ids") ||
+        !sectionFits(file_size, header->class_defs_off, header->class_defs_size,
+                     sizeof(dex::ClassDef), "class_defs")) {
+        return false;
+    }
+
+    const auto *string_ids = reinterpret_cast<const dex::StringId *>(base + header->string_ids_off);
+    for (dex::u4 i = 0; i < header->string_ids_size; ++i) {
+        if (!dataRangeFits(header, file_size, string_ids[i].string_data_off, sizeof(dex::u1),
+                           "string_data", false)) {
+            return false;
+        }
+    }
+
+    const auto *type_ids = reinterpret_cast<const dex::TypeId *>(base + header->type_ids_off);
+    for (dex::u4 i = 0; i < header->type_ids_size; ++i) {
+        if (type_ids[i].descriptor_idx >= header->string_ids_size) {
+            LOGW("Invalid DEX type_id: descriptor_idx=%u string_count=%u",
+                 type_ids[i].descriptor_idx, header->string_ids_size);
+            return false;
+        }
+    }
+
+    const auto *proto_ids = reinterpret_cast<const dex::ProtoId *>(base + header->proto_ids_off);
+    for (dex::u4 i = 0; i < header->proto_ids_size; ++i) {
+        if (proto_ids[i].shorty_idx >= header->string_ids_size ||
+            proto_ids[i].return_type_idx >= header->type_ids_size ||
+            !typeListFits(base, header, file_size, proto_ids[i].parameters_off,
+                          "proto parameters")) {
+            LOGW("Invalid DEX proto_id: shorty_idx=%u return_type_idx=%u", proto_ids[i].shorty_idx,
+                 proto_ids[i].return_type_idx);
+            return false;
+        }
+    }
+
+    const auto *field_ids = reinterpret_cast<const dex::FieldId *>(base + header->field_ids_off);
+    for (dex::u4 i = 0; i < header->field_ids_size; ++i) {
+        if (field_ids[i].class_idx >= header->type_ids_size ||
+            field_ids[i].type_idx >= header->type_ids_size ||
+            field_ids[i].name_idx >= header->string_ids_size) {
+            LOGW("Invalid DEX field_id: class_idx=%u type_idx=%u name_idx=%u",
+                 field_ids[i].class_idx, field_ids[i].type_idx, field_ids[i].name_idx);
+            return false;
+        }
+    }
+
+    const auto *method_ids = reinterpret_cast<const dex::MethodId *>(base + header->method_ids_off);
+    for (dex::u4 i = 0; i < header->method_ids_size; ++i) {
+        if (method_ids[i].class_idx >= header->type_ids_size ||
+            method_ids[i].proto_idx >= header->proto_ids_size ||
+            method_ids[i].name_idx >= header->string_ids_size) {
+            LOGW("Invalid DEX method_id: class_idx=%u proto_idx=%u name_idx=%u",
+                 method_ids[i].class_idx, method_ids[i].proto_idx, method_ids[i].name_idx);
+            return false;
+        }
+    }
+
+    const auto *class_defs = reinterpret_cast<const dex::ClassDef *>(base + header->class_defs_off);
+    for (dex::u4 i = 0; i < header->class_defs_size; ++i) {
+        const auto &class_def = class_defs[i];
+        if (class_def.class_idx >= header->type_ids_size ||
+            (class_def.superclass_idx != dex::kNoIndex &&
+             class_def.superclass_idx >= header->type_ids_size) ||
+            (class_def.source_file_idx != dex::kNoIndex &&
+             class_def.source_file_idx >= header->string_ids_size) ||
+            !typeListFits(base, header, file_size, class_def.interfaces_off, "class interfaces") ||
+            !dataRangeFits(header, file_size, class_def.annotations_off,
+                           sizeof(dex::AnnotationsDirectoryItem),
+                           "class annotations", true) ||
+            !dataRangeFits(header, file_size, class_def.class_data_off, sizeof(dex::u1),
+                           "class data", true) ||
+            !dataRangeFits(header, file_size, class_def.static_values_off, sizeof(dex::u1),
+                           "static values", true)) {
+            LOGW("Invalid DEX class_def at index %u", i);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static jobject wrapSharedMemoryFd(JNIEnv *env, int fd) {
+    auto java_fd =
+        lsplant::JNI_NewObject(env, class_file_descriptor, method_file_descriptor_ctor, fd);
+    auto java_sm =
+        lsplant::JNI_NewObject(env, class_shared_memory, method_shared_memory_ctor, java_fd);
+    return java_sm.release();
+}
 
 // Converts Dex signatures to Java format.
 // Trailing slashes are translated to dots, which correctly aligns with
@@ -201,7 +433,13 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     if (fd < 0) return nullptr;
 
     auto size = ASharedMemory_getSize(fd);
-    LOGV("obfuscateDex: fd=%d, size=%zu", fd, size);
+    if (size <= 0) {
+        LOGE("Invalid input dex shared memory size: %zd", static_cast<ssize_t>(size));
+        close(fd);
+        return nullptr;
+    }
+    auto mapped_size = static_cast<size_t>(size);
+    LOGV("obfuscateDex: fd=%d, size=%zu", fd, mapped_size);
 
     // CRITICAL: We MUST use MAP_SHARED here, not MAP_PRIVATE.
     // 1. Android's SharedMemory is backed by ashmem or memfd. Mapping these as
@@ -217,7 +455,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     //    heap allocations. This is safe here because the Daemon owns the
     //    lifecycle of this temporary buffer and the Java caller will discard
     //    the un-obfuscated original anyway.
-    void *mem = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    void *mem = mmap(nullptr, mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (mem == MAP_FAILED) {
         LOGE("Failed to map input dex");
         close(fd);
@@ -226,7 +464,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
 
     bool needs_obfuscation = false;
     for (const auto &sig : signatures) {
-        if (memmem(mem, size, sig.first.c_str(), sig.first.length()) != nullptr) {
+        if (memmem(mem, mapped_size, sig.first.c_str(), sig.first.length()) != nullptr) {
             needs_obfuscation = true;
             break;
         }
@@ -234,33 +472,28 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
 
     if (!needs_obfuscation) {
         LOGV("No target signatures found in fd=%d, skipping slicer.", fd);
-        munmap(mem, size);
+        munmap(mem, mapped_size);
+        return wrapSharedMemoryFd(env, fd);
+    }
 
-        // Wrap the duplicated FD into Java objects and return instantly
-        auto java_fd =
-            lsplant::JNI_NewObject(env, class_file_descriptor, method_file_descriptor_ctor, fd);
-        auto java_sm =
-            lsplant::JNI_NewObject(env, class_shared_memory, method_shared_memory_ctor, java_fd);
-        return java_sm.release();
+    if (!isDexSafeForSlicer(mem, mapped_size)) {
+        LOGW("Skipping DEX obfuscation for malformed input fd=%d", fd);
+        munmap(mem, mapped_size);
+        return wrapSharedMemoryFd(env, fd);
     }
 
     // Process the DEX and obtain a new file descriptor for the output
-    int new_fd = obfuscateDexBuffer(mem, size);
+    int new_fd = obfuscateDexBuffer(mem, mapped_size);
 
     // Safely unmap and close the input buffer mapping
-    munmap(mem, size);
-    close(fd);
+    munmap(mem, mapped_size);
 
     if (new_fd < 0) {
         LOGE("Obfuscation failed to create new dex buffer");
-        return nullptr;
+        return wrapSharedMemoryFd(env, fd);
     }
+    close(fd);
 
     // Construct new SharedMemory object around the new_fd
-    auto java_fd =
-        lsplant::JNI_NewObject(env, class_file_descriptor, method_file_descriptor_ctor, new_fd);
-    auto java_sm =
-        lsplant::JNI_NewObject(env, class_shared_memory, method_shared_memory_ctor, java_fd);
-
-    return java_sm.release();
+    return wrapSharedMemoryFd(env, new_fd);
 }
