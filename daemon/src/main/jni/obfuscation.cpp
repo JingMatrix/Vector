@@ -269,6 +269,11 @@ static jobject wrapSharedMemoryFd(JNIEnv *env, int fd) {
     return java_sm.release();
 }
 
+static jobject returnOriginalSharedMemory(jobject memory, int fd) {
+    if (fd >= 0) close(fd);
+    return memory;
+}
+
 // Converts Dex signatures to Java format.
 // Trailing slashes are translated to dots, which correctly aligns with
 // Java's string matching expectations for package prefixes.
@@ -430,13 +435,15 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     ensureInitialized(env);
 
     int fd = ASharedMemory_dupFromJava(env, memory);
-    if (fd < 0) return nullptr;
+    if (fd < 0) {
+        LOGE("Failed to duplicate input dex shared memory");
+        return memory;
+    }
 
     auto size = ASharedMemory_getSize(fd);
     if (size <= 0) {
         LOGE("Invalid input dex shared memory size: %zd", static_cast<ssize_t>(size));
-        close(fd);
-        return nullptr;
+        return returnOriginalSharedMemory(memory, fd);
     }
     auto mapped_size = static_cast<size_t>(size);
     LOGV("obfuscateDex: fd=%d, size=%zu", fd, mapped_size);
@@ -458,8 +465,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     void *mem = mmap(nullptr, mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (mem == MAP_FAILED) {
         LOGE("Failed to map input dex");
-        close(fd);
-        return nullptr;
+        return returnOriginalSharedMemory(memory, fd);
     }
 
     bool needs_obfuscation = false;
@@ -473,13 +479,13 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     if (!needs_obfuscation) {
         LOGV("No target signatures found in fd=%d, skipping slicer.", fd);
         munmap(mem, mapped_size);
-        return wrapSharedMemoryFd(env, fd);
+        return returnOriginalSharedMemory(memory, fd);
     }
 
     if (!isDexSafeForSlicer(mem, mapped_size)) {
         LOGW("Skipping DEX obfuscation for malformed input fd=%d", fd);
         munmap(mem, mapped_size);
-        return wrapSharedMemoryFd(env, fd);
+        return returnOriginalSharedMemory(memory, fd);
     }
     auto dex_file_size =
         static_cast<size_t>(reinterpret_cast<const dex::Header *>(mem)->file_size);
@@ -492,7 +498,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
 
     if (new_fd < 0) {
         LOGE("Obfuscation failed to create new dex buffer");
-        return wrapSharedMemoryFd(env, fd);
+        return returnOriginalSharedMemory(memory, fd);
     }
     close(fd);
 
