@@ -481,9 +481,11 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
         munmap(mem, mapped_size);
         return wrapSharedMemoryFd(env, fd);
     }
+    auto dex_file_size =
+        static_cast<size_t>(reinterpret_cast<const dex::Header *>(mem)->file_size);
 
     // Process the DEX and obtain a new file descriptor for the output
-    int new_fd = obfuscateDexBuffer(mem, mapped_size);
+    int new_fd = obfuscateDexBuffer(mem, dex_file_size);
 
     // Safely unmap and close the input buffer mapping
     munmap(mem, mapped_size);
