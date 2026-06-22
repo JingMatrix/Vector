@@ -76,11 +76,7 @@ public class RepoLoader {
     private final Path repoFile = Paths.get(App.getInstance().getFilesDir().getAbsolutePath(), "repo.json");
     private final Set<RepoListener> listeners = ConcurrentHashMap.newKeySet();
     private boolean repoLoaded = false;
-    private static final String originRepoUrl = "https://modules.lsposed.org/";
-    private static final String backupRepoUrl = "https://modules-blogcdn.lsposed.org/";
-
-    private static final String secondBackupRepoUrl = "https://modules-cloudflare.lsposed.org/";
-    private static String repoUrl = originRepoUrl;
+    private static final String repoUrl = "https://backup.modules.lsposed.org/";
     private final Resources resources = App.getInstance().getResources();
     private final String[] channels = resources.getStringArray(R.array.update_channel_values);
 
@@ -98,22 +94,25 @@ public class RepoLoader {
 
     synchronized public void loadRemoteData() {
         repoLoaded = false;
+        boolean loaded = false;
         try {
             try (var response = App.getOkHttpClient().newCall(new Request.Builder().url(repoUrl + "modules.json").build()).execute()) {
-
-                if (response.isSuccessful()) {
-                    ResponseBody body = response.body();
-                    if (body != null) {
-                        try {
-                            String bodyString = body.string();
-                            Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
-                            loadLocalData(false);
-                        } catch (Throwable t) {
-                            Log.e(App.TAG, Log.getStackTraceString(t));
-                            for (RepoListener listener : listeners) {
-                                listener.onThrowable(t);
-                            }
-                        }
+                if (!response.isSuccessful()) {
+                    throw new IOException("Unexpected response " + response.code() + " from " + response.request().url());
+                }
+                ResponseBody body = response.body();
+                if (body == null) {
+                    throw new IOException("Empty response from " + response.request().url());
+                }
+                try {
+                    String bodyString = body.string();
+                    Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
+                    loadLocalData(false);
+                    loaded = true;
+                } catch (Throwable t) {
+                    Log.e(App.TAG, Log.getStackTraceString(t));
+                    for (RepoListener listener : listeners) {
+                        listener.onThrowable(t);
                     }
                 }
             }
@@ -122,12 +121,12 @@ public class RepoLoader {
             for (RepoListener listener : listeners) {
                 listener.onThrowable(e);
             }
-            if (repoUrl.equals(originRepoUrl)) {
-                repoUrl = backupRepoUrl;
-                loadRemoteData();
-            } else if (repoUrl.equals(backupRepoUrl)) {
-                repoUrl = secondBackupRepoUrl;
-                loadRemoteData();
+        } finally {
+            if (!loaded) {
+                repoLoaded = true;
+                for (RepoListener listener : listeners) {
+                    listener.onRepoLoaded();
+                }
             }
         }
     }
@@ -252,39 +251,45 @@ public class RepoLoader {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                if (repoUrl.equals(originRepoUrl)) {
-                    repoUrl = backupRepoUrl;
-                    loadRemoteReleases(packageName);
-                } else if (repoUrl.equals(backupRepoUrl)) {
-                    repoUrl = secondBackupRepoUrl;
-                    loadRemoteReleases(packageName);
-                } else {
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(e);
-                    }
+                for (RepoListener listener : listeners) {
+                    listener.onThrowable(e);
                 }
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
-                if (response.isSuccessful()) {
+                if (!response.isSuccessful()) {
+                    var e = new IOException("Unexpected response " + response.code() + " from " + call.request().url());
+                    for (RepoListener listener : listeners) {
+                        listener.onThrowable(e);
+                    }
+                    response.close();
+                    return;
+                }
+                try (response) {
                     ResponseBody body = response.body();
-                    if (body != null) {
-                        try {
-                            String bodyString = body.string();
-                            Gson gson = new Gson();
-                            OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
-                            module.releasesLoaded = true;
-                            onlineModules.replace(packageName, module);
-                            for (RepoListener listener : listeners) {
-                                listener.onModuleReleasesLoaded(module);
-                            }
-                        } catch (Throwable t) {
-                            Log.e(App.TAG, Log.getStackTraceString(t));
-                            for (RepoListener listener : listeners) {
-                                listener.onThrowable(t);
-                            }
+                    if (body == null) {
+                        throw new IOException("Empty response from " + call.request().url());
+                    }
+                    try {
+                        String bodyString = body.string();
+                        Gson gson = new Gson();
+                        OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
+                        module.releasesLoaded = true;
+                        onlineModules.replace(packageName, module);
+                        for (RepoListener listener : listeners) {
+                            listener.onModuleReleasesLoaded(module);
                         }
+                    } catch (Throwable t) {
+                        Log.e(App.TAG, Log.getStackTraceString(t));
+                        for (RepoListener listener : listeners) {
+                            listener.onThrowable(t);
+                        }
+                    }
+                } catch (Throwable t) {
+                    Log.e(App.TAG, Log.getStackTraceString(t));
+                    for (RepoListener listener : listeners) {
+                        listener.onThrowable(t);
                     }
                 }
             }
