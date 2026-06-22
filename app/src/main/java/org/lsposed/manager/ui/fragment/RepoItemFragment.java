@@ -302,7 +302,10 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
     @Override
     public void onRepoLoaded() {
-        refreshModuleFromRepo();
+        var currentModule = refreshModuleFromRepo();
+        if (!hasReadme(currentModule)) {
+            remoteModuleLoadRequested = false;
+        }
         loadRemoteModuleIfReadmeMissing();
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
@@ -325,6 +328,8 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
     @Override
     public void onThrowable(Throwable t) {
+        remoteModuleLoadRequested = false;
+        releaseLoadRequestedByUser = false;
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
         }

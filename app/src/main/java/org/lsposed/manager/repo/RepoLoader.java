@@ -106,6 +106,9 @@ public class RepoLoader {
                 }
                 try {
                     String bodyString = body.string();
+                    if (bodyString.trim().isEmpty()) {
+                        throw new IOException("Empty response from " + response.request().url());
+                    }
                     Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
                     loadLocalData(false);
                     loaded = true;
@@ -273,8 +276,14 @@ public class RepoLoader {
                     }
                     try {
                         String bodyString = body.string();
+                        if (bodyString.trim().isEmpty()) {
+                            throw new IOException("Empty response from " + call.request().url());
+                        }
                         Gson gson = new Gson();
                         OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
+                        if (module == null) {
+                            throw new IOException("Invalid response from " + call.request().url());
+                        }
                         module.releasesLoaded = true;
                         onlineModules.replace(packageName, module);
                         for (RepoListener listener : listeners) {
