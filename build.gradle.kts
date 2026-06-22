@@ -99,16 +99,12 @@ subprojects {
                     versionName = versionNameProvider.get()
                 }
 
-                val flags =
-                    listOf(
-                        "-DVERSION_CODE=${versionCodeProvider.get()}",
-                        "-DVERSION_NAME='\"${versionNameProvider.get()}\"'",
-                    )
-
                 val args =
                     listOf(
                         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                         "-DVECTOR_ROOT=${rootDir.absolutePath}",
+                        "-DVECTOR_VERSION_CODE=${versionCodeProvider.get()}",
+                        "-DVECTOR_VERSION_NAME=${versionNameProvider.get()}",
                         // Enforce 16 KB page size alignment for Android 15+ compatibility
                         "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
                         "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
@@ -116,8 +112,6 @@ subprojects {
 
                 externalNativeBuild {
                     cmake {
-                        cFlags.addAll(flags)
-                        cppFlags.addAll(flags)
                         arguments.addAll(args)
                     }
                 }

@@ -29,13 +29,11 @@ import com.google.gson.JsonParser;
 
 import org.lsposed.manager.App;
 import org.lsposed.manager.BuildConfig;
-import org.lsposed.manager.ConfigManager;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Locale;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -44,9 +42,11 @@ import okhttp3.Response;
 import okio.Okio;
 
 public class UpdateUtil {
+    private static final Pattern VERSION_CODE_PATTERN = Pattern.compile("-(\\d+)(?=[-.])");
+
     public static void loadRemoteVersion() {
         var request = new Request.Builder()
-                .url("https://api.github.com/repos/JingMatrix/LSPosed/releases/latest")
+                .url("https://api.github.com/repos/JingMatrix/Vector/releases/latest")
                 .addHeader("Accept", "application/vnd.github.v3+json")
                 .build();
         var callback = new Callback() {
@@ -81,9 +81,10 @@ public class UpdateUtil {
     private static void checkAssets(JsonObject assets, String releaseNotes) {
         var pref = App.getPreferences();
         var name = assets.get("name").getAsString();
-        var splitName = name.split("-");
+        var versionCode = parseVersionCode(name);
+        if (versionCode == null) return;
         pref.edit()
-                .putInt("latest_version", Integer.parseInt(splitName[2]))
+                .putInt("latest_version", versionCode)
                 .putLong("latest_check", Instant.now().getEpochSecond())
                 .putString("release_notes", releaseNotes)
                 .putString("zip_file", null)
@@ -107,17 +108,18 @@ public class UpdateUtil {
     public static boolean needUpdate() {
         var pref = App.getPreferences();
         if (!pref.getBoolean("checked", false)) return false;
-        var now = Instant.now();
-        var buildTime = Instant.ofEpochSecond(BuildConfig.BUILD_TIME);
-        var check = pref.getLong("latest_check", 0);
-        if (check > 0) {
-            var checkTime = Instant.ofEpochSecond(check);
-            if (checkTime.atOffset(ZoneOffset.UTC).plusDays(30).toInstant().isBefore(now))
-                return true;
-            var code = pref.getInt("latest_version", 0);
-            return code > BuildConfig.VERSION_CODE;
+        var code = pref.getInt("latest_version", 0);
+        return code > BuildConfig.VERSION_CODE;
+    }
+
+    @Nullable
+    private static Integer parseVersionCode(String name) {
+        var matcher = VERSION_CODE_PATTERN.matcher(name);
+        Integer versionCode = null;
+        while (matcher.find()) {
+            versionCode = Integer.parseInt(matcher.group(1));
         }
-        return buildTime.atOffset(ZoneOffset.UTC).plusDays(30).toInstant().isBefore(now);
+        return versionCode;
     }
 
     @Nullable
