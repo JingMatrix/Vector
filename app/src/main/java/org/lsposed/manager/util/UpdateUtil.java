@@ -83,17 +83,18 @@ public class UpdateUtil {
         var name = assets.get("name").getAsString();
         var versionCode = parseVersionCode(name);
         if (versionCode == null) return;
+        var updatedAt = Instant.parse(assets.get("updated_at").getAsString());
+        var downloadUrl = assets.get("browser_download_url").getAsString();
+        var zipTime = pref.getLong("zip_time", 0);
+        var hasNewAsset = !updatedAt.equals(Instant.ofEpochSecond(zipTime));
         pref.edit()
                 .putInt("latest_version", versionCode)
                 .putLong("latest_check", Instant.now().getEpochSecond())
                 .putString("release_notes", releaseNotes)
-                .putString("zip_file", null)
                 .putBoolean("checked", true)
                 .apply();
-        var updatedAt = Instant.parse(assets.get("updated_at").getAsString());
-        var downloadUrl = assets.get("browser_download_url").getAsString();
-        var zipTime = pref.getLong("zip_time", 0);
-        if (!updatedAt.equals(Instant.ofEpochSecond(zipTime))) {
+        if (hasNewAsset) {
+            pref.edit().putString("zip_file", null).apply();
             var zip = downloadNewZipSync(downloadUrl, name);
             var size = assets.get("size").getAsLong();
             if (zip != null && zip.length() == size) {
