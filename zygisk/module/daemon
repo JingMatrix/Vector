@@ -42,5 +42,5 @@ fi
 
 [ "$debug" = "true" ] && log -p d -t "Vector" "Starting daemon $*"
 
-# Launch the daemon
-exec /system/bin/app_process $java_options /system/bin --nice-name=lspd org.matrix.vector.daemon.VectorDaemon "$@" >/dev/null 2>&1
+# Launch the daemon (no exec so the watchdog loop in service.sh can restart it)
+/system/bin/app_process $java_options /system/bin --nice-name=lspd org.matrix.vector.daemon.VectorDaemon "$@" >/dev/null 2>&1
