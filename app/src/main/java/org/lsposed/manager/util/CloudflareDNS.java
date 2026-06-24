@@ -64,7 +64,9 @@ public final class CloudflareDNS implements Dns {
                 return SYSTEM.lookup(hostname);
             }
         } catch (SecurityException e) {
-            var unknownHost = new UnknownHostException(e.getMessage());
+            var message = e.getMessage();
+            var unknownHost = new UnknownHostException(
+                    message == null ? hostname : hostname + ": " + message);
             unknownHost.initCause(e);
             throw unknownHost;
         }
