@@ -76,7 +76,13 @@ public class RepoLoader {
     private final Path repoFile = Paths.get(App.getInstance().getFilesDir().getAbsolutePath(), "repo.json");
     private final Set<RepoListener> listeners = ConcurrentHashMap.newKeySet();
     private boolean repoLoaded = false;
-    private static final String repoUrl = "https://backup.modules.lsposed.org/";
+    private static final String[] repoUrls = new String[]{
+            "https://backup.modules.lsposed.org/",
+            "https://modules.lsposed.org/",
+            "https://modules-blogcdn.lsposed.org/",
+            "https://modules-cloudflare.lsposed.org/"
+    };
+    private static String repoUrl = repoUrls[0];
     private final Resources resources = App.getInstance().getResources();
     private final String[] channels = resources.getStringArray(R.array.update_channel_values);
 
@@ -95,34 +101,25 @@ public class RepoLoader {
     synchronized public void loadRemoteData() {
         repoLoaded = false;
         boolean loaded = false;
+        Throwable lastError = null;
         try {
-            try (var response = App.getOkHttpClient().newCall(new Request.Builder().url(repoUrl + "modules.json").build()).execute()) {
-                if (!response.isSuccessful()) {
-                    throw new IOException("Unexpected response " + response.code() + " from " + response.request().url());
-                }
-                ResponseBody body = response.body();
-                if (body == null) {
-                    throw new IOException("Empty response from " + response.request().url());
-                }
+            for (String candidateRepoUrl : repoUrls) {
                 try {
-                    String bodyString = body.string();
-                    if (bodyString.trim().isEmpty()) {
-                        throw new IOException("Empty response from " + response.request().url());
-                    }
+                    String bodyString = requestString(candidateRepoUrl + "modules.json");
                     Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
+                    repoUrl = candidateRepoUrl;
                     loadLocalData(false);
                     loaded = true;
+                    break;
                 } catch (Throwable t) {
-                    Log.e(App.TAG, Log.getStackTraceString(t));
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(t);
-                    }
+                    lastError = t;
+                    Log.e(App.TAG, "load remote data from " + candidateRepoUrl, t);
                 }
             }
-        } catch (Throwable e) {
-            Log.e(App.TAG, "load remote data", e);
-            for (RepoListener listener : listeners) {
-                listener.onThrowable(e);
+            if (!loaded && lastError != null) {
+                for (RepoListener listener : listeners) {
+                    listener.onThrowable(lastError);
+                }
             }
         } finally {
             if (!loaded) {
@@ -131,6 +128,23 @@ public class RepoLoader {
                     listener.onRepoLoaded();
                 }
             }
+        }
+    }
+
+    private String requestString(String url) throws IOException {
+        try (var response = App.getOkHttpClient().newCall(new Request.Builder().url(url).build()).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected response " + response.code() + " from " + response.request().url());
+            }
+            ResponseBody body = response.body();
+            if (body == null) {
+                throw new IOException("Empty response from " + response.request().url());
+            }
+            String bodyString = body.string();
+            if (bodyString.trim().isEmpty()) {
+                throw new IOException("Empty response from " + response.request().url());
+            }
+            return bodyString;
         }
     }
 
@@ -250,23 +264,24 @@ public class RepoLoader {
     }
 
     public void loadRemoteReleases(String packageName) {
-        App.getOkHttpClient().newCall(new Request.Builder().url(String.format(repoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
+        loadRemoteReleases(packageName, 0);
+    }
+
+    private void loadRemoteReleases(String packageName, int repoUrlIndex) {
+        String candidateRepoUrl = repoUrls[repoUrlIndex];
+        App.getOkHttpClient().newCall(new Request.Builder().url(String.format(candidateRepoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                for (RepoListener listener : listeners) {
-                    listener.onThrowable(e);
-                }
+                retryRemoteReleases(packageName, repoUrlIndex, e);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 if (!response.isSuccessful()) {
                     var e = new IOException("Unexpected response " + response.code() + " from " + call.request().url());
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(e);
-                    }
                     response.close();
+                    retryRemoteReleases(packageName, repoUrlIndex, e);
                     return;
                 }
                 try (response) {
@@ -286,6 +301,7 @@ public class RepoLoader {
                         }
                         module.releasesLoaded = true;
                         onlineModules.replace(packageName, module);
+                        repoUrl = candidateRepoUrl;
                         for (RepoListener listener : listeners) {
                             listener.onModuleReleasesLoaded(module);
                         }
@@ -303,6 +319,16 @@ public class RepoLoader {
                 }
             }
         });
+    }
+
+    private void retryRemoteReleases(String packageName, int repoUrlIndex, Throwable error) {
+        if (repoUrlIndex + 1 < repoUrls.length) {
+            loadRemoteReleases(packageName, repoUrlIndex + 1);
+        } else {
+            for (RepoListener listener : listeners) {
+                listener.onThrowable(error);
+            }
+        }
     }
 
     public void addListener(RepoListener listener) {

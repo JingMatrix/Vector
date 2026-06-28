@@ -302,10 +302,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
     @Override
     public void onRepoLoaded() {
-        var currentModule = refreshModuleFromRepo();
-        if (!hasReadme(currentModule)) {
-            remoteModuleLoadRequested = false;
-        }
+        refreshModuleFromRepo();
         loadRemoteModuleIfReadmeMissing();
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
@@ -690,9 +687,9 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                 return null;
             }
             binding = ItemRepoReadmeBinding.inflate(getLayoutInflater(), container, false);
-            renderReadme();
             borderView = binding.scrollView;
             RepoLoader.getInstance().addListener(this);
+            renderReadme();
             return binding.getRoot();
         }
 
