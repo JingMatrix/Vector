@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 #include <map>
 #include <mutex>
@@ -108,6 +109,140 @@ static bool typeListFits(const dex::u1 *base, const dex::Header *header, size_t 
         }
     }
     return true;
+}
+
+static bool readULeb128Checked(const dex::u1 **ptr, const dex::u1 *limit, dex::u4 *value,
+                               const char *name) {
+    dex::u4 result = 0;
+    for (int i = 0; i < 5; ++i) {
+        if (*ptr >= limit) {
+            LOGW("Invalid DEX %s: truncated uleb128", name);
+            return false;
+        }
+        dex::u1 byte = *(*ptr)++;
+        if (i == 4 && (byte & 0xf0) != 0) {
+            LOGW("Invalid DEX %s: uleb128 overflow", name);
+            return false;
+        }
+        result |= static_cast<dex::u4>(byte & 0x7f) << (i * 7);
+        if ((byte & 0x80) == 0) {
+            *value = result;
+            return true;
+        }
+    }
+    LOGW("Invalid DEX %s: unterminated uleb128", name);
+    return false;
+}
+
+static bool applyMemberIndexDelta(dex::u4 delta, dex::u4 *base_index, dex::u4 count,
+                                  const char *name) {
+    if (*base_index != dex::kNoIndex && delta == 0) {
+        LOGW("Invalid DEX %s: repeated member index delta", name);
+        return false;
+    }
+    uint64_t index = delta;
+    if (*base_index != dex::kNoIndex) {
+        index += *base_index;
+    }
+    if (index >= count) {
+        LOGW("Invalid DEX %s: index=%llu count=%u", name,
+             static_cast<unsigned long long>(index), count);
+        return false;
+    }
+    *base_index = static_cast<dex::u4>(index);
+    return true;
+}
+
+static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                         dex::u4 offset) {
+    if (offset == 0) return true;
+    if (!isAligned(offset, 4) ||
+        !dataRangeFits(header, file_size, offset, offsetof(dex::Code, insns), "method code",
+                       false)) {
+        return false;
+    }
+    const auto *code = reinterpret_cast<const dex::Code *>(base + offset);
+    auto insns_start = static_cast<size_t>(offset) + offsetof(dex::Code, insns);
+    if (insns_start > file_size ||
+        code->insns_size > (file_size - insns_start) / sizeof(dex::u2)) {
+        LOGW("Invalid DEX method code: offset=%u insns_size=%u file_size=%zu", offset,
+             code->insns_size, file_size);
+        return false;
+    }
+    if (code->tries_size != 0) {
+        auto aligned_insns = (static_cast<size_t>(code->insns_size) + 1) / 2 * 2;
+        auto tries_start = insns_start + aligned_insns * sizeof(dex::u2);
+        if (tries_start > file_size ||
+            code->tries_size > (file_size - tries_start) / sizeof(dex::TryBlock)) {
+            LOGW("Invalid DEX method code tries: offset=%u tries_size=%u file_size=%zu", offset,
+                 code->tries_size, file_size);
+            return false;
+        }
+        auto handlers_start = tries_start + static_cast<size_t>(code->tries_size) * sizeof(dex::TryBlock);
+        if (handlers_start >= file_size) {
+            LOGW("Invalid DEX method code handlers: offset=%u file_size=%zu", offset, file_size);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool classDataFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                          dex::u4 offset) {
+    if (offset == 0) return true;
+    if (!dataRangeFits(header, file_size, offset, sizeof(dex::u1), "class data", false)) {
+        return false;
+    }
+
+    const dex::u1 *ptr = base + offset;
+    const dex::u1 *limit = base + file_size;
+    dex::u4 static_fields_count;
+    dex::u4 instance_fields_count;
+    dex::u4 direct_methods_count;
+    dex::u4 virtual_methods_count;
+    if (!readULeb128Checked(&ptr, limit, &static_fields_count, "class static_fields_count") ||
+        !readULeb128Checked(&ptr, limit, &instance_fields_count, "class instance_fields_count") ||
+        !readULeb128Checked(&ptr, limit, &direct_methods_count, "class direct_methods_count") ||
+        !readULeb128Checked(&ptr, limit, &virtual_methods_count, "class virtual_methods_count")) {
+        return false;
+    }
+
+    auto validate_fields = [&](dex::u4 count, const char *name) {
+        dex::u4 base_index = dex::kNoIndex;
+        for (dex::u4 i = 0; i < count; ++i) {
+            dex::u4 field_idx_delta;
+            dex::u4 access_flags;
+            if (!readULeb128Checked(&ptr, limit, &field_idx_delta, name) ||
+                !applyMemberIndexDelta(field_idx_delta, &base_index, header->field_ids_size, name) ||
+                !readULeb128Checked(&ptr, limit, &access_flags, name)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    auto validate_methods = [&](dex::u4 count, const char *name) {
+        dex::u4 base_index = dex::kNoIndex;
+        for (dex::u4 i = 0; i < count; ++i) {
+            dex::u4 method_idx_delta;
+            dex::u4 access_flags;
+            dex::u4 code_off;
+            if (!readULeb128Checked(&ptr, limit, &method_idx_delta, name) ||
+                !applyMemberIndexDelta(method_idx_delta, &base_index, header->method_ids_size,
+                                       name) ||
+                !readULeb128Checked(&ptr, limit, &access_flags, name) ||
+                !readULeb128Checked(&ptr, limit, &code_off, name) ||
+                !codeItemFits(base, header, file_size, code_off)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    return validate_fields(static_fields_count, "class static field") &&
+           validate_fields(instance_fields_count, "class instance field") &&
+           validate_methods(direct_methods_count, "class direct method") &&
+           validate_methods(virtual_methods_count, "class virtual method");
 }
 
 // Slicer's own structural checks compile out under NDEBUG, so validate the
@@ -245,14 +380,13 @@ static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
              class_def.superclass_idx >= header->type_ids_size) ||
             (class_def.source_file_idx != dex::kNoIndex &&
              class_def.source_file_idx >= header->string_ids_size) ||
-            !typeListFits(base, header, file_size, class_def.interfaces_off, "class interfaces") ||
-            !dataRangeFits(header, file_size, class_def.annotations_off,
-                           sizeof(dex::AnnotationsDirectoryItem),
-                           "class annotations", true) ||
-            !dataRangeFits(header, file_size, class_def.class_data_off, sizeof(dex::u1),
-                           "class data", true) ||
-            !dataRangeFits(header, file_size, class_def.static_values_off, sizeof(dex::u1),
-                           "static values", true)) {
+             !typeListFits(base, header, file_size, class_def.interfaces_off, "class interfaces") ||
+             !dataRangeFits(header, file_size, class_def.annotations_off,
+                            sizeof(dex::AnnotationsDirectoryItem),
+                            "class annotations", true) ||
+             !classDataFits(base, header, file_size, class_def.class_data_off) ||
+             !dataRangeFits(header, file_size, class_def.static_values_off, sizeof(dex::u1),
+                            "static values", true)) {
             LOGW("Invalid DEX class_def at index %u", i);
             return false;
         }
