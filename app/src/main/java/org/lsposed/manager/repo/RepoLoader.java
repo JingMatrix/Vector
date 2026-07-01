@@ -289,33 +289,24 @@ public class RepoLoader {
                     if (body == null) {
                         throw new IOException("Empty response from " + call.request().url());
                     }
-                    try {
-                        String bodyString = body.string();
-                        if (bodyString.trim().isEmpty()) {
-                            throw new IOException("Empty response from " + call.request().url());
-                        }
-                        Gson gson = new Gson();
-                        OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
-                        if (module == null) {
-                            throw new IOException("Invalid response from " + call.request().url());
-                        }
-                        module.releasesLoaded = true;
-                        onlineModules.replace(packageName, module);
-                        repoUrl = candidateRepoUrl;
-                        for (RepoListener listener : listeners) {
-                            listener.onModuleReleasesLoaded(module);
-                        }
-                    } catch (Throwable t) {
-                        Log.e(App.TAG, Log.getStackTraceString(t));
-                        for (RepoListener listener : listeners) {
-                            listener.onThrowable(t);
-                        }
+                    String bodyString = body.string();
+                    if (bodyString.trim().isEmpty()) {
+                        throw new IOException("Empty response from " + call.request().url());
+                    }
+                    Gson gson = new Gson();
+                    OnlineModule module = gson.fromJson(bodyString, OnlineModule.class);
+                    if (module == null) {
+                        throw new IOException("Invalid response from " + call.request().url());
+                    }
+                    module.releasesLoaded = true;
+                    onlineModules.replace(packageName, module);
+                    repoUrl = candidateRepoUrl;
+                    for (RepoListener listener : listeners) {
+                        listener.onModuleReleasesLoaded(module);
                     }
                 } catch (Throwable t) {
                     Log.e(App.TAG, Log.getStackTraceString(t));
-                    for (RepoListener listener : listeners) {
-                        listener.onThrowable(t);
-                    }
+                    retryRemoteReleases(packageName, repoUrlIndex, t);
                 }
             }
         });
