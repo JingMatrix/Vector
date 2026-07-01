@@ -134,6 +134,41 @@ static bool readULeb128Checked(const dex::u1 **ptr, const dex::u1 *limit, dex::u
     return false;
 }
 
+static bool readSLeb128Checked(const dex::u1 **ptr, const dex::u1 *limit, dex::s4 *value,
+                               const char *name) {
+    dex::u4 result = 0;
+    int shift = 0;
+    dex::u1 byte = 0;
+    for (int i = 0; i < 5; ++i) {
+        if (*ptr >= limit) {
+            LOGW("Invalid DEX %s: truncated sleb128", name);
+            return false;
+        }
+        byte = *(*ptr)++;
+        result |= static_cast<dex::u4>(byte & 0x7f) << shift;
+        shift += 7;
+        if ((byte & 0x80) == 0) {
+            if (shift < 32 && (byte & 0x40) != 0) {
+                result |= ~0u << shift;
+            }
+            *value = static_cast<dex::s4>(result);
+            return true;
+        }
+    }
+    LOGW("Invalid DEX %s: unterminated sleb128", name);
+    return false;
+}
+
+static bool consumeBytes(const dex::u1 **ptr, const dex::u1 *limit, size_t byte_count,
+                         const char *name) {
+    if (*ptr > limit || byte_count > static_cast<size_t>(limit - *ptr)) {
+        LOGW("Invalid DEX %s: truncated encoded data", name);
+        return false;
+    }
+    *ptr += byte_count;
+    return true;
+}
+
 static bool applyMemberIndexDelta(dex::u4 delta, dex::u4 *base_index, dex::u4 count,
                                   const char *name) {
     if (*base_index != dex::kNoIndex && delta == 0) {
@@ -153,6 +188,406 @@ static bool applyMemberIndexDelta(dex::u4 delta, dex::u4 *base_index, dex::u4 co
     return true;
 }
 
+static bool stringDataFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                           dex::u4 offset) {
+    if (!dataRangeFits(header, file_size, offset, sizeof(dex::u1), "string_data", false)) {
+        return false;
+    }
+
+    const dex::u1 *ptr = base + offset;
+    const dex::u1 *limit = base + file_size;
+    dex::u4 utf16_size;
+    if (!readULeb128Checked(&ptr, limit, &utf16_size, "string_data utf16_size")) {
+        return false;
+    }
+    if (ptr > limit || std::memchr(ptr, '\0', static_cast<size_t>(limit - ptr)) == nullptr) {
+        LOGW("Invalid DEX string_data: missing MUTF-8 terminator at offset=%u", offset);
+        return false;
+    }
+    return true;
+}
+
+static bool encodedValueFits(const dex::u1 **ptr, const dex::u1 *limit,
+                             const dex::Header *header, int depth);
+
+static bool annotationFits(const dex::u1 **ptr, const dex::u1 *limit,
+                           const dex::Header *header, int depth) {
+    dex::u4 type_index;
+    dex::u4 elements_count;
+    if (!readULeb128Checked(ptr, limit, &type_index, "annotation type") ||
+        !readULeb128Checked(ptr, limit, &elements_count, "annotation elements")) {
+        return false;
+    }
+    if (type_index >= header->type_ids_size) {
+        LOGW("Invalid DEX annotation: type_idx=%u type_count=%u", type_index,
+             header->type_ids_size);
+        return false;
+    }
+
+    for (dex::u4 i = 0; i < elements_count; ++i) {
+        dex::u4 name_index;
+        if (!readULeb128Checked(ptr, limit, &name_index, "annotation element name")) {
+            return false;
+        }
+        if (name_index >= header->string_ids_size) {
+            LOGW("Invalid DEX annotation element: name_idx=%u string_count=%u", name_index,
+                 header->string_ids_size);
+            return false;
+        }
+        if (!encodedValueFits(ptr, limit, header, depth + 1)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool encodedArrayFits(const dex::u1 **ptr, const dex::u1 *limit,
+                             const dex::Header *header, int depth) {
+    dex::u4 count;
+    if (!readULeb128Checked(ptr, limit, &count, "encoded array size")) {
+        return false;
+    }
+    for (dex::u4 i = 0; i < count; ++i) {
+        if (!encodedValueFits(ptr, limit, header, depth + 1)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool readEncodedIndexChecked(const dex::u1 **ptr, const dex::u1 *limit, dex::u1 arg,
+                                    dex::u4 count, const char *name) {
+    if (arg > 3) {
+        LOGW("Invalid DEX %s: encoded index uses %u bytes", name, arg + 1);
+        return false;
+    }
+    if (!consumeBytes(ptr, limit, static_cast<size_t>(arg) + 1, name)) {
+        return false;
+    }
+
+    const dex::u1 *value = *ptr - (static_cast<size_t>(arg) + 1);
+    dex::u4 index = 0;
+    for (dex::u1 i = 0; i <= arg; ++i) {
+        index |= static_cast<dex::u4>(value[i]) << (i * 8);
+    }
+    if (index >= count) {
+        LOGW("Invalid DEX %s: index=%u count=%u", name, index, count);
+        return false;
+    }
+    return true;
+}
+
+static bool encodedValueFits(const dex::u1 **ptr, const dex::u1 *limit,
+                             const dex::Header *header, int depth) {
+    if (depth > 32) {
+        LOGW("Invalid DEX encoded value: nesting is too deep");
+        return false;
+    }
+    if (*ptr >= limit) {
+        LOGW("Invalid DEX encoded value: missing header");
+        return false;
+    }
+
+    dex::u1 encoded_header = *(*ptr)++;
+    dex::u1 type = encoded_header & dex::kEncodedValueTypeMask;
+    dex::u1 arg = encoded_header >> dex::kEncodedValueArgShift;
+
+    switch (type) {
+        case dex::kEncodedByte:
+            if (arg != 0) {
+                LOGW("Invalid DEX encoded byte: arg=%u", arg);
+                return false;
+            }
+            return consumeBytes(ptr, limit, 1, "encoded byte");
+        case dex::kEncodedShort:
+        case dex::kEncodedChar:
+            if (arg > 1) {
+                LOGW("Invalid DEX encoded 16-bit value: arg=%u", arg);
+                return false;
+            }
+            return consumeBytes(ptr, limit, static_cast<size_t>(arg) + 1, "encoded 16-bit value");
+        case dex::kEncodedInt:
+        case dex::kEncodedFloat:
+            if (arg > 3) {
+                LOGW("Invalid DEX encoded 32-bit value: arg=%u", arg);
+                return false;
+            }
+            return consumeBytes(ptr, limit, static_cast<size_t>(arg) + 1, "encoded 32-bit value");
+        case dex::kEncodedLong:
+        case dex::kEncodedDouble:
+            if (arg > 7) {
+                LOGW("Invalid DEX encoded 64-bit value: arg=%u", arg);
+                return false;
+            }
+            return consumeBytes(ptr, limit, static_cast<size_t>(arg) + 1, "encoded 64-bit value");
+        case dex::kEncodedString:
+            return readEncodedIndexChecked(ptr, limit, arg, header->string_ids_size,
+                                           "encoded string");
+        case dex::kEncodedType:
+            return readEncodedIndexChecked(ptr, limit, arg, header->type_ids_size,
+                                           "encoded type");
+        case dex::kEncodedField:
+        case dex::kEncodedEnum:
+            return readEncodedIndexChecked(ptr, limit, arg, header->field_ids_size,
+                                           "encoded field");
+        case dex::kEncodedMethod:
+            return readEncodedIndexChecked(ptr, limit, arg, header->method_ids_size,
+                                           "encoded method");
+        case dex::kEncodedArray:
+            return arg == 0 && encodedArrayFits(ptr, limit, header, depth + 1);
+        case dex::kEncodedAnnotation:
+            return arg == 0 && annotationFits(ptr, limit, header, depth + 1);
+        case dex::kEncodedNull:
+            if (arg != 0) {
+                LOGW("Invalid DEX encoded null: arg=%u", arg);
+                return false;
+            }
+            return true;
+        case dex::kEncodedBoolean:
+            if (arg > 1) {
+                LOGW("Invalid DEX encoded boolean: arg=%u", arg);
+                return false;
+            }
+            return true;
+        default:
+            LOGW("Invalid DEX encoded value type: 0x%x", type);
+            return false;
+    }
+}
+
+static bool encodedArrayItemFits(const dex::u1 *base, const dex::Header *header,
+                                 size_t file_size, dex::u4 offset, const char *name) {
+    if (offset == 0) return true;
+    if (!dataRangeFits(header, file_size, offset, sizeof(dex::u1), name, false)) {
+        return false;
+    }
+    const dex::u1 *ptr = base + offset;
+    const dex::u1 *limit = base + file_size;
+    return encodedArrayFits(&ptr, limit, header, 0);
+}
+
+static bool annotationItemFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                               dex::u4 offset) {
+    if (!dataRangeFits(header, file_size, offset, sizeof(dex::AnnotationItem), "annotation item",
+                       false)) {
+        return false;
+    }
+    const dex::u1 *ptr = base + offset + offsetof(dex::AnnotationItem, annotation);
+    const dex::u1 *limit = base + file_size;
+    return annotationFits(&ptr, limit, header, 0);
+}
+
+static bool annotationSetFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                              dex::u4 offset) {
+    if (offset == 0) return true;
+    if (!isAligned(offset, 4) ||
+        !dataRangeFits(header, file_size, offset, sizeof(dex::AnnotationSetItem),
+                       "annotation set", false)) {
+        return false;
+    }
+    const auto *set = reinterpret_cast<const dex::AnnotationSetItem *>(base + offset);
+    auto entries_start = static_cast<size_t>(offset) + sizeof(dex::u4);
+    if (entries_start > file_size || set->size > (file_size - entries_start) / sizeof(dex::u4)) {
+        LOGW("Invalid DEX annotation set: offset=%u count=%u file_size=%zu", offset, set->size,
+             file_size);
+        return false;
+    }
+    for (dex::u4 i = 0; i < set->size; ++i) {
+        if (set->entries[i] == 0 || !annotationItemFits(base, header, file_size, set->entries[i])) {
+            LOGW("Invalid DEX annotation set entry at index %u", i);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool annotationSetRefListFits(const dex::u1 *base, const dex::Header *header,
+                                     size_t file_size, dex::u4 offset) {
+    if (!isAligned(offset, 4) ||
+        !dataRangeFits(header, file_size, offset, sizeof(dex::AnnotationSetRefList),
+                       "annotation set ref list", false)) {
+        return false;
+    }
+    const auto *list = reinterpret_cast<const dex::AnnotationSetRefList *>(base + offset);
+    auto entries_start = static_cast<size_t>(offset) + sizeof(dex::u4);
+    if (entries_start > file_size ||
+        list->size > (file_size - entries_start) / sizeof(dex::AnnotationSetRefItem)) {
+        LOGW("Invalid DEX annotation set ref list: offset=%u count=%u file_size=%zu", offset,
+             list->size, file_size);
+        return false;
+    }
+    for (dex::u4 i = 0; i < list->size; ++i) {
+        dex::u4 annotations_off = list->list[i].annotations_off;
+        if (annotations_off != 0 && !annotationSetFits(base, header, file_size, annotations_off)) {
+            LOGW("Invalid DEX annotation set ref entry at index %u", i);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool annotationsDirectoryFits(const dex::u1 *base, const dex::Header *header,
+                                     size_t file_size, dex::u4 offset) {
+    if (offset == 0) return true;
+    if (!isAligned(offset, 4) ||
+        !dataRangeFits(header, file_size, offset, sizeof(dex::AnnotationsDirectoryItem),
+                       "class annotations", false)) {
+        return false;
+    }
+    const auto *directory = reinterpret_cast<const dex::AnnotationsDirectoryItem *>(base + offset);
+    auto fields_start = static_cast<size_t>(offset) + sizeof(dex::AnnotationsDirectoryItem);
+    auto fields_bytes = static_cast<size_t>(directory->fields_size) *
+                        sizeof(dex::FieldAnnotationsItem);
+    auto methods_bytes = static_cast<size_t>(directory->methods_size) *
+                         sizeof(dex::MethodAnnotationsItem);
+    auto parameters_bytes = static_cast<size_t>(directory->parameters_size) *
+                            sizeof(dex::ParameterAnnotationsItem);
+    if (fields_start > file_size || fields_bytes > file_size - fields_start ||
+        methods_bytes > file_size - fields_start - fields_bytes ||
+        parameters_bytes > file_size - fields_start - fields_bytes - methods_bytes) {
+        LOGW("Invalid DEX annotations directory: offset=%u file_size=%zu", offset, file_size);
+        return false;
+    }
+
+    if (directory->class_annotations_off != 0 &&
+        !annotationSetFits(base, header, file_size, directory->class_annotations_off)) {
+        return false;
+    }
+
+    const auto *field_annotations =
+        reinterpret_cast<const dex::FieldAnnotationsItem *>(base + fields_start);
+    for (dex::u4 i = 0; i < directory->fields_size; ++i) {
+        if (field_annotations[i].field_idx >= header->field_ids_size ||
+            field_annotations[i].annotations_off == 0 ||
+            !annotationSetFits(base, header, file_size, field_annotations[i].annotations_off)) {
+            LOGW("Invalid DEX field annotation at index %u", i);
+            return false;
+        }
+    }
+
+    const auto *method_annotations = reinterpret_cast<const dex::MethodAnnotationsItem *>(
+        reinterpret_cast<const dex::u1 *>(field_annotations) + fields_bytes);
+    for (dex::u4 i = 0; i < directory->methods_size; ++i) {
+        if (method_annotations[i].method_idx >= header->method_ids_size ||
+            method_annotations[i].annotations_off == 0 ||
+            !annotationSetFits(base, header, file_size, method_annotations[i].annotations_off)) {
+            LOGW("Invalid DEX method annotation at index %u", i);
+            return false;
+        }
+    }
+
+    const auto *param_annotations = reinterpret_cast<const dex::ParameterAnnotationsItem *>(
+        reinterpret_cast<const dex::u1 *>(method_annotations) + methods_bytes);
+    for (dex::u4 i = 0; i < directory->parameters_size; ++i) {
+        if (param_annotations[i].method_idx >= header->method_ids_size ||
+            param_annotations[i].annotations_off == 0 ||
+            !annotationSetRefListFits(base, header, file_size, param_annotations[i].annotations_off)) {
+            LOGW("Invalid DEX parameter annotation at index %u", i);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool debugInfoIndexFits(dex::u4 index_plus_one, dex::u4 count, const char *name) {
+    if (index_plus_one == 0) return true;
+    dex::u4 index = index_plus_one - 1;
+    if (index >= count) {
+        LOGW("Invalid DEX debug info %s: index=%u count=%u", name, index, count);
+        return false;
+    }
+    return true;
+}
+
+static bool debugInfoFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
+                          dex::u4 offset) {
+    if (offset == 0) return true;
+    if (!dataRangeFits(header, file_size, offset, sizeof(dex::u1), "debug info", false)) {
+        return false;
+    }
+    const dex::u1 *ptr = base + offset;
+    const dex::u1 *limit = base + file_size;
+    dex::u4 value;
+    if (!readULeb128Checked(&ptr, limit, &value, "debug line_start") ||
+        !readULeb128Checked(&ptr, limit, &value, "debug parameters_size")) {
+        return false;
+    }
+    dex::u4 parameters_size = value;
+    for (dex::u4 i = 0; i < parameters_size; ++i) {
+        dex::u4 name_index;
+        if (!readULeb128Checked(&ptr, limit, &name_index, "debug parameter name") ||
+            !debugInfoIndexFits(name_index, header->string_ids_size, "parameter name")) {
+            return false;
+        }
+    }
+
+    while (true) {
+        if (ptr >= limit) {
+            LOGW("Invalid DEX debug info: missing end sequence");
+            return false;
+        }
+        dex::u1 opcode = *ptr++;
+        switch (opcode) {
+            case dex::DBG_END_SEQUENCE:
+                return true;
+            case dex::DBG_ADVANCE_PC:
+                if (!readULeb128Checked(&ptr, limit, &value, "debug advance pc")) return false;
+                break;
+            case dex::DBG_ADVANCE_LINE: {
+                dex::s4 line_diff;
+                if (!readSLeb128Checked(&ptr, limit, &line_diff, "debug advance line")) {
+                    return false;
+                }
+                break;
+            }
+            case dex::DBG_START_LOCAL: {
+                dex::u4 register_num;
+                dex::u4 name_index;
+                dex::u4 type_index;
+                if (!readULeb128Checked(&ptr, limit, &register_num, "debug local register") ||
+                    !readULeb128Checked(&ptr, limit, &name_index, "debug local name") ||
+                    !debugInfoIndexFits(name_index, header->string_ids_size, "local name") ||
+                    !readULeb128Checked(&ptr, limit, &type_index, "debug local type") ||
+                    !debugInfoIndexFits(type_index, header->type_ids_size, "local type")) {
+                    return false;
+                }
+                break;
+            }
+            case dex::DBG_START_LOCAL_EXTENDED: {
+                dex::u4 register_num;
+                dex::u4 name_index;
+                dex::u4 type_index;
+                dex::u4 sig_index;
+                if (!readULeb128Checked(&ptr, limit, &register_num, "debug local register") ||
+                    !readULeb128Checked(&ptr, limit, &name_index, "debug local name") ||
+                    !debugInfoIndexFits(name_index, header->string_ids_size, "local name") ||
+                    !readULeb128Checked(&ptr, limit, &type_index, "debug local type") ||
+                    !debugInfoIndexFits(type_index, header->type_ids_size, "local type") ||
+                    !readULeb128Checked(&ptr, limit, &sig_index, "debug local signature") ||
+                    !debugInfoIndexFits(sig_index, header->string_ids_size, "local signature")) {
+                    return false;
+                }
+                break;
+            }
+            case dex::DBG_END_LOCAL:
+            case dex::DBG_RESTART_LOCAL:
+                if (!readULeb128Checked(&ptr, limit, &value, "debug local register")) {
+                    return false;
+                }
+                break;
+            case dex::DBG_SET_FILE:
+                if (!readULeb128Checked(&ptr, limit, &value, "debug source file") ||
+                    !debugInfoIndexFits(value, header->string_ids_size, "source file")) {
+                    return false;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
                          dex::u4 offset) {
     if (offset == 0) return true;
@@ -169,6 +604,9 @@ static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t 
              code->insns_size, file_size);
         return false;
     }
+    if (!debugInfoFits(base, header, file_size, code->debug_info_off)) {
+        return false;
+    }
     if (code->tries_size != 0) {
         auto aligned_insns = (static_cast<size_t>(code->insns_size) + 1) / 2 * 2;
         auto tries_start = insns_start + aligned_insns * sizeof(dex::u2);
@@ -182,6 +620,53 @@ static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t 
         if (handlers_start >= file_size) {
             LOGW("Invalid DEX method code handlers: offset=%u file_size=%zu", offset, file_size);
             return false;
+        }
+        const auto *tries = reinterpret_cast<const dex::TryBlock *>(base + tries_start);
+        const dex::u1 *handlers = base + handlers_start;
+        const dex::u1 *ptr = handlers;
+        const dex::u1 *limit = base + file_size;
+        dex::u4 handlers_count;
+        if (!readULeb128Checked(&ptr, limit, &handlers_count, "catch handler list") ||
+            handlers_count > code->tries_size) {
+            LOGW("Invalid DEX catch handler list: handlers=%u tries=%u", handlers_count,
+                 code->tries_size);
+            return false;
+        }
+        for (dex::u4 handler_index = 0; handler_index < handlers_count; ++handler_index) {
+            dex::s4 catch_count;
+            if (!readSLeb128Checked(&ptr, limit, &catch_count, "catch handler size")) {
+                return false;
+            }
+            auto typed_catches = catch_count < 0 ? -static_cast<int64_t>(catch_count)
+                                                 : static_cast<int64_t>(catch_count);
+            for (int64_t catch_index = 0; catch_index < typed_catches; ++catch_index) {
+                dex::u4 type_index;
+                dex::u4 address;
+                if (!readULeb128Checked(&ptr, limit, &type_index, "catch handler type") ||
+                    type_index >= header->type_ids_size ||
+                    !readULeb128Checked(&ptr, limit, &address, "catch handler address") ||
+                    address > code->insns_size) {
+                    LOGW("Invalid DEX catch handler entry: type_idx=%u type_count=%u", type_index,
+                         header->type_ids_size);
+                    return false;
+                }
+            }
+            if (catch_count <= 0) {
+                dex::u4 catch_all_addr;
+                if (!readULeb128Checked(&ptr, limit, &catch_all_addr, "catch-all handler") ||
+                    catch_all_addr > code->insns_size) {
+                    return false;
+                }
+            }
+        }
+        auto handlers_size = static_cast<size_t>(ptr - handlers);
+        for (dex::u4 i = 0; i < code->tries_size; ++i) {
+            if (tries[i].start_addr > code->insns_size ||
+                tries[i].insn_count > code->insns_size - tries[i].start_addr ||
+                tries[i].handler_off >= handlers_size) {
+                LOGW("Invalid DEX try block at index %u", i);
+                return false;
+            }
         }
     }
     return true;
@@ -323,8 +808,7 @@ static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
 
     const auto *string_ids = reinterpret_cast<const dex::StringId *>(base + header->string_ids_off);
     for (dex::u4 i = 0; i < header->string_ids_size; ++i) {
-        if (!dataRangeFits(header, file_size, string_ids[i].string_data_off, sizeof(dex::u1),
-                           "string_data", false)) {
+        if (!stringDataFits(base, header, file_size, string_ids[i].string_data_off)) {
             return false;
         }
     }
@@ -378,15 +862,13 @@ static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
         if (class_def.class_idx >= header->type_ids_size ||
             (class_def.superclass_idx != dex::kNoIndex &&
              class_def.superclass_idx >= header->type_ids_size) ||
-            (class_def.source_file_idx != dex::kNoIndex &&
+             (class_def.source_file_idx != dex::kNoIndex &&
              class_def.source_file_idx >= header->string_ids_size) ||
              !typeListFits(base, header, file_size, class_def.interfaces_off, "class interfaces") ||
-             !dataRangeFits(header, file_size, class_def.annotations_off,
-                            sizeof(dex::AnnotationsDirectoryItem),
-                            "class annotations", true) ||
+             !annotationsDirectoryFits(base, header, file_size, class_def.annotations_off) ||
              !classDataFits(base, header, file_size, class_def.class_data_off) ||
-             !dataRangeFits(header, file_size, class_def.static_values_off, sizeof(dex::u1),
-                            "static values", true)) {
+             !encodedArrayItemFits(base, header, file_size, class_def.static_values_off,
+                                   "static values")) {
             LOGW("Invalid DEX class_def at index %u", i);
             return false;
         }
