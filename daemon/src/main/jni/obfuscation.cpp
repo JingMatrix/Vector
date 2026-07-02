@@ -4,6 +4,7 @@
 #include <android/sharedmem_jni.h>
 #include <fcntl.h>
 #include <jni.h>
+#include <slicer/dex_bytecode.h>
 #include <slicer/dex_utf8.h>
 #include <slicer/reader.h>
 #include <slicer/writer.h>
@@ -590,6 +591,119 @@ static bool debugInfoFits(const dex::u1 *base, const dex::Header *header, size_t
     }
 }
 
+static bool instructionIndexFits(const dex::Header *header, dex::InstructionIndexType type,
+                                 dex::u4 index, dex::u4 index2, const char *opcode) {
+    switch (type) {
+        case dex::kIndexNone:
+        case dex::kIndexInlineMethod:
+        case dex::kIndexVtableOffset:
+        case dex::kIndexFieldOffset:
+            return true;
+        case dex::kIndexStringRef:
+            if (index < header->string_ids_size) return true;
+            break;
+        case dex::kIndexTypeRef:
+            if (index < header->type_ids_size) return true;
+            break;
+        case dex::kIndexFieldRef:
+            if (index < header->field_ids_size) return true;
+            break;
+        case dex::kIndexMethodRef:
+            if (index < header->method_ids_size) return true;
+            break;
+        case dex::kIndexProtoRef:
+            if (index < header->proto_ids_size) return true;
+            break;
+        case dex::kIndexMethodAndProtoRef:
+            if (index < header->method_ids_size && index2 < header->proto_ids_size) return true;
+            break;
+        default:
+            break;
+    }
+
+    LOGW("Invalid DEX bytecode reference: opcode=%s index=%u index2=%u type=%u",
+         opcode, index, index2, type);
+    return false;
+}
+
+static bool instructionsFit(const dex::Header *header, const dex::u2 *insns,
+                            dex::u4 insns_size) {
+    dex::u4 cursor = 0;
+    while (cursor < insns_size) {
+        const dex::u2 *ptr = insns + cursor;
+        size_t remaining = static_cast<size_t>(insns_size - cursor);
+        size_t width;
+        if (*ptr == dex::kPackedSwitchSignature) {
+            if (remaining < 2) {
+                LOGW("Invalid DEX packed-switch payload header: cursor=%u", cursor);
+                return false;
+            }
+            width = 4 + static_cast<size_t>(ptr[1]) * 2;
+        } else if (*ptr == dex::kSparseSwitchSignature) {
+            if (remaining < 2) {
+                LOGW("Invalid DEX sparse-switch payload header: cursor=%u", cursor);
+                return false;
+            }
+            width = 2 + static_cast<size_t>(ptr[1]) * 4;
+        } else if (*ptr == dex::kArrayDataSignature) {
+            if (remaining < 4) {
+                LOGW("Invalid DEX array-data payload header: cursor=%u", cursor);
+                return false;
+            }
+            dex::u4 length = ptr[2] | (static_cast<dex::u4>(ptr[3]) << 16);
+            width = 4 + (static_cast<size_t>(ptr[1]) * length + 1) / 2;
+        } else {
+            width = dex::GetWidthFromFormat(dex::GetFormatFromOpcode(dex::OpcodeFromBytecode(*ptr)));
+        }
+        if (width == 0 || width > insns_size - cursor) {
+            LOGW("Invalid DEX bytecode width: cursor=%u width=%zu insns_size=%u",
+                 cursor, width, insns_size);
+            return false;
+        }
+        if (*ptr == dex::kPackedSwitchSignature ||
+            *ptr == dex::kSparseSwitchSignature ||
+            *ptr == dex::kArrayDataSignature) {
+            cursor += static_cast<dex::u4>(width);
+            continue;
+        }
+
+        auto opcode = dex::OpcodeFromBytecode(*ptr);
+        if ((dex::GetVerifyFlagsFromOpcode(opcode) & dex::kVerifyError) != 0) {
+            LOGW("Invalid DEX bytecode opcode: opcode=%s", dex::GetOpcodeName(opcode));
+            return false;
+        }
+
+        dex::u4 index = dex::kNoIndex;
+        dex::u4 index2 = dex::kNoIndex;
+        auto instruction = dex::DecodeInstruction(ptr);
+        switch (dex::GetFormatFromOpcode(instruction.opcode)) {
+            case dex::k20bc:
+            case dex::k21c:
+            case dex::k31c:
+            case dex::k35c:
+            case dex::k3rc:
+                index = instruction.vB;
+                break;
+            case dex::k45cc:
+            case dex::k4rcc:
+                index = instruction.vB;
+                index2 = instruction.arg[4];
+                break;
+            case dex::k22c:
+                index = instruction.vC;
+                break;
+            default:
+                break;
+        }
+        if (!instructionIndexFits(header, dex::GetIndexTypeFromOpcode(instruction.opcode),
+                                  index, index2, dex::GetOpcodeName(instruction.opcode))) {
+            return false;
+        }
+        cursor += static_cast<dex::u4>(width);
+    }
+    return cursor == insns_size;
+}
+
 static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t file_size,
                          dex::u4 offset) {
     if (offset == 0) return true;
@@ -604,6 +718,9 @@ static bool codeItemFits(const dex::u1 *base, const dex::Header *header, size_t 
         code->insns_size > (file_size - insns_start) / sizeof(dex::u2)) {
         LOGW("Invalid DEX method code: offset=%u insns_size=%u file_size=%zu", offset,
              code->insns_size, file_size);
+        return false;
+    }
+    if (!instructionsFit(header, code->insns, code->insns_size)) {
         return false;
     }
     if (!debugInfoFits(base, header, file_size, code->debug_info_off)) {
