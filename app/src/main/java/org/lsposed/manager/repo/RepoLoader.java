@@ -106,9 +106,10 @@ public class RepoLoader {
             for (String candidateRepoUrl : repoUrls) {
                 try {
                     String bodyString = requestString(candidateRepoUrl + "modules.json");
+                    OnlineModule[] repoModules = parseRepoModules(bodyString);
                     Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
                     repoUrl = candidateRepoUrl;
-                    loadLocalData(false);
+                    replaceRepoModules(repoModules);
                     loaded = true;
                     break;
                 } catch (Throwable t) {
@@ -129,6 +130,23 @@ public class RepoLoader {
                 }
             }
         }
+    }
+
+    private OnlineModule[] parseRepoModules(String bodyString) throws IOException {
+        Gson gson = new Gson();
+        OnlineModule[] repoModules = gson.fromJson(bodyString, OnlineModule[].class);
+        if (repoModules == null) {
+            throw new IOException("Invalid repo response");
+        }
+        return repoModules;
+    }
+
+    private void replaceRepoModules(OnlineModule[] repoModules) {
+        Map<String, OnlineModule> modules = new HashMap<>();
+        Arrays.stream(repoModules).forEach(onlineModule -> modules.put(onlineModule.getName(), onlineModule));
+        var channel = App.getPreferences().getString("update_channel", channels[0]);
+        updateLatestVersion(repoModules, channel);
+        onlineModules = modules;
     }
 
     private String requestString(String url) throws IOException {
@@ -157,13 +175,8 @@ public class RepoLoader {
             }
             byte[] encoded = Files.readAllBytes(repoFile);
             String bodyString = new String(encoded, StandardCharsets.UTF_8);
-            Gson gson = new Gson();
-            Map<String, OnlineModule> modules = new HashMap<>();
-            OnlineModule[] repoModules = gson.fromJson(bodyString, OnlineModule[].class);
-            Arrays.stream(repoModules).forEach(onlineModule -> modules.put(onlineModule.getName(), onlineModule));
-            var channel = App.getPreferences().getString("update_channel", channels[0]);
-            updateLatestVersion(repoModules, channel);
-            onlineModules = modules;
+            OnlineModule[] repoModules = parseRepoModules(bodyString);
+            replaceRepoModules(repoModules);
         } catch (Throwable t) {
             Log.e(App.TAG, Log.getStackTraceString(t));
             for (RepoListener listener : listeners) {
@@ -264,16 +277,29 @@ public class RepoLoader {
     }
 
     public void loadRemoteReleases(String packageName) {
-        loadRemoteReleases(packageName, 0);
+        loadRemoteReleases(packageName, repoUrlIndex(repoUrl), 0);
     }
 
-    private void loadRemoteReleases(String packageName, int repoUrlIndex) {
+    private int repoUrlIndex(String url) {
+        for (int i = 0; i < repoUrls.length; i++) {
+            if (repoUrls[i].equals(url)) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    private int nextRepoUrlIndex(int repoUrlIndex) {
+        return (repoUrlIndex + 1) % repoUrls.length;
+    }
+
+    private void loadRemoteReleases(String packageName, int repoUrlIndex, int attempts) {
         String candidateRepoUrl = repoUrls[repoUrlIndex];
         App.getOkHttpClient().newCall(new Request.Builder().url(String.format(candidateRepoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                retryRemoteReleases(packageName, repoUrlIndex, e);
+                retryRemoteReleases(packageName, repoUrlIndex, attempts, e);
             }
 
             @Override
@@ -281,7 +307,7 @@ public class RepoLoader {
                 if (!response.isSuccessful()) {
                     var e = new IOException("Unexpected response " + response.code() + " from " + call.request().url());
                     response.close();
-                    retryRemoteReleases(packageName, repoUrlIndex, e);
+                    retryRemoteReleases(packageName, repoUrlIndex, attempts, e);
                     return;
                 }
                 try (response) {
@@ -306,15 +332,15 @@ public class RepoLoader {
                     }
                 } catch (Throwable t) {
                     Log.e(App.TAG, Log.getStackTraceString(t));
-                    retryRemoteReleases(packageName, repoUrlIndex, t);
+                    retryRemoteReleases(packageName, repoUrlIndex, attempts, t);
                 }
             }
         });
     }
 
-    private void retryRemoteReleases(String packageName, int repoUrlIndex, Throwable error) {
-        if (repoUrlIndex + 1 < repoUrls.length) {
-            loadRemoteReleases(packageName, repoUrlIndex + 1);
+    private void retryRemoteReleases(String packageName, int repoUrlIndex, int attempts, Throwable error) {
+        if (attempts + 1 < repoUrls.length) {
+            loadRemoteReleases(packageName, nextRepoUrlIndex(repoUrlIndex), attempts + 1);
         } else {
             for (RepoListener listener : listeners) {
                 listener.onThrowable(error);
