@@ -53,7 +53,11 @@ object ApplicationService : ILSPApplicationService.Stub() {
         return true
       }
       OBFUSCATION_MAP_TRANSACTION_CODE -> {
-        val obfuscation = ConfigCache.state.isDexObfuscateEnabled
+        if (ConfigCache.state.isDexObfuscateEnabled) {
+          FileSystem.getPreloadDex(true)
+        }
+        val obfuscation =
+            ConfigCache.state.isDexObfuscateEnabled && FileSystem.isPreloadDexObfuscated
         val signatures = ObfuscationManager.getSignatures()
         reply?.writeNoException()
         reply?.writeInt(signatures.size * 2)

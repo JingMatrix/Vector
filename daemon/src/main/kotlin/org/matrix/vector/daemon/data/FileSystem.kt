@@ -39,6 +39,8 @@ import org.matrix.vector.daemon.utils.ObfuscationManager
 private const val TAG = "VectorFileSystem"
 
 object FileSystem {
+  private data class LoadedDex(val memory: SharedMemory, val obfuscated: Boolean)
+
   val basePath: Path = Paths.get("/data/adb/lspd")
   val logDirPath: Path = basePath.resolve("log")
   val oldLogDirPath: Path = basePath.resolve("log.old")
@@ -50,6 +52,8 @@ object FileSystem {
   val dbPath: File = configDirPath.resolve("modules_config.db").toFile()
 
   @Volatile private var preloadDex: SharedMemory? = null
+  @Volatile var isPreloadDexObfuscated: Boolean = false
+    private set
 
   private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault())
   private val lockPath: Path = basePath.resolve("lock")
@@ -143,21 +147,27 @@ object FileSystem {
   }
 
   /** Loads a single DEX file into SharedMemory, optionally applying obfuscation. */
-  private fun readDex(inputStream: InputStream, obfuscate: Boolean): SharedMemory {
+  private fun readDexResult(inputStream: InputStream, obfuscate: Boolean): LoadedDex {
     var memory = SharedMemory.create(null, inputStream.available())
     val byteBuffer = memory.mapReadWrite()
     Channels.newChannel(inputStream).read(byteBuffer)
     SharedMemory.unmap(byteBuffer)
 
+    var obfuscated = false
     if (obfuscate) {
       val newMemory = ObfuscationManager.obfuscateDex(memory)
       if (memory !== newMemory) {
         memory.close()
         memory = newMemory
+        obfuscated = true
       }
     }
     memory.setProtect(OsConstants.PROT_READ)
-    return memory
+    return LoadedDex(memory, obfuscated)
+  }
+
+  private fun readDex(inputStream: InputStream, obfuscate: Boolean): SharedMemory {
+    return readDexResult(inputStream, obfuscate).memory
   }
 
   /** Parses the module APK, extracts init lists, and loads DEXes into SharedMemory. */
@@ -308,7 +318,11 @@ object FileSystem {
   fun getPreloadDex(obfuscate: Boolean): SharedMemory? {
     if (preloadDex == null) {
       runCatching {
-            FileInputStream("framework/lspd.dex").use { preloadDex = readDex(it, obfuscate) }
+            FileInputStream("framework/lspd.dex").use {
+              val loadedDex = readDexResult(it, obfuscate)
+              preloadDex = loadedDex.memory
+              isPreloadDexObfuscated = loadedDex.obfuscated
+            }
           }
           .onFailure { Log.e(TAG, "Failed to load framework dex", it) }
     }
