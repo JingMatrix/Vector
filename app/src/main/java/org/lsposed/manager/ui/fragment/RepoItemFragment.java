@@ -313,6 +313,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
     public void onModuleReleasesLoaded(OnlineModule module) {
         if (this.module == null || module == null || !TextUtils.equals(this.module.getName(), module.getName())) return;
         this.module = module;
+        remoteModuleLoadRequested = false;
         var repoLoader = RepoLoader.getInstance();
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
