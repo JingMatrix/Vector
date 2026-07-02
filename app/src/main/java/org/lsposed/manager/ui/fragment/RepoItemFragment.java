@@ -297,6 +297,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
     public void onDestroyView() {
         super.onDestroyView();
         RepoLoader.getInstance().removeListener(this);
+        remoteModuleLoadRequested = false;
         binding = null;
     }
 
