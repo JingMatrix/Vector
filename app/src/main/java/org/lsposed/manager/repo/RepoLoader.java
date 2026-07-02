@@ -145,8 +145,8 @@ public class RepoLoader {
         Map<String, OnlineModule> modules = new HashMap<>();
         Arrays.stream(repoModules).forEach(onlineModule -> modules.put(onlineModule.getName(), onlineModule));
         var channel = App.getPreferences().getString("update_channel", channels[0]);
-        updateLatestVersion(repoModules, channel);
         onlineModules = modules;
+        updateLatestVersion(repoModules, channel);
     }
 
     private String requestString(String url) throws IOException {
