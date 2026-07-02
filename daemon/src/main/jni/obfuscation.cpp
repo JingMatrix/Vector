@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -429,6 +430,9 @@ static bool annotationSetRefListFits(const dex::u1 *base, const dex::Header *hea
     return true;
 }
 
+static bool checkedTableBytes(size_t start, dex::u4 count, size_t item_size, size_t file_size,
+                              const char *name, size_t *bytes);
+
 static bool annotationsDirectoryFits(const dex::u1 *base, const dex::Header *header,
                                      size_t file_size, dex::u4 offset) {
     if (offset == 0) return true;
@@ -439,15 +443,26 @@ static bool annotationsDirectoryFits(const dex::u1 *base, const dex::Header *hea
     }
     const auto *directory = reinterpret_cast<const dex::AnnotationsDirectoryItem *>(base + offset);
     auto fields_start = static_cast<size_t>(offset) + sizeof(dex::AnnotationsDirectoryItem);
-    auto fields_bytes = static_cast<size_t>(directory->fields_size) *
-                        sizeof(dex::FieldAnnotationsItem);
-    auto methods_bytes = static_cast<size_t>(directory->methods_size) *
-                         sizeof(dex::MethodAnnotationsItem);
-    auto parameters_bytes = static_cast<size_t>(directory->parameters_size) *
-                            sizeof(dex::ParameterAnnotationsItem);
-    if (fields_start > file_size || fields_bytes > file_size - fields_start ||
-        methods_bytes > file_size - fields_start - fields_bytes ||
-        parameters_bytes > file_size - fields_start - fields_bytes - methods_bytes) {
+    size_t fields_bytes;
+    if (!checkedTableBytes(fields_start, directory->fields_size,
+                           sizeof(dex::FieldAnnotationsItem), file_size, "field annotations",
+                           &fields_bytes)) {
+        LOGW("Invalid DEX annotations directory: offset=%u file_size=%zu", offset, file_size);
+        return false;
+    }
+    auto methods_start = fields_start + fields_bytes;
+    size_t methods_bytes;
+    if (!checkedTableBytes(methods_start, directory->methods_size,
+                           sizeof(dex::MethodAnnotationsItem), file_size, "method annotations",
+                           &methods_bytes)) {
+        LOGW("Invalid DEX annotations directory: offset=%u file_size=%zu", offset, file_size);
+        return false;
+    }
+    auto parameters_start = methods_start + methods_bytes;
+    size_t parameters_bytes;
+    if (!checkedTableBytes(parameters_start, directory->parameters_size,
+                           sizeof(dex::ParameterAnnotationsItem), file_size,
+                           "parameter annotations", &parameters_bytes)) {
         LOGW("Invalid DEX annotations directory: offset=%u file_size=%zu", offset, file_size);
         return false;
     }
@@ -500,6 +515,17 @@ static bool debugInfoIndexFits(dex::u4 index_plus_one, dex::u4 count, const char
         LOGW("Invalid DEX debug info %s: index=%u count=%u", name, index, count);
         return false;
     }
+    return true;
+}
+
+static bool checkedTableBytes(size_t start, dex::u4 count, size_t item_size, size_t file_size,
+                              const char *name, size_t *bytes) {
+    if (start > file_size || count > (file_size - start) / item_size) {
+        LOGW("Invalid DEX %s table: start=%zu count=%u item_size=%zu file_size=%zu",
+             name, start, count, item_size, file_size);
+        return false;
+    }
+    *bytes = static_cast<size_t>(count) * item_size;
     return true;
 }
 
@@ -651,7 +677,22 @@ static bool instructionsFit(const dex::Header *header, const dex::u2 *insns,
                 return false;
             }
             dex::u4 length = ptr[2] | (static_cast<dex::u4>(ptr[3]) << 16);
-            width = 4 + (static_cast<size_t>(ptr[1]) * length + 1) / 2;
+            auto element_width = static_cast<size_t>(ptr[1]);
+            if (element_width == 0 ||
+                (length != 0 &&
+                 element_width > (std::numeric_limits<size_t>::max() - 1) / length)) {
+                LOGW("Invalid DEX array-data payload size: width=%zu length=%u",
+                     element_width, length);
+                return false;
+            }
+            auto data_bytes = element_width * static_cast<size_t>(length);
+            auto data_units = (data_bytes + 1) / 2;
+            if (data_units > remaining - 4) {
+                LOGW("Invalid DEX array-data payload bounds: cursor=%u units=%zu remaining=%zu",
+                     cursor, data_units, remaining);
+                return false;
+            }
+            width = 4 + data_units;
         } else {
             width = dex::GetWidthFromFormat(dex::GetFormatFromOpcode(dex::OpcodeFromBytecode(*ptr)));
         }
