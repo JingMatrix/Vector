@@ -14,7 +14,9 @@
 #include <cstddef>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <new>
 #include <random>
 #include <string>
 #include <string_view>
@@ -1018,7 +1020,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_getSignatures(
     return signatures_jni;
 }
 
-static int obfuscateDexBuffer(const void *dex_data, size_t size) {
+static int obfuscateDexBuffer(void *dex_data, size_t size) {
     dex::Reader reader{reinterpret_cast<const dex::u1 *>(dex_data), size};
     reader.CreateFullIr();
     auto ir = reader.GetIr();
@@ -1040,6 +1042,11 @@ static int obfuscateDexBuffer(const void *dex_data, size_t size) {
     // CreateImage calls allocator.Allocate()
     auto *image = writer.CreateImage(&allocator, &new_size);
     LOGD("writer.CreateImage returned: %p", image);
+    if (image == nullptr) {
+        auto output_fd = allocator.GetFd();
+        if (output_fd >= 0) close(output_fd);
+        return -1;
+    }
 
     return allocator.GetFd();
 }
@@ -1064,21 +1071,7 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     auto mapped_size = static_cast<size_t>(size);
     LOGV("obfuscateDex: fd=%d, size=%zu", fd, mapped_size);
 
-    // CRITICAL: We MUST use MAP_SHARED here, not MAP_PRIVATE.
-    // 1. Android's SharedMemory is backed by ashmem or memfd. Mapping these as
-    //    MAP_PRIVATE creates a Copy-On-Write (COW) layer. In many Android kernel
-    //    configurations, this COW layer does not correctly fault-in the initial
-    //    contents from the shared source, resulting in the JNI side seeing
-    //    unpopulated zero-pages. This causes slicer to fail immediately.
-    // 2. Using MAP_SHARED ensures we have direct access to the same physical
-    //    pages populated by the Java layer.
-    // 3. ZERO-COPY MUTATION: Slicer's Intermediate Representation (IR) points
-    //    directly into this mapped memory for string data. By mutating the
-    //    buffer in-place, we update the IR's state without any additional
-    //    heap allocations. This is safe here because the Daemon owns the
-    //    lifecycle of this temporary buffer and the Java caller will discard
-    //    the un-obfuscated original anyway.
-    void *mem = mmap(nullptr, mapped_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    void *mem = mmap(nullptr, mapped_size, PROT_READ, MAP_SHARED, fd, 0);
     if (mem == MAP_FAILED) {
         LOGE("Failed to map input dex");
         return returnOriginalSharedMemory(memory, fd);
@@ -1106,8 +1099,16 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
     auto dex_file_size =
         static_cast<size_t>(reinterpret_cast<const dex::Header *>(mem)->file_size);
 
-    // Process the DEX and obtain a new file descriptor for the output
-    int new_fd = obfuscateDexBuffer(mem, dex_file_size);
+    auto mutable_dex = std::unique_ptr<dex::u1[]>(new (std::nothrow) dex::u1[dex_file_size]);
+    if (mutable_dex == nullptr) {
+        LOGE("Failed to allocate private dex obfuscation buffer, size=%zu", dex_file_size);
+        munmap(mem, mapped_size);
+        return returnOriginalSharedMemory(memory, fd);
+    }
+    memcpy(mutable_dex.get(), mem, dex_file_size);
+
+    // Slicer mutates string storage through the IR, so run it on a private copy.
+    int new_fd = obfuscateDexBuffer(mutable_dex.get(), dex_file_size);
 
     // Safely unmap and close the input buffer mapping
     munmap(mem, mapped_size);
