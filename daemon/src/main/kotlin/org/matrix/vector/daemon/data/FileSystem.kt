@@ -179,6 +179,7 @@ object FileSystem {
     val preLoadedDexes = mutableListOf<SharedMemory>()
     val moduleClassNames = mutableListOf<String>()
     val moduleLibraryNames = mutableListOf<String>()
+    var moduleDexesObfuscated = obfuscate
     var isLegacy = false
 
     runCatching {
@@ -245,7 +246,11 @@ object FileSystem {
             while (true) {
               val entryName = if (secondary == 1) "classes.dex" else "classes$secondary.dex"
               val dexEntry = zip.getEntry(entryName) ?: break
-              zip.getInputStream(dexEntry).use { preLoadedDexes.add(readDex(it, obfuscate)) }
+              zip.getInputStream(dexEntry).use {
+                val loadedDex = readDexResult(it, obfuscate)
+                preLoadedDexes.add(loadedDex.memory)
+                moduleDexesObfuscated = moduleDexesObfuscated && loadedDex.obfuscated
+              }
               secondary++
             }
           }
@@ -258,7 +263,7 @@ object FileSystem {
     if (preLoadedDexes.isEmpty()) return null
 
     // Apply obfuscation
-    if (obfuscate) {
+    if (moduleDexesObfuscated) {
       val signatures = ObfuscationManager.getSignatures()
       for (i in moduleClassNames.indices) {
         val s = moduleClassNames[i]
