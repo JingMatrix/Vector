@@ -179,7 +179,10 @@ object FileSystem {
     val preLoadedDexes = mutableListOf<SharedMemory>()
     val moduleClassNames = mutableListOf<String>()
     val moduleLibraryNames = mutableListOf<String>()
-    var moduleDexesObfuscated = obfuscate
+    // True when at least one module DEX had its signatures rewritten. Class-name
+    // rewriting must fire as long as any DEX was obfuscated, even if sibling
+    // DEXes without target signatures were returned unchanged.
+    var anyDexObfuscated = false
     var isLegacy = false
 
     runCatching {
@@ -249,7 +252,7 @@ object FileSystem {
               zip.getInputStream(dexEntry).use {
                 val loadedDex = readDexResult(it, obfuscate)
                 preLoadedDexes.add(loadedDex.memory)
-                moduleDexesObfuscated = moduleDexesObfuscated && loadedDex.obfuscated
+                anyDexObfuscated = anyDexObfuscated || loadedDex.obfuscated
               }
               secondary++
             }
@@ -263,7 +266,7 @@ object FileSystem {
     if (preLoadedDexes.isEmpty()) return null
 
     // Apply obfuscation
-    if (moduleDexesObfuscated) {
+    if (anyDexObfuscated) {
       val signatures = ObfuscationManager.getSignatures()
       for (i in moduleClassNames.indices) {
         val s = moduleClassNames[i]
