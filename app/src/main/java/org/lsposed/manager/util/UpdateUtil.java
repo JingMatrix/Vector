@@ -118,7 +118,11 @@ public class UpdateUtil {
         var matcher = VERSION_CODE_PATTERN.matcher(name);
         Integer versionCode = null;
         while (matcher.find()) {
-            versionCode = Integer.parseInt(matcher.group(1));
+            try {
+                versionCode = Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         return versionCode;
     }
