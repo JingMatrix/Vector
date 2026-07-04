@@ -479,7 +479,12 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         public void loadItems() {
             var channels = resources.getStringArray(R.array.update_channel_values);
             var channel = App.getPreferences().getString("update_channel", channels[0]);
-            var releases = RepoLoader.getInstance().getReleases(module.getName());
+            // Prefer this fragment's module when its releases were already loaded
+            // in full; a repo refresh may have replaced RepoLoader's entry with
+            // the modules.json summary, whose truncated release list would
+            // shadow the complete data we already fetched.
+            List<Release> releases = module.releasesLoaded ? module.getReleases() : null;
+            if (releases == null) releases = RepoLoader.getInstance().getReleases(module.getName());
             if (releases == null) releases = module.getReleases();
             List<Release> tmpList;
             if (channel.equals(channels[0])) {
