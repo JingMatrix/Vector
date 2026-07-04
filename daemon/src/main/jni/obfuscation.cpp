@@ -623,9 +623,19 @@ static bool instructionIndexFits(const dex::Header *header, dex::InstructionInde
                                  dex::u4 index, dex::u4 index2, const char *opcode) {
     switch (type) {
         case dex::kIndexNone:
+        case dex::kIndexVaries:
         case dex::kIndexInlineMethod:
         case dex::kIndexVtableOffset:
         case dex::kIndexFieldOffset:
+            // These index types do not reference the string/type/field/method
+            // tables that obfuscation rewrites, so slicer won't dereference an
+            // out-of-range entry through them. kIndexCallSiteRef and
+            // kIndexMethodHandleRef (DEX 038+) point at call-site/method-handle
+            // tables which slicer reads lazily and does not rewrite; rejecting
+            // them here would skip obfuscation for any module using
+            // invoke-custom or const-method-handle, defeating the hardening.
+        case dex::kIndexCallSiteRef:
+        case dex::kIndexMethodHandleRef:
             return true;
         case dex::kIndexStringRef:
             if (index < header->string_ids_size) return true;
