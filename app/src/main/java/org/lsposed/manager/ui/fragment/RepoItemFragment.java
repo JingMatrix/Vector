@@ -246,7 +246,15 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         if (module == null || module.getName() == null) return module;
         var updatedModule = RepoLoader.getInstance().getOnlineModule(module.getName());
         if (updatedModule != null) {
-            module = updatedModule;
+            // A repo refresh can replace RepoLoader's entry with the summary
+            // object from modules.json, which lacks README/release detail that
+            // was already fetched for this fragment. Keep the richer instance so
+            // the UI does not flicker back to empty/truncated content.
+            var currentHasDetail = module.releasesLoaded || hasReadme(module);
+            var updatedHasDetail = updatedModule.releasesLoaded || hasReadme(updatedModule);
+            if (!currentHasDetail || updatedHasDetail) {
+                module = updatedModule;
+            }
         }
         return module;
     }
