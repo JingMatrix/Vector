@@ -61,8 +61,10 @@ static bool isStandardDexMagic(const dex::u1 *magic) {
 static bool sectionFits(size_t file_size, dex::u4 offset, dex::u4 count, size_t item_size,
                         const char *name) {
     if (count == 0) {
-        if (offset == 0) return true;
-        LOGW("Invalid DEX %s section: empty section has non-zero offset %u", name, offset);
+        // An empty section may legitimately carry a non-zero offset in DEX
+        // files produced by some toolchains; only flag a misaligned one.
+        if (offset == 0 || isAligned(offset, 4)) return true;
+        LOGW("Invalid DEX %s section: empty section has unaligned offset %u", name, offset);
         return false;
     }
     if (offset == 0 || !isAligned(offset, 4)) {
@@ -892,7 +894,10 @@ static bool classDataFits(const dex::u1 *base, const dex::Header *header, size_t
 
 // Slicer's own structural checks compile out under NDEBUG, so validate the
 // table ranges and indexed references that CreateFullIr() will touch first.
-static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
+// On success, *out_file_size receives the validated header file_size so the
+// caller can feed slicer without re-reading the (potentially untrusted) header.
+static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size,
+                               size_t *out_file_size) {
     if (mapped_size < sizeof(dex::Header)) {
         LOGW("Invalid DEX: mapped size %zu is smaller than header size %zu", mapped_size,
              sizeof(dex::Header));
@@ -1034,14 +1039,25 @@ static bool isDexSafeForSlicer(const void *dex_data, size_t mapped_size) {
         }
     }
 
+    if (out_file_size != nullptr) *out_file_size = file_size;
     return true;
 }
 
 static jobject wrapSharedMemoryFd(JNIEnv *env, int fd) {
     auto java_fd =
         lsplant::JNI_NewObject(env, class_file_descriptor, method_file_descriptor_ctor, fd);
+    if (!java_fd) {
+        LOGE("Failed to construct FileDescriptor for fd=%d", fd);
+        close(fd);
+        return nullptr;
+    }
     auto java_sm =
         lsplant::JNI_NewObject(env, class_shared_memory, method_shared_memory_ctor, java_fd);
+    if (!java_sm) {
+        LOGE("Failed to construct SharedMemory for fd=%d", fd);
+        close(fd);
+        return nullptr;
+    }
     return java_sm.release();
 }
 
@@ -1249,13 +1265,12 @@ Java_org_matrix_vector_daemon_utils_ObfuscationManager_obfuscateDex(JNIEnv *env,
         return returnOriginalSharedMemory(memory, fd);
     }
 
-    if (!isDexSafeForSlicer(mem, mapped_size)) {
+    size_t dex_file_size = 0;
+    if (!isDexSafeForSlicer(mem, mapped_size, &dex_file_size)) {
         LOGW("Skipping DEX obfuscation for malformed input fd=%d", fd);
         munmap(mem, mapped_size);
         return returnOriginalSharedMemory(memory, fd);
     }
-    auto dex_file_size =
-        static_cast<size_t>(reinterpret_cast<const dex::Header *>(mem)->file_size);
 
     auto mutable_dex = std::unique_ptr<dex::u1[]>(new (std::nothrow) dex::u1[dex_file_size]);
     if (mutable_dex == nullptr) {
