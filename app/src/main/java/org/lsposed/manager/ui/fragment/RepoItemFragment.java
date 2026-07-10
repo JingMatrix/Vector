@@ -499,8 +499,9 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                     return !(name != null && name.startsWith("snapshot")) && !(name != null && name.startsWith("nightly"));
                 }).collect(Collectors.toList()) : null;
             } else tmpList = releases;
+            List<Release> newItems = tmpList != null ? tmpList : new ArrayList<>();
             runOnUiThread(() -> {
-                items = tmpList;
+                items = newItems;
                 notifyDataSetChanged();
             });
         }
@@ -682,13 +683,22 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
     public static class ReadmeFragment extends BorderFragment implements RepoLoader.RepoListener {
         ItemRepoReadmeBinding binding;
+        private String renderedReadme;
+        private boolean readmeRendered = false;
 
         private void renderReadme() {
             var parent = getParentFragment();
             if (!(parent instanceof RepoItemFragment) || binding == null) return;
 
             var repoItemFragment = (RepoItemFragment) parent;
-            repoItemFragment.renderGithubMarkdown(binding.readme, repoItemFragment.getModuleReadme());
+            var readme = repoItemFragment.getModuleReadme();
+            // onRepoLoaded fires on every repo load and channel change; skip the
+            // WebView reload when the content has not actually changed to avoid
+            // flicker.
+            if (readmeRendered && TextUtils.equals(renderedReadme, readme)) return;
+            renderedReadme = readme;
+            readmeRendered = true;
+            repoItemFragment.renderGithubMarkdown(binding.readme, readme);
         }
 
         @Nullable
@@ -732,6 +742,8 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         public void onDestroyView() {
             RepoLoader.getInstance().removeListener(this);
             binding = null;
+            renderedReadme = null;
+            readmeRendered = false;
             super.onDestroyView();
         }
 
