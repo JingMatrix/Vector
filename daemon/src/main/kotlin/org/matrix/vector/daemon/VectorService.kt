@@ -67,7 +67,7 @@ object VectorService : IDaemonService.Stub() {
     if (ApplicationService.hasRegister(uid, pid)) return null
 
     val scope = ProcessScope(processName, uid)
-    if (!ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
+    if (processName != "com.android.settings" && !ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
         ConfigCache.shouldSkipProcess(scope)) {
       Log.d(TAG, "Skipped $processName/$uid")
       return null
