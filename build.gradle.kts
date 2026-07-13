@@ -64,6 +64,7 @@ val versionNameProvider by extra(providers.of(GitLatestTagValueSource::class.jav
 val injectedPackageName by extra("com.android.shell")
 val injectedPackageUid by extra(2000)
 val defaultManagerPackageName by extra("org.lsposed.manager")
+val grapheneSettingsPackageName by extra("com.android.settings")
 
 val androidTargetSdkVersion by extra(36)
 val androidMinSdkVersion by extra(27)

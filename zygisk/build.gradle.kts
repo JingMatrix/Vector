@@ -15,6 +15,7 @@ val versionNameProvider: Provider<String> by rootProject.extra
 val injectedPackageName: String by rootProject.extra
 val injectedPackageUid: Int by rootProject.extra
 val defaultManagerPackageName: String by rootProject.extra
+val grapheneSettingsPackageName: String by rootProject.extra
 
 android {
     namespace = "org.matrix.vector"
@@ -24,12 +25,14 @@ android {
         buildConfigField("int", "HostPackageUid", "${injectedPackageUid}")
         buildConfigField("String", "InjectedPackageName", """"${injectedPackageName}"""")
         buildConfigField("String", "ManagerPackageName", """"${defaultManagerPackageName}"""")
+        buildConfigField("String", "GrapheneSettingsPackageName", """"${grapheneSettingsPackageName}"""")
 
         val flags =
             listOf(
                 "-DINJECTED_PACKAGE_NAME='\"${injectedPackageName}\"'",
                 "-DINJECTED_PACKAGE_UID=${injectedPackageUid}",
                 "-DMANAGER_PACKAGE_NAME='\"${defaultManagerPackageName}\"'",
+                "-DGRAPHENE_SETTINGS_PACKAGE_NAME='\"${grapheneSettingsPackageName}\"'",
             )
 
         externalNativeBuild {

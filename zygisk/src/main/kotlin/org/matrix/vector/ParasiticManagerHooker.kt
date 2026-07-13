@@ -441,6 +441,50 @@ object ParasiticManagerHooker {
         }
     }
 
+    @JvmStatic
+    fun patchGrapheneDCLRestriction() {
+        try {
+            // Force GrapheneOS to allow changing the restriction on Dynamic Code Loading, and
+            // force-disable it for the settings app and the shell
+            XposedBridge.hookAllMethods(
+                XposedHelpers.findClass(
+                    "android.ext.settings.app.AswRestrictMemoryDynCodeLoading",
+                    this.javaClass.classLoader
+                ),
+                "getImmutableValue",
+                object : XC_MethodReplacement() {
+                    override fun replaceHookedMethod(param: MethodHookParam<*>?): Any? {
+                        val appInfo = param?.args[2] as? ApplicationInfo?
+
+                        // Settings has to always be allowed so that it can be patched as well.
+                        // The parasitic host package is also allowed so that the manager functions correctly.
+                        if (appInfo != null && listOf(
+                                BuildConfig.GrapheneSettingsPackageName,
+                                BuildConfig.InjectedPackageName
+                            ).contains(appInfo.packageName)
+                        ) {
+                            return false
+                        }
+
+                        // All system apps are configurable (null)
+                        if (appInfo != null && (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0) {
+                            return null
+                        }
+
+                        // Defer to original implementation for other apps
+                        return XposedBridge.invokeOriginalMethod(
+                            param?.method, param?.thisObject, param?.args
+                        )
+                    }
+                }
+            )
+        } catch (_: XposedHelpers.ClassNotFoundError) {
+            // Ignore, assuming we are not on GrapheneOS
+        } catch (e: Exception) {
+            Utils.logE("Unknown error patching Graphene DCL", e)
+        }
+    }
+
     /** Entry point. Checks if the current process should host the parasitic manager. */
     @JvmStatic
     fun start(): Boolean {

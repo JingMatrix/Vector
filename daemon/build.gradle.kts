@@ -4,6 +4,7 @@ import java.io.PrintStream
 import java.util.UUID
 
 val defaultManagerPackageName: String by rootProject.extra
+val grapheneSettingsPackageName: String by rootProject.extra
 val injectedPackageName: String by rootProject.extra
 val injectedPackageUid: Int by rootProject.extra
 val versionCodeProvider: Provider<String> by rootProject.extra
@@ -21,6 +22,11 @@ android {
         "String",
         "DEFAULT_MANAGER_PACKAGE_NAME",
         """"$defaultManagerPackageName"""",
+    )
+    buildConfigField(
+        "String",
+        "GRAPHENE_SETTINGS_PACKAGE_NAME",
+        """"$grapheneSettingsPackageName"""",
     )
     buildConfigField("String", "FRAMEWORK_NAME", """"${rootProject.name}"""")
     buildConfigField("String", "MANAGER_INJECTED_PKG_NAME", """"$injectedPackageName"""")
