@@ -27,9 +27,9 @@ android {
 
         val flags =
             listOf(
-                "-DINJECTED_PACKAGE_NAME='\"${injectedPackageName}\"'",
+                "-DINJECTED_PACKAGE_NAME=${injectedPackageName}",
                 "-DINJECTED_PACKAGE_UID=${injectedPackageUid}",
-                "-DMANAGER_PACKAGE_NAME='\"${defaultManagerPackageName}\"'",
+                "-DMANAGER_PACKAGE_NAME=${defaultManagerPackageName}",
             )
 
         externalNativeBuild {
