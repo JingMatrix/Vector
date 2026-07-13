@@ -54,7 +54,16 @@ object ManagerService : ILSPManagerService.Stub() {
       IBinder.DeathRecipient {
     private val connection =
         object : android.app.IServiceConnection.Stub() {
+          // Android 8.1 ~ 16
           override fun connected(name: ComponentName?, service: IBinder?, dead: Boolean) {}
+
+          // Android 17+ (new signature with IBinderSession)
+          override fun connected(
+              name: ComponentName?,
+              service: IBinder?,
+              session: android.app.IBinderSession?,
+              dead: Boolean
+          ) {}
         }
 
     init {
