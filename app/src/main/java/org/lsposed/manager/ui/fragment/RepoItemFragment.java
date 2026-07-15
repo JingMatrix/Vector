@@ -272,6 +272,13 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         RepoLoader.getInstance().loadRemoteReleases(currentModule.getName());
     }
 
+    // True while the per-module detail (which carries the README) is still being
+    // fetched, so the README tab can show a loading state instead of the empty
+    // placeholder on a slow connection.
+    private boolean isModuleDetailLoading() {
+        return remoteModuleLoadRequested;
+    }
+
     @Nullable
     private String getModuleReadme() {
         var currentModule = refreshModuleFromRepo();
@@ -691,14 +698,29 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
             if (!(parent instanceof RepoItemFragment) || binding == null) return;
 
             var repoItemFragment = (RepoItemFragment) parent;
+            // getModuleReadme() also kicks off the per-module fetch when the
+            // README is missing, so query the loading state afterwards.
             var readme = repoItemFragment.getModuleReadme();
+            String display;
+            if (!TextUtils.isEmpty(readme)) {
+                display = readme;
+            } else if (repoItemFragment.isModuleDetailLoading()) {
+                // Detail is still downloading (e.g. slow connection); show a
+                // loading placeholder rather than the empty state so users are
+                // not misled into thinking the module has no README.
+                display = "<center>" + getString(R.string.loading) + "</center>";
+            } else {
+                // Detail has loaded and there is genuinely no README; let
+                // renderGithubMarkdown fall back to the empty placeholder.
+                display = null;
+            }
             // onRepoLoaded fires on every repo load and channel change; skip the
-            // WebView reload when the content has not actually changed to avoid
-            // flicker.
-            if (readmeRendered && TextUtils.equals(renderedReadme, readme)) return;
-            renderedReadme = readme;
+            // WebView reload when the rendered content has not actually changed
+            // to avoid flicker.
+            if (readmeRendered && TextUtils.equals(renderedReadme, display)) return;
+            renderedReadme = display;
             readmeRendered = true;
-            repoItemFragment.renderGithubMarkdown(binding.readme, readme);
+            repoItemFragment.renderGithubMarkdown(binding.readme, display);
         }
 
         @Nullable
@@ -735,6 +757,16 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                         runOnUiThread(this::renderReadme);
                     }
                 }
+            }
+        }
+
+        @Override
+        public void onThrowable(Throwable t) {
+            // The fetch failed; re-render so the tab leaves the loading state
+            // (the parent already reset the in-flight flag before this runnable
+            // executes) instead of spinning forever.
+            if (binding != null) {
+                runOnUiThread(this::renderReadme);
             }
         }
 
