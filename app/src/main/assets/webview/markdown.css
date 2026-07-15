@@ -146,11 +146,13 @@ input[type="checkbox"] {
   color: var(--red-600);
 }
 
+/* GitHub now emits the heading permalink anchor as a sibling AFTER the
+   heading (not a child), so the old ".../h6 .octicon-link" hide rule no
+   longer matches it and the floated icon leaks into the left gutter of the
+   following block. These permalinks are useless in this viewer (no hover,
+   no address bar), so hide them outright. */
 .markdown-body .anchor {
-  float: left;
-  padding-right: 4px;
-  margin-left: -20px;
-  line-height: 1;
+  display: none;
 }
 
 .markdown-body .anchor:focus {
