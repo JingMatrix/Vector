@@ -76,13 +76,20 @@ public class RepoLoader {
     private final Path repoFile = Paths.get(App.getInstance().getFilesDir().getAbsolutePath(), "repo.json");
     private final Set<RepoListener> listeners = ConcurrentHashMap.newKeySet();
     private boolean repoLoaded = false;
-    private static final String[] repoUrls = new String[]{
-            "https://backup.modules.lsposed.org/",
-            "https://modules.lsposed.org/",
-            "https://modules-blogcdn.lsposed.org/",
-            "https://modules-cloudflare.lsposed.org/"
+    // The full module list is only served by the backup host; modules.lsposed.org
+    // returns 403 for modules.json, and the blogcdn/cloudflare mirrors are dead.
+    private static final String[] listRepoUrls = new String[]{
+            "https://backup.modules.lsposed.org/"
     };
-    private static String repoUrl = repoUrls[0];
+    // Per-module detail JSON is served by both the backup host and the public
+    // site, so the latter acts as a real fallback for module/<package>.json.
+    private static final String[] detailRepoUrls = new String[]{
+            "https://backup.modules.lsposed.org/",
+            "https://modules.lsposed.org/"
+    };
+    // Each module is mirrored as a GitHub repo under this org; used as a
+    // last-resort README source when the JSON API omits it or is unreachable.
+    private static final String moduleGithubReadmeUrl = "https://api.github.com/repos/Xposed-Modules-Repo/%s/readme";
     private final Resources resources = App.getInstance().getResources();
     private final String[] channels = resources.getStringArray(R.array.update_channel_values);
 
@@ -103,12 +110,11 @@ public class RepoLoader {
         boolean loaded = false;
         Throwable lastError = null;
         try {
-            for (String candidateRepoUrl : repoUrls) {
+            for (String candidateRepoUrl : listRepoUrls) {
                 try {
                     String bodyString = requestString(candidateRepoUrl + "modules.json");
                     OnlineModule[] repoModules = parseRepoModules(bodyString);
                     Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
-                    repoUrl = candidateRepoUrl;
                     replaceRepoModules(repoModules);
                     loaded = true;
                     break;
@@ -277,37 +283,30 @@ public class RepoLoader {
     }
 
     public void loadRemoteReleases(String packageName) {
-        loadRemoteReleases(packageName, repoUrlIndex(repoUrl), 0);
+        loadRemoteReleases(packageName, 0);
     }
 
-    private int repoUrlIndex(String url) {
-        for (int i = 0; i < repoUrls.length; i++) {
-            if (repoUrls[i].equals(url)) {
-                return i;
-            }
+    private void loadRemoteReleases(String packageName, int attempt) {
+        if (attempt >= detailRepoUrls.length) {
+            // Every detail mirror failed; fall back to the module's GitHub repo
+            // so we can at least recover the README instead of failing outright.
+            loadReadmeFromGithub(packageName, null, new IOException("All module detail mirrors failed for " + packageName));
+            return;
         }
-        return 0;
-    }
-
-    private int nextRepoUrlIndex(int repoUrlIndex) {
-        return (repoUrlIndex + 1) % repoUrls.length;
-    }
-
-    private void loadRemoteReleases(String packageName, int repoUrlIndex, int attempts) {
-        String candidateRepoUrl = repoUrls[repoUrlIndex];
+        String candidateRepoUrl = detailRepoUrls[attempt];
         App.getOkHttpClient().newCall(new Request.Builder().url(String.format(candidateRepoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(App.TAG, call.request().url() + e.getMessage());
-                retryRemoteReleases(packageName, repoUrlIndex, attempts, e);
+                loadRemoteReleases(packageName, attempt + 1);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 if (!response.isSuccessful()) {
-                    var e = new IOException("Unexpected response " + response.code() + " from " + call.request().url());
+                    Log.e(App.TAG, "Unexpected response " + response.code() + " from " + call.request().url());
                     response.close();
-                    retryRemoteReleases(packageName, repoUrlIndex, attempts, e);
+                    loadRemoteReleases(packageName, attempt + 1);
                     return;
                 }
                 OnlineModule module;
@@ -327,23 +326,89 @@ public class RepoLoader {
                     }
                     module.releasesLoaded = true;
                     onlineModules.replace(packageName, module);
-                    repoUrl = candidateRepoUrl;
                 } catch (Throwable t) {
                     Log.e(App.TAG, Log.getStackTraceString(t));
-                    retryRemoteReleases(packageName, repoUrlIndex, attempts, t);
+                    loadRemoteReleases(packageName, attempt + 1);
                     return;
                 }
-                for (RepoListener listener : listeners) {
-                    listener.onModuleReleasesLoaded(module);
+                if (hasReadme(module)) {
+                    for (RepoListener listener : listeners) {
+                        listener.onModuleReleasesLoaded(module);
+                    }
+                } else {
+                    // Detail loaded but carries no README; enrich it from GitHub
+                    // before publishing so the README tab is not shown as empty.
+                    loadReadmeFromGithub(packageName, module, null);
                 }
             }
         });
     }
 
-    private void retryRemoteReleases(String packageName, int repoUrlIndex, int attempts, Throwable error) {
-        if (attempts + 1 < repoUrls.length) {
-            loadRemoteReleases(packageName, nextRepoUrlIndex(repoUrlIndex), attempts + 1);
-        } else {
+    private boolean hasReadme(@Nullable OnlineModule module) {
+        return module != null && ((module.getReadmeHTML() != null && !module.getReadmeHTML().isEmpty())
+                || (module.getReadme() != null && !module.getReadme().isEmpty()));
+    }
+
+    // Fetches the module's rendered README from its GitHub repo. When `loaded`
+    // is non-null the detail JSON already succeeded (valid releases, README is a
+    // bonus) and is always published; when null, the JSON mirrors were
+    // unreachable, so we enrich the cached summary and surface `error` only if
+    // even the GitHub fetch fails.
+    private void loadReadmeFromGithub(String packageName, @Nullable OnlineModule loaded, @Nullable Throwable error) {
+        OnlineModule target = loaded != null ? loaded : onlineModules.get(packageName);
+        if (target == null) {
+            if (error != null) {
+                for (RepoListener listener : listeners) {
+                    listener.onThrowable(error);
+                }
+            }
+            return;
+        }
+        App.getOkHttpClient().newCall(new Request.Builder()
+                .url(String.format(moduleGithubReadmeUrl, packageName))
+                .header("Accept", "application/vnd.github.html+json")
+                .build()).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(App.TAG, call.request().url() + e.getMessage());
+                publishReadmeFallback(packageName, target, null, loaded != null, error);
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) {
+                String html = null;
+                try (response) {
+                    if (response.isSuccessful()) {
+                        ResponseBody body = response.body();
+                        if (body != null) {
+                            String bodyString = body.string();
+                            if (!bodyString.trim().isEmpty()) {
+                                html = bodyString;
+                            }
+                        }
+                    } else {
+                        Log.e(App.TAG, "Unexpected response " + response.code() + " from " + call.request().url());
+                    }
+                } catch (Throwable t) {
+                    Log.e(App.TAG, Log.getStackTraceString(t));
+                }
+                publishReadmeFallback(packageName, target, html, loaded != null, error);
+            }
+        });
+    }
+
+    private void publishReadmeFallback(String packageName, OnlineModule module, @Nullable String readmeHTML, boolean detailLoaded, @Nullable Throwable error) {
+        if (readmeHTML != null) {
+            module.setReadmeHTML(readmeHTML);
+            onlineModules.replace(packageName, module);
+        }
+        if (detailLoaded || readmeHTML != null) {
+            // The releases are already valid, or we recovered a README: publish
+            // the (possibly enriched) module to the UI.
+            for (RepoListener listener : listeners) {
+                listener.onModuleReleasesLoaded(module);
+            }
+        } else if (error != null) {
             for (RepoListener listener : listeners) {
                 listener.onThrowable(error);
             }
