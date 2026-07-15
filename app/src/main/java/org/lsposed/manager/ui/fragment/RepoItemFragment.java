@@ -109,6 +109,8 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
     OnlineModule module;
     private ReleaseAdapter releaseAdapter;
     private InformationAdapter informationAdapter;
+    private boolean remoteModuleLoadRequested = false;
+    private boolean releaseLoadRequestedByUser = false;
 
     @Nullable
     @Override
@@ -147,6 +149,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         releaseAdapter = new ReleaseAdapter();
         informationAdapter = new InformationAdapter();
         RepoLoader.getInstance().addListener(this);
+        loadRemoteModuleIfReadmeMissing();
         return binding.getRoot();
     }
 
@@ -157,6 +160,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
         String modulePackageName = getArguments() == null ? null : getArguments().getString("modulePackageName");
         module = RepoLoader.getInstance().getOnlineModule(modulePackageName);
+        Log.i(App.TAG, "RepoItem: open " + modulePackageName + " -> module " + (module == null ? "NOT FOUND (repoLoaded=" + RepoLoader.getInstance().isRepoLoaded() + "), navigating back" : "found"));
         if (module == null) {
             if (!safeNavigate(R.id.action_repo_item_fragment_to_repo_fragment)) {
                 safeNavigate(R.id.repo_nav);
@@ -184,7 +188,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
             } else {
                 direction = "ltr";
             }
-            if (text == null) {
+            if (TextUtils.isEmpty(text)) {
                 text = "<center>" + App.getInstance().getString(R.string.list_empty) + "</center>";
             }
             if (ResourceUtils.isNightMode(getResources().getConfiguration())) {
@@ -238,6 +242,58 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         }
     }
 
+    @Nullable
+    private OnlineModule refreshModuleFromRepo() {
+        if (module == null || module.getName() == null) return module;
+        var updatedModule = RepoLoader.getInstance().getOnlineModule(module.getName());
+        if (updatedModule != null) {
+            // A repo refresh can replace RepoLoader's entry with the summary
+            // object from modules.json, which lacks README/release detail that
+            // was already fetched for this fragment. Keep the richer instance so
+            // the UI does not flicker back to empty/truncated content.
+            var currentHasDetail = module.releasesLoaded || hasReadme(module);
+            var updatedHasDetail = updatedModule.releasesLoaded || hasReadme(updatedModule);
+            if (!currentHasDetail || updatedHasDetail) {
+                module = updatedModule;
+            }
+        }
+        return module;
+    }
+
+    private boolean hasReadme(@Nullable OnlineModule module) {
+        return module != null && (!TextUtils.isEmpty(module.getReadmeHTML()) || !TextUtils.isEmpty(module.getReadme()));
+    }
+
+    private void loadRemoteModuleIfReadmeMissing() {
+        var currentModule = refreshModuleFromRepo();
+        if (currentModule == null || currentModule.getName() == null) return;
+        if (remoteModuleLoadRequested || currentModule.releasesLoaded || hasReadme(currentModule)) return;
+
+        remoteModuleLoadRequested = true;
+        RepoLoader.getInstance().loadRemoteReleases(currentModule.getName());
+    }
+
+    // True while the per-module detail (which carries the README) is still being
+    // fetched, so the README tab can show a loading state instead of the empty
+    // placeholder on a slow connection.
+    private boolean isModuleDetailLoading() {
+        return remoteModuleLoadRequested;
+    }
+
+    @Nullable
+    private String getModuleReadme() {
+        var currentModule = refreshModuleFromRepo();
+        if (currentModule == null) return null;
+        String readme = currentModule.getReadmeHTML();
+        if (TextUtils.isEmpty(readme)) {
+            readme = currentModule.getReadme();
+        }
+        if (TextUtils.isEmpty(readme)) {
+            loadRemoteModuleIfReadmeMissing();
+        }
+        return readme;
+    }
+
     @Override
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
 
@@ -257,23 +313,38 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
     public void onDestroyView() {
         super.onDestroyView();
         RepoLoader.getInstance().removeListener(this);
+        remoteModuleLoadRequested = false;
         binding = null;
     }
 
     @Override
-    public void onModuleReleasesLoaded(OnlineModule module) {
-        this.module = module;
-        var repoLoader = RepoLoader.getInstance();
+    public void onRepoLoaded() {
+        refreshModuleFromRepo();
+        loadRemoteModuleIfReadmeMissing();
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
-        }
-        if ((repoLoader.getReleases(module.getName()) != null ? repoLoader.getReleases(module.getName()).size() : 1) == 1) {
-            showHint(R.string.module_release_no_more, true);
         }
     }
 
     @Override
+    public void onModuleReleasesLoaded(OnlineModule module) {
+        if (this.module == null || module == null || !TextUtils.equals(this.module.getName(), module.getName())) return;
+        this.module = module;
+        remoteModuleLoadRequested = false;
+        var repoLoader = RepoLoader.getInstance();
+        if (releaseAdapter != null) {
+            runAsync(releaseAdapter::loadItems);
+        }
+        if (releaseLoadRequestedByUser && (repoLoader.getReleases(module.getName()) != null ? repoLoader.getReleases(module.getName()).size() : 1) == 1) {
+            showHint(R.string.module_release_no_more, true);
+        }
+        releaseLoadRequestedByUser = false;
+    }
+
+    @Override
     public void onThrowable(Throwable t) {
+        remoteModuleLoadRequested = false;
+        releaseLoadRequestedByUser = false;
         if (releaseAdapter != null) {
             runAsync(releaseAdapter::loadItems);
         }
@@ -416,7 +487,12 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         public void loadItems() {
             var channels = resources.getStringArray(R.array.update_channel_values);
             var channel = App.getPreferences().getString("update_channel", channels[0]);
-            var releases = RepoLoader.getInstance().getReleases(module.getName());
+            // Prefer this fragment's module when its releases were already loaded
+            // in full; a repo refresh may have replaced RepoLoader's entry with
+            // the modules.json summary, whose truncated release list would
+            // shadow the complete data we already fetched.
+            List<Release> releases = module.releasesLoaded ? module.getReleases() : null;
+            if (releases == null) releases = RepoLoader.getInstance().getReleases(module.getName());
             if (releases == null) releases = module.getReleases();
             List<Release> tmpList;
             if (channel.equals(channels[0])) {
@@ -431,8 +507,9 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                     return !(name != null && name.startsWith("snapshot")) && !(name != null && name.startsWith("nightly"));
                 }).collect(Collectors.toList()) : null;
             } else tmpList = releases;
+            List<Release> newItems = tmpList != null ? tmpList : new ArrayList<>();
             runOnUiThread(() -> {
-                items = tmpList;
+                items = newItems;
                 notifyDataSetChanged();
             });
         }
@@ -456,6 +533,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                     if (holder.progress.getVisibility() == View.GONE) {
                         holder.title.setVisibility(View.GONE);
                         holder.progress.show();
+                        releaseLoadRequestedByUser = true;
                         RepoLoader.getInstance().loadRemoteReleases(module.getName());
                     }
                 });
@@ -611,8 +689,42 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
         }
     }
 
-    public static class ReadmeFragment extends BorderFragment {
+    public static class ReadmeFragment extends BorderFragment implements RepoLoader.RepoListener {
         ItemRepoReadmeBinding binding;
+        private String renderedReadme;
+        private boolean readmeRendered = false;
+
+        private void renderReadme() {
+            var parent = getParentFragment();
+            if (!(parent instanceof RepoItemFragment) || binding == null) return;
+
+            var repoItemFragment = (RepoItemFragment) parent;
+            // getModuleReadme() also kicks off the per-module fetch when the
+            // README is missing, so query the loading state afterwards.
+            var readme = repoItemFragment.getModuleReadme();
+            String display;
+            if (!TextUtils.isEmpty(readme)) {
+                display = readme;
+            } else if (repoItemFragment.isModuleDetailLoading()) {
+                // Detail is still downloading (e.g. slow connection); show a
+                // loading placeholder rather than the empty state so users are
+                // not misled into thinking the module has no README.
+                display = "<center>" + getString(R.string.loading) + "</center>";
+            } else {
+                // Detail has loaded and there is genuinely no README; let
+                // renderGithubMarkdown fall back to the empty placeholder.
+                display = null;
+            }
+            var pkg = repoItemFragment.module == null ? null : repoItemFragment.module.getName();
+            Log.i(App.TAG, "RepoItem: render README for " + pkg + " -> " + (!TextUtils.isEmpty(readme) ? "content" : repoItemFragment.isModuleDetailLoading() ? "loading" : "empty"));
+            // onRepoLoaded fires on every repo load and channel change; skip the
+            // WebView reload when the rendered content has not actually changed
+            // to avoid flicker.
+            if (readmeRendered && TextUtils.equals(renderedReadme, display)) return;
+            renderedReadme = display;
+            readmeRendered = true;
+            repoItemFragment.renderGithubMarkdown(binding.readme, display);
+        }
 
         @Nullable
         @Override
@@ -624,11 +736,50 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                 }
                 return null;
             }
-            var repoItemFragment = (RepoItemFragment) parent;
             binding = ItemRepoReadmeBinding.inflate(getLayoutInflater(), container, false);
-            repoItemFragment.renderGithubMarkdown(binding.readme, repoItemFragment.module.getReadmeHTML());
             borderView = binding.scrollView;
+            RepoLoader.getInstance().addListener(this);
+            renderReadme();
             return binding.getRoot();
+        }
+
+        @Override
+        public void onRepoLoaded() {
+            if (binding != null) {
+                runOnUiThread(this::renderReadme);
+            }
+        }
+
+        @Override
+        public void onModuleReleasesLoaded(OnlineModule module) {
+            if (binding != null) {
+                var parent = getParentFragment();
+                if (parent instanceof RepoItemFragment) {
+                    var repoItemFragment = (RepoItemFragment) parent;
+                    if (repoItemFragment.module != null && TextUtils.equals(repoItemFragment.module.getName(), module.getName())) {
+                        runOnUiThread(this::renderReadme);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onThrowable(Throwable t) {
+            // The fetch failed; re-render so the tab leaves the loading state
+            // (the parent already reset the in-flight flag before this runnable
+            // executes) instead of spinning forever.
+            if (binding != null) {
+                runOnUiThread(this::renderReadme);
+            }
+        }
+
+        @Override
+        public void onDestroyView() {
+            RepoLoader.getInstance().removeListener(this);
+            binding = null;
+            renderedReadme = null;
+            readmeRendered = false;
+            super.onDestroyView();
         }
 
         @Override
