@@ -115,6 +115,7 @@ public class RepoLoader {
                     String bodyString = requestString(candidateRepoUrl + "modules.json");
                     OnlineModule[] repoModules = parseRepoModules(bodyString);
                     Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
+                    Log.i(App.TAG, "repo: fetched module list from " + candidateRepoUrl + " (" + repoModules.length + " entries, " + bodyString.length() + " bytes)");
                     replaceRepoModules(repoModules);
                     loaded = true;
                     break;
@@ -130,6 +131,7 @@ public class RepoLoader {
             }
         } finally {
             if (!loaded) {
+                Log.w(App.TAG, "repo: module list load failed on all mirrors, keeping cached data (" + onlineModules.size() + " modules)");
                 repoLoaded = true;
                 for (RepoListener listener : listeners) {
                     listener.onRepoLoaded();
@@ -152,6 +154,7 @@ public class RepoLoader {
         Arrays.stream(repoModules).forEach(onlineModule -> modules.put(onlineModule.getName(), onlineModule));
         var channel = App.getPreferences().getString("update_channel", channels[0]);
         onlineModules = modules;
+        Log.i(App.TAG, "repo: onlineModules replaced, now " + modules.size() + " modules (channel=" + channel + ")");
         updateLatestVersion(repoModules, channel);
     }
 
@@ -174,6 +177,7 @@ public class RepoLoader {
 
     synchronized public void loadLocalData(boolean updateRemoteRepo) {
         repoLoaded = false;
+        Log.i(App.TAG, "repo: loadLocalData(updateRemoteRepo=" + updateRemoteRepo + "), cacheExists=" + Files.exists(repoFile));
         try {
             if (Files.notExists(repoFile)) {
                 loadRemoteData();
@@ -182,9 +186,10 @@ public class RepoLoader {
             byte[] encoded = Files.readAllBytes(repoFile);
             String bodyString = new String(encoded, StandardCharsets.UTF_8);
             OnlineModule[] repoModules = parseRepoModules(bodyString);
+            Log.i(App.TAG, "repo: loadLocalData parsed " + repoModules.length + " modules from cache (" + encoded.length + " bytes)");
             replaceRepoModules(repoModules);
         } catch (Throwable t) {
-            Log.e(App.TAG, Log.getStackTraceString(t));
+            Log.e(App.TAG, "repo: loadLocalData failed", t);
             for (RepoListener listener : listeners) {
                 listener.onThrowable(t);
             }
@@ -290,21 +295,23 @@ public class RepoLoader {
         if (attempt >= detailRepoUrls.length) {
             // Every detail mirror failed; fall back to the module's GitHub repo
             // so we can at least recover the README instead of failing outright.
+            Log.w(App.TAG, "repo: detail mirrors exhausted for " + packageName + ", falling back to GitHub README");
             loadReadmeFromGithub(packageName, null, new IOException("All module detail mirrors failed for " + packageName));
             return;
         }
         String candidateRepoUrl = detailRepoUrls[attempt];
+        Log.i(App.TAG, "repo: loadRemoteReleases " + packageName + " attempt " + attempt + " -> " + candidateRepoUrl);
         App.getOkHttpClient().newCall(new Request.Builder().url(String.format(candidateRepoUrl + "module/%s.json", packageName)).build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(App.TAG, call.request().url() + e.getMessage());
+                Log.w(App.TAG, "repo: detail fetch failed for " + packageName + " from " + call.request().url() + ": " + e.getMessage());
                 loadRemoteReleases(packageName, attempt + 1);
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) {
                 if (!response.isSuccessful()) {
-                    Log.e(App.TAG, "Unexpected response " + response.code() + " from " + call.request().url());
+                    Log.w(App.TAG, "repo: detail unexpected response " + response.code() + " for " + packageName + " from " + call.request().url());
                     response.close();
                     loadRemoteReleases(packageName, attempt + 1);
                     return;
@@ -327,10 +334,12 @@ public class RepoLoader {
                     module.releasesLoaded = true;
                     onlineModules.replace(packageName, module);
                 } catch (Throwable t) {
-                    Log.e(App.TAG, Log.getStackTraceString(t));
+                    Log.e(App.TAG, "repo: detail parse failed for " + packageName, t);
                     loadRemoteReleases(packageName, attempt + 1);
                     return;
                 }
+                int releaseCount = module.getReleases() == null ? 0 : module.getReleases().size();
+                Log.i(App.TAG, "repo: detail loaded for " + packageName + " from " + candidateRepoUrl + ", hasReadme=" + hasReadme(module) + ", releases=" + releaseCount);
                 if (hasReadme(module)) {
                     for (RepoListener listener : listeners) {
                         listener.onModuleReleasesLoaded(module);
@@ -338,6 +347,7 @@ public class RepoLoader {
                 } else {
                     // Detail loaded but carries no README; enrich it from GitHub
                     // before publishing so the README tab is not shown as empty.
+                    Log.i(App.TAG, "repo: " + packageName + " detail has no README, fetching from GitHub");
                     loadReadmeFromGithub(packageName, module, null);
                 }
             }
@@ -357,6 +367,7 @@ public class RepoLoader {
     private void loadReadmeFromGithub(String packageName, @Nullable OnlineModule loaded, @Nullable Throwable error) {
         OnlineModule target = loaded != null ? loaded : onlineModules.get(packageName);
         if (target == null) {
+            Log.w(App.TAG, "repo: no cached module to enrich for " + packageName + ", giving up");
             if (error != null) {
                 for (RepoListener listener : listeners) {
                     listener.onThrowable(error);
@@ -370,7 +381,7 @@ public class RepoLoader {
                 .build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(App.TAG, call.request().url() + e.getMessage());
+                Log.w(App.TAG, "repo: GitHub README fetch failed for " + packageName + ": " + e.getMessage());
                 publishReadmeFallback(packageName, target, null, loaded != null, error);
             }
 
@@ -387,11 +398,12 @@ public class RepoLoader {
                             }
                         }
                     } else {
-                        Log.e(App.TAG, "Unexpected response " + response.code() + " from " + call.request().url());
+                        Log.w(App.TAG, "repo: GitHub README unexpected response " + response.code() + " for " + packageName);
                     }
                 } catch (Throwable t) {
-                    Log.e(App.TAG, Log.getStackTraceString(t));
+                    Log.e(App.TAG, "repo: GitHub README read failed for " + packageName, t);
                 }
+                Log.i(App.TAG, "repo: GitHub README for " + packageName + " -> " + (html != null ? "recovered (" + html.length() + " bytes)" : "unavailable"));
                 publishReadmeFallback(packageName, target, html, loaded != null, error);
             }
         });
@@ -405,10 +417,12 @@ public class RepoLoader {
         if (detailLoaded || readmeHTML != null) {
             // The releases are already valid, or we recovered a README: publish
             // the (possibly enriched) module to the UI.
+            Log.i(App.TAG, "repo: publishing " + packageName + " (detailLoaded=" + detailLoaded + ", readmeRecovered=" + (readmeHTML != null) + ")");
             for (RepoListener listener : listeners) {
                 listener.onModuleReleasesLoaded(module);
             }
         } else if (error != null) {
+            Log.w(App.TAG, "repo: nothing to publish for " + packageName + ", reporting failure");
             for (RepoListener listener : listeners) {
                 listener.onThrowable(error);
             }

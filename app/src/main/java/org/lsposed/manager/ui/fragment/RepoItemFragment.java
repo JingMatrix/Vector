@@ -160,6 +160,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
 
         String modulePackageName = getArguments() == null ? null : getArguments().getString("modulePackageName");
         module = RepoLoader.getInstance().getOnlineModule(modulePackageName);
+        Log.i(App.TAG, "RepoItem: open " + modulePackageName + " -> module " + (module == null ? "NOT FOUND (repoLoaded=" + RepoLoader.getInstance().isRepoLoaded() + "), navigating back" : "found"));
         if (module == null) {
             if (!safeNavigate(R.id.action_repo_item_fragment_to_repo_fragment)) {
                 safeNavigate(R.id.repo_nav);
@@ -714,6 +715,8 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.RepoLis
                 // renderGithubMarkdown fall back to the empty placeholder.
                 display = null;
             }
+            var pkg = repoItemFragment.module == null ? null : repoItemFragment.module.getName();
+            Log.i(App.TAG, "RepoItem: render README for " + pkg + " -> " + (!TextUtils.isEmpty(readme) ? "content" : repoItemFragment.isModuleDetailLoading() ? "loading" : "empty"));
             // onRepoLoaded fires on every repo load and channel change; skip the
             // WebView reload when the rendered content has not actually changed
             // to avoid flicker.
