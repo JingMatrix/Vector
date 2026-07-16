@@ -119,6 +119,23 @@ object Dex2OatServer {
             "u:r:untrusted_app:s0", "u:object_r:dex2oat_exec:s0", "file", "execute_no_trans")
   }
 
+  /**
+   * Android 14 moved dex2oat invocation behind artd.  artd is allowed to
+   * transition through dex2oat_exec, while the old dex2oat domain used the
+   * execute_no_trans check.  Checking the old tuple on Android 14+ falsely
+   * selects the xposed_file fallback and leaves artd unable to execute the
+   * bind-mounted wrapper.
+   */
+  private fun canUseDex2OatExec(): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      SELinux.checkSELinuxAccess(
+          "u:r:artd:s0", "u:object_r:dex2oat_exec:s0", "file", "execute")
+    } else {
+      SELinux.checkSELinuxAccess(
+          "u:r:dex2oat:s0", "u:object_r:dex2oat_exec:s0", "file", "execute_no_trans")
+    }
+  }
+
   private fun openDex2oat(id: Int, path: String) {
     runCatching {
       fdArray[id] = Os.open(path, OsConstants.O_RDONLY, 0)
@@ -207,7 +224,7 @@ object Dex2OatServer {
     val xposedFile = "u:object_r:xposed_file:s0"
     val dex2oatExec = "u:object_r:dex2oat_exec:s0"
 
-    if (SELinux.checkSELinuxAccess("u:r:dex2oat:s0", dex2oatExec, "file", "execute_no_trans")) {
+    if (canUseDex2OatExec()) {
       SELinux.setFileContext(WRAPPER32, dex2oatExec)
       SELinux.setFileContext(WRAPPER64, dex2oatExec)
       setSockCreateContext("u:r:dex2oat:s0")
