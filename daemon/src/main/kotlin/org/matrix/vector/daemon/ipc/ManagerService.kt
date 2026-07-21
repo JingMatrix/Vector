@@ -34,6 +34,7 @@ import org.matrix.vector.daemon.data.PreferenceStore
 import org.matrix.vector.daemon.env.Dex2OatServer
 import org.matrix.vector.daemon.env.LogcatMonitor
 import org.matrix.vector.daemon.system.*
+import org.matrix.vector.daemon.utils.PackageOptimizer
 import org.matrix.vector.daemon.utils.applyXspaceWorkaround
 import org.matrix.vector.daemon.utils.getRealUsers
 import rikka.parcelablelist.ParcelableListSlice
@@ -416,10 +417,6 @@ object ManagerService : ILSPManagerService.Stub() {
 
   override fun restartFor(intent: Intent) {} // No-op matching original
 
-  override fun clearApplicationProfileData(packageName: String) {
-    packageManager?.clearApplicationProfileData(packageName)
-  }
-
   override fun enableStatusNotification() = PreferenceStore.isStatusNotificationEnabled()
 
   override fun setEnableStatusNotification(enable: Boolean) {
@@ -433,8 +430,7 @@ object ManagerService : ILSPManagerService.Stub() {
     }
   }
 
-  override fun performDexOptMode(packageName: String) =
-      org.matrix.vector.daemon.utils.performDexOptMode(packageName)
+  override fun optimizePackage(packageName: String) = PackageOptimizer.optimize(packageName)
 
   override fun getDex2OatWrapperCompatibility() =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Dex2OatServer.compatibility else 0

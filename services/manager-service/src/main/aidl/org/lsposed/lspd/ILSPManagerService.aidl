@@ -68,11 +68,9 @@ interface ILSPManagerService {
 
     void restartFor(in Intent intent) = 35;
 
-    boolean performDexOptMode(String packageName) = 40;
+    boolean optimizePackage(String packageName) = 40;
 
     int getDex2OatWrapperCompatibility() = 44;
-
-    void clearApplicationProfileData(in String packageName) = 45;
 
     boolean enableStatusNotification() = 47;
 

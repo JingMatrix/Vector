@@ -9,8 +9,6 @@ import android.content.pm.UserInfo
 import android.os.Build
 import android.os.IUserManager
 import android.util.Log
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.lang.ClassNotFoundException
 import org.matrix.vector.daemon.system.*
 
@@ -62,36 +60,6 @@ fun applyNotificationWorkaround() {
           Log.e(TAG, "Failed to build dummy notification", it)
         }
       }
-}
-
-/**
- * UpsideDownCake (Android 14) requires executing a shell command for dexopt, whereas older versions
- * use reflection/IPC.
- */
-fun performDexOptMode(packageName: String): Boolean {
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-    return runCatching {
-          val process =
-              Runtime.getRuntime().exec("cmd package compile -m speed-profile -f $packageName")
-          val output = BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
-          val exitCode = process.waitFor()
-          exitCode == 0 && output.contains("Success")
-        }
-        .onFailure { Log.e(TAG, "Failed to exectute dexopt via cmd", it) }
-        .getOrDefault(false)
-  } else {
-    return runCatching {
-          packageManager?.performDexOptMode(
-              packageName,
-              false, // useJitProfiles
-              "speed-profile",
-              true,
-              true,
-              null) == true
-        }
-        .onFailure { Log.e(TAG, "Failed to invoke IPackageManager.performDexOptMode", it) }
-        .getOrDefault(false)
-  }
 }
 
 fun applyXspaceWorkaround(connection: IServiceConnection) {
