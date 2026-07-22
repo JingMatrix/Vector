@@ -11,7 +11,6 @@ import org.gradle.process.ExecOperations
 plugins {
     alias(libs.plugins.agp.lib) apply false
     alias(libs.plugins.agp.app) apply false
-    alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.ktfmt)
 }
 
@@ -21,12 +20,11 @@ abstract class GitCommitCountValueSource : ValueSource<String, ValueSourceParame
 
     override fun obtain(): String {
         val output = ByteArrayOutputStream()
-        val result =
-            execOperations.exec {
-                commandLine("git", "rev-list", "--count", "refs/remotes/origin/master")
-                standardOutput = output
-                isIgnoreExitValue = true
-            }
+        val result = execOperations.exec {
+            commandLine("git", "rev-list", "--count", "refs/remotes/origin/master")
+            standardOutput = output
+            isIgnoreExitValue = true
+        }
         // Return the count if successful, otherwise a default of "1".
         return if (result.exitValue == 0 && output.toString().isNotBlank()) {
             output.toString().trim()
@@ -42,12 +40,11 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
 
     override fun obtain(): String {
         val output = ByteArrayOutputStream()
-        val result =
-            execOperations.exec {
-                commandLine("git", "tag", "--list", "--sort=-v:refname")
-                standardOutput = output
-                isIgnoreExitValue = true
-            }
+        val result = execOperations.exec {
+            commandLine("git", "tag", "--list", "--sort=-v:refname")
+            standardOutput = output
+            isIgnoreExitValue = true
+        }
         // If successful, parse the first line. Provide a default if no tags are found.
         return if (result.exitValue == 0 && output.toString().isNotBlank()) {
             output.toString().lineSequence().first().removePrefix("v")
@@ -65,10 +62,10 @@ val injectedPackageName by extra("com.android.shell")
 val injectedPackageUid by extra(2000)
 val defaultManagerPackageName by extra("org.lsposed.manager")
 
-val androidTargetSdkVersion by extra(36)
+val androidTargetSdkVersion by extra(37)
 val androidMinSdkVersion by extra(27)
-val androidBuildToolsVersion by extra("36.0.0")
-val androidCompileSdkVersion by extra(36)
+val androidBuildToolsVersion by extra("37.0.0")
+val androidCompileSdkVersion by extra(37)
 val androidCompileNdkVersion by extra("29.0.13113456")
 val androidSourceCompatibility by extra(JavaVersion.VERSION_21)
 val androidTargetCompatibility by extra(JavaVersion.VERSION_21)
@@ -80,15 +77,13 @@ subprojects {
             ndkVersion = androidCompileNdkVersion
             buildToolsVersion = androidBuildToolsVersion
 
-            buildFeatures { buildConfig = true }
-            externalNativeBuild {
-                cmake {
-                    version = "3.29.8+"
-                    buildStagingDirectory = layout.buildDirectory.get().asFile
-                }
+            buildFeatures.buildConfig = true
+            externalNativeBuild.cmake {
+                version = "3.29.8+"
+                buildStagingDirectory = layout.buildDirectory.get().asFile
             }
 
-            defaultConfig {
+            defaultConfig.apply {
                 minSdk = androidMinSdkVersion
                 ndk { abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")) }
 
@@ -123,26 +118,24 @@ subprojects {
                 }
             }
 
-            buildTypes {
-                getByName("release") {
-                    externalNativeBuild {
-                        cmake {
-                            arguments.add(
-                                "-DDEBUG_SYMBOLS_PATH=${
+            buildTypes.getByName("release").apply {
+                externalNativeBuild {
+                    cmake {
+                        arguments.add(
+                            "-DDEBUG_SYMBOLS_PATH=${
                                 layout.buildDirectory.dir("symbols").get().asFile.absolutePath
                             }"
-                            )
-                        }
+                        )
                     }
                 }
             }
 
-            lint {
+            lint.apply {
                 abortOnError = true
                 checkReleaseBuilds = false
             }
 
-            compileOptions {
+            compileOptions.apply {
                 sourceCompatibility = androidSourceCompatibility
                 targetCompatibility = androidTargetCompatibility
             }

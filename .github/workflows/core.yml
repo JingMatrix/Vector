@@ -42,7 +42,7 @@ jobs:
           java-version: 21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Configure Gradle properties
         run: |
@@ -67,7 +67,7 @@ jobs:
             ${{ runner.os }}-ccache-
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Remove Android's cmake
         shell: bash
@@ -87,19 +87,19 @@ jobs:
           unzip zygisk/release/Vector-v*-Debug.zip -d Vector-Debug
 
       - name: Upload zygisk release
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.prepareArtifact.outputs.zygiskReleaseName }}
           path: "./Vector-Release/*"
 
       - name: Upload zygisk debug
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.prepareArtifact.outputs.zygiskDebugName }}
           path: "./Vector-Debug/*"
 
       - name: Upload mappings
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mappings
           path: |
@@ -107,7 +107,7 @@ jobs:
             app/build/outputs/mapping
 
       - name: Upload symbols
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: symbols
           path: build/symbols
