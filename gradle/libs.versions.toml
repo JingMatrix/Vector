@@ -1,21 +1,19 @@
 [versions]
-agp = "8.13.1"
-kotlin = "2.3.10"
-nav = "2.9.7"
+agp = "9.3.1"
+kotlin = "2.4.10"
+nav = "2.9.8"
 appcenter = "5.0.5"
-glide = "5.0.5"
-okhttp = "5.3.2"
-ktfmt = "0.25.0"
-coroutines = "1.10.2"
+glide = "5.0.9"
+okhttp = "5.4.0"
+ktfmt = "0.26.0"
+coroutines = "1.11.0"
 
 [plugins]
 agp-lib = { id = "com.android.library", version.ref = "agp" }
 agp-app = { id = "com.android.application", version.ref = "agp" }
 kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 nav-safeargs = { id = "androidx.navigation.safeargs", version.ref = "nav" }
-autoresconfig = { id = "dev.rikka.tools.autoresconfig", version = "1.2.2" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
-materialthemebuilder = { id = "dev.rikka.tools.materialthemebuilder", version = "1.5.1" }
 lsplugin-apksign = { id = "org.lsposed.lsplugin.apksign", version = "1.4" }
 
 [libraries]
@@ -30,11 +28,11 @@ rikkax-recyclerview = { module = "dev.rikka.rikkax.recyclerview:recyclerview-ktx
 rikkax-widget-borderview = { module = "dev.rikka.rikkax.widget:borderview", version = "1.1.0" }
 rikkax-widget-mainswitchbar = { module = "dev.rikka.rikkax.widget:mainswitchbar", version = "1.0.2" }
 
-androidx-activity = { module = "androidx.activity:activity", version = "1.12.4" }
-androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
-androidx-browser = { module = "androidx.browser:browser", version = "1.9.0" }
+androidx-activity = { module = "androidx.activity:activity", version = "1.13.0" }
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.10.0" }
+androidx-browser = { module = "androidx.browser:browser", version = "1.10.0" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version = "2.2.1" }
-androidx-core = { module = "androidx.core:core", version = "1.17.0" }
+androidx-core = { module = "androidx.core:core", version = "1.19.0" }
 androidx-fragment = { module = "androidx.fragment:fragment", version = "1.8.9" }
 androidx-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "nav" }
 androidx-navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version.ref = "nav" }
@@ -52,7 +50,7 @@ okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-i
 agp-apksig = { group = "com.android.tools.build", name = "apksig", version.ref = "agp" }
 appiconloader = { module = "me.zhanghai.android.appiconloader:appiconloader", version = "1.5.0" }
 material = { module = "com.google.android.material:material", version = "1.12.0" }
-gson = { module = "com.google.code.gson:gson", version = "2.13.2" }
+gson = { module = "com.google.code.gson:gson", version = "2.14.0" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version = "6.1" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

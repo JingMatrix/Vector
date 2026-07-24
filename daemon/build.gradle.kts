@@ -1,7 +1,15 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.ide.common.signing.KeystoreHelper
+import java.io.File
 import java.io.PrintStream
 import java.util.UUID
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 
 val defaultManagerPackageName: String by rootProject.extra
 val injectedPackageName: String by rootProject.extra
@@ -11,7 +19,6 @@ val versionNameProvider: Provider<String> by rootProject.extra
 
 plugins {
   alias(libs.plugins.agp.app)
-  alias(libs.plugins.kotlin)
   alias(libs.plugins.ktfmt)
 }
 
@@ -47,53 +54,81 @@ android {
   namespace = "org.matrix.vector.daemon"
 }
 
-android.applicationVariants.all {
-  val variantCapped = name.replaceFirstChar { it.uppercase() }
-  val variantLowered = name.lowercase()
+/**
+ * Generates a `SignInfo.kt` embedding the manager APK's signing certificate, used by the daemon to
+ * verify the manager's signature at runtime.
+ */
+abstract class GenerateSignInfoTask : DefaultTask() {
+  @get:Input @get:Optional abstract val storeType: Property<String>
 
-  val outSrcDir = layout.buildDirectory.dir("generated/source/signInfo/${variantLowered}").get()
-  val signInfoTask =
-      tasks.register("generate${variantCapped}SignInfo") {
-        dependsOn(":app:validateSigning${variantCapped}")
-        val sign =
-            rootProject
-                .project(":app")
-                .extensions
-                .getByType(ApplicationExtension::class.java)
-                .buildTypes
-                .named(variantLowered)
-                .get()
-                .signingConfig
-        val outSrc = file("$outSrcDir/org/matrix/vector/daemon/utils/SignInfo.kt")
-        outputs.file(outSrc)
-        doLast {
-          outSrc.parentFile.mkdirs()
-          val certificateInfo =
-              KeystoreHelper.getCertificateInfo(
-                  sign?.storeType,
-                  sign?.storeFile,
-                  sign?.storePassword,
-                  sign?.keyPassword,
-                  sign?.keyAlias,
-              )
+  @get:Input @get:Optional abstract val storeFilePath: Property<String>
 
-          PrintStream(outSrc)
-              .print(
-                  """
-                |package org.matrix.vector.daemon.utils
-                |
-                |object SignInfo {
-                |    @JvmField
-                |    val CERTIFICATE = byteArrayOf(${
-                    certificateInfo.certificate.encoded.joinToString(",")
-                })
-                |}"""
-                      .trimMargin())
+  @get:Input @get:Optional abstract val storePassword: Property<String>
+
+  @get:Input @get:Optional abstract val keyPassword: Property<String>
+
+  @get:Input @get:Optional abstract val keyAlias: Property<String>
+
+  @get:OutputDirectory abstract val outputDir: DirectoryProperty
+
+  @TaskAction
+  fun generate() {
+    val outSrc = outputDir.get().file("org/matrix/vector/daemon/utils/SignInfo.kt").asFile
+    outSrc.parentFile.mkdirs()
+    val certificateInfo =
+        KeystoreHelper.getCertificateInfo(
+            storeType.orNull,
+            storeFilePath.orNull?.let { File(it) },
+            storePassword.orNull,
+            keyPassword.orNull,
+            keyAlias.orNull,
+        )
+
+    PrintStream(outSrc)
+        .print(
+            """
+            |package org.matrix.vector.daemon.utils
+            |
+            |object SignInfo {
+            |    @JvmField
+            |    val CERTIFICATE = byteArrayOf(${
+                certificateInfo.certificate.encoded.joinToString(",")
+            })
+            |}"""
+                .trimMargin()
+        )
+  }
+}
+
+androidComponents {
+  onVariants { variant ->
+    val variantCapped = variant.name.replaceFirstChar { it.uppercase() }
+    val variantLowered = variant.name.lowercase()
+
+    val signInfoTask =
+        tasks.register<GenerateSignInfoTask>("generate${variantCapped}SignInfo") {
+          dependsOn(":app:validateSigning${variantCapped}")
+          val sign =
+              rootProject
+                  .project(":app")
+                  .extensions
+                  .getByType(ApplicationExtension::class.java)
+                  .buildTypes
+                  .named(variantLowered)
+                  .get()
+                  .signingConfig
+          storeType.set(sign?.storeType)
+          storeFilePath.set(sign?.storeFile?.absolutePath)
+          storePassword.set(sign?.storePassword)
+          keyPassword.set(sign?.keyPassword)
+          keyAlias.set(sign?.keyAlias)
         }
-      }
-  // registeoJavaGeneratingTask(signInfoTask, outSrcDir.asFile)
 
-  kotlin.sourceSets.getByName(variantLowered) { kotlin.srcDir(signInfoTask.map { outSrcDir }) }
+    variant.sources.kotlin?.addGeneratedSourceDirectory(
+        signInfoTask,
+        GenerateSignInfoTask::outputDir,
+    )
+  }
 }
 
 dependencies {
