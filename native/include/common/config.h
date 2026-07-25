@@ -45,14 +45,7 @@ inline constexpr auto kLinkerPath = "/linker";
 /// The version code of the library, populated by the build system.
 const int kVersionCode = VERSION_CODE;
 
-// Stringize the VERSION_NAME token so the build system can pass it as a bare
-// token (e.g. -DVERSION_NAME=2.0) without quoting, which is fragile across
-// Windows / Unix toolchains. Macros are not namespace members, so these must
-// live at file scope.
-#define VECTOR_STRINGIZE(x) #x
-#define VECTOR_STRINGIZE_TOKEN(x) VECTOR_STRINGIZE(x)
-
 /// The version name of the library, populated by the build system.
-const char *const kVersionName = VECTOR_STRINGIZE_TOKEN(VERSION_NAME);
+const char *const kVersionName = VERSION_NAME;
 
 }  // namespace vector::native

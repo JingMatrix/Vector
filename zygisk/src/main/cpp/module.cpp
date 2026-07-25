@@ -32,14 +32,10 @@ constexpr int SHARED_RELRO_UID = 1037;
 // Android uses this to separate users. UID = AppID + UserID * 10000.
 constexpr int PER_USER_RANGE = 100000;
 
-// Defined via CMake generated marcos.
-// Package names are passed as bare tokens (no quotes) because quoting is
-// fragile across Windows / Unix toolchains; stringize them here instead.
-#define VECTOR_STR(x) #x
-#define VECTOR_STR_TOKEN(x) VECTOR_STR(x)
+// Defined via CMake generated marcos
 constexpr uid_t kHostPackageUid = INJECTED_PACKAGE_UID;
-const char *const kHostPackageName = VECTOR_STR_TOKEN(INJECTED_PACKAGE_NAME);
-const char *const kManagerPackageName = VECTOR_STR_TOKEN(MANAGER_PACKAGE_NAME);
+const char *const kHostPackageName = INJECTED_PACKAGE_NAME;
+const char *const kManagerPackageName = MANAGER_PACKAGE_NAME;
 constexpr uid_t GID_INET = 3003;  // Android's Internet group ID.
 
 enum RuntimeFlags : uint32_t {
@@ -264,7 +260,7 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
             jint inet_gid = GID_INET;
             env_->SetIntArrayRegion(new_gids, original_gids_count, 1, &inet_gid);
 
-            args->nice_name = env_->NewStringUTF(kHostPackageName);
+            args->nice_name = env_->NewStringUTF(INJECTED_PACKAGE_NAME);
             args->gids = new_gids;
         }
     }
