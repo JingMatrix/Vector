@@ -24,6 +24,8 @@ object SystemServerService : ILSPSystemServerService.Stub(), IBinder.DeathRecipi
     // Register as the service name early to setup an IPC for `system_server`.
     Log.d(TAG, "Registering bridge service for `system_server` with name `$serviceName`.")
 
+    // `IServiceManager.registerForNotifications` is only available since Android R.
+    // On older platforms we simply let the real service replace our proxy in servicemanager.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
       val callback =
           object : IServiceCallback.Stub() {
@@ -39,13 +41,17 @@ object SystemServerService : ILSPSystemServerService.Stub(), IBinder.DeathRecipi
 
             override fun asBinder(): IBinder = this
           }
-      runCatching {
-            getSystemServiceManager().registerForNotifications(serviceName, callback)
-            ServiceManager.addService(serviceName, this)
-            proxyServiceName = serviceName
-          }
+      runCatching { getSystemServiceManager().registerForNotifications(serviceName, callback) }
           .onFailure { Log.e(TAG, "Failed to register IServiceCallback", it) }
     }
+
+    // The Zygisk module polls this name during `system_server` specialization,
+    // so it must be claimed on every supported platform.
+    runCatching {
+          ServiceManager.addService(serviceName, this)
+          proxyServiceName = serviceName
+        }
+        .onFailure { Log.e(TAG, "Failed to register proxy service `$serviceName`", it) }
   }
 
   override fun requestApplicationService(
