@@ -52,12 +52,12 @@ object ManagerService : ILSPManagerService.Stub() {
 
   class ManagerGuard(private val binder: IBinder, val pid: Int, val uid: Int) :
       IBinder.DeathRecipient {
+    // system_server dispatches the 3-argument callback up to Android 16 and the
+    // 4-argument one from Android 17 on.
     private val connection =
         object : android.app.IServiceConnection.Stub() {
-          // Android 8.1 ~ 16
           override fun connected(name: ComponentName?, service: IBinder?, dead: Boolean) {}
 
-          // Android 17+ (new signature with IBinderSession)
           override fun connected(
               name: ComponentName?,
               service: IBinder?,
