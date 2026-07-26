@@ -4,6 +4,7 @@ import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedInterface.Chain
 import io.github.libxposed.api.XposedInterface.ExceptionMode
 import java.lang.reflect.Executable
+import java.util.Collections
 import org.lsposed.lspd.util.Utils
 
 /** Represents a registered hook configuration, stored natively by [HookBridge]. */
@@ -38,7 +39,8 @@ class VectorChain(
 
     override fun getThisObject(): Any? = thisObj
 
-    override fun getArgs(): List<Any?> = args.toList()
+    // The API documents this list as immutable; toList() hands back a mutable ArrayList.
+    override fun getArgs(): List<Any?> = Collections.unmodifiableList(args.asList())
 
     override fun getArg(index: Int): Any? = args[index]
 
@@ -66,20 +68,31 @@ class VectorChain(
         return try {
             executeDownstream { record.hooker.intercept(nextChain) }
         } catch (t: Throwable) {
-            handleInterceptorException(t, record, nextChain, thisObject, currentArgs)
+            // Recording the recovery keeps this node's cached state consistent: once the hooker's
+            // exception has been suppressed, parent nodes must observe the recovered outcome and
+            // not the exception we just swallowed.
+            executeDownstream {
+                handleInterceptorException(t, record, nextChain, thisObject, currentArgs)
+            }
         }
     }
 
     /**
      * Executes the block and caches the downstream state so parent chains can recover it if the
      * current interceptor crashes during post-processing.
+     *
+     * Exactly one of [downstreamResult] and [downstreamThrowable] is meaningful after this returns,
+     * so both are always written; leaving a stale value behind would let a parent node resurrect an
+     * exception this node already handled.
      */
     private inline fun executeDownstream(block: () -> Any?): Any? {
         return try {
             val result = block()
             downstreamResult = result
+            downstreamThrowable = null
             result
         } catch (t: Throwable) {
+            downstreamResult = null
             downstreamThrowable = t
             throw t
         }
