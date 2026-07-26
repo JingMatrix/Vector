@@ -86,6 +86,9 @@ public final class ModuleUtil {
     }
 
     public static int extractIntPart(String str) {
+        // minApiVersion and targetApiVersion are required of a module, but a third-party module
+        // omitting one must not take down the module list.
+        if (str == null) return 0;
         int result = 0, length = str.length();
         for (int offset = 0; offset < length; offset++) {
             char c = str.charAt(offset);
@@ -304,13 +307,20 @@ public final class ModuleUtil {
                     var scopeEntry = modernModuleApk.getEntry("META-INF/xposed/scope.list");
                     if (scopeEntry != null) {
                         try (var reader = new BufferedReader(new InputStreamReader(modernModuleApk.getInputStream(scopeEntry)))) {
-                            scopeList = reader.lines().collect(Collectors.toList());
+                            // Scope entries are matched by exact string, so normalise the way the
+                            // daemon normalises its init lists.
+                            scopeList = reader.lines()
+                                    .map(String::trim)
+                                    .filter(s -> !s.isEmpty() && !s.startsWith("#"))
+                                    .collect(Collectors.toList());
                         }
                     } else {
                         scopeList = Collections.emptyList();
                     }
-                } catch (IOException | OutOfMemoryError e) {
-                    Log.e(App.TAG, "Error while closing modern module APK", e);
+                } catch (Throwable e) {
+                    // A single malformed module must not abort reloadInstalledModules and leave
+                    // the user with an empty list.
+                    Log.e(App.TAG, "Error while reading modern module APK", e);
                 }
                 this.minVersion = minVersion;
                 this.targetVersion = targetVersion;
