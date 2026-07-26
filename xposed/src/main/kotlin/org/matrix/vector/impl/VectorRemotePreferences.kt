@@ -33,6 +33,13 @@ internal class VectorRemotePreferences(service: ILSPInjectedModuleService, group
             override fun onUpdate(bundle: Bundle) {
                 val changes = ArraySet<String>()
 
+                // Sent for edit().clear() and for deleteRemotePreferences. Without this the cache
+                // keeps serving values the module app already removed.
+                if (bundle.getBoolean("clear", false)) {
+                    changes.addAll(map.keys)
+                    map.clear()
+                }
+
                 if (bundle.containsKey("delete")) {
                     val deletes =
                         bundle.getSerializableCompat<Set<String>>("delete") as? Set<String>

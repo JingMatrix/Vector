@@ -154,6 +154,12 @@ class ModuleService(private val loadedModule: Module) : IXposedService.Stub() {
     val userId = ensureModule()
     val values = mutableMapOf<String, Any?>()
 
+    // RemotePreferences.Editor always writes this key, and sets it for edit().clear(). Ignoring it
+    // left every key the module app just cleared in place.
+    if (diff.getBoolean("clear", false)) {
+      PreferenceStore.deleteModulePrefs(loadedModule.packageName, userId, group)
+    }
+
     diff.getSerializable("delete")?.let { deletes ->
       (deletes as Set<*>).forEach { values[it as String] = null }
     }
@@ -170,6 +176,10 @@ class ModuleService(private val loadedModule: Module) : IXposedService.Stub() {
 
   override fun deleteRemotePreferences(group: String) {
     PreferenceStore.deleteModulePrefs(loadedModule.packageName, ensureModule(), group)
+    // Hooked processes hold an in-process cache of the group; without this they keep serving the
+    // deleted values until their process restarts.
+    (loadedModule.service as? InjectedModuleService)
+        ?.onUpdateRemotePreferences(group, Bundle().apply { putBoolean("clear", true) })
   }
 
   override fun listRemoteFiles(): Array<String> {
