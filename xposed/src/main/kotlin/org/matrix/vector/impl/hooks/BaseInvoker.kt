@@ -49,10 +49,10 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
                     val delegate = VectorBootstrap.delegate
                     if (legacyHooks.isNotEmpty() && delegate != null) {
                         delegate.processLegacyHook(executable, tObj, tArgs, legacyHooks) {
-                            HookBridge.invokeOriginalMethod(executable, tObj, *tArgs)
+                            invokeOriginal(tObj, tArgs)
                         }
                     } else {
-                        HookBridge.invokeOriginalMethod(executable, tObj, *tArgs)
+                        invokeOriginal(tObj, tArgs)
                     }
                 }
 
