@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.os.ParcelFileDescriptor
 import io.github.libxposed.api.XposedInterface
+import io.github.libxposed.api.XposedInterface.ExceptionMode
 import io.github.libxposed.api.XposedModuleInterface.*
 import java.io.FileNotFoundException
 import java.lang.reflect.Constructor
@@ -25,6 +26,8 @@ class VectorContext(
     private val packageName: String,
     private val applicationInfo: ApplicationInfo,
     private val service: ILSPInjectedModuleService,
+    // What ExceptionMode.DEFAULT resolves to for this module, from module.prop.
+    private val defaultExceptionMode: ExceptionMode = ExceptionMode.PROTECTIVE,
 ) : XposedInterface {
 
     private val remotePrefs = ConcurrentHashMap<String, SharedPreferences>()
@@ -40,14 +43,14 @@ class VectorContext(
     }
 
     override fun hook(origin: Executable): XposedInterface.HookBuilder {
-        return VectorHookBuilder(origin)
+        return VectorHookBuilder(origin, defaultExceptionMode)
     }
 
     override fun hookClassInitializer(origin: Class<*>): XposedInterface.HookBuilder {
         val clinit =
             HookBridge.getStaticInitializer(origin)
                 ?: throw IllegalArgumentException("Class ${origin.name} has no static initializer")
-        return VectorHookBuilder(clinit)
+        return VectorHookBuilder(clinit, defaultExceptionMode)
     }
 
     override fun deoptimize(executable: Executable): Boolean {

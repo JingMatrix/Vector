@@ -16,7 +16,12 @@ import org.matrix.vector.impl.di.VectorBootstrap
 import org.matrix.vector.nativebridge.HookBridge
 
 /** Builder for configuring and registering hooks. */
-class VectorHookBuilder(private val origin: Executable) : HookBuilder {
+class VectorHookBuilder(
+    private val origin: Executable,
+    // Framework-internal hooks have no module.prop, and must stay protective: letting one of
+    // them propagate would take the boot path down with it.
+    private val defaultExceptionMode: ExceptionMode = ExceptionMode.PROTECTIVE,
+) : HookBuilder {
 
     private var priority = XposedInterface.PRIORITY_DEFAULT
     private var exceptionMode = ExceptionMode.DEFAULT
@@ -48,7 +53,12 @@ class VectorHookBuilder(private val origin: Executable) : HookBuilder {
             throw IllegalArgumentException("Cannot hook Constructor.newInstance")
         }
 
-        val record = VectorHookRecord(hooker, priority, exceptionMode)
+        // Resolve DEFAULT here rather than at throw time: the record is stored natively and
+        // reaches VectorChain with no way back to the module, and module.prop cannot change
+        // for the life of the process.
+        val resolvedMode =
+            if (exceptionMode == ExceptionMode.DEFAULT) defaultExceptionMode else exceptionMode
+        val record = VectorHookRecord(hooker, priority, resolvedMode)
 
         // Register natively. HookBridge now stores VectorHookRecord instead of HookerCallback.
         if (

@@ -2,6 +2,7 @@ package org.matrix.vector.impl.core
 
 import android.os.Build
 import android.os.Process
+import io.github.libxposed.api.XposedInterface.ExceptionMode
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
 import java.io.File
@@ -62,6 +63,9 @@ object VectorModuleManager {
                     packageName = module.packageName,
                     applicationInfo = module.applicationInfo,
                     service = module.service, // Our IPC client
+                    defaultExceptionMode =
+                        if (module.file.exceptionPassthrough) ExceptionMode.PASSTHROUGH
+                        else ExceptionMode.PROTECTIVE,
                 )
 
             // Instantiate the module entry classes

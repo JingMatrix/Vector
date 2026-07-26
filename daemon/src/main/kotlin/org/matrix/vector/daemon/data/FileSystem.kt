@@ -175,6 +175,7 @@ object FileSystem {
     val moduleClassNames = mutableListOf<String>()
     val moduleLibraryNames = mutableListOf<String>()
     var isLegacy = false
+    var exceptionPassthrough = false
 
     runCatching {
           ZipFile(file).use { zip ->
@@ -196,6 +197,12 @@ object FileSystem {
             // Leading-digit parsing, matching ModuleUtil.extractIntPart in the manager, so the two
             // sides cannot disagree about a value like "101.0".
             val targetApi = leadingInt(props.getProperty("targetApiVersion"))
+            // The module-wide mode ExceptionMode.DEFAULT resolves to. Anything that is not
+            // "passthrough" - absent, misspelled, or an explicit "protective" - keeps the
+            // protective default the API specifies.
+            exceptionPassthrough =
+                props.getProperty("exceptionMode")?.trim().equals("passthrough", true)
+
             val hasLegacyFile = zip.getEntry("assets/xposed_init") != null
 
             // Determine Loading Strategy based on Priority: API 101+ > Legacy > API 100
@@ -272,6 +279,7 @@ object FileSystem {
       this.moduleClassNames = moduleClassNames
       this.moduleLibraryNames = moduleLibraryNames
       this.legacy = isLegacy
+      this.exceptionPassthrough = exceptionPassthrough
     }
 
     return preLoadedApk
