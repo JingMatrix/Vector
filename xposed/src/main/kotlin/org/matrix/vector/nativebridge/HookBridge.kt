@@ -54,8 +54,12 @@ object HookBridge {
 
     @JvmStatic @FastNative external fun setTrusted(cookie: Any?): Boolean
 
+    /** Returns null when [method] carries no hooks at all. */
     @JvmStatic
-    external fun callbackSnapshot(hooker_callback: Class<*>, method: Executable): Array<Array<Any?>>
+    external fun callbackSnapshot(
+        hooker_callback: Class<*>,
+        method: Executable,
+    ): Array<Array<Any?>>?
 
     @JvmStatic external fun getStaticInitializer(clazz: Class<*>): Method?
 }

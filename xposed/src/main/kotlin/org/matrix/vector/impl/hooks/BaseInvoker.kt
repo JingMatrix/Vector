@@ -28,16 +28,14 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
     /** Resolves the current [type] and executes the underlying method. */
     protected fun proceedInvocation(thisObject: Any?, args: Array<out Any?>): Any? {
         return when (val currentType = type) {
-            is Invoker.Type.Origin -> {
-                try {
-                    HookBridge.invokeOriginalMethod(executable, thisObject, *args)
-                } catch (e: InvocationTargetException) {
-                    throw e.cause ?: e
-                }
-            }
+            is Invoker.Type.Origin -> invokeOriginal(thisObject, args)
             is Invoker.Type.Chain -> {
                 val snapshots =
                     HookBridge.callbackSnapshot(VectorHookRecord::class.java, executable)
+                        // The executable carries no hooks, so there is no chain to enter. Invokers
+                        // default to Type.Chain.FULL, so this is the ordinary case for a module
+                        // that obtains an invoker for a method it has not hooked.
+                        ?: return invokeOriginal(thisObject, args)
 
                 @Suppress("UNCHECKED_CAST")
                 val allModernHooks = snapshots[0] as Array<VectorHookRecord>
@@ -62,6 +60,15 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
                     VectorChain(executable, thisObject, arrayOf(*args), filteredHooks, 0, terminal)
                 chain.proceed()
             }
+        }
+    }
+
+    /** Invokes the original executable, unwrapping the reflective wrapper exception. */
+    private fun invokeOriginal(thisObject: Any?, args: Array<out Any?>): Any? {
+        return try {
+            HookBridge.invokeOriginalMethod(executable, thisObject, *args)
+        } catch (e: InvocationTargetException) {
+            throw e.cause ?: e
         }
     }
 

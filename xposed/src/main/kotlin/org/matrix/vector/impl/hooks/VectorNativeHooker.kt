@@ -6,6 +6,7 @@ import io.github.libxposed.api.XposedInterface.HookBuilder
 import io.github.libxposed.api.XposedInterface.HookHandle
 import io.github.libxposed.api.XposedInterface.Hooker
 import io.github.libxposed.api.error.HookFailedError
+import java.lang.reflect.Constructor
 import java.lang.reflect.Executable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -37,6 +38,14 @@ class VectorHookBuilder(private val origin: Executable) : HookBuilder {
                 origin.name == "invoke"
         ) {
             throw IllegalArgumentException("Cannot hook Method.invoke")
+        } else if (
+            origin is Method &&
+                origin.declaringClass == Constructor::class.java &&
+                origin.name == "newInstance"
+        ) {
+            // Named alongside Method.invoke by the API: the framework reflects through both, so
+            // hooking either recurses into the hook dispatch.
+            throw IllegalArgumentException("Cannot hook Constructor.newInstance")
         }
 
         val record = VectorHookRecord(hooker, priority, exceptionMode)
@@ -72,8 +81,11 @@ class VectorNativeHooker<T : Executable>(private val method: T) {
         val thisObject = if (isStatic) null else args[0]
         val actualArgs = if (isStatic) args else args.sliceArray(1 until args.size)
 
-        // Retrieve the hook snapshots
-        val snapshots = HookBridge.callbackSnapshot(VectorHookRecord::class.java, method)
+        // Retrieve the hook snapshots. Null means every hook was removed after this trampoline was
+        // entered, which is indistinguishable from having none.
+        val snapshots =
+            HookBridge.callbackSnapshot(VectorHookRecord::class.java, method)
+                ?: return invokeOriginalSafely(thisObject, actualArgs)
 
         @Suppress("UNCHECKED_CAST") val modernHooks = snapshots[0] as Array<VectorHookRecord>
         val legacyHooks = snapshots[1]
