@@ -48,14 +48,18 @@ class InjectedModuleService(private val packageName: String) : ILSPInjectedModul
     return bundle
   }
 
-  override fun openRemoteFile(path: String): ParcelFileDescriptor {
-    FileSystem.ensureModuleFilePath(path)
+  override fun openRemoteFile(path: String): ParcelFileDescriptor? {
+    // XposedInterface#openRemoteFile documents FileNotFoundException for a missing *or* forbidden
+    // path. Returning null lets VectorContext raise exactly that; throwing here surfaced a
+    // RemoteException for a missing file and an IllegalArgumentException for a rejected path.
     val userId = Binder.getCallingUid() / PER_USER_RANGE
     return runCatching {
+          FileSystem.ensureModuleFilePath(path)
           val dir = FileSystem.resolveModuleDir(packageName, "files", userId, -1)
           ParcelFileDescriptor.open(dir.resolve(path).toFile(), ParcelFileDescriptor.MODE_READ_ONLY)
         }
-        .getOrElse { throw RemoteException(it.message) }
+        .onFailure { Log.w(TAG, "Cannot open remote file $path for $packageName: ${it.message}") }
+        .getOrNull()
   }
 
   override fun getRemoteFileList(): Array<String> {
