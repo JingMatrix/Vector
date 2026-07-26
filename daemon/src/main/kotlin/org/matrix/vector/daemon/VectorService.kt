@@ -396,7 +396,8 @@ object VectorService : IDaemonService.Stub() {
             }
           }
         }
-        .onFailure { runCatching { iCallback.onScopeRequestFailed(it.message) } }
+        // onScopeRequestFailed declares @NonNull, and Throwable.message is frequently null.
+        .onFailure { runCatching { iCallback.onScopeRequestFailed(it.message ?: it.toString()) } }
 
     NotificationManager.cancelNotification(
         NotificationManager.SCOPE_CHANNEL_ID, packageName, userId)

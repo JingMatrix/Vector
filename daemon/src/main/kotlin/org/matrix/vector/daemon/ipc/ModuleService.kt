@@ -123,6 +123,12 @@ class ModuleService(private val loadedModule: Module) : IXposedService.Stub() {
 
   override fun requestScope(packages: List<String>, callback: IXposedScopeCallback) {
     val userId = ensureModule()
+    if (packages.isEmpty()) {
+      // Nothing was asked for, so the request is trivially satisfied. Returning without touching
+      // the callback would leave the module waiting forever.
+      callback.onScopeRequestApproved(emptyList())
+      return
+    }
     if (!PreferenceStore.isScopeRequestBlocked(loadedModule.packageName)) {
       packages.forEach { pkg ->
         NotificationManager.requestModuleScope(loadedModule.packageName, userId, pkg, callback)
