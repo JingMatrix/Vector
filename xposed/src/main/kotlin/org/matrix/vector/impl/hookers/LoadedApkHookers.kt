@@ -39,25 +39,42 @@ private object PackageContextHelper {
 
     data class ContextInfo(
         val packageName: String,
+        val legacyPackageName: String,
         val processName: String,
         val isFirstPackage: Boolean,
     )
 
     fun resolve(loadedApk: Any, apkPackageName: String): ContextInfo {
-        var packageName = currentPkgMethod.invoke(null) as? String
-        var processName = currentProcMethod.invoke(null) as? String
+        val boundPackage = currentPkgMethod.invoke(null) as? String
+        val boundProcess = currentProcMethod.invoke(null) as? String
 
         val isFirstPackage =
-            packageName != null && processName != null && packageName == apkPackageName
+            boundPackage != null && boundProcess != null && boundPackage == apkPackageName
 
-        if (!isFirstPackage) {
+        val packageName: String
+        val processName: String
+        if (isFirstPackage) {
+            packageName = boundPackage!!
+            processName = boundProcess!!
+        } else {
             packageName = apkPackageName
-            processName = currentPkgMethod.invoke(null) as? String ?: apkPackageName
-        } else if (packageName == "android") {
-            packageName = "system"
+            processName = boundPackage ?: apkPackageName
         }
 
-        return ContextInfo(packageName, processName, isFirstPackage)
+        // The two APIs name this process differently, so keep both names.
+        //
+        // de.robv modules identify system server by lpparam.packageName == "android", so the
+        // android:ui process has always been handed "system" to keep the two apart. The modern
+        // API says the reverse: "system" is the virtual name for system server, while "android"
+        // stays a real scope target precisely because some of its components declare
+        // android:process=":ui". Reporting android:ui as "system" there hid the real package.
+        //
+        // In system server itself currentPackageName() is null, so isFirstPackage is false and
+        // both names are already "android"; only android:ui is affected.
+        val legacyPackageName =
+            if (isFirstPackage && packageName == "android") "system" else packageName
+
+        return ContextInfo(packageName, legacyPackageName, processName, isFirstPackage)
     }
 }
 
@@ -172,7 +189,7 @@ object LoadedApkCreateCLHooker : XposedInterface.Hooker {
                     VectorBootstrap.withLegacy { delegate ->
                         delegate.onPackageLoaded(
                             LegacyPackageInfo(
-                                ctx.packageName,
+                                ctx.legacyPackageName,
                                 ctx.processName,
                                 classLoader,
                                 appInfo,
