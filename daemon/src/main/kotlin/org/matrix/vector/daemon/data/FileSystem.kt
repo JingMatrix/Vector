@@ -27,6 +27,7 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Properties
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -160,6 +161,10 @@ object FileSystem {
     return memory
   }
 
+  /** Reads the leading integer of a module.prop value, as the manager's extractIntPart does. */
+  private fun leadingInt(value: String?): Int =
+      value?.trim()?.takeWhile { it.isDigit() }?.toIntOrNull() ?: 0
+
   /** Parses the module APK, extracts init lists, and loads DEXes into SharedMemory. */
   fun loadModule(apkPath: String, obfuscate: Boolean): PreLoadedApk? {
     val file = File(apkPath)
@@ -173,20 +178,24 @@ object FileSystem {
 
     runCatching {
           ZipFile(file).use { zip ->
-            // Parse module.prop to get targetApiVersion
+            // module.prop is specified as Java Properties format. Parsing it by hand mishandles
+            // ':' as a separator, '!' comments, escapes and line continuations, and the manager
+            // app already reads the same file with Properties.load.
             val props =
-                zip.getEntry("META-INF/xposed/module.prop")?.let { entry ->
-                  zip.getInputStream(entry).bufferedReader().useLines { lines ->
-                    lines
-                        .filter { it.contains("=") }
-                        .associate {
-                          val parts = it.split("=", limit = 2)
-                          parts[0].trim() to parts[1].trim()
-                        }
+                Properties().apply {
+                  zip.getEntry("META-INF/xposed/module.prop")?.let { entry ->
+                    // Properties.load rejects a malformed \uXXXX escape, which the old hand-rolled
+                    // parser tolerated. Keep that tolerance: a bad module.prop must not make the
+                    // APK unloadable, not least because a legacy module is selected by
+                    // assets/xposed_init and needs no module.prop at all.
+                    runCatching { zip.getInputStream(entry).use { load(it) } }
+                        .onFailure { Log.w(TAG, "Malformed module.prop in $apkPath", it) }
                   }
-                } ?: emptyMap()
+                }
 
-            val targetApi = props["targetApiVersion"]?.toIntOrNull() ?: 0
+            // Leading-digit parsing, matching ModuleUtil.extractIntPart in the manager, so the two
+            // sides cannot disagree about a value like "101.0".
+            val targetApi = leadingInt(props.getProperty("targetApiVersion"))
             val hasLegacyFile = zip.getEntry("assets/xposed_init") != null
 
             // Determine Loading Strategy based on Priority: API 101+ > Legacy > API 100
