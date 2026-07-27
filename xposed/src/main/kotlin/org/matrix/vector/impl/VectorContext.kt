@@ -21,6 +21,28 @@ import org.matrix.vector.nativebridge.HookBridge
 
 private const val TAG = "VectorContext"
 
+/** Smallest positive gap between the sorted addresses, i.e. one ArtMethod. */
+private fun strideOf(addresses: LongArray): Long {
+    val sorted = addresses.sorted()
+    var stride = Long.MAX_VALUE
+    for (i in 1 until sorted.size) {
+        val delta = sorted[i] - sorted[i - 1]
+        if (delta in 1 until stride) stride = delta
+    }
+    return if (stride == Long.MAX_VALUE) 0L else stride
+}
+
+/**
+ * The size of one ArtMethod, which is a property of the runtime rather than of any class. Derived
+ * once from a class with plenty of members so that a class showing only one member to reflection
+ * can still be measured against it.
+ */
+private val artMethodSize: Long by lazy {
+    val field = artMethodField ?: return@lazy 0L
+    runCatching { strideOf(Any::class.java.declaredMethods.map { field.getLong(it) }.toLongArray()) }
+        .getOrDefault(0L)
+}
+
 /** ART keeps the ArtMethod address of a reflected member in this field. */
 private val artMethodField: Field? by lazy {
     runCatching {
@@ -78,7 +100,10 @@ class VectorContext(
                 members.addAll(origin.declaredConstructors)
                 members.addAll(origin.declaredMethods)
                 val addresses = LongArray(members.size) { field.getLong(members[it]) }
-                HookBridge.findStaticInitializer(origin, addresses)
+                // Prefer the class's own spacing; fall back to the runtime-wide size for a class
+                // that shows fewer than two members.
+                val stride = strideOf(addresses).takeIf { it > 0 } ?: artMethodSize
+                HookBridge.findStaticInitializer(origin, addresses, stride)
             }
             .onFailure { Log.w(TAG, "Static initializer lookup failed for ${origin.name}", it) }
             .getOrNull()

@@ -1,5 +1,7 @@
 #include <alloca.h>
 #include <parallel_hashmap/phmap.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <lsplant.hpp>
@@ -557,10 +559,19 @@ VECTOR_DEF_NATIVE_METHOD(jobjectArray, HookBridge, callbackSnapshot, jclass call
 }
 
 /**
- * @brief  Retrieves the static initializer (<clinit>) of a class as a Method object.
- * @param target_class The class to inspect.
- * @return A Method object for the static initializer, or null if it doesn't exist.
+ * @brief Reports whether the pages spanning [addr, addr + len) are mapped.
+ *
+ * msync on an unmapped range fails with ENOMEM, which turns a read that would raise SIGSEGV into
+ * an answer. Used for the one candidate below that cannot be bracketed by known-good members.
  */
+static bool IsMapped(uintptr_t addr, size_t len) {
+    static const size_t page = static_cast<size_t>(sysconf(_SC_PAGESIZE));
+    if (page == 0) return false;
+    const uintptr_t start = addr & ~(page - 1);
+    const size_t span = ((addr + len) - start + page - 1) & ~(page - 1);
+    return msync(reinterpret_cast<void *>(start), span, MS_ASYNC) == 0;
+}
+
 /**
  * @brief Finds a class's static initializer without initializing the class.
  *
@@ -568,27 +579,39 @@ VECTOR_DEF_NATIVE_METHOD(jobjectArray, HookBridge, callbackSnapshot, jclass call
  * class, which is exactly the event a <clinit> hook exists to observe. Java reflection cannot be
  * used either, because it hides <clinit> entirely.
  *
- * ART stores a class's ArtMethods in one contiguous array, direct methods first, ordered by dex
- * method id. Dex method ids are ordered by name and "<clinit>" sorts before "<init>", so a class
- * that has a static initializer keeps it in the first slot - one stride below the lowest method
- * ordinary reflection can see.
+ * ART stores a class's ArtMethods in one contiguous array: direct methods, then declared virtual
+ * methods, then methods copied in from interfaces. Reflection reports every one of the first two
+ * groups except <clinit>, so the addresses the caller passes are a run of evenly spaced slots with
+ * <clinit> missing from it. Finding the hole finds the method, and a hole is bracketed by two
+ * members that are known to be inside the array, so nothing has to be assumed about where the
+ * array begins.
+ *
+ * The hole is only at the very start - below every address the caller can see - when no declared
+ * direct method sorts ahead of "<clinit>". Dex method ids are ordered by name, and while "<init>"
+ * does sort after it, '$' and '-' do not: an enum's $values, and the -$$Nest$ accessors javac
+ * emits for nestmates, both take the first slot instead. So the slot below the run is one
+ * possibility among several rather than the answer, and it is the only one that can fall outside
+ * the array, which is what a class with no static initializer looks like. It is checked last and
+ * only once its page is known to be mapped.
+ *
+ * Every candidate is then confirmed by two plain word reads before anything dereferences it: its
+ * declaring class must match the run's, and its access flags must say static constructor.
  *
  * The caller passes ArtMethod addresses read from java.lang.reflect.Executable.artMethod rather
  * than jmethodIDs, because a Java-debuggable process hands out index based ids instead of
  * pointers.
  *
- * A class with no static initializer has something else in that slot, so the candidate is checked
- * by two plain word reads before anything dereferences it: its declaring class must match its
- * neighbour's, and its access flags must say static constructor.
- *
- * @return The reflected static initializer, or nullptr if the class has none or the layout is not
- *         what this relies on.
+ * @return The static initializer as a reflected object, or nullptr if the class has none or the
+ *         layout is not what this relies on.
  */
 VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, findStaticInitializer, jclass target_class,
-                         jlongArray art_methods) {
+                         jlongArray art_methods, jlong art_method_size) {
     const jsize count = art_methods ? env->GetArrayLength(art_methods) : 0;
-    // One member anchors the array, a second gives its element size.
-    if (count < 2) return nullptr;
+    // One member is enough to anchor the run; the element size is a property of the runtime, so
+    // the caller derives it once elsewhere. A class whose only members are <clinit> and an
+    // implicit constructor leaves exactly one member visible to reflection, and that is the
+    // commonest shape for wanting this hook.
+    if (count < 1) return nullptr;
 
     std::vector<uintptr_t> ids(count);
     {
@@ -602,37 +625,48 @@ VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, findStaticInitializer, jclass targ
     }
 
     std::sort(ids.begin(), ids.end());
-    uintptr_t stride = std::numeric_limits<uintptr_t>::max();
-    for (size_t i = 1; i < ids.size(); ++i) {
-        uintptr_t delta = ids[i] - ids[i - 1];
-        if (delta > 0 && delta < stride) stride = delta;
-    }
+    const auto stride = static_cast<uintptr_t>(art_method_size);
     // An ArtMethod is a few dozen bytes on every supported release; refuse rather than guess when
-    // the spacing is not what a contiguous method array looks like.
+    // the size is not one a contiguous method array could have.
     if (stride < 16 || stride > 128 || (stride % alignof(void *)) != 0) return nullptr;
-    for (size_t i = 1; i < ids.size(); ++i) {
-        if ((ids[i] - ids[i - 1]) % stride != 0) return nullptr;
-    }
 
-    const uintptr_t anchor = ids.front();
-    const uintptr_t candidate = anchor - stride;
+    // Slots the caller cannot see. Interior ones come first because each is bracketed by a member
+    // on either side, so it is inside the array whatever the class turns out to look like. A class
+    // may have more than one hole: reflection also hides members the hidden API policy blocks.
+    constexpr size_t kMaxCandidates = 64;
+    std::vector<uintptr_t> candidates;
+    for (size_t i = 1; i < ids.size(); ++i) {
+        const uintptr_t delta = ids[i] - ids[i - 1];
+        // Uneven spacing means these are not one run of ArtMethods and none of this holds.
+        if (delta == 0 || (delta % stride) != 0) return nullptr;
+        for (uintptr_t slot = ids[i - 1] + stride; slot < ids[i]; slot += stride) {
+            if (candidates.size() >= kMaxCandidates) return nullptr;
+            candidates.push_back(slot);
+        }
+    }
+    // The slot below the run, which may be outside the array altogether.
+    const uintptr_t below = ids.front() - stride;
+    if (IsMapped(below, 2 * sizeof(uint32_t))) candidates.push_back(below);
 
     // ArtMethod starts with GcRoot<mirror::Class> declaring_class_ followed by uint32_t
-    // access_flags_. Both are plain words in the same allocation as the anchor, so reading them
-    // cannot fault where reading the anchor would not.
+    // access_flags_, so both live in the first eight bytes of a slot.
     const auto declaring_of = [](uintptr_t m) { return *reinterpret_cast<const uint32_t *>(m); };
     const auto flags_of = [](uintptr_t m) {
         return *reinterpret_cast<const uint32_t *>(m + sizeof(uint32_t));
     };
 
-    if (declaring_of(candidate) != declaring_of(anchor)) return nullptr;
-
     constexpr uint32_t kAccStatic = 0x0008;
     constexpr uint32_t kAccConstructor = 0x00010000;
-    const uint32_t flags = flags_of(candidate);
-    if ((flags & kAccStatic) == 0 || (flags & kAccConstructor) == 0) return nullptr;
+    const uint32_t declaring = declaring_of(ids.front());
 
-    return env->ToReflectedMethod(target_class, reinterpret_cast<jmethodID>(candidate), JNI_TRUE);
+    for (const uintptr_t candidate : candidates) {
+        if (declaring_of(candidate) != declaring) continue;
+        const uint32_t flags = flags_of(candidate);
+        if ((flags & kAccStatic) == 0 || (flags & kAccConstructor) == 0) continue;
+        return env->ToReflectedMethod(target_class, reinterpret_cast<jmethodID>(candidate),
+                                      JNI_TRUE);
+    }
+    return nullptr;
 }
 
 // Array of native method descriptors for JNI registration.
@@ -656,7 +690,7 @@ static JNINativeMethod gMethods[] = {
                          "(Ljava/lang/Class;Ljava/lang/reflect/"
                          "Executable;)[[Ljava/lang/Object;"),
     VECTOR_NATIVE_METHOD(HookBridge, findStaticInitializer,
-                         "(Ljava/lang/Class;[J)Ljava/lang/reflect/Executable;"),
+                         "(Ljava/lang/Class;[JJ)Ljava/lang/reflect/Executable;"),
 };
 
 /**
