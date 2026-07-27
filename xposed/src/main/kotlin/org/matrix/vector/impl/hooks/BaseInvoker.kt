@@ -65,6 +65,26 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
 
     /** Invokes the original executable, unwrapping the reflective wrapper exception. */
     private fun invokeOriginal(thisObject: Any?, args: Array<out Any?>): Any? {
+        // invokeOriginalMethod dispatches through a cached Method.invoke id. For a hooked
+        // executable that is applied to lsplant's backup Method, which is correct. For an
+        // executable with no hook item at all it is applied to the reflected object we passed in
+        // — and if that is a Constructor, the id belongs to a different class. Route those
+        // through the non-virtual path instead, which is what invokeSpecial already uses.
+        if (
+            executable is Constructor<*> &&
+                HookBridge.callbackSnapshot(VectorHookRecord::class.java, executable) == null
+        ) {
+            requireNotNull(thisObject) {
+                "A constructor invoked as a method needs a receiver: $executable"
+            }
+            return HookBridge.invokeSpecialMethod(
+                executable,
+                getExecutableShorty(),
+                executable.declaringClass,
+                thisObject,
+                *args,
+            )
+        }
         return try {
             HookBridge.invokeOriginalMethod(executable, thisObject, *args)
         } catch (e: InvocationTargetException) {
