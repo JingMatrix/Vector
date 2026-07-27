@@ -309,6 +309,34 @@ fun IActivityManager.broadcastIntentCompat(intent: Intent) {
       .onFailure { Log.e(TAG, "broadcastIntent failed", it) }
 }
 
+// `startActivityAsUserWithFeature` only arrived in Android R: on older platforms the same call
+// exists without the calling feature id, and using the newer one throws `NoSuchMethodError`.
+fun IActivityManager.startActivityAsUserCompat(intent: Intent, userId: Int): Int {
+  val appThread = SystemContext.appThread
+  return runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+          startActivityAsUserWithFeature(
+              appThread,
+              "android",
+              null,
+              intent,
+              intent.type,
+              null,
+              null,
+              0,
+              0,
+              null,
+              null,
+              userId)
+        } else {
+          startActivityAsUser(
+              appThread, "android", intent, intent.type, null, null, 0, 0, null, null, userId)
+        }
+      }
+      .onFailure { Log.e(TAG, "startActivityAsUser failed", it) }
+      .getOrDefault(-1)
+}
+
 fun IUserManager.getUserName(userId: Int): String {
   return runCatching { getUserInfo(userId)?.name }.getOrNull() ?: userId.toString()
 }

@@ -158,22 +158,9 @@ object ManagerService : ILSPManagerService.Stub() {
   fun openManager(withData: Uri?) {
     val intent = getManagerIntent() ?: return
     val launchIntent = Intent(intent).apply { data = withData }
-    runCatching {
-          activityManager?.startActivityAsUserWithFeature(
-              SystemContext.appThread,
-              "android",
-              null,
-              launchIntent,
-              launchIntent.type,
-              null,
-              null,
-              0,
-              0,
-              null,
-              null,
-              0)
-        }
-        .onFailure { Log.e(TAG, "Failed to open manager", it) }
+    // Negative results are `ActivityManager.START_*` errors, the positive ones are all successes.
+    val result = activityManager?.startActivityAsUserCompat(launchIntent, 0) ?: -1
+    if (result < 0) Log.e(TAG, "Failed to open manager: $result")
   }
 
   /** Fixes permissions for the WebView cache. */
@@ -376,19 +363,7 @@ object ManagerService : ILSPManagerService.Stub() {
         wm?.lockNow(null)
       }
     }
-    return activityManager?.startActivityAsUserWithFeature(
-        SystemContext.appThread,
-        "android",
-        null,
-        intent,
-        intent.type,
-        null,
-        null,
-        0,
-        0,
-        null,
-        null,
-        userId) ?: -1
+    return activityManager?.startActivityAsUserCompat(intent, userId) ?: -1
   }
 
   override fun queryIntentActivitiesAsUser(
