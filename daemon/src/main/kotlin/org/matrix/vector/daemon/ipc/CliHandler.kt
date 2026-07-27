@@ -106,6 +106,18 @@ object CliHandler {
     val modulePkg = request.targets[0]
     val apps = request.targets.drop(1)
 
+    // staticScope fixes the scope, so the CLI may still read it and take apps out of it, but not
+    // put new ones in. Checked here as well as in the database so the answer names the packages.
+    fun rejectBeyondStaticScope(apps: List<String>) {
+      val claimed = ConfigCache.staticScopeOf(modulePkg) ?: return
+      val beyond = apps.map { it.substringBefore('/') }.filterNot { claimed.contains(it) }
+      if (beyond.isNotEmpty()) {
+        throw IllegalArgumentException(
+            "$modulePkg fixes its scope in module.prop, so ${beyond.joinToString()} cannot be " +
+                "added. It claims: ${claimed.sorted().joinToString().ifEmpty { "nothing" }}.")
+      }
+    }
+
     return when (request.action) {
       "ls" -> {
         val scope =
@@ -115,6 +127,7 @@ object CliHandler {
       }
       "add" -> {
         if (apps.isEmpty()) throw IllegalArgumentException("No target apps provided.")
+        rejectBeyondStaticScope(apps)
         val scope = ConfigCache.getModuleScope(modulePkg) ?: mutableListOf()
 
         apps.forEach { appStr ->
@@ -135,6 +148,7 @@ object CliHandler {
       "set" -> {
         if (apps.isEmpty())
             throw IllegalArgumentException("No target apps provided for scope overwrite.")
+        rejectBeyondStaticScope(apps)
         val scope = mutableListOf<Application>()
         apps.forEach { appStr ->
           val parts = appStr.split("/")

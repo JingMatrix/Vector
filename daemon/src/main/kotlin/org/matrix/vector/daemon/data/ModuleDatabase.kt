@@ -48,6 +48,15 @@ object ModuleDatabase {
   }
 
   fun setModuleScope(packageName: String, scope: MutableList<Application>): Boolean {
+    // Last line of defence for staticScope. The manager, the socket CLI, a backup restore and a
+    // module's own requestScope all end up here, so refusing here covers every one of them.
+    ConfigCache.staticScopeOf(packageName)?.let { claimed ->
+      val beyond = scope.map { it.packageName }.distinct().filterNot { claimed.contains(it) }
+      if (beyond.isNotEmpty()) {
+        Log.w(TAG, "$packageName fixes its scope; refusing to add ${beyond.joinToString()}")
+        return false
+      }
+    }
     enableModule(packageName)
     val db = ConfigCache.dbHelper.writableDatabase
     db.beginTransaction()
@@ -74,6 +83,33 @@ object ModuleDatabase {
     }
     ConfigCache.requestCacheUpdate()
     return true
+  }
+
+  /**
+   * Drops every scope row of [packageName] outside [claimed]. Called from within a cache update, so
+   * it deliberately does not ask for another one.
+   *
+   * @return how many rows went.
+   */
+  fun pruneScopeToClaimed(packageName: String, claimed: Set<String>): Int {
+    val db = ConfigCache.dbHelper.writableDatabase
+    return runCatching {
+          val mid =
+              db.compileStatement("SELECT mid FROM modules WHERE module_pkg_name = ?")
+                  .apply { bindString(1, packageName) }
+                  .simpleQueryForLong()
+          val placeholders = claimed.joinToString(",") { "?" }
+          if (claimed.isEmpty()) {
+            db.delete("scope", "mid = ?", arrayOf(mid.toString()))
+          } else {
+            db.delete(
+                "scope",
+                "mid = ? AND app_pkg_name NOT IN ($placeholders)",
+                arrayOf(mid.toString()) + claimed.toTypedArray())
+          }
+        }
+        .onFailure { Log.e(TAG, "Failed to prune the scope of $packageName", it) }
+        .getOrDefault(0)
   }
 
   fun removeModuleScope(packageName: String, scopePackageName: String, userId: Int): Boolean {

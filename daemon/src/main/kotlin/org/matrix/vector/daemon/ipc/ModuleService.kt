@@ -131,6 +131,16 @@ class ModuleService(private val loadedModule: Module) : IXposedService.Stub() {
       callback.onScopeRequestApproved(emptyList())
       return
     }
+    // A module that fixed its own scope in module.prop does not get to ask for more of it at
+    // runtime. Prompting the user here would make "fixed" mean nothing.
+    ConfigCache.staticScopeOf(loadedModule.packageName)?.let { claimed ->
+      val beyond = packages.filterNot { claimed.contains(it) }
+      if (beyond.isNotEmpty()) {
+        callback.onScopeRequestFailed(
+            "This module declares a static scope, so ${beyond.joinToString()} cannot be added")
+        return
+      }
+    }
     if (!PreferenceStore.isScopeRequestBlocked(loadedModule.packageName)) {
       packages.forEach { pkg ->
         NotificationManager.requestModuleScope(loadedModule.packageName, userId, pkg, callback)

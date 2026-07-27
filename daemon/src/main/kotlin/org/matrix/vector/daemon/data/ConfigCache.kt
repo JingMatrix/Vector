@@ -34,6 +34,13 @@ object ConfigCache {
 
   val dbHelper = Database() // Kept public for PreferenceStore and ModuleDatabase
 
+  // Module package -> the packages it claims, for modules whose module.prop fixes the scope.
+  // Absent means the module places no restriction on its scope.
+  @Volatile private var staticScopes: Map<String, Set<String>> = emptyMap()
+
+  /** The packages [modulePackage] claims, or null when it does not fix its scope. */
+  fun staticScopeOf(modulePackage: String): Set<String>? = staticScopes[modulePackage]
+
   private val cacheUpdateChannel = Channel<Unit>(Channel.CONFLATED)
 
   init {
@@ -123,6 +130,7 @@ object ConfigCache {
     val oldState = state
 
     val newModules = mutableMapOf<String, Module>()
+    val newStaticScopes = mutableMapOf<String, Set<String>>()
     val obsoleteModules = mutableSetOf<String>()
     val obsoletePaths = mutableMapOf<String, String>()
 
@@ -166,6 +174,9 @@ object ConfigCache {
                 File(appInfo.sourceDir).parent == File(apkPath).parent) {
 
               if (oldModule.appId == -1) oldModule.applicationInfo = appInfo
+              // This path skips re-reading the APK, so what the module claims has to be carried
+              // over; the new map replaces the old one wholesale and would otherwise lose it.
+              staticScopes[pkgName]?.let { newStaticScopes[pkgName] = it }
               newModules[pkgName] = oldModule
               continue
             }
@@ -179,6 +190,8 @@ object ConfigCache {
               apkPath = realApkPath
               obsoletePaths[pkgName] = realApkPath
             }
+
+            FileSystem.readStaticScope(apkPath)?.let { newStaticScopes[pkgName] = it }
 
             val preLoadedApk = FileSystem.loadModule(apkPath, state.isDexObfuscateEnabled)
             if (preLoadedApk != null) {
@@ -202,6 +215,17 @@ object ConfigCache {
     if (packageManager?.asBinder()?.isBinderAlive == true) {
       obsoleteModules.forEach { ModuleDatabase.removeModule(it) }
       obsoletePaths.forEach { (pkg, path) -> ModuleDatabase.updateModuleApkPath(pkg, path, true) }
+    }
+
+    staticScopes = newStaticScopes
+    // Rows can predate the module declaring a fixed scope, or come from an older build that let
+    // them in. Dropping them here is what makes the scope actually fixed rather than merely
+    // unreachable through the manager, and it runs before the scope table is read below.
+    newStaticScopes.forEach { (modulePkg, claimed) ->
+      val dropped = ModuleDatabase.pruneScopeToClaimed(modulePkg, claimed)
+      if (dropped > 0) {
+        Log.i(TAG, "Dropped $dropped app(s) outside the static scope of $modulePkg")
+      }
     }
 
     val newScopes = mutableMapOf<ProcessScope, MutableList<Module>>()

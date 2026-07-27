@@ -161,6 +161,34 @@ object FileSystem {
     return memory
   }
 
+  /**
+   * The packages a module claims, when its module.prop fixes the scope. Null when it does not, so
+   * a caller can tell "claims nothing" from "claims no restriction".
+   *
+   * staticScope is documented as "the module scope is fixed and users should not apply the module
+   * on apps outside the scope list". Enforcing that in the manager alone leaves the socket CLI, a
+   * backup restore and the module's own requestScope walking straight past it, so the daemon has
+   * to know about it too.
+   */
+  fun readStaticScope(apkPath: String): Set<String>? =
+      runCatching {
+            ZipFile(File(apkPath)).use { zip ->
+              val props =
+                  Properties().apply {
+                    zip.getEntry("META-INF/xposed/module.prop")?.let { entry ->
+                      runCatching { zip.getInputStream(entry).use { load(it) } }
+                    }
+                  }
+              if (!props.getProperty("staticScope").toBoolean()) return@use null
+              val entry = zip.getEntry("META-INF/xposed/scope.list") ?: return@use emptySet()
+              zip.getInputStream(entry).bufferedReader().useLines { lines ->
+                lines.filter { it.isNotEmpty() }.toSet()
+              }
+            }
+          }
+          .onFailure { Log.w(TAG, "Cannot read the scope list of $apkPath", it) }
+          .getOrNull()
+
   /** Parses the module APK, extracts init lists, and loads DEXes into SharedMemory. */
   fun loadModule(apkPath: String, obfuscate: Boolean): PreLoadedApk? {
     val file = File(apkPath)
