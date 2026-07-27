@@ -11,6 +11,7 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Executable
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 import org.lsposed.lspd.service.ILSPInjectedModuleService
 import org.lsposed.lspd.util.Utils.Log
@@ -83,7 +84,32 @@ class VectorContext(
         val clinit =
             findStaticInitializer(origin)
                 ?: throw IllegalArgumentException("Class ${origin.name} has no static initializer")
-        return VectorHookBuilder(clinit, defaultExceptionMode)
+        return VectorHookBuilder(asSyntheticMethod(clinit), defaultExceptionMode)
+    }
+
+    /**
+     * hookClassInitializer documents Chain#getExecutable as "a synthetic Method representing the
+     * static initializer", but ART reflects <clinit> as a Constructor because it carries
+     * ACC_CONSTRUCTOR. A Method is allocated without running a constructor and given the same
+     * Executable state, so it names the same ArtMethod while presenting the documented type.
+     */
+    private fun asSyntheticMethod(clinit: Executable): Executable {
+        if (clinit is Method) return clinit
+        return runCatching {
+                val method = HookBridge.allocateObject(Method::class.java)
+                for (field in Executable::class.java.declaredFields) {
+                    if (Modifier.isStatic(field.modifiers)) continue
+                    field.isAccessible = true
+                    field.set(method, field.get(clinit))
+                }
+                method as Executable
+            }
+            .onFailure {
+                // Falling back keeps the hook working, at the cost of handing the hooker the type
+                // ART produced instead of the one the interface promises.
+                Log.w(TAG, "Cannot present <clinit> of ${'$'}{clinit.declaringClass.name} as a Method", it)
+            }
+            .getOrDefault(clinit)
     }
 
     /**
