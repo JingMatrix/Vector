@@ -260,6 +260,20 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
             jint inet_gid = GID_INET;
             env_->SetIntArrayRegion(new_gids, original_gids_count, 1, &inet_gid);
 
+            // The new array is only seen by the native specialization, which calls setgroups().
+            // Once it returns, Zygote#forkAndSpecialize keeps using the array it passed in:
+            //
+            //   NetworkUtils.setAllowNetworkingForProcess(containsInetGid(gids));
+            //
+            // That flag lives in libnetd_client and gates the whole process: without it,
+            // socket() and dns_open_proxy() fail with EPERM no matter which groups we really
+            // belong to. So overwrite the first entry of the original array as well, to make
+            // containsInetGid() see the INET group. Dropping this slot is harmless: the array
+            // has no further use once specialization is done.
+            if (original_gids_count > 0) {
+                env_->SetIntArrayRegion(args->gids, 0, 1, &inet_gid);
+            }
+
             args->nice_name = env_->NewStringUTF(INJECTED_PACKAGE_NAME);
             args->gids = new_gids;
         }
