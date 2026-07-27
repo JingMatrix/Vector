@@ -39,8 +39,10 @@ class VectorChain(
 
     override fun getThisObject(): Any? = thisObj
 
-    // The API documents this list as immutable; toList() hands back a mutable ArrayList.
-    override fun getArgs(): List<Any?> = Collections.unmodifiableList(args.asList())
+    // Immutable, and a snapshot rather than a view: the chain rewrites this array in place when a
+    // hooker calls proceed(args) and when a legacy hook edits its arguments, which would otherwise
+    // change a list a hooker is still holding.
+    override fun getArgs(): List<Any?> = Collections.unmodifiableList(args.toMutableList())
 
     override fun getArg(index: Int): Any? = args[index]
 
