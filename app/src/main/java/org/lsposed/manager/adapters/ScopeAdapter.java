@@ -554,9 +554,10 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
                     synchronized (tmpRecList) {
                         tmpRecList.add(application);
                     }
-                } else if (module.staticScope) {
+                } else if (module.staticScope && !tmpChkList.contains(application)) {
                     // The module says its scope list is the whole of it, so nothing outside that
-                    // list is offered in the first place.
+                    // list is offered. An app already enabled outside it still has to be shown, or
+                    // it would keep the module loaded from a row nobody can see to switch off.
                     return;
                 } else if (shouldHideApp(info, application, tmpChkList)) {
                     return;
