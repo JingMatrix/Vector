@@ -1,9 +1,12 @@
 package org.matrix.vector.impl.core
 
+import android.app.ActivityThread
 import android.os.Build
 import android.os.IBinder
 import dalvik.system.DexFile
+import org.lsposed.lspd.util.Utils
 import org.lsposed.lspd.service.ILSPApplicationService
+import org.matrix.vector.impl.di.VectorBootstrap
 import org.matrix.vector.impl.hookers.*
 import org.matrix.vector.impl.hooks.VectorHookBuilder
 
@@ -82,6 +85,27 @@ object VectorStartup {
                 if (classLoader != null) {
                     // Manually trigger the routines that the hooks normally would
                     HandleSystemServerProcessHooker.initSystemServer(classLoader, isLate = true)
+
+                    // ActivityThread.attach ran before we were injected, so AppAttachHooker will
+                    // never fire here and nothing else instantiates modules. Without this,
+                    // dispatchSystemServerLoaded below would notify an empty module set.
+                    val activityThread = ActivityThread.currentActivityThread()
+                    if (activityThread != null) {
+                        VectorBootstrap.withLegacy { it.loadModules(activityThread) }
+                    } else {
+                        Utils.logW(
+                            "Late system server injection: no current ActivityThread, modules cannot be loaded"
+                        )
+                    }
+
+                    // Say plainly what this is. onSystemServerStarting is documented as "system
+                    // server is ready to start critical services", which is no longer true here -
+                    // the services are already running. Modules that key off it should treat a
+                    // late dispatch as best effort.
+                    Utils.logW(
+                        "Late system server injection: dispatching onSystemServerStarting after " +
+                            "system server has already started; critical services are live"
+                    )
                     StartBootstrapServicesHooker.dispatchSystemServerLoaded(classLoader)
                 }
             }

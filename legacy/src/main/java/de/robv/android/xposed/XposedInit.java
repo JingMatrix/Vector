@@ -216,7 +216,14 @@ public final class XposedInit {
         });
     }
 
+    private static final AtomicBoolean modulesLoaded = new AtomicBoolean(false);
+
     public static void loadModules(ActivityThread at) {
+        // A late-injected system server calls this directly because its ActivityThread.attach
+        // already ran; guard so the normal path cannot load a second generation on top.
+        if (!modulesLoaded.compareAndSet(false, true)) {
+            return;
+        }
         var packages = (ArrayMap<?, ?>) XposedHelpers.getObjectField(at, "mPackages");
         VectorServiceClient.INSTANCE.getModulesList().forEach(module -> {
             loadedModules.put(module.packageName, Optional.empty());
