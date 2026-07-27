@@ -161,10 +161,6 @@ object FileSystem {
     return memory
   }
 
-  /** Reads the leading integer of a module.prop value, as the manager's extractIntPart does. */
-  private fun leadingInt(value: String?): Int =
-      value?.trim()?.takeWhile { it.isDigit() }?.toIntOrNull() ?: 0
-
   /** Parses the module APK, extracts init lists, and loads DEXes into SharedMemory. */
   fun loadModule(apkPath: String, obfuscate: Boolean): PreLoadedApk? {
     val file = File(apkPath)
@@ -194,9 +190,7 @@ object FileSystem {
                   }
                 }
 
-            // Leading-digit parsing, matching ModuleUtil.extractIntPart in the manager, so the two
-            // sides cannot disagree about a value like "101.0".
-            val targetApi = leadingInt(props.getProperty("targetApiVersion"))
+            val targetApi = props.getProperty("targetApiVersion")?.trim()?.toIntOrNull() ?: 0
             // The module-wide mode ExceptionMode.DEFAULT resolves to. Anything that is not
             // "passthrough" - absent, misspelled, or an explicit "protective" - keeps the
             // protective default the API specifies.

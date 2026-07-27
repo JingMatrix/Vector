@@ -307,20 +307,13 @@ public final class ModuleUtil {
                     var scopeEntry = modernModuleApk.getEntry("META-INF/xposed/scope.list");
                     if (scopeEntry != null) {
                         try (var reader = new BufferedReader(new InputStreamReader(modernModuleApk.getInputStream(scopeEntry)))) {
-                            // Scope entries are matched by exact string, so normalise the way the
-                            // daemon normalises its init lists.
-                            scopeList = reader.lines()
-                                    .map(String::trim)
-                                    .filter(s -> !s.isEmpty() && !s.startsWith("#"))
-                                    .collect(Collectors.toList());
+                            scopeList = reader.lines().collect(Collectors.toList());
                         }
                     } else {
                         scopeList = Collections.emptyList();
                     }
-                } catch (Throwable e) {
-                    // A single malformed module must not abort reloadInstalledModules and leave
-                    // the user with an empty list.
-                    Log.e(App.TAG, "Error while reading modern module APK", e);
+                } catch (IOException | OutOfMemoryError e) {
+                    Log.e(App.TAG, "Error while closing modern module APK", e);
                 }
                 this.minVersion = minVersion;
                 this.targetVersion = targetVersion;
