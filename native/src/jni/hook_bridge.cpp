@@ -1,9 +1,12 @@
 #include <alloca.h>
 #include <parallel_hashmap/phmap.h>
 
+#include <algorithm>
 #include <lsplant.hpp>
+#include <limits>
 #include <memory>
 #include <shared_mutex>
+#include <vector>
 
 #include "jni/jni_bridge.h"
 #include "jni/jni_hooks.h"
@@ -558,6 +561,80 @@ VECTOR_DEF_NATIVE_METHOD(jobjectArray, HookBridge, callbackSnapshot, jclass call
  * @param target_class The class to inspect.
  * @return A Method object for the static initializer, or null if it doesn't exist.
  */
+/**
+ * @brief Finds a class's static initializer without initializing the class.
+ *
+ * GetStaticMethodID cannot be used: JNI specifies that resolving a method id initializes the
+ * class, which is exactly the event a <clinit> hook exists to observe. Java reflection cannot be
+ * used either, because it hides <clinit> entirely.
+ *
+ * ART stores a class's ArtMethods in one contiguous array, direct methods first, ordered by dex
+ * method id. Dex method ids are ordered by name and "<clinit>" sorts before "<init>", so a class
+ * that has a static initializer keeps it in the first slot - one stride below the lowest method
+ * ordinary reflection can see.
+ *
+ * The caller passes ArtMethod addresses read from java.lang.reflect.Executable.artMethod rather
+ * than jmethodIDs, because a Java-debuggable process hands out index based ids instead of
+ * pointers.
+ *
+ * A class with no static initializer has something else in that slot, so the candidate is checked
+ * by two plain word reads before anything dereferences it: its declaring class must match its
+ * neighbour's, and its access flags must say static constructor.
+ *
+ * @return The reflected static initializer, or nullptr if the class has none or the layout is not
+ *         what this relies on.
+ */
+VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, findStaticInitializer, jclass target_class,
+                         jlongArray art_methods) {
+    const jsize count = art_methods ? env->GetArrayLength(art_methods) : 0;
+    // One member anchors the array, a second gives its element size.
+    if (count < 2) return nullptr;
+
+    std::vector<uintptr_t> ids(count);
+    {
+        std::vector<jlong> raw(count);
+        env->GetLongArrayRegion(art_methods, 0, count, raw.data());
+        for (jsize i = 0; i < count; ++i) {
+            auto id = static_cast<uintptr_t>(raw[i]);
+            if (id < 0x1000 || (id % alignof(void *)) != 0) return nullptr;
+            ids[i] = id;
+        }
+    }
+
+    std::sort(ids.begin(), ids.end());
+    uintptr_t stride = std::numeric_limits<uintptr_t>::max();
+    for (size_t i = 1; i < ids.size(); ++i) {
+        uintptr_t delta = ids[i] - ids[i - 1];
+        if (delta > 0 && delta < stride) stride = delta;
+    }
+    // An ArtMethod is a few dozen bytes on every supported release; refuse rather than guess when
+    // the spacing is not what a contiguous method array looks like.
+    if (stride < 16 || stride > 128 || (stride % alignof(void *)) != 0) return nullptr;
+    for (size_t i = 1; i < ids.size(); ++i) {
+        if ((ids[i] - ids[i - 1]) % stride != 0) return nullptr;
+    }
+
+    const uintptr_t anchor = ids.front();
+    const uintptr_t candidate = anchor - stride;
+
+    // ArtMethod starts with GcRoot<mirror::Class> declaring_class_ followed by uint32_t
+    // access_flags_. Both are plain words in the same allocation as the anchor, so reading them
+    // cannot fault where reading the anchor would not.
+    const auto declaring_of = [](uintptr_t m) { return *reinterpret_cast<const uint32_t *>(m); };
+    const auto flags_of = [](uintptr_t m) {
+        return *reinterpret_cast<const uint32_t *>(m + sizeof(uint32_t));
+    };
+
+    if (declaring_of(candidate) != declaring_of(anchor)) return nullptr;
+
+    constexpr uint32_t kAccStatic = 0x0008;
+    constexpr uint32_t kAccConstructor = 0x00010000;
+    const uint32_t flags = flags_of(candidate);
+    if ((flags & kAccStatic) == 0 || (flags & kAccConstructor) == 0) return nullptr;
+
+    return env->ToReflectedMethod(target_class, reinterpret_cast<jmethodID>(candidate), JNI_TRUE);
+}
+
 VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, getStaticInitializer, jclass target_class) {
     // <clinit> is the internal name for a static initializer.
     // Its signature is always ()V (no arguments, void return).
@@ -595,6 +672,8 @@ static JNINativeMethod gMethods[] = {
                          "Executable;)[[Ljava/lang/Object;"),
     VECTOR_NATIVE_METHOD(HookBridge, getStaticInitializer,
                          "(Ljava/lang/Class;)Ljava/lang/reflect/Executable;"),
+    VECTOR_NATIVE_METHOD(HookBridge, findStaticInitializer,
+                         "(Ljava/lang/Class;[J)Ljava/lang/reflect/Executable;"),
 };
 
 /**

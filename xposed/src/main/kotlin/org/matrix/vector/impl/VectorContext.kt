@@ -9,6 +9,7 @@ import io.github.libxposed.api.XposedModuleInterface.*
 import java.io.FileNotFoundException
 import java.lang.reflect.Constructor
 import java.lang.reflect.Executable
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 import org.lsposed.lspd.service.ILSPInjectedModuleService
@@ -17,6 +18,16 @@ import org.matrix.vector.impl.hooks.VectorCtorInvoker
 import org.matrix.vector.impl.hooks.VectorHookBuilder
 import org.matrix.vector.impl.hooks.VectorMethodInvoker
 import org.matrix.vector.nativebridge.HookBridge
+
+private const val TAG = "VectorContext"
+
+/** ART keeps the ArtMethod address of a reflected member in this field. */
+private val artMethodField: Field? by lazy {
+    runCatching {
+            Executable::class.java.getDeclaredField("artMethod").apply { isAccessible = true }
+        }
+        .getOrNull()
+}
 
 /**
  * Main framework context implementation. Provides modules with capabilities to hook executables,
@@ -48,10 +59,29 @@ class VectorContext(
 
     override fun hookClassInitializer(origin: Class<*>): XposedInterface.HookBuilder {
         val clinit =
-            HookBridge.getStaticInitializer(origin)
+            findStaticInitializer(origin)
                 ?: throw IllegalArgumentException("Class ${origin.name} has no static initializer")
         return VectorHookBuilder(clinit, defaultExceptionMode)
     }
+
+    /**
+     * Resolving <clinit> through JNI runs the class's static initializer, which is the event a hook
+     * on it exists to observe, so locate it from the method layout instead. Reflection over
+     * declared members does not initialize the class, and ArtMethod addresses are read from the
+     * reflected objects rather than through jmethodIDs, which a debuggable process hands out as
+     * indices.
+     */
+    private fun findStaticInitializer(origin: Class<*>): Executable? =
+        runCatching {
+                val field = artMethodField ?: return null
+                val members = ArrayList<Executable>()
+                members.addAll(origin.declaredConstructors)
+                members.addAll(origin.declaredMethods)
+                val addresses = LongArray(members.size) { field.getLong(members[it]) }
+                HookBridge.findStaticInitializer(origin, addresses)
+            }
+            .onFailure { Log.w(TAG, "Static initializer lookup failed for ${origin.name}", it) }
+            .getOrNull()
 
     override fun deoptimize(executable: Executable): Boolean {
         return HookBridge.deoptimizeMethod(executable)

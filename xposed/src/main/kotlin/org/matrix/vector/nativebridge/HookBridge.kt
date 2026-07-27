@@ -68,4 +68,15 @@ object HookBridge {
      */
     @JvmStatic
     external fun getStaticInitializer(clazz: Class<*>): Executable?
+
+    /**
+     * Locates a class's static initializer without initializing it, unlike [getStaticInitializer].
+     * [artMethods] must be the ArtMethod addresses of the class's declared constructors and
+     * methods, which reflection can supply without triggering initialization.
+     *
+     * Returns null when the class has no static initializer or the method layout is not the one
+     * this relies on.
+     */
+    @JvmStatic
+    external fun findStaticInitializer(clazz: Class<*>, artMethods: LongArray): Executable?
 }
