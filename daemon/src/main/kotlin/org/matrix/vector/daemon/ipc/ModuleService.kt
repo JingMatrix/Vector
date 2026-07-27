@@ -177,17 +177,19 @@ class ModuleService(private val loadedModule: Module) : IXposedService.Stub() {
 
     runCatching {
           PreferenceStore.updateModulePrefs(loadedModule.packageName, userId, group, values)
-          (loadedModule.service as? InjectedModuleService)?.onUpdateRemotePreferences(group, diff)
+          (loadedModule.service as? InjectedModuleService)
+              ?.onUpdateRemotePreferences(group, userId, diff)
         }
         .getOrElse { throw RemoteException(it.message) }
   }
 
   override fun deleteRemotePreferences(group: String) {
-    PreferenceStore.deleteModulePrefs(loadedModule.packageName, ensureModule(), group)
+    val userId = ensureModule()
+    PreferenceStore.deleteModulePrefs(loadedModule.packageName, userId, group)
     // Hooked processes hold an in-process cache of the group; without this they keep serving the
     // deleted values until their process restarts.
     (loadedModule.service as? InjectedModuleService)
-        ?.onUpdateRemotePreferences(group, Bundle().apply { putBoolean("clear", true) })
+        ?.onUpdateRemotePreferences(group, userId, Bundle().apply { putBoolean("clear", true) })
   }
 
   override fun listRemoteFiles(): Array<String> {
