@@ -61,5 +61,11 @@ object HookBridge {
         method: Executable,
     ): Array<Array<Any?>>?
 
-    @JvmStatic external fun getStaticInitializer(clazz: Class<*>): Method?
+    /**
+     * ART reflects <clinit> as a Constructor, not a Method, so this returns the
+     * common supertype. Declaring Method made the JNI return-type check abort the
+     * process on every call.
+     */
+    @JvmStatic
+    external fun getStaticInitializer(clazz: Class<*>): Executable?
 }

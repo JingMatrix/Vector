@@ -594,7 +594,7 @@ static JNINativeMethod gMethods[] = {
                          "(Ljava/lang/Class;Ljava/lang/reflect/"
                          "Executable;)[[Ljava/lang/Object;"),
     VECTOR_NATIVE_METHOD(HookBridge, getStaticInitializer,
-                         "(Ljava/lang/Class;)Ljava/lang/reflect/Method;"),
+                         "(Ljava/lang/Class;)Ljava/lang/reflect/Executable;"),
 };
 
 /**
