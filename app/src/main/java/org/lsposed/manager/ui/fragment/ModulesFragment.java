@@ -34,6 +34,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.util.SparseArray;
@@ -51,6 +52,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.MenuProvider;
@@ -558,6 +560,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             sb = new SpannableStringBuilder();
 
             int installXposedVersion = ConfigManager.getXposedApiVersion();
+            bindApiBadge(holder.apiBadge, item, installXposedVersion);
             String warningText = null;
             if (item.minVersion == 0) {
                 warningText = getString(R.string.no_min_version_specified);
@@ -748,12 +751,84 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             return isLoaded && moduleUtil.isModulesLoaded();
         }
 
+        /**
+         * The API version a module targets, printed under its icon. The word stays in the ordinary
+         * secondary colour and the version itself carries the colour, so the eye lands on the one
+         * part that differs between modules. The whole statement goes in the content description
+         * and the tooltip, so the colour is never the only thing carrying it.
+         */
+        private void bindApiBadge(TextView badge, ModuleUtil.InstalledModule item, int frameworkApi) {
+            final String label;
+            final String status;
+            final String version;
+            final int color;
+
+            if (item.legacy) {
+                // A legacy module reports the original Xposed API, which is numbered separately
+                // from the one this framework implements, so it is never compared against it.
+                version = item.minVersion > 0 ? String.valueOf(item.minVersion) : null;
+                label = version != null
+                        ? getString(R.string.module_api_badge_legacy, item.minVersion)
+                        : getString(R.string.module_api_badge_legacy_unknown);
+                status = getString(R.string.module_api_status_legacy);
+                color = android.R.attr.textColorSecondary;
+            } else if (item.minVersion <= 0 || item.targetVersion <= 0 || frameworkApi <= 0) {
+                // Both keys are required of a module. Reporting the one it did declare would put a
+                // version on screen for a module that never stated which API it was built for.
+                version = null;
+                label = getString(R.string.module_api_badge_unknown);
+                status = getString(R.string.module_api_status_unknown);
+                color = android.R.attr.textColorSecondary;
+            } else {
+                version = String.valueOf(item.targetVersion);
+                label = getString(R.string.module_api_badge, item.targetVersion);
+                if (item.minVersion > frameworkApi) {
+                    // It declares it needs more than we have, whatever it targets.
+                    status = getString(R.string.module_api_status_unsupported, item.minVersion, frameworkApi);
+                    color = com.google.android.material.R.attr.colorError;
+                } else if (item.targetVersion == frameworkApi) {
+                    status = getString(R.string.module_api_status_current);
+                    color = androidx.appcompat.R.attr.colorPrimary;
+                } else {
+                    status = getString(item.targetVersion > frameworkApi
+                                    ? R.string.module_api_status_newer
+                                    : R.string.module_api_status_older,
+                            item.targetVersion, frameworkApi);
+                    color = android.R.attr.textColorSecondary;
+                }
+            }
+
+            final int resolved = ResourceUtils.resolveColor(requireActivity().getTheme(), color);
+            final SpannableStringBuilder text = new SpannableStringBuilder(label);
+            final int at = version == null ? -1 : label.lastIndexOf(version);
+            if (at > 0) {
+                // Small caps: the capitals of the word set smaller than the version beside them, so
+                // the word reads as a label and the version reads as the value.
+                text.setSpan(new RelativeSizeSpan(0.78f), 0, at, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                text.setSpan(new StyleSpan(Typeface.BOLD), at, label.length(),
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                text.setSpan(new ForegroundColorSpan(resolved), at, label.length(),
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            } else {
+                text.setSpan(new RelativeSizeSpan(0.78f), 0, label.length(),
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                text.setSpan(new ForegroundColorSpan(resolved), 0, label.length(),
+                        Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            }
+
+            badge.setText(text);
+            badge.setContentDescription(status);
+            TooltipCompat.setTooltipText(badge, status);
+            badge.setVisibility(View.VISIBLE);
+        }
+
         static class ViewHolder extends RecyclerView.ViewHolder {
             ConstraintLayout root;
             ImageView appIcon;
             TextView appName;
             TextView appDescription;
             TextView appVersion;
+            TextView apiBadge;
             TextView hint;
             MaterialCheckBox checkBox;
 
@@ -764,6 +839,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                 appName = binding.appName;
                 appDescription = binding.description;
                 appVersion = binding.versionName;
+                apiBadge = binding.apiBadge;
                 hint = binding.hint;
                 checkBox = binding.checkbox;
             }

@@ -93,6 +93,7 @@ public class AppListFragment extends BaseFragment implements MenuProvider {
         var concatAdapter = new ConcatAdapter();
         concatAdapter.addAdapter(scopeAdapter.switchAdaptor);
         concatAdapter.addAdapter(scopeAdapter);
+        concatAdapter.addAdapter(scopeAdapter.footerAdaptor);
         binding.recyclerView.setAdapter(concatAdapter);
         binding.recyclerView.setHasFixedSize(true);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));

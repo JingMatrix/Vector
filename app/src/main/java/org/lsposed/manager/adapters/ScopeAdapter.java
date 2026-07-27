@@ -69,6 +69,7 @@ import org.lsposed.manager.ConfigManager;
 import org.lsposed.manager.R;
 import org.lsposed.manager.databinding.ItemMasterSwitchBinding;
 import org.lsposed.manager.databinding.ItemModuleBinding;
+import org.lsposed.manager.databinding.ItemScopeFooterBinding;
 import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
 import org.lsposed.manager.ui.fragment.AppListFragment;
 import org.lsposed.manager.ui.fragment.CompileDialogFragment;
@@ -123,6 +124,28 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         @Override
         public int getItemCount() {
             return 1;
+        }
+    };
+
+    /**
+     * staticScope says the module's scope list is the whole of it, so the list above shows only the
+     * apps it claims and this rules it off. Nothing follows for a module that does not claim one.
+     */
+    public RecyclerView.Adapter<RecyclerView.ViewHolder> footerAdaptor = new RecyclerView.Adapter<>() {
+        @NonNull
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new RecyclerView.ViewHolder(ItemScopeFooterBinding.inflate(activity.getLayoutInflater(), parent, false).getRoot()) {
+            };
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        }
+
+        @Override
+        public int getItemCount() {
+            return module.staticScope ? 1 : 0;
         }
     };
 
@@ -531,6 +554,10 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
                     synchronized (tmpRecList) {
                         tmpRecList.add(application);
                     }
+                } else if (module.staticScope) {
+                    // The module says its scope list is the whole of it, so nothing outside that
+                    // list is offered in the first place.
+                    return;
                 } else if (shouldHideApp(info, application, tmpChkList)) {
                     return;
                 }

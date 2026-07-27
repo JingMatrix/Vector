@@ -105,6 +105,17 @@
     <string name="warning_xposed_min_version">This module requires a newer Xposed version (%d) and thus cannot be activated</string>
     <string name="warning_target_version_higher">This module is designed for a newer Xposed version (%d) and thus some functionalities may not work</string>
     <string name="no_min_version_specified">This module does not specify the Xposed version it needs.</string>
+    <string name="module_api_badge">API %1$d</string>
+    <string name="module_api_badge_unknown">API ?</string>
+    <string name="module_api_badge_legacy">Xposed %1$d</string>
+    <string name="module_api_badge_legacy_unknown">Xposed ?</string>
+    <string name="module_api_status_current">Targets the API this framework implements</string>
+    <string name="module_api_status_older">Targets API %1$d, older than the API this framework implements (%2$d)</string>
+    <string name="module_api_status_newer">Targets API %1$d, newer than the API this framework implements (%2$d)</string>
+    <string name="module_api_status_unsupported">Needs API %1$d, more than this framework implements (%2$d)</string>
+    <string name="module_api_status_legacy">Uses the original Xposed API through the legacy bridge</string>
+    <string name="module_api_status_unknown">The targeted API version is unknown</string>
+    <string name="module_scope_static">Static Scope</string>
     <string name="warning_min_version_too_low">This module was created for Xposed version %1$d, but due to incompatible changes in version %2$d, it has been disabled</string>
     <string name="warning_installed_on_external_storage">This module cannot be loaded because it\'s installed on the SD card, please move it to internal storage</string>
     <string name="module_uninstall">Uninstall</string>

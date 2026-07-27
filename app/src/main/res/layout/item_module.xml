@@ -40,11 +40,31 @@
             android:id="@+id/app_icon"
             android:layout_width="@dimen/app_icon_size"
             android:layout_height="@dimen/app_icon_size"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/api_badge"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
             tools:ignore="ContentDescription"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+        <!-- Under the icon, out of the way of the name, the version and the description. -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/api_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceListItemSecondary"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textIsSelectable="false"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/app_icon"
+            app:layout_constraintStart_toStartOf="@id/app_icon"
+            app:layout_constraintTop_toBottomOf="@id/app_icon"
+            tools:text="api 101"
+            tools:visibility="visible" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/app_name"
