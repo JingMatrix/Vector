@@ -62,15 +62,7 @@ object HookBridge {
     ): Array<Array<Any?>>?
 
     /**
-     * ART reflects <clinit> as a Constructor, not a Method, so this returns the
-     * common supertype. Declaring Method made the JNI return-type check abort the
-     * process on every call.
-     */
-    @JvmStatic
-    external fun getStaticInitializer(clazz: Class<*>): Executable?
-
-    /**
-     * Locates a class's static initializer without initializing it, unlike [getStaticInitializer].
+     * Locates a class's static initializer without initializing it.
      * [artMethods] must be the ArtMethod addresses of the class's declared constructors and
      * methods, which reflection can supply without triggering initialization.
      *

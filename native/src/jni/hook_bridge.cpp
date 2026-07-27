@@ -635,21 +635,6 @@ VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, findStaticInitializer, jclass targ
     return env->ToReflectedMethod(target_class, reinterpret_cast<jmethodID>(candidate), JNI_TRUE);
 }
 
-VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, getStaticInitializer, jclass target_class) {
-    // <clinit> is the internal name for a static initializer.
-    // Its signature is always ()V (no arguments, void return).
-    jmethodID mid = env->GetStaticMethodID(target_class, "<clinit>", "()V");
-    if (!mid) {
-        // If GetStaticMethodID fails, it throws an exception.
-        // We clear it and return null to let the Java side handle it gracefully.
-        env->ExceptionClear();
-        return nullptr;
-    }
-    // Convert the method ID to a java.lang.reflect.Method object.
-    // The last parameter must be JNI_TRUE because it's a static method.
-    return env->ToReflectedMethod(target_class, mid, JNI_TRUE);
-}
-
 // Array of native method descriptors for JNI registration.
 static JNINativeMethod gMethods[] = {
     VECTOR_NATIVE_METHOD(HookBridge, hookMethod,
@@ -670,8 +655,6 @@ static JNINativeMethod gMethods[] = {
     VECTOR_NATIVE_METHOD(HookBridge, callbackSnapshot,
                          "(Ljava/lang/Class;Ljava/lang/reflect/"
                          "Executable;)[[Ljava/lang/Object;"),
-    VECTOR_NATIVE_METHOD(HookBridge, getStaticInitializer,
-                         "(Ljava/lang/Class;)Ljava/lang/reflect/Executable;"),
     VECTOR_NATIVE_METHOD(HookBridge, findStaticInitializer,
                          "(Ljava/lang/Class;[J)Ljava/lang/reflect/Executable;"),
 };
