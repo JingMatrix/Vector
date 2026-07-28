@@ -279,6 +279,14 @@ data class GhArtifact(
 /** A successful CI run, as the canary screen renders it. */
 data class CanaryBuild(
     val id: Long,
+    /**
+     * The build this is, and the key the installer selects by.
+     *
+     * CI tags every canary `canary-<versionCode>`, so the number is in the tag and needs no second
+     * request. It is what [FrameworkRelease.versionCode] holds for the same release, which is how a
+     * row here can hand the installer a build rather than a URL.
+     */
+    val versionCode: Long,
     val title: String,
     val branch: String,
     val shortSha: String,

@@ -93,10 +93,15 @@ import org.matrix.vector.manager.ui.theme.VectorLogLine
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FrameworkUpdateScreen(
+    /** The build to open on, when the caller had one in mind. Null means the screen's own choice. */
+    openOnVersionCode: Long? = null,
     onNavigateBack: () -> Unit,
     onOpenUrl: (String) -> Unit,
     viewModel: FrameworkUpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
+    // Before the list has loaded, which is the point: the pin is a number, and it is resolved
+    // against the history whenever that arrives.
+    LaunchedEffect(openOnVersionCode) { openOnVersionCode?.let(viewModel::select) }
     val update by viewModel.update.collectAsStateWithLifecycle()
     val flash by viewModel.flash.collectAsStateWithLifecycle()
     val lines by viewModel.lines.collectAsStateWithLifecycle()

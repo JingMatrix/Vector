@@ -236,7 +236,7 @@
     </plurals>
     <string name="canary_open_actions">GitHub\'da aç</string>
     <string name="canary_open_run">Bu çalıştırmayı aç</string>
-    <string name="canary_download">İndir</string>
+    <string name="canary_install">Kur</string>
     <string name="canary_expired">Bu derlemenin çıktıları süresi dolmuş.</string>
     <string name="canary_none">Henüz yayımlanmış canary sürümü yok.</string>
     <string name="home_contributors_by_commits">En çok commit</string>

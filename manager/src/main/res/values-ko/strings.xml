@@ -225,7 +225,7 @@
     </plurals>
     <string name="canary_open_actions">GitHub에서 열기</string>
     <string name="canary_open_run">이 실행 열기</string>
-    <string name="canary_download">다운로드</string>
+    <string name="canary_install">설치</string>
     <string name="canary_expired">이 빌드의 산출물이 만료되었습니다.</string>
     <string name="canary_none">아직 공개된 canary 빌드가 없습니다.</string>
     <string name="home_contributors_by_commits">커밋 많은 순</string>

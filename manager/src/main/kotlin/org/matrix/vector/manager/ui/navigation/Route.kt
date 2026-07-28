@@ -43,8 +43,13 @@ sealed interface TopLevelRoute : Route {
 /** What to try, and what to bring, before opening an issue. */
 @Serializable data object Troubleshoot : Route
 
-/** What is in the newest build, and the installer's output while it is flashed. */
-@Serializable data object FrameworkUpdate : Route
+/**
+ * What is in a build, and the installer's output while it is flashed.
+ *
+ * [versionCode] names the build to open on, which is how the canary list hands one over; 0 means
+ * "whichever is worth offering", the screen's own default.
+ */
+@Serializable data class FrameworkUpdate(val versionCode: Long = 0) : Route
 
 /** GitHub, shown in the built-in viewer rather than handed to a browser. */
 @Serializable data class Web(val url: String) : Route

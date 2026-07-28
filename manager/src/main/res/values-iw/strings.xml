@@ -262,7 +262,7 @@
     </plurals>
     <string name="canary_open_actions">פתיחה ב-GitHub</string>
     <string name="canary_open_run">פתיחת ההרצה הזאת</string>
-    <string name="canary_download">הורדה</string>
+    <string name="canary_install">התקנה</string>
     <string name="canary_expired">התוצרים של הגרסה הזאת פגו.</string>
     <string name="canary_none">עדיין לא פורסמו גרסאות canary.</string>
     <string name="home_contributors_by_commits">הכי הרבה קומיטים</string>

@@ -225,7 +225,7 @@
     </plurals>
     <string name="canary_open_actions">在 GitHub 開啟</string>
     <string name="canary_open_run">檢視這次建置</string>
-    <string name="canary_download">下載</string>
+    <string name="canary_install">安裝</string>
     <string name="canary_expired">這次建置的產物已過期。</string>
     <string name="canary_none">尚未發行任何 Canary 版本。</string>
     <string name="home_contributors_by_commits">提交最多</string>

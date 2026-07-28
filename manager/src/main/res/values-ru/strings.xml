@@ -238,7 +238,7 @@
     </plurals>
     <string name="canary_open_actions">Открыть на GitHub</string>
     <string name="canary_open_run">Открыть эту сборку</string>
-    <string name="canary_download">Скачать</string>
+    <string name="canary_install">Установить</string>
     <string name="canary_expired">Артефакты этой сборки устарели.</string>
     <string name="canary_none">Canary-сборки пока не публиковались.</string>
     <string name="home_contributors_by_commits">По числу коммитов</string>

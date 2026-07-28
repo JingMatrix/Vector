@@ -236,7 +236,7 @@
     </plurals>
     <string name="canary_open_actions">باز کردن در GitHub</string>
     <string name="canary_open_run">باز کردن این اجرا</string>
-    <string name="canary_download">بارگیری</string>
+    <string name="canary_install">نصب</string>
     <string name="canary_expired">فرآورده‌های این ساخت منقضی شده‌اند.</string>
     <string name="canary_none">هنوز هیچ ساخت canary منتشر نشده است.</string>
     <string name="home_contributors_by_commits">بیشترین کامیت</string>

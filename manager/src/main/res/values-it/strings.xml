@@ -236,7 +236,7 @@
     </plurals>
     <string name="canary_open_actions">Apri su GitHub</string>
     <string name="canary_open_run">Apri questa esecuzione</string>
-    <string name="canary_download">Scarica</string>
+    <string name="canary_install">Installa</string>
     <string name="canary_expired">Gli artefatti di questa build sono scaduti.</string>
     <string name="canary_none">Nessuna build canary pubblicata finora.</string>
     <string name="home_contributors_by_commits">Più commit</string>

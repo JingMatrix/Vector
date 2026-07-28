@@ -280,7 +280,7 @@
     </plurals>
     <string name="canary_open_actions">فتح على GitHub</string>
     <string name="canary_open_run">فتح هذا التشغيل</string>
-    <string name="canary_download">تنزيل</string>
+    <string name="canary_install">تثبيت</string>
     <string name="canary_expired">انتهت صلاحية مخرجات هذا الإصدار.</string>
     <string name="canary_none">لم يُنشر أي إصدار canary بعد.</string>
     <string name="home_contributors_by_commits">الأكثر إيداعًا</string>

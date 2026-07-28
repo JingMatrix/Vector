@@ -225,7 +225,7 @@
     </plurals>
     <string name="canary_open_actions">Mở trên GitHub</string>
     <string name="canary_open_run">Mở lần chạy này</string>
-    <string name="canary_download">Tải xuống</string>
+    <string name="canary_install">Cài đặt</string>
     <string name="canary_expired">Sản phẩm của bản dựng này đã hết hạn.</string>
     <string name="canary_none">Chưa có bản canary nào được phát hành.</string>
     <string name="home_contributors_by_commits">Nhiều commit nhất</string>

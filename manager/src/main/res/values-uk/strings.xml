@@ -258,7 +258,7 @@
     </plurals>
     <string name="canary_open_actions">Відкрити на GitHub</string>
     <string name="canary_open_run">Відкрити цей запуск</string>
-    <string name="canary_download">Завантажити</string>
+    <string name="canary_install">Встановити</string>
     <string name="canary_expired">Артефакти цієї збірки застаріли.</string>
     <string name="canary_none">Збірок canary ще не опубліковано.</string>
     <string name="home_contributors_by_commits">Найбільше комітів</string>

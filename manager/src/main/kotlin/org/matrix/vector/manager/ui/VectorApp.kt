@@ -105,7 +105,7 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
             onOpenUrl = { url -> navigator.go(Web(url)) },
             onOpenCanary = { navigator.go(Canary) },
             onOpenReport = { navigator.go(Troubleshoot) },
-            onOpenUpdate = { navigator.go(FrameworkUpdate) },
+            onOpenUpdate = { navigator.go(FrameworkUpdate()) },
         )
     }
     entry<TopLevelRoute.Modules> {
@@ -141,10 +141,12 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
         CanaryScreen(
             onNavigateBack = { navigator.back() },
             onOpenUrl = { url -> navigator.go(Web(url)) },
+            onInstall = { versionCode -> navigator.go(FrameworkUpdate(versionCode)) },
         )
     }
-    entry<FrameworkUpdate> {
+    entry<FrameworkUpdate> { route ->
         FrameworkUpdateScreen(
+            openOnVersionCode = route.versionCode.takeIf { it > 0 },
             onNavigateBack = { navigator.back() },
             onOpenUrl = { url -> navigator.go(Web(url)) },
         )

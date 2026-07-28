@@ -352,7 +352,7 @@
     </plurals>
     <string name="canary_open_actions">Open on GitHub</string>
     <string name="canary_open_run">Open this run</string>
-    <string name="canary_download">Download</string>
+    <string name="canary_install">Install</string>
     <string name="canary_expired">The artifacts of this build have expired.</string>
     <string name="canary_none">No canary builds published yet.</string>
     <string name="home_contributors_by_commits">Most commits</string>

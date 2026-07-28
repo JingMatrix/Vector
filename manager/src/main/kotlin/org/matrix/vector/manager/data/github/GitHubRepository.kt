@@ -702,6 +702,7 @@ class GitHubRepository(
                 .map { release ->
                     CanaryBuild(
                         id = release.id,
+                        versionCode = release.versionCode() ?: 0,
                         title = release.name ?: release.tagName,
                         branch = release.tagName,
                         shortSha = release.targetCommitish.take(7),
@@ -904,7 +905,16 @@ class GitHubRepository(
          * The way out of the app for anyone who wants a build log, or a commit older than the five
          * canaries CI keeps published. [canaryBuilds] itself reads prereleases, not this page.
          */
-        const val CANARY_URL = "$REPO_URL/actions/workflows/core.yml?query=branch%3Amaster"
+        /**
+         * The Actions page, filtered the way the project README's build badge filters it.
+         *
+         * `event:push` and `is:completed` as well as the branch: a run started by hand, or one
+         * still going, is not a build anyone should be told to fetch, and the badge is the link
+         * that already draws that line.
+         */
+        const val CANARY_URL =
+            "$REPO_URL/actions/workflows/core.yml" +
+                "?query=event%3Apush+branch%3Amaster+is%3Acompleted"
         private const val CANARY_TAG_PREFIX = "canary-"
 
         /**

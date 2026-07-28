@@ -26,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -69,7 +70,11 @@ import org.matrix.vector.manager.ui.theme.VectorMono
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CanaryScreen(onNavigateBack: () -> Unit, onOpenUrl: (String) -> Unit) {
+fun CanaryScreen(
+    onNavigateBack: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    onInstall: (Long) -> Unit,
+) {
     var builds by remember { mutableStateOf<List<CanaryBuild>?>(null) }
     LaunchedEffect(Unit) { builds = ServiceLocator.github.canaryBuilds() }
 
@@ -107,7 +112,7 @@ fun CanaryScreen(onNavigateBack: () -> Unit, onOpenUrl: (String) -> Unit) {
                 else ->
                     LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                         items(list, key = { it.id }) { build ->
-                            BuildRow(build = build, onOpenUrl = onOpenUrl)
+                            BuildRow(build = build, onOpenUrl = onOpenUrl, onInstall = onInstall)
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 20.dp),
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
@@ -172,7 +177,7 @@ private fun CanaryEmpty(onOpenUrl: (String) -> Unit) {
 }
 
 @Composable
-private fun BuildRow(build: CanaryBuild, onOpenUrl: (String) -> Unit) {
+private fun BuildRow(build: CanaryBuild, onOpenUrl: (String) -> Unit, onInstall: (Long) -> Unit) {
     val colors = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp)) {
         Text(
@@ -209,20 +214,7 @@ private fun BuildRow(build: CanaryBuild, onOpenUrl: (String) -> Unit) {
                         color = colors.onSurfaceVariant,
                     )
                 }
-                if (artifact.downloadUrl != null) {
-                    // Handed to the browser rather than fetched here: it is already the thing that
-                    // knows how to resume, store and surface a large file that the user then
-                    // installs by hand.
-                    TextButton(onClick = { onOpenUrl(artifact.downloadUrl) }) {
-                        Icon(
-                            Icons.Rounded.Download,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.canary_download))
-                    }
-                }
+
             }
         }
 
@@ -235,11 +227,27 @@ private fun BuildRow(build: CanaryBuild, onOpenUrl: (String) -> Unit) {
             )
         }
 
-        build.htmlUrl?.let { url ->
-            Spacer(Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+        // One action per build rather than one per zip. Choosing between the Release and the Debug
+        // zip belongs on the installer, which already offers it, states the size of each and
+        // remembers which was picked last; here it would be a choice made before the reader has
+        // been told what either one is for.
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            build.htmlUrl?.let { url ->
                 TextButton(onClick = { onOpenUrl(url) }) {
                     Text(stringResource(R.string.canary_open_run))
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            if (build.versionCode > 0 && build.artifacts.any { !it.expired }) {
+                FilledTonalButton(onClick = { onInstall(build.versionCode) }) {
+                    Icon(
+                        Icons.Rounded.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.canary_install))
                 }
             }
         }

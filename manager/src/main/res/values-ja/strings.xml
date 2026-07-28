@@ -225,7 +225,7 @@
     </plurals>
     <string name="canary_open_actions">GitHub で開く</string>
     <string name="canary_open_run">この実行を開く</string>
-    <string name="canary_download">ダウンロード</string>
+    <string name="canary_install">インストール</string>
     <string name="canary_expired">このビルドの成果物は期限切れです。</string>
     <string name="canary_none">canary ビルドはまだ公開されていません。</string>
     <string name="home_contributors_by_commits">コミット数順</string>

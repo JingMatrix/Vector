@@ -115,6 +115,19 @@ class FrameworkUpdateViewModel : ViewModel() {
     }
 
     /**
+     * Select by number, for a caller that has a build rather than a release.
+     *
+     * The canary list arrives here naming the build it was showing. It holds no [FrameworkRelease]
+     * — it reads the same prereleases through a different shape — but CI tags every canary
+     * `canary-<versionCode>`, so the number is the one thing both sides already agree on. Pinning
+     * it before the list has loaded is fine: [selected] resolves the number against the history
+     * whenever that arrives.
+     */
+    fun select(versionCode: Long) {
+        explicit.value = versionCode
+    }
+
+    /**
      * The zip the user has chosen, or the release's own default.
      *
      * Falls back rather than refusing when the remembered variant is not in this release: a

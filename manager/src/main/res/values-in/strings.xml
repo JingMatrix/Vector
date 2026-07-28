@@ -229,7 +229,7 @@
     </plurals>
     <string name="canary_open_actions">Buka di GitHub</string>
     <string name="canary_open_run">Buka eksekusi ini</string>
-    <string name="canary_download">Unduh</string>
+    <string name="canary_install">Pasang</string>
     <string name="canary_expired">Artefak build ini sudah kedaluwarsa.</string>
     <string name="canary_none">Belum ada build canary yang diterbitkan.</string>
     <string name="home_contributors_by_commits">Commit terbanyak</string>
