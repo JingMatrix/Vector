@@ -65,10 +65,10 @@ interface AmbienceRenderer {
      * A drag, reported as the movement since the previous event.
      *
      * The increment rather than the distance from where the finger went down, because the surface
-     * has no reliable notion of where that was: the transform detector in this version of Compose
-     * reports no gesture boundary, so a remembered origin leaked from one drag into the next — the
-     * maze rebuilt on a nudge, and the rain hit its speed ceiling on the first flick. A renderer
-     * that wants a total accumulates one and decides for itself when it has seen enough.
+     * has no reliable notion of where that was: the transform detector reports no gesture boundary,
+     * so a remembered origin leaks from one drag into the next — the maze would rebuild on a nudge
+     * and the rain would hit its speed ceiling on the first flick. A renderer that wants a total
+     * accumulates one and decides for itself when it has seen enough.
      */
     fun onDrag(pan: Offset, at: Offset, size: Size) {}
 
@@ -77,9 +77,9 @@ interface AmbienceRenderer {
      *
      * Every ambience answers a pinch, and every one answers it the same way: a *scale*, not a
      * camera. Zooming out gives more of the thing — finer drizzle, a bigger maze, more traces —
-     * and zooming in gives fewer and larger. Simulating a viewer moving through the field was the
-     * first attempt and it read as sliding rather than approaching, because none of these have the
-     * parallax cues that would sell the move.
+     * and zooming in gives fewer and larger. None of these fields has the parallax cues that would
+     * sell a viewer moving through them, so a simulated camera reads as sliding rather than as
+     * approaching.
      *
      * The surface owns the number so it can be persisted; the renderer only has to honour it.
      */

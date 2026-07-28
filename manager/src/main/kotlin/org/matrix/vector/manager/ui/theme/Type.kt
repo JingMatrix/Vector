@@ -23,7 +23,7 @@ val VectorMono: TextStyle =
         letterSpacing = 0.sp,
         // Technical text stays left-to-right even when the app is not. Version numbers, package
         // names and uid/pid triples are identifiers, not prose: dropped into an Arabic paragraph
-        // the bidi algorithm reorders their segments, and "2.0 (3049) · API 101" came out as
+        // the bidi algorithm reorders their segments, and "2.0 (3049) · API 101" comes out as
         // "API 101 · (3049) 2.0". The string is the same; what it says is not.
         textDirection = TextDirection.Ltr,
     )

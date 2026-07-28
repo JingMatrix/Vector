@@ -69,8 +69,11 @@ import org.matrix.vector.manager.ui.theme.nativeName
  * The English name follows underneath, since the reader might be choosing on behalf of someone else,
  * or checking they picked the right one.
  *
- * The list is read from the APK's own resources, so a language appears here the moment a translator
- * lands its folder; nothing to remember to update.
+ * The list comes from `BuildConfig.TRANSLATIONS`, which the manager's build script fills in from the
+ * `values-*` folders that carry our own `strings.xml` — so a language appears here as soon as a
+ * translator's folder is built, with nothing to remember to update. It cannot be read from the
+ * resources at runtime: `AssetManager.getLocales()` reports every locale any dependency ships
+ * anything for, which is dozens of languages the app has never seen.
  *
  * Choosing does not close the sheet or restart anything. The strings behind it change immediately
  * and the row itself swells into place, so the effect of the choice is visible while the choice is
@@ -83,21 +86,20 @@ fun LanguageSheet(onOpen: (String) -> Unit, onDismiss: () -> Unit) {
     val current by settings.appLocale.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val locales = remember { availableLocales() }
-    // No skipPartiallyExpanded. Passing it removed the half-height stop, which is the only thing
-    // a drag on a sheet can *do* other than dismiss it — so a sheet taller than half the screen
-    // opened at full height and could not be made smaller. Left at the default, Material adds the
-    // stop only when the content is actually taller than half the screen, so short sheets still
-    // open at their own height and nothing gains a useless drag.
+    // The default state, deliberately. `skipPartiallyExpanded` removes the half-height stop, which
+    // is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than
+    // half the screen would open at full height and could not be made smaller. Left alone, Material
+    // adds the stop only when the content is actually taller than half the screen, so short sheets
+    // still open at their own height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
 LocalizedOverlay {
 
-        // Title and invitation on one line. They were two rows, each carrying the same Translate
-        // glyph forty dp apart, and the invitation — a two-line list item — outweighed the sheet's
-        // own title. Worse, at the half-height rest it spent two of the five visible rows before
-        // the reader reached a single language. One row keeps it permanently visible at any sheet
-        // height and gives the list its space back.
+        // Title and invitation share one row. At the half-height rest there are about five rows on
+        // screen, so a two-line list item for the invitation would spend two of them before the
+        // reader reached a single language — and it would outweigh the sheet's own title. One row
+        // keeps the invitation visible at any sheet height and leaves the list its space.
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -261,5 +263,5 @@ private fun LanguageRow(
     }
 }
 
-/** The icon that opens it, kept next to the palette because both govern how the app presents itself. */
+/** The glyph that stands for this sheet. */
 val LanguageIcon = Icons.Rounded.Language

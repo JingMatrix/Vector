@@ -11,13 +11,11 @@ import androidx.navigation3.runtime.rememberNavBackStack
 /**
  * The back stack, as an object with intent-revealing operations.
  *
- * Navigation 3 hands you the stack as a plain observable list, which is why this is fifty lines
- * rather than a graph definition. It also removes a whole class of bug the previous layer had: the
- * old shell called `popUpTo(startDestination)` against a destination it had already popped, so
- * `NavController` ignored it and pushed anyway — every tab visit accumulated an entry and system
- * back retraced the entire browsing history instead of exiting.
+ * Navigation 3 hands you the stack as a plain observable list, so this is a handful of operations
+ * over that list rather than a graph definition.
  *
- * Tab switching here truncates to a single root entry, so the stack can never grow without bound.
+ * Switching tabs truncates to a single root entry, so the stack can never grow without bound and
+ * system back leaves the app instead of retracing every tab that was visited.
  */
 @Stable
 class Navigator(val backStack: NavBackStack<NavKey>) {

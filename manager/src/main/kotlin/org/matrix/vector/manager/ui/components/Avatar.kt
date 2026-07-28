@@ -30,7 +30,7 @@ import kotlin.math.sin
  *
  * When [laurelled] the avatar is wreathed. The laurel is the Winged Victory's own iconography and
  * the only place the brand motif appears outside the launcher icon and the splash, so it stays
- * meaningful: it marks the single most active contributor of the quarter.
+ * meaningful: it marks the most active contributor over the window the feed covers.
  */
 @Composable
 fun ContributorAvatar(

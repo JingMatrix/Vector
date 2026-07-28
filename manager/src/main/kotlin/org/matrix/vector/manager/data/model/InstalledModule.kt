@@ -2,7 +2,7 @@ package org.matrix.vector.manager.data.model
 
 import android.content.pm.ApplicationInfo
 
-/** Pure Kotlin data class representing an installed Xposed module. */
+/** An installed Xposed module, as the Modules screen sees it. */
 data class InstalledModule(
     val packageName: String,
     val userId: Int,
@@ -13,26 +13,23 @@ data class InstalledModule(
     val minVersion: Int,
     val targetVersion: Int,
     val isLegacy: Boolean,
-    /** False when the module declares no Xposed API at all, which the old manager flagged. */
+    /** False when the module declares no Xposed API version at all, on either scale. */
     val declaresApiVersion: Boolean,
     /** When the module was last installed or updated — how you find the one you just added. */
     val lastUpdateTime: Long,
     val isEnabled: Boolean,
-    val applicationInfo: ApplicationInfo, // Kept for Icon loading via Coil/Glide later
+    val applicationInfo: ApplicationInfo, // The row's icon is rasterised from this.
 ) {
     /**
      * The API version this module *is*, as opposed to the one it asks for.
      *
-     * These are two different numbers and the screen was showing the wrong one. `module.prop`
-     * carries both `minApiVersion` — the author's stated floor — and `targetApiVersion`, what the
-     * module was built against; the WeType module declares 101 and 102 respectively, and the badge
-     * said 101.
-     *
-     * `targetApiVersion` is the one that decides anything. `FileSystem.readModuleInfo` picks the
-     * loading strategy from it alone — `targetApi >= 101` is MODERN, `targetApi == 100` is
-     * refused, and anything else falls back to a legacy `assets/xposed_init` or does not load at
-     * all. `minApiVersion` is read *nowhere* in the daemon or the framework: zero occurrences.
-     * Showing it as "API n" therefore reported a number the framework ignores.
+     * `module.prop` carries two different numbers: `minApiVersion`, the author's stated floor, and
+     * `targetApiVersion`, what the module was built against. Of the two, only the second decides
+     * anything. The daemon's `FileSystem.loadModule` tries `targetApiVersion` first — 101 or above
+     * loads as modern — then falls back to an `assets/xposed_init`, which makes it legacy, and
+     * refuses a module that declares exactly 100 with no such entry. `minApiVersion` is read
+     * nowhere in the daemon or the framework, so showing it as "API n" would report a number
+     * nothing acts on.
      *
      * Legacy modules keep their own number, because there is no target on that scale — it comes
      * from the `xposedminversion` manifest entry and is all they have.

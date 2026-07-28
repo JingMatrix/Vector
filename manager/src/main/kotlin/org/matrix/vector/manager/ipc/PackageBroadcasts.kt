@@ -17,7 +17,12 @@ sealed class PackageEvent {
     data class Changed(val packageName: String, val userId: Int) : PackageEvent()
 }
 
-/** Provides a continuous stream of package events (installs, removals, updates). */
+/**
+ * Package installs, removals and updates, as a flow.
+ *
+ * The receiver exists only while the flow is collected. `ServiceLocator` collects it on a scope that
+ * lasts as long as the process, which is what keeps the manager's lists from going stale.
+ */
 fun Context.packageEventsFlow(): Flow<PackageEvent> = callbackFlow {
     val receiver =
         object : BroadcastReceiver() {
@@ -26,10 +31,10 @@ fun Context.packageEventsFlow(): Flow<PackageEvent> = callbackFlow {
                 val userId = intent.getIntExtra(Intent.EXTRA_USER, 0)
 
                 when (intent.action) {
-                    // An update to an existing package. It also arrives as ADDED with
-                    // EXTRA_REPLACING, but only after a REMOVED for the old copy — and a listener
-                    // that acts on the REMOVED has already dropped the module from the list by the
-                    // time the ADDED lands. Handling REPLACED directly is one event, in order.
+                    // An update to an existing package produces a REMOVED for the old copy, an
+                    // ADDED carrying EXTRA_REPLACING, and a REPLACED of its own. The last two say
+                    // the same thing — the package is installed now — so both map to Added, and
+                    // the duplicate costs a collector nothing beyond a repeated invalidation.
                     Intent.ACTION_PACKAGE_REPLACED,
                     Intent.ACTION_PACKAGE_ADDED -> {
                         trySend(PackageEvent.Added(packageName, userId))
@@ -56,7 +61,5 @@ fun Context.packageEventsFlow(): Flow<PackageEvent> = callbackFlow {
 
     registerReceiver(receiver, filter)
 
-    // When the flow collection is cancelled (e.g. app goes to background/dies), unregister
-    // automatically
     awaitClose { unregisterReceiver(receiver) }
 }

@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.dp
 /**
  * The three pieces every settings sheet in this app is built from.
  *
- * They began inside the appearance sheet and were copied outwards, which is how two sheets end up
- * looking *almost* the same — the tell is a heading indented differently, or a switch row whose
- * subtitle wraps at another width. Shared here so that a new sheet inherits the pattern rather than
- * re-deriving it, and so that changing the pattern changes every sheet at once.
+ * Shared rather than copied into each sheet, because copies drift and two sheets end up looking
+ * *almost* the same — the tell is a heading indented differently, or a switch row whose subtitle
+ * wraps at another width. A new sheet inherits the pattern, and changing the pattern changes every
+ * sheet at once.
  */
 @Composable
 fun SheetHeading(text: String, icon: ImageVector) {
@@ -58,10 +58,10 @@ fun SheetHeading(text: String, icon: ImageVector) {
 /**
  * A row of choices, wrapping onto as many lines as it needs.
  *
- * This scrolled sideways at first, on the theory that a chip which reflows moves every chip after
- * it, so an option sits somewhere different in each language. True, but it is the lesser problem:
- * scrolling *hides* the options past the edge, and an option nobody knows about is worse than one
- * that moved. In a sheet the vertical room costs nothing, so everything is shown at once.
+ * Wrapping rather than scrolling sideways. A chip that reflows moves every chip after it, so an
+ * option sits somewhere different in each language — but scrolling *hides* the options past the
+ * edge, and an option nobody knows about is worse than one that moved. In a sheet the vertical room
+ * costs nothing, so everything is shown at once.
  */
 @Composable
 fun ChoiceRow(content: @Composable () -> Unit) {
@@ -81,8 +81,8 @@ fun ChoiceRow(content: @Composable () -> Unit) {
  * tap cannot be counted twice.
  *
  * Toggleable rather than merely clickable, because a plain clickable carries no state: a screen
- * reader called every one of these rows a button and read out the title, so there was no way to
- * hear whether the setting was on or off — the one thing the row exists to say.
+ * reader announces such a row as a button and reads the title, leaving no way to hear whether the
+ * setting is on or off — the one thing the row exists to say.
  */
 @Composable
 fun ToggleRow(

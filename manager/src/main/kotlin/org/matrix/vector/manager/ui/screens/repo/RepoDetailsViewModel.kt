@@ -168,8 +168,8 @@ class RepoDetailsViewModel(
      * Which releases belong to the current channel.
      *
      * Resolved by [releasesOn] rather than here, so that what this tab lists, what the update badge
-     * in the Store list compares against, and what the install bar actually downloads are one rule
-     * with one implementation. They were three, and on the prerelease channel they disagreed.
+     * in the Store list compares against, and what the install bar downloads are one rule with one
+     * implementation rather than three that can disagree on the prerelease channel.
      */
     private fun releasesFor(module: OnlineModule?, channel: StoreChannel): List<Release> =
         module?.releasesOn(channel).orEmpty()

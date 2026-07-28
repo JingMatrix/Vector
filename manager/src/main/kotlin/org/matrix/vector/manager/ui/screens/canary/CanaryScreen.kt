@@ -57,20 +57,15 @@ import org.matrix.vector.manager.ui.theme.VectorMono
 /**
  * Canary builds: what CI has produced since the last release, and how to try one.
  *
- * **Nobody signs in here.** This screen used to list Actions artifacts and ask for a GitHub account
- * before it would hand one over, because GitHub gates artifact downloads behind auth even on a
- * public repository — `actions/artifacts/<id>/zip` answers 401 anonymously where a release asset
- * answers 206. That was a trust cost imposed by a storage decision: users of a root-level framework
- * were being asked to grant an OAuth app something in order to work around where the zips happened
- * to live. CI now attaches the same zips to a rolling `canary-<versionCode>` prerelease, whose
- * assets any anonymous caller can fetch, so the ask is gone and so is the block that carried it.
+ * **Nobody signs in here, and that is what decides where the zips come from.** GitHub gates artifact
+ * downloads behind an account even on a public repository — `actions/artifacts/<id>/zip` answers 401
+ * to an anonymous caller where a release asset answers 206 — so listing Actions artifacts would mean
+ * asking every would-be tester for an OAuth grant to work around where the zips happen to live, and
+ * would lose the people who cannot reach GitHub's login page at all. CI attaches the same zips to a
+ * rolling `canary-<versionCode>` prerelease instead, and this lists those.
  *
- * It also works for the users who most need it: the people who cannot reach GitHub's login page are
- * exactly the ones a canary programme loses first, and a release asset is served from a different
- * host than the login flow.
- *
- * The Actions page is still one tap away for anyone who wants the build log or a commit older than
- * the five CI keeps, filtered the way the project README filters it.
+ * The Actions page is one tap away for anyone who wants the build log or a commit older than the
+ * five canaries CI keeps, filtered the way the project README filters it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,8 +142,8 @@ fun CanaryScreen(onNavigateBack: () -> Unit, onOpenUrl: (String) -> Unit) {
 /**
  * Nothing published yet.
  *
- * Says what to do about it rather than reporting an absence and stopping: before CI has pushed its
- * first prerelease this is the normal state, not a fault.
+ * Says what to do about it rather than only reporting the absence: before CI has pushed its first
+ * prerelease this is the normal state, not a fault.
  */
 @Composable
 private fun CanaryEmpty(onOpenUrl: (String) -> Unit) {
@@ -215,9 +210,9 @@ private fun BuildRow(build: CanaryBuild, onOpenUrl: (String) -> Unit) {
                     )
                 }
                 if (artifact.downloadUrl != null) {
-                    // Handed to the browser rather than fetched here: the download URL redirects to
-                    // a signed blob URL, and the browser is already the thing that knows how to
-                    // resume, store and surface a large file the user then installs by hand.
+                    // Handed to the browser rather than fetched here: it is already the thing that
+                    // knows how to resume, store and surface a large file that the user then
+                    // installs by hand.
                     TextButton(onClick = { onOpenUrl(artifact.downloadUrl) }) {
                         Icon(
                             Icons.Rounded.Download,

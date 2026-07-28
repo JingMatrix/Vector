@@ -11,17 +11,12 @@ import kotlinx.coroutines.yield
 /**
  * A random-access window onto one of the daemon's log files.
  *
- * The screen this feeds used to call `readLines()` and hold the result in a `StateFlow` — for
- * *both* tabs, on every refresh, whether or not the tab was visible. That is roughly 13 MB of
- * `String` churn per refresh inside a process whose heap belongs to `com.android.shell`.
- *
- * The honest correction to the usual telling of that story is that a single `getLog()` is capped
- * today: `logcat.cpp` rotates at 4 MB per part, and a rotated part on a real device measures
- * 4,194,639 bytes. So the old reader was wasteful rather than instantly fatal. It still had to go,
- * because the cap is a property of the daemon build that happens to be running — rotation only
- * fires inside the logd read loop, so a wedged logd grows the part without bound — and the manager
- * cannot inspect the provenance of the descriptor it was handed before it reads from it. **A
- * reader whose peak memory scales with file size is wrong regardless of today's number.**
+ * A single log file is capped today: `logcat.cpp` rotates at 4 MB per part. That cap belongs to
+ * the daemon build that happens to be running, though, and the manager cannot inspect the
+ * provenance of the descriptor it was handed before it reads from it. **A reader whose peak memory
+ * scales with file size is wrong regardless of today's number** — reading a part into `String`s
+ * would be megabytes of churn per refresh, inside a process whose heap belongs to
+ * `com.android.shell`.
  *
  * So nothing here scales with the file:
  * - [index] never allocates a `String`. It scans bytes for `'\n'` and records line offsets into a
@@ -36,11 +31,10 @@ import kotlinx.coroutines.yield
  * work and this class exploits them rather than streaming forward.
  *
  * Ownership is exactly one object. [ParcelFileDescriptor.AutoCloseInputStream] adopts the
- * descriptor and closes it once, in [close]. The previous code wrapped the raw
- * `pfd.fileDescriptor` in a `FileInputStream` *and* closed the `ParcelFileDescriptor` in a
- * `finally`, closing the same fd number twice — and between the two closes the runtime is free to
- * hand that number to an OkHttp socket or a Coil bitmap, which the second close then silently
- * detaches.
+ * descriptor and closes it once, in [close]. Wrapping the raw `pfd.fileDescriptor` in a
+ * `FileInputStream` *and* closing the `ParcelFileDescriptor` separately closes the same fd number
+ * twice, and between the two closes the runtime is free to hand that number to an OkHttp socket or
+ * a Coil bitmap, which the second close then silently detaches.
  */
 class LogFile(pfd: ParcelFileDescriptor) : Closeable {
 
@@ -208,8 +202,8 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
      * Feeds lines to [action] a block at a time.
      *
      * Blocks end on a line boundary, so no line ever straddles two reads and the caller never has
-     * to stitch. A single line longer than [READ_BLOCK] is the one exception and is cut, which is
-     * also where [MAX_LINE_CHARS] would have cut it anyway.
+     * to stitch. A single line longer than [READ_BLOCK] is the one exception and is cut short —
+     * [MAX_LINE_CHARS] cuts it far sooner in any case.
      */
     private suspend fun forEachLine(
         index: LogIndex,
@@ -279,9 +273,8 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         private const val READ_BLOCK = 256 * 1024
 
         /**
-         * 400,000 lines is ~3.2 MB of offsets, and about ten times the largest log the daemon can
-         * currently produce. Past it the *oldest* lines are dropped, because a log is read from
-         * the end.
+         * 400,000 lines is ~3.2 MB of offsets, and more than ten times the lines in a full 4 MB
+         * part. Past it the *oldest* lines are dropped, because a log is read from the end.
          */
         private const val MAX_INDEXED_LINES = 400_000
 

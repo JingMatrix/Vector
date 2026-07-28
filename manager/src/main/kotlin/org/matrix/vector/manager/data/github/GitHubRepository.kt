@@ -13,9 +13,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 /**
- * Loads the last quarter of activity on the project's GitHub repository.
+ * Activity on the project's GitHub repository: the commits, the people behind them, the repository
+ * counters, and the published builds.
  *
- * Offline-first: [load] returns whatever is on disk immediately if the network fails, and the
+ * Offline-first: [load] falls back to whatever is on disk whenever the network fails, and the
  * caller renders it with a "showing cached" affordance rather than an error. A framework manager
  * must never be blocked by GitHub being unreachable.
  */
@@ -37,16 +38,15 @@ class GitHubRepository(
     /**
      * The stars, forks and licence, in a file of their own.
      *
-     * They used to live inside the feed snapshot, which is why they kept disappearing: the feed is
-     * rewritten on every successful commit fetch, and the repo comes from a *separate* request that
-     * fails independently — so one rate-limited hour replaced a perfectly good answer with nothing,
-     * and every later launch wrote the nothing back. Merging on write fixed that particular loss,
-     * but it left the answer hostage to a file that something else owns and rewrites constantly.
+     * Kept out of the feed snapshot, which is rewritten on every successful commit fetch: the repo
+     * comes from a *separate* request that fails independently, so one rate-limited hour would
+     * otherwise replace a perfectly good answer with nothing and every later launch would write the
+     * nothing back. Here they can only be replaced by an actual answer to the question they came
+     * from, because nothing else writes this file.
      *
-     * Kept apart, they can only be replaced by an actual answer to the question they came from.
-     * Nothing else writes here, so nothing else can lose them. They are also the slowest-changing
-     * thing on the screen — a star count from yesterday is not wrong in any way a reader cares
-     * about — so serving a stale one indefinitely is the correct behaviour, not a fallback.
+     * They are also the slowest-changing thing on the screen — a star count from yesterday is not
+     * wrong in any way a reader cares about — so serving a stale one indefinitely is the correct
+     * behaviour, not a fallback.
      */
     private val repoFile = File(cacheDir, "github_repo.json")
 
@@ -78,8 +78,8 @@ class GitHubRepository(
      *
      * A null value is a remembered *404*: it is as worth keeping as a success, because the
      * alternative is asking about the same unresolvable name on every load. Only a 404 lands here;
-     * see [resolvePerson] for why every other kind of failure is left out. Persisted so that
-     * survives the process, which parasitically is killed often.
+     * see [resolvePerson] for why every other kind of failure is left out. Persisted so that it
+     * survives the process, which parasitically is `com.android.shell` and is killed often.
      */
     private val resolvedPeople: MutableMap<String, ResolvedPerson?> by lazy {
         runCatching { json.decodeFromString<Map<String, ResolvedPerson?>>(peopleFile.readText()) }
@@ -102,7 +102,10 @@ class GitHubRepository(
     enum class Freshness {
         /** Disk only. Never touches the network. */
         Cached,
-        /** Normal conditional request; a 304 costs nothing against the rate limit. */
+        /**
+         * Serve from the HTTP cache while the answer is under [REVALIDATE_MINUTES] old, and
+         * revalidate after that. A 304 costs nothing against the rate limit.
+         */
         Revalidate,
         /** Ignore caches entirely. Only for an explicit pull-to-refresh. */
         Force,
@@ -133,12 +136,10 @@ class GitHubRepository(
                 )
             }
             if (fresh != null) {
-                // Merged with what was already on disk rather than replacing it. The stars, forks
-                // and licence come from a *second* request, and the two do not fail together: on a
-                // rate-limited hour the commits arrived and the repo did not, and writing that
-                // straight through erased a perfectly good cached answer — the footer disappeared
-                // and stayed disappeared, because every later launch overwrote it again. A field
-                // this fetch could not answer keeps the last answer that was.
+                // Merged with what is already on disk rather than replacing it. The stars, forks
+                // and licence come from a *second* request, and the two do not fail together — a
+                // rate-limited hour can deliver the commits and not the repo — so a field this
+                // fetch could not answer keeps the last answer that was.
                 writeRepo(fresh.repo)
                 // The head window is the mutable part of history — it can be amended or rebased —
                 // so it is appended every time and the duplicates resolved on read.
@@ -170,25 +171,23 @@ class GitHubRepository(
                             commits = json.decodeFromString<List<GhCommit>>(snapshotFile.readText())
                         )
                     }
-                    // An empty snapshot rather than an empty *feed*. The snapshot is one window's
-                    // worth of commits; the archive is every commit ever walked, and it lives in a
-                    // different file. Returning early here because this one was missing or
-                    // unreadable threw the archive away with it, and the page came up blank on a
-                    // device holding thousands of commits. Falling through costs nothing when there
-                    // really is nothing: the merge below just has no fallback to merge.
+                    // An empty snapshot rather than an early return with an empty *feed*. The
+                    // snapshot is one window's worth of commits; the archive is every commit ever
+                    // walked, and it lives in a different file — so giving up here because this
+                    // file is missing or unreadable would throw away thousands of commits that are
+                    // still on disk. Falling through costs nothing when there really is nothing:
+                    // the merge below simply has no fallback to merge.
                     .getOrNull() ?: Snapshot()
             build(
                 timeline(cached.commits, windowStart),
-                // Its own file first: the feed snapshot's copy is a historical accident and may
-                // predate the split, or have been nulled by the bug that prompted it.
+                // Its own file first; the feed snapshot's copy is the fallback behind it.
                 readRepo() ?: cached.repo,
                 windowStart,
                 fromCache = true,
                 offline = freshness != Freshness.Cached,
-                // Kept with the commits rather than recomputed: it comes from the `Link` header of
-                // a request this path did not make. Without it every cached read lost the commit
-                // numbering, and "you are here" — which is the whole point of numbering them —
-                // silently vanished on the four launches out of five that read from disk.
+                // Read back rather than recomputed: it comes from the `Link` header of a request
+                // this path did not make, and without it a cached read loses the commit numbering
+                // that the "you are here" marker is built on.
                 totalCommits = cached.totalCommits,
             )
         }
@@ -284,9 +283,9 @@ class GitHubRepository(
      * archive is keyed by SHA.
      *
      * The *commit* date, not the author date, because that is what `until` filters on and the two
-     * are not the same — 39 of the newest hundred commits here differ, by up to four days. A cursor
-     * on the author date would ask for commits before a moment that had already passed for some of
-     * them, and they would never be seen again.
+     * are not the same — about half of the newest hundred commits here differ, by as much as three
+     * weeks. A cursor on the author date would ask for commits before a moment that had already
+     * passed for some of them, and they would never be seen again.
      *
      * A date cursor has one failure mode, and this repository has it. Squashes and imports stamp
      * many commits with the same second — 100+ of these share `2023-02-26T08:48:49Z` — and a plateau
@@ -297,8 +296,8 @@ class GitHubRepository(
      * an `until` in the past, so commits landing now fall outside it and cannot shift it.
      *
      * Completion is an *empty* page, and nothing weaker. "Nothing new in this page" is what the
-     * plateau produces on every request, and reading it as the end was precisely the bug; "fewer
-     * than a hundred" is what a shared boundary second produces legitimately.
+     * plateau produces on every request, and "fewer than a hundred" is what a shared boundary
+     * second produces legitimately; neither means the history has run out.
      *
      * ## Why it stops early
      *
@@ -408,8 +407,9 @@ class GitHubRepository(
          * The stars, forks and licence line.
          *
          * Stored for the same reason as the total: it comes from a second request, and a cached
-         * read makes none — so without it the "take part" numbers vanished on every launch that
-         * deliberately did not fetch, which is most of them.
+         * read makes none — so without it the "take part" numbers would be missing on every launch
+         * that deliberately does not fetch, which is most of them. `github_repo.json` owns the copy
+         * that is preferred on read; this one stays as the fallback behind it.
          */
         val repo: GhRepo? = null,
     )
@@ -607,10 +607,9 @@ class GitHubRepository(
             //
             // Judged against the oldest commit in the **archive**, never against the oldest one on
             // screen. The rendered list is already cut to the window, so its oldest entry is at or
-            // after the window's start by construction — comparing that against the start was a
-            // test that could never fail, and a bounded window therefore offered "load earlier
-            // commits" forever, on a fetch that could only return commits the window would throw
-            // away again.
+            // after the window's start by construction; a test against that can never fail, and a
+            // bounded window would offer "load earlier commits" forever, on a fetch that could only
+            // return commits the window would throw away again.
             hasMoreHistory =
                 !archive.state().complete &&
                     !(totalCommits > 0 && archived.size >= totalCommits) &&
@@ -682,9 +681,9 @@ class GitHubRepository(
      * These are **prereleases**, not Actions artifacts, and that is the whole point. GitHub gates an
      * artifact download behind an account even for a public repository — `actions/artifacts/<id>/zip`
      * answers 401 to an anonymous caller, while a release asset answers 206 — so sourcing canaries
-     * from artifacts meant asking every would-be tester for an OAuth grant to work around a storage
-     * decision. CI attaches the same zips to a rolling `canary-<versionCode>` prerelease, and this
-     * reads that, so nobody signs in to anything.
+     * from artifacts would mean asking every would-be tester for an OAuth grant to work around a
+     * storage decision. CI attaches the same zips to a rolling `canary-<versionCode>` prerelease,
+     * and this reads that, so nobody signs in to anything.
      *
      * Filtered to the canary tag rather than taking every prerelease: a hand-cut release candidate
      * is also a prerelease, and it is not a nightly.
@@ -783,9 +782,9 @@ class GitHubRepository(
      * **Only releases of this product count, and that is not pedantry.** The version code restarted
      * when LSPosed became Vector: this repository's own release list holds `LSPosed-v1.11.0-7209`
      * beside `Vector-v2.0-3021`, so a plain numeric comparison makes the *older* project look four
-     * thousand builds newer. Without this filter the manager offered LSPosed 1.11.0 to a Vector
-     * 3049 device and called it an update — a cross-product downgrade, flashed with root. Matching
-     * the asset prefix is what keeps the comparison inside one numbering scheme.
+     * thousand builds newer, and the manager would offer LSPosed 1.11.0 to a Vector device as an
+     * update — a cross-product downgrade, flashed with root. Matching the [ZIP_PREFIX] asset prefix
+     * is what keeps the comparison inside one numbering scheme.
      */
     private fun GhRelease.versionCode(): Long? {
         val ours = assets.filter { it.name.startsWith(ZIP_PREFIX, ignoreCase = true) }
@@ -817,9 +816,8 @@ class GitHubRepository(
      * What is left is asking whether an account exists under that name, and that is only safe for
      * names that are plainly *handles*. `GET /users/Qing` answers 200 with a real account — id
      * 158244, an unrelated person — so probing every display name would eventually attach a
-     * stranger's face and profile to someone else's contribution. Requiring a digit, a hyphen or an
-     * underscore keeps the shape of a handle (`frknkrc44`) and rejects the shape of a name
-     * (`Qing`, `Furkan Karcıoğlu`).
+     * stranger's face and profile to someone else's contribution. [HANDLE_SHAPED] keeps the shape
+     * of a handle (`frknkrc44`) and rejects the shape of a name (`Qing`, `Furkan Karcıoğlu`).
      *
      * The cost of the guard is that a handle made only of letters stays unresolved. That is the
      * right way to be wrong: an unlinked contributor is merely uncredited, a mislinked one is
@@ -829,10 +827,10 @@ class GitHubRepository(
         val key = name.lowercase()
         if (resolvedPeople.containsKey(key)) return resolvedPeople[key]
         if (!HANDLE_SHAPED.matches(name)) return null
-        // A cache-only load must not decide that a name is unresolvable. The request would be
-        // served FORCE_CACHE, miss, and the miss would be written down as a permanent failure — so
-        // the first launch after install, which reads the feed from disk, would poison every name
-        // before the network was ever asked.
+        // A cache-only load must not decide that a name is unresolvable: the request would be
+        // served FORCE_CACHE, miss, and the miss would be written down permanently — so the first
+        // launch after install, which reads the feed from disk, would poison every name before the
+        // network was ever asked.
         if (freshness == Freshness.Cached) return null
 
         val answer = runCatching { getWithStatus("$API_ROOT/users/$name", freshness) }.getOrNull()
@@ -851,10 +849,10 @@ class GitHubRepository(
                 .getOrNull()
 
         // Only a 404 says anything about the person. A rate-limited 403, a 5xx or a dropped
-        // connection says something about the moment, and it used to be written down here as "no
-        // such account" — permanently, since this map is persisted, so one throttled hour left a
-        // contributor uncredited on every later launch. Anything that is not a plain "not found"
-        // leaves the key absent, and the next load asks again.
+        // connection says something about the moment, and this map is persisted — writing one of
+        // those down as "no such account" would leave a contributor uncredited on every later
+        // launch. Anything that is not a plain "not found" leaves the key absent, and the next load
+        // asks again.
         if (found == null && answer?.code != HTTP_NOT_FOUND) return null
 
         resolvedPeople[key] = found
@@ -901,8 +899,10 @@ class GitHubRepository(
         const val GOOD_FIRST_ISSUE_URL = "$REPO_URL/issues?q=is%3Aopen+label%3A%22good+first+issue%22"
 
         /**
-         * Canary builds come off CI rather than a release tag, so testing one means going to the
-         * workflow's run list and taking the artifact from the most recent master build.
+         * The workflow's own run list, filtered to master.
+         *
+         * The way out of the app for anyone who wants a build log, or a commit older than the five
+         * canaries CI keeps published. [canaryBuilds] itself reads prereleases, not this page.
          */
         const val CANARY_URL = "$REPO_URL/actions/workflows/core.yml?query=branch%3Amaster"
         private const val CANARY_TAG_PREFIX = "canary-"
@@ -928,8 +928,9 @@ class GitHubRepository(
         /**
          * A name shaped like a handle rather than a display name.
          *
-         * A digit, a hyphen or an underscore somewhere in it, and nothing that a GitHub login
-         * cannot contain. See [resolvePerson] for why the bar is deliberately this high.
+         * A digit, a hyphen or an underscore somewhere in it, no spaces, no accented letters, and
+         * within GitHub's 39-character limit. See [resolvePerson] for why the bar is deliberately
+         * this high.
          */
         private val HANDLE_SHAPED =
             Regex("^(?=.*[0-9_-])[A-Za-z0-9](?:[A-Za-z0-9_]|-(?=[A-Za-z0-9_])){0,38}$")
@@ -942,8 +943,10 @@ class GitHubRepository(
          */
         const val DEFAULT_WINDOW_MONTHS = 6
 
+        /** The window is a rough reach backwards, not a calendar, so a flat month will do. */
         private const val DAYS_PER_MONTH = 30L
 
+        /** How long a fetched answer is served without asking GitHub anything; see [Freshness]. */
         private const val REVALIDATE_MINUTES = 30L
 
         private val PR_SUFFIX = Regex("""\(#(\d+)\)\s*$""")

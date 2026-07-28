@@ -14,10 +14,9 @@ import org.matrix.vector.manager.ipc.DaemonClient
 /**
  * The single source of truth for which modules are enabled.
  *
- * It observes the binder rather than being poked once at construction. That ordering was the
- * previous bug: the repository fired its first fetch from an `init` block, which ran before any
- * daemon connection existed, so it always failed and was never retried — the enabled set stayed
- * empty for the life of the process.
+ * It observes the binder rather than fetching once at construction. This is built before any daemon
+ * connection exists, so a single fetch from `init` would run too early, fail, and have nothing to
+ * retry it — the enabled set would stay empty for the life of the process.
  */
 class ModuleRepository(
     private val daemonClient: DaemonClient,
@@ -30,17 +29,16 @@ class ModuleRepository(
     private val _scopeRevision = MutableStateFlow(0)
 
     /**
-     * Bumped whenever a module's scope is known to have changed.
+     * Bumped whenever a module's scope has been written.
      *
-     * The scope editor is a separate screen with its own view model, so the list behind it had no
-     * way to learn that the thing it was depicting had just been edited: applying a scope and
-     * pressing back left the row still showing the old set of app icons until a manual pull to
-     * refresh. This is a fact, not a guess — the daemon confirmed the change before it is
-     * announced — so the list can act on it without re-reading everything.
+     * The scope editor is a separate screen with its own view model, so the list behind it has no
+     * other way to learn that the thing it depicts has just been edited: without this, applying a
+     * scope and pressing back leaves the row showing the old set of app icons until a manual pull
+     * to refresh.
      */
     val scopeRevision: StateFlow<Int> = _scopeRevision.asStateFlow()
 
-    /** Called after the daemon has *accepted* a scope change, never on an attempt. */
+    /** Called once a scope write has gone through, not when one is started. */
     fun noteScopeChanged() {
         _scopeRevision.update { it + 1 }
     }
@@ -50,11 +48,11 @@ class ModuleRepository(
     /**
      * Bumped when a package is installed, updated or removed.
      *
-     * The module list is now cached across visits, which is what made it fast — and what would
-     * have made it wrong, because a list that is never recomputed never notices a module being
-     * installed. The daemon already tells us when packages change; this is that signal reaching
-     * the list, so the rescan happens exactly when something changed rather than on every visit.
-     * The scan it triggers is cheap: only the package that actually changed is re-inspected.
+     * The module list is cached across visits, which is what makes it fast — and what would make it
+     * wrong, because a list that is never recomputed never notices a module being installed. The
+     * platform's own package broadcasts feed this, so the rescan happens when something has changed
+     * rather than on every visit. The scan it triggers is cheap: the detection cache is keyed by
+     * version code and install time, so only the package that actually changed is opened again.
      */
     val packageRevision: StateFlow<Int> = _packageRevision.asStateFlow()
 

@@ -80,9 +80,9 @@ class SnowRenderer : AmbienceRenderer {
     /**
      * Crystal size, and with it how many there are.
      *
-     * Inversely: pinching out gives a fine dense drizzle, pinching in gives a few large crystals.
-     * Keeping the *coverage* roughly constant is what makes it read as one snowfall seen closer or
-     * further rather than as two different settings.
+     * Inversely: zooming out gives a fine dense drizzle, zooming in a few large crystals. Trading
+     * count against size is what makes it read as one snowfall seen closer or further rather than
+     * as two different settings.
      */
     override var scale: Float = 1f
         set(value) {

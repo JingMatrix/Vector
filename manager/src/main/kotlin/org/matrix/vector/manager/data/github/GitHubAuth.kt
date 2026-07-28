@@ -192,7 +192,10 @@ sealed interface SignInState {
 
     data class SignedIn(val login: String?, val token: String) : SignInState
 
-    /** GitHub could not be reached, or no client id was compiled in. Not an error state. */
+    /**
+     * No client id was compiled in, GitHub could not be reached, or it refused the grant. Not an
+     * error state: every surface that offers sign-in renders without it.
+     */
     data class Unavailable(val reason: String) : SignInState
 }
 

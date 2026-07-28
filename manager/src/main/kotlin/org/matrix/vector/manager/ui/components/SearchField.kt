@@ -28,8 +28,8 @@ import org.matrix.vector.manager.R
  * One rounded control that holds the search input *and* whatever narrows the list.
  *
  * Search and filtering answer the same question — *which of these am I looking at* — so splitting
- * them across a text field and a separate row of chips spent two rows and two mental steps on one
- * intent. Everything that narrows the list lives in [trailing], on the same line.
+ * them across a text field and a separate row of chips would spend two rows and two mental steps on
+ * one intent. Everything that narrows the list lives in [trailing], on the same line.
  */
 @Composable
 fun SearchField(
@@ -69,8 +69,8 @@ fun SearchField(
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             // A search field is a fixed-height control, so its hint may never
-                            // wrap: in French "Rechercher une application" took a second line and
-                            // grew the whole bar, breaking the three-row header every panel
+                            // wrap: in French "Rechercher une application" runs to a second line
+                            // and would grow the whole bar, breaking the fixed header every panel
                             // shares. One line, always — the field cannot change shape by
                             // language.
                             maxLines = 1,

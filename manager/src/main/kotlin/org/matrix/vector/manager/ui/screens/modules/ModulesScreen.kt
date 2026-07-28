@@ -143,15 +143,13 @@ class ModulesViewModelFactory : ViewModelProvider.Factory {
 /**
  * The module list.
  *
- * Its first job is to answer *what is running*, so enabled modules sort to the top and a disabled
- * row is visibly dimmed on a plainer surface — the state is legible from the shape of the list
- * itself, not only from the position of a switch. The header says the same thing numerically, and
- * the filter turns it into a question that can be asked directly.
+ * Its first job is to answer *what is running*, so enabled modules sort to the top, a disabled row
+ * is dimmed and the module's own name carries the state in its colour — legible from the shape of
+ * the list itself, not only from the position of a switch. The header says the same thing
+ * numerically, and the filter turns it into a question that can be asked directly.
  *
- * Each row also carries the module's **reach**: how many apps it is scoped to. That is the fact
- * behind most trips into the scope editor, so showing it here saves the trip — and a module that
- * is enabled but scoped to nothing, which does nothing at all while looking like it works, is
- * called out in the error colour.
+ * Each row also carries the module's **reach**: which apps it is scoped to, as icons. That is the
+ * fact behind most trips into the scope editor, so showing it here saves the trip.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,14 +180,11 @@ fun ModulesScreen(
     val snackbars = remember { SnackbarHostState() }
     val actionScope = rememberCoroutineScope()
 
-    /** One sentence for a batch: how many worked, and how many did not if any did not. */
     /**
-     * What to say after a batch, which is whatever actually happened.
+     * One sentence for a batch: whatever actually happened.
      *
-     * "Enabled 5 modules" was said whether five changed or none did, because a module already in
-     * the asked-for state was counted as a success. The three outcomes are separated now: what
-     * changed, what was already so, and what refused. A run where nothing needed doing says so
-     * rather than claiming work it did not do.
+     * The three outcomes stay separate — what changed, what was already so, and what refused — so
+     * that a run where nothing needed doing says so rather than claiming work it did not do.
      */
     fun batchResult(
         doneRes: Int,
@@ -218,8 +213,8 @@ fun ModulesScreen(
         actionScope.launch { snackbars.show(result.first, result.second) }
     }
 
-    // Long-press actions all speak through one snackbar, so a slow one (re-optimize) can report
-    // twice — that it started, and how it ended.
+    // Long-press actions all speak through this one snackbar, and a two-stage action calls it more
+    // than once — that it started, and how it ended.
     fun report(result: PackageActionResult) {
         val text =
             result.argument?.let { context.getString(result.messageRes, it) }
@@ -303,9 +298,8 @@ fun ModulesScreen(
 
             // The selection bar takes the title and description rows and nothing else, so the
             // search field below stays exactly where the thumb left it and the list does not jump
-            // the moment a module is picked up. Filling the whole header instead — which is what
-            // it used to do — left one row of controls floating in a band of colour half the
-            // height of the header.
+            // the moment a module is picked up. Filling the whole header would leave one row of
+            // controls floating in a band of colour half the height of the header.
             ModulesHeader(
                 active = visible?.modules?.count { it.isEnabled } ?: counts.first,
                 total = visible?.modules?.size ?: counts.second,
@@ -360,9 +354,9 @@ fun ModulesScreen(
             }
 
             if (tabs.isEmpty() || tabs.all { it.modules.isEmpty() }) {
-                // A filter empties the list exactly as a search does, and only the search counted
-                // here — so picking "Inactive" on a device where everything is on said "you have no
-                // modules installed" over a list of modules the filter had just hidden.
+                // A filter empties the list exactly as a search does, so both count as narrowing.
+                // Otherwise picking "Inactive" on a device where everything is on would say "you
+                // have no modules installed" over a list the filter had just hidden.
                 EmptyState(
                     daemonAvailable = daemonAvailable,
                     filtered = query.isNotBlank() || filter != ModuleFilter.All,
@@ -445,8 +439,9 @@ fun ModulesScreen(
             onDismissRequest = { confirmUninstall = false },
             icon = { Icon(Icons.Rounded.DeleteOutline, contentDescription = null) },
             title = { Text(stringResource(R.string.modules_uninstall_title)) },
-            // Names the consequence rather than asking "are you sure": what is lost is the module's
-            // own configuration, which no backup on this screen covers.
+            // Names the consequence rather than asking "are you sure". The backup on this screen
+            // holds the enabled flag and the scope; the module's own stored settings go with it
+            // and nothing here can bring them back.
             text = {
                 Text(
                     pluralStringResource(
@@ -668,16 +663,11 @@ private fun ModulesHeader(
             // Both shown rather than hidden behind an overflow. There are exactly two, they are
             // opposites, and a menu holding two items costs a tap to say what a glance could.
             //
-            // Deliberately *not* a mirrored pair. The cloud-and-arrow that was here first is the
-            // platform's upload glyph, and nothing about this uploads anywhere — the file goes
-            // wherever the document picker is pointed, usually this device. A box with an arrow in
-            // and a box with an arrow out fixed the meaning and broke the reading: at 24dp two
-            // mirror images of the same shape are one shape, and telling them apart means stopping
-            // to work out which way the arrow points.
-            //
-            // Two different pictures instead: a tray to save into, and the platform's own restore
-            // glyph. Naming the *outcome* beats naming the mechanism — "open a file" was accurate
-            // and still made the reader work out what opening a file would do to their modules.
+            // Deliberately *not* a mirrored pair: at 24dp two mirror images of the same shape read
+            // as one shape, and telling them apart means stopping to work out which way the arrow
+            // points. Two different pictures instead — a tray to save into, and the platform's own
+            // restore glyph — each naming the outcome rather than the mechanism. Nothing here
+            // uploads anywhere either; the file goes wherever the document picker is pointed.
             IconButton(onClick = onRestore) {
                 Icon(
                     Icons.Rounded.SettingsBackupRestore,
@@ -710,18 +700,17 @@ private fun ModulesHeader(
  * A module, as a row.
  *
  * No card and no tinted background. Three states have to be distinguishable at a glance — running,
- * off, and unable to run — and painting the whole row for each turned the list into stacked blocks
- * of colour that fought the icons and the text. **The module's own name carries the state
- * instead**: the accent colour when it is running, muted when it is off, the error colour when it
- * cannot run at all. One word does the work a whole surface was doing badly.
+ * off, and asking for an API the framework does not provide — and painting the whole row for each
+ * would turn the list into stacked blocks of colour fighting the icons and the text. **The
+ * module's own name carries the state instead**: the accent colour when it is running, muted when
+ * it is off, the error colour when the framework is too old for it.
  *
- * The icon is left exactly as the module ships it. Wrapping it in a coloured well made every
+ * The icon is left exactly as the module ships it. Wrapping it in a coloured well would make every
  * module look like it belonged to Vector rather than to its author.
  *
- * Three columns for the three questions the row answers: what it is (icon, and the API it needs),
- * what it does (name and description), and how it is configured — version at the top of the right
- * column and reach at the bottom, so both edges of the row are anchored and the counts line up
- * down the list.
+ * Two columns for the three questions the row answers: what it is (icon, and the API it needs),
+ * and what it does (name and description). How it is configured — the version and the reach — is
+ * laid over the second column rather than given a third, as the Box below explains.
  */
 @Composable
 private fun ModuleRow(
@@ -773,18 +762,14 @@ private fun ModuleRow(
             // names and descriptions all start from, and every row in the list showed that gap.
             horizontalAlignment = Alignment.End,
         ) {
-            // Fixed, so that picking a module up cannot resize its row. The tick used to be drawn
-            // 56dp over a 48dp icon, which grew this box by eight — and with it the icon column,
-            // the row's intrinsic height, and every row below it. Selecting one module reflowed
-            // the list under the thumb that selected it. The slot is now the icon's size whatever
-            // is drawn inside it.
+            // Fixed at the icon's own size whatever is drawn inside it, so that picking a module
+            // up cannot resize its row. A tick larger than the icon would grow this box, and with
+            // it the icon column, the row's intrinsic height and every row below — selecting one
+            // module would reflow the list under the thumb that selected it.
             Box(modifier = Modifier.size(ICON_SIZE), contentAlignment = Alignment.Center) {
                 AppIcon(
                     applicationInfo = module.applicationInfo,
                     contentDescription = null,
-                    // 48 rather than 56. Still comfortably a touch target — it is the selection
-                    // handle — but eight density-independent pixels handed back to the column that
-                    // holds the name and the description, which is where the reading happens.
                     size = ICON_SIZE,
                 )
                 // The tick covers the icon rather than sitting beside it. A selected row has to be
@@ -813,15 +798,15 @@ private fun ModuleRow(
 
         Spacer(Modifier.width(16.dp))
 
-        // Only this area opens the scope. The row used to be one target, so a tap anywhere —
-        // including the icon someone was aiming at — navigated away.
+        // Only this area opens the scope, so that a tap on the icon beside it — which is the
+        // selection handle — cannot navigate away instead.
         //
-        // A Box, not a third column. Reserving a column for the version and the reach took its
-        // width from *every line* of the description, which is the one piece of prose on this
-        // screen — and it took it permanently, whether or not anything was there to put in it.
-        // They overlap the text column instead and are kept clear of the text by *vertical*
-        // placement: the version sits in the title's band, the reach sits in the band below the
-        // last line. Nothing is reserved horizontally, so the description runs the full width.
+        // A Box, not a third column. Reserving a column for the version and the reach would take
+        // its width from *every line* of the description, the one piece of prose on this screen,
+        // and take it whether or not anything was there to put in it. They overlap the text column
+        // instead and are kept clear of the text by *vertical* placement: the version sits in the
+        // title's band, the reach in the band below the last line. Nothing is reserved
+        // horizontally, so the description runs the full width.
         Box(
             Modifier.weight(1f)
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
@@ -867,8 +852,8 @@ private fun ModuleRow(
             val loadFailure = facts?.loadFailure
             if (loadFailure != null) {
                 // First, above every other note. A module that cannot be loaded is doing nothing
-                // at all, and from the outside that is indistinguishable from a switch that turned
-                // itself off — which is exactly what it used to look like.
+                // at all, and unsaid that is indistinguishable from a switch that turned itself
+                // off.
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text =
@@ -980,16 +965,20 @@ private val REACH_BAND = 22.dp
 /** Room for a version and its mark. Anything longer scrolls past instead of pushing. */
 private val VERSION_WIDTH = 104.dp
 
-/** The module's icon, and the slot it is drawn in whether or not it is selected. */
+/**
+ * The module's icon, and the slot it is drawn in whether or not it is selected.
+ *
+ * Comfortably a touch target — it is the selection handle — while leaving the width a larger icon
+ * would take to the column that holds the name and the description, where the reading happens.
+ */
 private val ICON_SIZE = 48.dp
 
 /**
  * Who the module actually touches.
  *
- * A count answers a question nobody asked; three recognisable icons answer "does this touch
- * anything I care about" without opening anything. The remainder collapses to a number, and a
- * module that is running with nothing to hook still says so in words, because that state is a
- * mistake rather than a fact.
+ * A count alone answers a question nobody asked; three recognisable icons answer "does this touch
+ * anything I care about" without opening anything, and the remainder collapses to a number after
+ * them. Nothing is drawn at all when the scope is empty or not yet known.
  */
 @Composable
 private fun ScopePreview(
@@ -1000,8 +989,8 @@ private fun ScopePreview(
     val colors = MaterialTheme.colorScheme
     val reach = facts?.scopeCount ?: -1
     val framework = facts?.scopeFramework == true
-    // Nothing to depict, so nothing is drawn. A row saying "no apps" spent a line telling the
-    // user about an absence, and it said it about every module that hooks only the framework.
+    // Nothing to depict, so nothing is drawn. A row saying "no apps" would spend a line on an
+    // absence, and would say it of every module that hooks only the framework.
     if (reach <= 0 && !framework) return
 
     val preview = facts?.scopePreview.orEmpty()
@@ -1147,13 +1136,12 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
 /**
  * A module row, with the sheet its long press opens.
  *
- * Swipe-to-toggle used to live here and is gone: a horizontal drag on a row inside a vertically
+ * There is deliberately no swipe-to-toggle: a horizontal drag on a row inside a vertically
  * scrolling list competes with the scroll for every gesture that is not perfectly straight.
  *
- * **The icon is the selection handle.** Tapping it picks the module up; from there the same tap
- * on any other icon adds to the set and the bar at the top acts on all of them at once. Enabling
- * eight modules used to be eight round trips through a row, and there was no way at all to remove
- * or back up more than one.
+ * **The icon is the selection handle.** Tapping it picks the module up; from there the same tap on
+ * any other icon adds to the set and the bar at the top acts on all of them at once, which is what
+ * makes enabling, removing or backing up eight modules one act rather than eight.
  */
 @Composable
 private fun ModuleListItem(
@@ -1177,8 +1165,8 @@ private fun ModuleListItem(
         selected = selected,
         onOpenStore = onOpenStore,
         // Once anything is selected the whole row joins the selection, because that is what every
-        // other list on the platform does and reaching for a 56dp icon to add the ninth module
-        // would be its own small ordeal.
+        // other list on the platform does and aiming at a 48dp icon to add the ninth module would
+        // be its own small ordeal.
         onClick = if (selectionActive) onSelect else onClick,
         onIconClick = {
             haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -1310,8 +1298,9 @@ private fun UpdateLine(
  * Which of the modules that are behind to bring forward.
  *
  * Checkboxes rather than a single "update everything" button, because these are other people's
- * APKs going onto someone's phone: the reader gets to see the list and say which. Everything is
- * ticked to begin with, since that is what someone opening this usually means.
+ * APKs going onto someone's phone: the reader gets to see the list and say which. Everything that
+ * can be installed in one step is ticked to begin with, since that is what someone opening this
+ * usually means.
  *
  * Modules whose updates were silenced are listed too, below the rest and unticked. They are
  * genuinely out of date, and this is the one screen where saying so is useful rather than nagging
@@ -1372,9 +1361,9 @@ private fun ModuleUpdatesSheet(
                         val selectable = row.asset != null
                         ListItem(
                             // Toggleable rather than clickable, for the same reason the checkbox
-                            // takes no callback: the row *is* the tick. As a plain clickable a
-                            // screen reader called it a button and read the module's name, with
-                            // nothing said about whether it was going to be updated.
+                            // takes no callback: the row *is* the tick. A plain clickable is
+                            // announced as a button carrying the module's name, saying nothing
+                            // about whether it is going to be updated.
                             modifier =
                                 Modifier.toggleable(
                                     value = name in chosen,

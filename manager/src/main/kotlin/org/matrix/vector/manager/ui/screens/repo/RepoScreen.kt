@@ -216,23 +216,19 @@ private fun StoreSearch(
 /**
  * Sort, priority, channel and DNS — as a sheet, not a menu.
  *
- * This was a dropdown, and it had outgrown one. A menu is for a short list of like things; this
- * holds three exclusive groups, one multi-select group that ranks its choices, and a network
- * switch, separated only by dividers with nothing to say which group is which. The switch was the
- * visible symptom — the only row carrying a leading icon, so its label started 24dp right of every
- * other and the menu lost its left edge, and the only label long enough to wrap inside a menu that
- * sizes itself to its widest child.
- *
- * A sheet fixes all of it by having room: each group gets a heading, the switch gets the anatomy a
- * boolean setting should have — title, the sentence explaining the cost, and a Switch — and the
- * label has the full width, so it does not wrap in any language. Marquee was the alternative
- * considered for the label and rejected: scrolling text hides a choice behind a delay in a list
- * whose whole purpose is comparing choices, and it fights the reduce-motion setting.
+ * A menu is for a short list of like things. This holds two exclusive groups, one multi-select
+ * group that ranks its choices, and a network switch, and a menu can only separate them with
+ * dividers that say nothing about which group is which. It also sizes itself to its widest child,
+ * so the switch's sentence would wrap, and a leading icon on that one row alone would push its
+ * label 24dp right of every other. A sheet has room for a heading per group and for the anatomy a
+ * boolean setting wants: title, the sentence explaining the cost, and a `Switch` at full width, so
+ * nothing wraps in any language. Marquee was considered for the label and rejected — scrolling text
+ * hides a choice behind a delay in a list whose purpose is comparing choices, and it fights the
+ * reduce-motion setting.
  *
  * DNS-over-HTTPS lives here rather than in a settings screen because this is the panel it exists
- * for: it is the workaround for a network that will not resolve the module mirrors. When the
- * Settings screen was removed the switch lost its home entirely and became unreachable — the
- * setting was still read on every lookup, so the feature was live with no way to turn it on.
+ * for: it is the workaround for a network that will not resolve the module mirrors, and there is no
+ * settings screen to put it on.
  */
 @Composable
 private fun StoreFilterButton(
@@ -292,11 +288,10 @@ private fun StoreFilterSheet(
     onDohChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    // No skipPartiallyExpanded. Passing it removed the half-height stop, which is the only thing
-    // a drag on a sheet can *do* other than dismiss it — so a sheet taller than half the screen
-    // opened at full height and could not be made smaller. Left at the default, Material adds the
-    // stop only when the content is actually taller than half the screen, so short sheets still
-    // open at their own height and nothing gains a useless drag.
+    // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
+    // stop — the only thing a drag on a sheet can do other than dismiss it. Material adds that stop
+    // only when the content is taller than half the screen, so short sheets still open at their own
+    // height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -464,11 +459,10 @@ private fun RowBadge(icon: ImageVector, text: String, tint: Color) {
  * "Nothing matched your search" and "we could not reach the repository" are completely different
  * situations, and only the second one is answered by pulling down to try again.
  *
- * The reason is decided once and the icon and the sentence are both read off it. They used to be
- * two independent conditions that disagreed in exactly the case that matters: with a query typed
- * *and* nothing downloaded, the struck-out cloud sat above "no module matches that search", which
- * blames the reader's query for a network failure and hides the one thing pull-to-refresh fixes.
- * An unreachable repository is why the list is empty whatever is in the search box, so it wins.
+ * The reason is decided once and both the icon and the sentence are read off it, so they cannot
+ * disagree in the case that matters: with a query typed *and* nothing downloaded, an unreachable
+ * repository is why the list is empty whatever is in the search box, so it wins. Blaming the
+ * reader's query for a network failure would hide the one thing pull-to-refresh fixes.
  */
 private enum class StoreEmptiness {
     Unreachable,
@@ -492,7 +486,7 @@ private fun EmptyState(modifier: Modifier, catalog: StoreCatalog, filtered: Bool
             Icon(
                 // The icon carries the distinction as much as the sentence does: a struck-out
                 // cloud for "we could not reach the repository", a struck-out search for "your
-                // query matched none of the 808 modules we do have".
+                // query matched none of the modules we do have".
                 if (reason == StoreEmptiness.NoMatch) Icons.Rounded.SearchOff
                 else Icons.Rounded.CloudOff,
                 contentDescription = null,

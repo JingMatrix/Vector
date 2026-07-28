@@ -68,11 +68,10 @@ class ModuleUpdateQueue(
                 for (item in items) {
                     _state.update { it.copy(current = item) }
                     val ok = runCatching { installer.install(item.packageName, item.asset) }
-                    // runCatching swallows everything, and everything includes the
-                    // cancellation acknowledge() raises in here. Without this check a
-                    // dismissed run carried on behind the cleared state: every remaining
-                    // item was recorded as failed, and the update below the loop put the
-                    // finished-with-failures line back on a screen just cleared of it.
+                    // runCatching swallows everything, and everything includes the cancellation
+                    // acknowledge() raises in here. Without this check a dismissed run carries
+                    // on behind the cleared state, recording every remaining item as failed and
+                    // putting the finished-with-failures line back on a screen just cleared of it.
                     ensureActive()
                     _state.update {
                         if (ok.getOrDefault(false)) it.copy(done = it.done + item.packageName)
@@ -85,10 +84,8 @@ class ModuleUpdateQueue(
                 // watch four badges settle a second earlier each is not a trade worth making.
                 store.refreshInstalled()
                 // Told rather than overheard. A replaced package does broadcast, and the manager
-                // does listen — but the broadcast is the system's to deliver and this process is a
-                // guest in `com.android.shell`, so a list that only refreshes when the broadcast
-                // arrives is a list that sometimes does not. This is the one install path the app
-                // itself performed; there is no reason for it to learn about it second-hand.
+                // does listen, but this is the one install path the app performed itself: there is
+                // no reason for the list to wait on a delivery the system owns.
                 modules.notePackagesChanged()
             }
     }
@@ -96,12 +93,11 @@ class ModuleUpdateQueue(
     /**
      * Clears the run, finished or not.
      *
-     * It used to refuse while `running` was set, on the reasoning that an install which has reached
-     * the platform cannot be recalled. True of that one install, and no help at all to the reader:
-     * a download stalled on a connection that never times out, or a system confirmation dialog that
-     * was dismissed, leaves `running` set for the life of the process — and with the guard in place
-     * the progress line reporting it could never be got rid of. So this is also the cancel. What
-     * the platform already accepted stays installed; what stops is the queue.
+     * This is also the cancel, deliberately. An install that has reached the platform cannot be
+     * recalled, but a download stalled on a connection that never times out, or a system
+     * confirmation dialog that was dismissed, would otherwise leave `running` set for the life of
+     * the process, with a progress line reporting it that nothing could get rid of. What the
+     * platform already accepted stays installed; what stops is the queue.
      */
     fun acknowledge() {
         job?.cancel()

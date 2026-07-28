@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.dp
  * The top of a list panel, as three rows of fixed height.
  *
  * Modules, Store and Logs are the same kind of screen — a title, a few actions, one line of state,
- * a search field and a long list — and each had grown its own header: two hand-rolled rows and a
- * `TopAppBar`, of three different heights. Switching tabs therefore moved the search field, which is
- * the one control a thumb learns the position of, and moving it is felt long before it is noticed.
+ * a search field and a long list — so they share one header rather than each growing its own.
+ * Headers of three different heights move the search field as tabs are switched, and that is the
+ * one control a thumb learns the position of: moving it is felt long before it is noticed.
  *
  * So the whole block is laid out here, at a **fixed height**, including the search field: a title
  * row that may carry actions on the right, a line of description under it, and the field. Fixing the

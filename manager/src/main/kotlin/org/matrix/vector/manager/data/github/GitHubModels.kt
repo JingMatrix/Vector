@@ -27,11 +27,11 @@ data class GhCommitDetail(
     /**
      * When the commit landed, as opposed to when it was written.
      *
-     * The two differ on 39 of the newest 100 commits here, by up to four days — anything rebased,
-     * cherry-picked or merged from a branch that sat for a while. It matters because `since` and
-     * `until` filter on *this* date, so it is the only correct cursor for walking history
-     * backwards. Walking on the author date would step past commits written before the boundary
-     * but landed after it, and lose them silently.
+     * The two differ on about half of the newest hundred commits here, by as much as three weeks —
+     * anything rebased, cherry-picked or merged from a branch that sat for a while. It matters
+     * because `since` and `until` filter on *this* date, so it is the only correct cursor for
+     * walking history backwards. Walking on the author date would step past commits written before
+     * the boundary but landed after it, and lose them silently.
      */
     val committer: GhCommitAuthor? = null,
 )
@@ -62,10 +62,13 @@ data class GhRepo(
 
 @Serializable data class GhLicense(@SerialName("spdx_id") val spdxId: String? = null)
 
-/** How a commit subject is classified. Vector writes plain imperative subjects, not
- * conventional-commit prefixes, so the leading verb is what gets read. Validated over the last 300
- * commits: `Fix` 56, `Bump`/`Update`/`Upgrade` 88, `Add`/`New`/`Implement` 22, `Remove`/`Delete`
- * 14. */
+/**
+ * How a commit subject is classified.
+ *
+ * Vector writes plain imperative subjects rather than conventional-commit prefixes, so the leading
+ * verb is what gets read. Over the newest 300 commits that verb is a fix or a dependency bump
+ * almost half the time, which is why those two have categories of their own.
+ */
 enum class CommitKind {
     Fix,
     Add,
@@ -134,7 +137,7 @@ data class TimelineCommit(
      * build can be located on the timeline exactly.
      */
     val globalIndex: Long,
-    /** True when anyone credited is not the repository owner — highlighted on the rail. */
+    /** True when anyone credited, bots aside, is not the repository owner — marked on the rail. */
     val isCommunity: Boolean,
     val isBot: Boolean,
 ) {
@@ -163,15 +166,13 @@ data class CommunityFeed(
     val repo: GhRepo? = null,
     /** Commits on the default branch, ever. Equals the newest build's versionCode. */
     val totalCommits: Long = 0,
-    /** True when this came off disk rather than the network. */
     /** True when this came off disk rather than the network, for any reason. */
     val fromCache: Boolean = false,
     /**
      * True only when the network was actually tried and could not be reached.
      *
-     * Not the same as [fromCache]. Home deliberately reads the cache on most launches, so telling
-     * the user "could not reach GitHub" whenever the feed came from disk announced a failure that
-     * had not happened — the app simply had not asked.
+     * Not the same as [fromCache]. Home deliberately reads the cache on most launches, so "could
+     * not reach GitHub" keyed off [fromCache] would report a failure on a launch that never asked.
      */
     val offline: Boolean = false,
     /**
@@ -312,11 +313,10 @@ data class FrameworkRelease(
     /**
      * Every zip the release published, in the order GitHub listed them.
      *
-     * A list rather than the single "first zip" this used to keep: each release ships a Release
-     * and a Debug build, 8 MB against 22 MB, and picking whichever GitHub happened to list first
-     * meant the reader could neither choose nor tell which one they were about to flash. The app
-     * asks people for a debug build when they report a problem, so it has to be able to install
-     * one.
+     * A list rather than one chosen zip because each release ships both a Release and a Debug
+     * build, and they are very different sizes. The reader has to be able to see which one they
+     * are about to flash and to pick the other — the app asks people for a debug build when they
+     * report a problem, so installing one has to be possible.
      */
     val zips: List<CanaryArtifact>,
 ) {

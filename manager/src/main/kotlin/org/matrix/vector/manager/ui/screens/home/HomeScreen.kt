@@ -123,12 +123,11 @@ import org.matrix.vector.manager.ui.theme.VectorMono
  *
  * A framework manager is opened by every user, and Vector is built by volunteers, so this screen
  * spends its space on the two questions that matter on opening it: is the framework healthy (one
- * line), and what has the project been doing (everything else). The legacy manager spent the whole
- * screen restating the first.
+ * line), and what has the project been doing (everything else).
  *
- * The window is a fixed quarter rather than "the latest N commits". In a quiet quarter the page
- * honestly reads *7 commits by 4 people*, which is real information about the project; a rolling N
- * would hide that.
+ * The activity window is a span of time rather than "the latest N commits" — six months by default,
+ * and the reader's to change from the appearance sheet. In a quiet stretch the page honestly reads
+ * *7 commits by 4 people*, which is real information about the project; a rolling N would hide that.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,9 +156,9 @@ fun HomeScreen(
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showLanguage by rememberSaveable { mutableStateOf(false) }
 
-    // Four taps on the wordmark. The count is announced from the second one, because a secret
-    // nobody can find is not an easter egg — it is dead code. Two taps could be an accident;
-    // by the second the user is clearly poking at it, so the app plays along.
+    // Four taps on the wordmark, with the remaining count announced from the second. Two taps
+    // could be an accident; past that the reader is clearly poking at it, so the app plays along
+    // rather than keeping a secret nobody would find.
     var brandTaps by remember { mutableStateOf(0) }
     var lastBrandTapAt by remember { mutableStateOf(0L) }
     val twoMore = stringResource(R.string.egg_two_more)
@@ -173,9 +172,9 @@ fun HomeScreen(
         brandTaps = if (now - lastBrandTapAt > BRAND_TAP_WINDOW_MS) 1 else brandTaps + 1
         lastBrandTapAt = now
         when (brandTaps) {
-            // The app's own snackbar, not a platform toast. A toast is drawn by the system in
-            // the system's style and ignores the theme entirely, which on a screen whose whole
-            // point is the surface underneath it looked like a message from another app.
+            // The app's own snackbar, not a platform toast. A toast is drawn by the system in the
+            // system's style and ignores the theme entirely, which on a screen whose whole point
+            // is the surface underneath it reads as a message from another app.
             2 -> eggScope.launch { snackbars.show(twoMore) }
             3 -> eggScope.launch { snackbars.show(oneMore) }
             BRAND_TAPS_TO_SUMMON -> {
@@ -197,8 +196,8 @@ fun HomeScreen(
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
             } catch (_: ActivityNotFoundException) {
-                // No browser in the host process is a normal condition parasitically; falling
-                // back to the built-in viewer beats doing nothing on a link tap.
+                // Nothing on the device took the intent. Falling back to the built-in viewer beats
+                // a link tap that does nothing at all.
                 onOpenUrl(url)
             }
         } else {
@@ -558,9 +557,10 @@ private fun QuarterHeadline(feed: CommunityFeed, windowChanged: Boolean) {
             )
         }
         // Three different situations, and only one of them is a failure. Home reads the feed from
-        // disk on most launches *on purpose* — the window moves a few times a week, and revalidating
-        // every time spends battery and rate limit to redraw identical rows — so reporting that as
-        // "could not reach GitHub" accused the network of something the app chose not to do.
+        // disk on most launches *on purpose* — the window moves a few times a week, and
+        // revalidating every time spends battery and rate limit to redraw identical rows — so a
+        // cached answer must not be reported as "could not reach GitHub".
+        //
         // A fourth situation, and the only one that asks for something: the window was just
         // changed, so what is on screen was re-cut from disk and may not reach as far as the new
         // window does. It takes precedence over the other three because it is the newest fact and
@@ -605,7 +605,7 @@ private fun QuarterHeadline(feed: CommunityFeed, windowChanged: Boolean) {
  *
  * Hidden until they are needed, which is the only way a persistent control earns its place on a
  * screen whose subject is the content behind it. "Needed" is defined as having scrolled past the
- * header — before that, the top is already on screen and a button to reach it is furniture.
+ * headline — before that, the top is already on screen and a button to reach it is furniture.
  *
  * The page-down button is the answer to a rail that keeps growing as it is read: with history
  * arriving in chunks, a flick lands somewhere arbitrary and the reader has to flick again. One
@@ -618,7 +618,8 @@ private fun QuarterHeadline(feed: CommunityFeed, windowChanged: Boolean) {
 @Composable
 private fun ScrollControls(listState: LazyListState, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
-    // Past the header, so the pair appears at the moment the top stops being reachable by eye.
+    // Past the headline, so the pair appears at the moment the top of the feed stops being
+    // reachable by eye.
     val visible by remember { derivedStateOf { listState.firstVisibleItemIndex >= 2 } }
     val atEnd by remember {
         derivedStateOf {
@@ -764,11 +765,11 @@ enum class ContributorOrder(val key: String, val labelRes: Int) {
 }
 
 /**
- * The people of the quarter, the leader wreathed.
+ * The people of the window, the leader wreathed.
  *
  * Scoped to the window rather than all time on purpose: an all-time leaderboard is a monument and
- * never changes, so nobody reads it twice. A quarterly one moves, and a first-time contributor
- * appears on it immediately.
+ * never changes, so nobody reads it twice. One cut to a few months moves, and a first-time
+ * contributor appears on it immediately.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -790,15 +791,13 @@ private fun ContributorRow(
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         items(people, key = { it.login }) { person ->
             val leader = person == people.first()
-            // A co-author signed with a plain email address has no GitHub identity to open, so
-            // the row is dimmed and inert rather than offering a tap that goes nowhere. They are
-            // still shown and still counted — the credit is theirs either way.
+            // A co-author signed with a plain email address has no GitHub identity to open, so the
+            // tap is withheld and the avatar dimmed rather than offering something that goes
+            // nowhere. They are still shown, still counted, and still filterable — they have
+            // commits like anyone else — so the long press is offered to the whole row.
             val hasProfile = !person.profileUrl.isNullOrBlank()
             val picked = person.login.lowercase() in selected
             val haptics = LocalHapticFeedback.current
-            // Someone with no GitHub identity still has commits, so they can still be filtered to
-            // even though there is no profile to open. The long press is therefore offered to
-            // everyone in the row; only the tap is withheld.
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier =

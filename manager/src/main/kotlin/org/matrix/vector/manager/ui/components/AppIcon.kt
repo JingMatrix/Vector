@@ -32,8 +32,9 @@ import kotlinx.coroutines.withContext
  */
 object AppIconCache {
 
-    // Roughly 300 icons at 48 dp on an xxhdpi screen. Sized by bytes rather than count so a
-    // device with a large density does not quietly use several times more memory.
+    // Twelve megabytes: roughly 150 icons at the 48 dp of a module row on an xxhdpi screen, or 270
+    // at the 36 dp of a scope row. Sized by bytes rather than count so a device with a large
+    // density does not quietly use several times more memory.
     private val cache = object : LruCache<String, ImageBitmap>(12 * 1024 * 1024) {
         override fun sizeOf(key: String, value: ImageBitmap): Int = value.width * value.height * 4
     }

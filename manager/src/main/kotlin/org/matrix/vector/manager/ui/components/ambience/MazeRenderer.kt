@@ -22,9 +22,9 @@ import kotlin.random.Random
  * never one true path and its choices are never forced.
  *
  * **One wanderer at a time.** It enters at an opening, turns at random wherever it has a choice,
- * and only when it leaves through some other opening does the next one set out. A second wanderer
- * released while the first was still going turned the header into traffic, and the whole point of
- * the thing is watching a single decision being made and then another.
+ * and only when it leaves through some other opening does the next one set out. Several at once
+ * read as traffic, and the point of the thing is watching a single decision being made and then
+ * another.
  *
  * Tap to drop the wanderer where you touched. Swipe for a different maze.
  */
@@ -49,19 +49,12 @@ class MazeRenderer : AmbienceRenderer {
     }
 
     /**
-     * Walls as edges between cells, held as two grids.
-     *
-     * `right[x][y]` is the wall between (x, y) and (x + 1, y); `down[x][y]` between (x, y) and
-     * (x, y + 1). Storing edges rather than cells is what makes "is this move legal" a single
-     * lookup with no bounds arithmetic in the hot path.
-     */
-    /**
      * Cell size, as a multiple of the resting size.
      *
      * A maze is the one ambience where a scale changes the *problem* and not just the picture:
-     * pinching out gives a finer grid with more corridors to solve, pinching in gives a few large
-     * rooms. Changing it rebuilds the maze, because a grid cannot be resized in place — and a
-     * fresh maze is the honest answer to "make it finer" anyway.
+     * zooming out gives a finer grid with more corridors to solve, zooming in a few large rooms.
+     * Changing it rebuilds the maze, because a grid cannot be resized in place — and a fresh maze
+     * is the honest answer to "make it finer" anyway.
      */
     override var scale: Float = 1f
         set(value) {
@@ -74,6 +67,13 @@ class MazeRenderer : AmbienceRenderer {
     private var cols = BASE_COLS
     private var rows = BASE_ROWS
 
+    /**
+     * Walls as edges between cells, held as two grids.
+     *
+     * `right[x][y]` is the wall between (x, y) and (x + 1, y); `down[x][y]` between (x, y) and
+     * (x, y + 1). Storing edges rather than cells is what makes "is this move legal" a single
+     * lookup with no bounds arithmetic in the hot path.
+     */
     private var right = Array(cols) { BooleanArray(rows) }
     private var down = Array(cols) { BooleanArray(rows) }
 
@@ -98,12 +98,21 @@ class MazeRenderer : AmbienceRenderer {
     override val isAnimating: Boolean
         get() = true
 
+    /** A finer or coarser grid is a different maze, so the grids are replaced and re-carved. */
+    private fun resize() {
+        cols = (BASE_COLS / scale).roundToInt().coerceIn(4, 40)
+        rows = (BASE_ROWS / scale).roundToInt().coerceIn(2, 16)
+        right = Array(cols) { BooleanArray(rows) }
+        down = Array(cols) { BooleanArray(rows) }
+        build()
+    }
+
     /**
      * Carves a maze, then loosens it.
      *
-     * The walls used to be an independent coin flip per edge, which does not produce a maze — it
-     * produces speckle. Random walls leave sealed pockets and open plazas in the same picture, and
-     * a wanderer in it looks like it is bouncing around a room rather than working something out.
+     * An independent coin flip per edge does not produce a maze, it produces speckle: sealed
+     * pockets and open plazas in the same picture, with a wanderer that looks like it is bouncing
+     * around a room rather than working something out.
      *
      * This is a randomised depth-first carve: start everywhere walled, walk to an unvisited
      * neighbour knocking the wall between as you go, and back up when boxed in. What comes out is a
@@ -114,15 +123,6 @@ class MazeRenderer : AmbienceRenderer {
      * time reversing out of them; opening roughly half the dead ends back up leaves loops, so there
      * is more than one way through and its turns are choices rather than the only legal move.
      */
-    /** A finer or coarser grid is a different maze, so the grids are replaced and re-carved. */
-    private fun resize() {
-        cols = (BASE_COLS / scale).roundToInt().coerceIn(4, 40)
-        rows = (BASE_ROWS / scale).roundToInt().coerceIn(2, 16)
-        right = Array(cols) { BooleanArray(rows) }
-        down = Array(cols) { BooleanArray(rows) }
-        build()
-    }
-
     private fun build() {
         for (x in 0 until cols) for (y in 0 until rows) {
             right[x][y] = x < cols - 1
@@ -201,7 +201,10 @@ class MazeRenderer : AmbienceRenderer {
         build()
     }
 
-    /** True when a move from (x, y) in a direction is not blocked by a wall or the top/bottom. */
+    /**
+     * True when a move from (x, y) in a direction is blocked by neither a wall nor the edge of the
+     * grid. Leaving through a door is therefore not "open": [update] carries the wanderer out.
+     */
     private fun open(x: Int, y: Int, ddx: Int, ddy: Int): Boolean =
         when {
             ddx == 1 -> x < cols - 1 && !right[x][y]

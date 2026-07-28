@@ -83,9 +83,8 @@ data class PackageActionResult(
  * or the one above it, which matters a great deal when one of the actions is "uninstall". And it
  * has room to explain the action that needs explaining, instead of offering a bare verb.
  *
- * Everything here needs the daemon, because the manager has no privilege of its own — it runs as
- * `com.android.shell` and cannot force-stop or uninstall anything itself. Each action is a Binder
- * call, so each reports back rather than assuming it worked.
+ * Every action here is a Binder call into the daemon, which is the process holding the privilege to
+ * carry it out, so each one reports what came back rather than assuming it worked.
  *
  * **Re-optimize is the one that is not obvious.** ART inlines small methods into their callers
  * during ahead-of-time compilation, and an inlined method can no longer be hooked — so a module
@@ -113,9 +112,9 @@ fun PackageActionSheet(
     onOpenStore: ((String) -> Unit)? = null,
 ) {
     // The framework is a scope target, not an app. It has no launcher entry, no settings page in
-    // Settings, and nothing ART could re-optimize; offering those three was offering three
-    // dead ends. What it does have is a way to be stopped and started, which for the framework
-    // means taking every running app down with it — so that is what it says.
+    // Settings, and nothing ART could re-optimize, so those three rows would lead nowhere. What it
+    // does have is a way to be restarted, which takes every running app down with it — so that is
+    // what the sheet offers, and what it says.
     val isSystemFramework = packageName == SYSTEM_FRAMEWORK_PACKAGE
 
     // Asked once, when the sheet opens. Most modules have neither a companion nor a launcher entry,
@@ -172,11 +171,11 @@ fun PackageActionSheet(
     }
 
     val colors = MaterialTheme.colorScheme
-    // No skipPartiallyExpanded. Passing it removed the half-height stop, which is the only thing
-    // a drag on a sheet can *do* other than dismiss it — so a sheet taller than half the screen
-    // opened at full height and could not be made smaller. Left at the default, Material adds the
-    // stop only when the content is actually taller than half the screen, so short sheets still
-    // open at their own height and nothing gains a useless drag.
+    // Left at the default, without skipPartiallyExpanded: that flag removes the half-height stop,
+    // which is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller
+    // than half the screen would open at full height and could not be made smaller. Material adds
+    // the stop only when the content is actually taller than half the screen, so short sheets
+    // still open at their own height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
     fun finish(block: suspend () -> PackageActionResult) {
@@ -278,9 +277,9 @@ LocalizedOverlay {
             }
         }
 
-        // Force-stopping the framework is a soft reboot, and calling it anything else would be
-        // hiding what the button does: `system_server` is forked from the zygote, so stopping and
-        // starting it takes every running app down with it. Named and explained accordingly, and
+        // Force-stopping the framework is a soft reboot, and calling it anything else would hide
+        // what the button does: the daemon restarts the primary zygote, so `system_server` and
+        // every app forked from it go down together. Named and explained accordingly, and
         // confirmed first — this is the one action on this sheet that ends what the reader is
         // doing everywhere else on the phone.
         if (isSystemFramework) {
@@ -306,9 +305,9 @@ LocalizedOverlay {
                                 e,
                             )
                         }
-                    // It said "Stopped" whatever came back — with the daemon gone, nothing
-                    // had been stopped at all. Unlike uninstall below there is no boolean to
-                    // weigh: this call answers with Unit, so the Result itself is the verdict.
+                    // Unlike uninstall below there is no boolean to weigh: the call answers with
+                    // Unit, so the Result itself is the verdict — a failure here means the
+                    // transaction never reached a live daemon and nothing was stopped.
                     val ok = result.isSuccess
                     PackageActionResult(
                         if (ok) R.string.action_force_stopped
@@ -322,7 +321,7 @@ LocalizedOverlay {
 
         // Only for a hook target. Re-optimizing recompiles an app so that ART stops inlining the
         // methods a module wants to hook — which is about the app being hooked, not about the
-        // module doing the hooking. On a module it was an expensive button for nothing.
+        // module doing the hooking, so on a module it would be an expensive button for nothing.
         if (!isModule && !isSystemFramework) {
             ActionRow(
                 icon = Icons.Rounded.Bolt,
@@ -445,10 +444,10 @@ private fun ActionRow(
 /**
  * What this module's update situation is, and the two things to do about it.
  *
- * It belongs on the module rather than in the Store, because this is where the reader already is.
- * Before this, a module marked out of date in the list offered nothing to press: the route was to
- * remember its name, cross to the Store tab, find it again and install from there — and the switch
- * that silences a module you have decided not to follow was at the end of that same detour.
+ * It belongs on the module rather than only in the Store, because this is where the reader already
+ * is: the alternative to a row here is remembering the module's name, crossing to the Store tab and
+ * finding it again — and the same detour for the switch that silences a module you have decided not
+ * to follow.
  *
  * Three states, and the third is the one usually got wrong:
  *

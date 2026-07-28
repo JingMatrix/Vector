@@ -10,14 +10,13 @@ import java.util.zip.ZipFile
 /**
  * Everything the manager can learn about a package by looking at it.
  *
- * There are two generations of Xposed module and both must be recognised, which is the bug this
- * file exists to fix: the previous implementation tested only the legacy `xposedmodule` /
- * `xposedminversion` manifest meta-data, so every module written against API 100 and later — which
- * ships no such meta-data, only files inside its APK — was invisible in the module list.
+ * There are two generations of Xposed module and both have to be recognised. A legacy module
+ * announces itself with `xposedminversion` manifest meta-data; a module written against API 100 or
+ * later carries no such meta-data, only marker files inside its APK, so a manifest test alone
+ * leaves the modern half of the module list empty.
  *
- * The whole inspection is done in **one pass over the APK**. Opening the zip is the expensive part
- * and the list opens it once per module already; doing it three times to answer three questions
- * would triple the cost of showing the screen.
+ * The whole inspection is one pass over the APK. Opening the zip is the expensive part, so the API
+ * versions, the scope and the description are all read while it is open rather than in a pass each.
  */
 data class ModuleManifest(
     val isModule: Boolean = false,
@@ -35,9 +34,8 @@ data class ModuleManifest(
     /**
      * Either number counts as declaring one.
      *
-     * `minApiVersion` alone was the test, so a module that states only `targetApiVersion` — the
-     * one the framework actually loads by — was shown as declaring no API at all, with a red "?"
-     * where its version belongs. Nothing about it is undeclared.
+     * A module may state only `targetApiVersion` — the one the framework loads by — and nothing
+     * about it is then undeclared, so testing `minApiVersion` alone would mark it unknown.
      */
     val declaresApiVersion: Boolean
         get() = minApiVersion > 0 || targetApiVersion > 0
@@ -144,9 +142,9 @@ object ModuleDetection {
     /**
      * A legacy module's description lives in `xposeddescription`, not `android:description`.
      *
-     * Reading the manifest attribute for both generations is why every legacy module in the list
-     * showed a blank line where its description should be — legacy modules simply do not set it.
-     * The value is either a literal string or a string-resource id.
+     * Legacy modules do not set the manifest attribute at all, so reading it for both generations
+     * leaves every legacy row blank. The meta-data value is either a literal string or a
+     * string-resource id.
      */
     private fun legacyDescription(info: ApplicationInfo, packageManager: PackageManager): String {
         val raw = info.metaData?.get(LEGACY_DESCRIPTION) ?: return ""
@@ -198,8 +196,10 @@ object ModuleDetection {
                 .getOrNull()
                 ?.filter { it.isNotEmpty() } ?: return emptyList()
 
-        // Legacy modules name the system server the other way round. The swap dates to a 2015
-        // XposedBridge commit and every module written since has followed it.
+        // Legacy modules name the system server the other way round: their "android" is the
+        // daemon's "system", and their "system" is the ordinary "android" package. The convention
+        // is as old as XposedBridge and universal among legacy modules, so the swap is
+        // unconditional.
         return raw.map {
             when (it) {
                 "android" -> "system"

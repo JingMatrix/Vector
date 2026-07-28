@@ -25,9 +25,9 @@ import kotlin.random.Random
  *   under your finger is lifted out of the column — drawn larger and brighter, held between the
  *   fingertip and the surface it came from. Let go and it drops back and the rain resumes.
  * - **Pinch** to change the glyph size. Larger glyphs mean fewer, wider columns and a rain that can
- *   be read at a glance; smaller ones mean a dense fine drizzle. It is a scale, not a camera —
- *   simulating a viewer moving through the field looked like the columns were sliding sideways
- *   rather than approaching, because a flat field of text has no parallax cues to sell the move.
+ *   be read at a glance; smaller ones mean a dense fine drizzle. It is a scale, not a camera: a
+ *   flat field of text has no parallax cues, so a simulated approach reads as the columns sliding
+ *   sideways.
  * - **Tap** to seed a new column at that point, so a bare stretch can be filled in.
  */
 class MatrixRenderer : AmbienceRenderer {
@@ -35,10 +35,10 @@ class MatrixRenderer : AmbienceRenderer {
     /**
      * One falling column.
      *
-     * [weight] is only variety — nearer-looking columns fall a little faster and draw a little
-     * brighter, so the field does not read as a metronome. It is deliberately *not* a depth
-     * coordinate any more: the size of a glyph is now one global number, so what a pinch changes
-     * is legibility rather than an imaginary camera position.
+     * [weight] is only variety — heavier columns fall a little faster and draw a little brighter,
+     * so the field does not read as a metronome. It is deliberately *not* a depth coordinate: the
+     * size of a glyph is one global number, so what a pinch changes is legibility rather than an
+     * imaginary camera position.
      */
     private class Column(
         /** Position across the field, 0 (left edge) to 1 (right edge). */
@@ -150,13 +150,13 @@ class MatrixRenderer : AmbienceRenderer {
     private fun seed(size: Size) {
         if (sized == size && columns.isNotEmpty()) return
         sized = size
-        // A quarter of the header was one very large glyph per column; at that size the rain read
-        // as a headline rather than as code. Small enough that a column is a stream of characters,
-        // and the pinch is there for anyone who wants them bigger.
+        // About a sixth of the header's height per cell: small enough that a column reads as a
+        // stream of characters rather than as a headline, and the pinch is there for anyone who
+        // wants them bigger.
         cellHeight = size.height * 0.155f
         columns.clear()
-        // Deliberately more columns than fit at rest: the extras live far away as a faint
-        // drizzle, and they are what there is to *find* when you pull the view closer.
+        // More columns than are separable at rest. Their lanes are fixed, so as the glyphs shrink
+        // the columns come apart and zooming out reveals a finer drizzle rather than empty space.
         repeat(52) { columns += newColumn(size) }
     }
 
@@ -235,8 +235,8 @@ class MatrixRenderer : AmbienceRenderer {
 
         // Sideways reshuffles, downwards changes the speed, and the two do not fight because each
         // reads only its own axis. A drag is almost never purely one or the other, so the vertical
-        // component is ignored while the finger is clearly travelling sideways: without that, every
-        // reshuffle also shoved the speed somewhere the reader did not ask for.
+        // component is ignored while the finger is clearly travelling sideways; otherwise every
+        // reshuffle would also shove the speed somewhere the reader did not ask for.
         val sideways = abs(pan.x) > abs(pan.y) * 1.5f
         if (sideways) {
             swipedX += pan.x / size.width
@@ -294,8 +294,8 @@ class MatrixRenderer : AmbienceRenderer {
                 if (y < -cell || y > size.height + cell) continue
 
                 val fade = 1f - i / (column.length + 1f)
-                // Weight only varies brightness now, so a column reads as nearer or further
-                // without the field pretending to have depth it cannot show.
+                // Weight varies brightness only, so columns differ from one another without the
+                // field pretending to a depth it cannot show.
                 val weightAlpha = (column.weight / 1.3f).coerceIn(0.25f, 1f)
                 val alpha = (if (i == 0) 0.50f else 0.26f * fade * fade) * weightAlpha
                 if (alpha < 0.005f) continue

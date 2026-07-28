@@ -8,10 +8,10 @@ import androidx.compose.ui.graphics.Color
 /**
  * The fallback palette, used below Android 12 and whenever the user turns dynamic colour off.
  *
- * It is seeded from the Winged Victory's own patina, `#6ABFCF` — the single colour in
+ * It is seeded from the Winged Victory's own patina, `#6ABFCF` — the deepest of the eight tones in
  * `ic_winged_victory.xml`. Above API 31 the wallpaper decides instead, which is why nothing in this
- * app may rely on a specific hue to carry meaning: see `VectorStatusColors` for how status is
- * signalled without depending on the palette.
+ * app may rely on a specific hue to carry meaning: `StatusHeader` and `UpdatableVersion` carry
+ * state by shape, icon, label and motion as well as by colour.
  */
 val VectorLightColors: ColorScheme =
     lightColorScheme(

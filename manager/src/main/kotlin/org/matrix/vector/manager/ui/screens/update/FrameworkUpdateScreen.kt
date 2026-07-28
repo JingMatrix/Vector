@@ -189,10 +189,10 @@ fun FrameworkUpdateScreen(
             )
         },
     ) { padding ->
-        // What occupies the pane, decided per step rather than "log as soon as anything starts".
-        // A download produces no installer output, so switching at the start of one left a
-        // full-height empty box for the whole transfer. The notes are the most relevant thing
-        // there is to read while the release they describe is being fetched.
+        // Decided per step rather than "log as soon as anything starts": a download produces no
+        // installer output, so switching at the start of one would leave a full-height empty box
+        // for the whole transfer. The notes are the most relevant thing there is to read while the
+        // release they describe is being fetched.
         val showLog = flash !is FlashStep.Idle && (flash !is FlashStep.Downloading || lines.isNotEmpty())
 
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -244,16 +244,16 @@ private fun InstallLog(lines: List<String>, terminal: Boolean) {
 
     LaunchedEffect(lines.size) {
         if (lines.isEmpty()) return@LaunchedEffect
-        // Only while the tail is already in view. This used to scroll unconditionally, which
-        // yanked a reader who had scrolled up to study an earlier line back to the bottom on
-        // every single line the installer printed.
+        // Only while the tail is already in view: following unconditionally would yank a reader
+        // who has scrolled up to study an earlier line back to the bottom on every line the
+        // installer prints.
         val lastVisible = state.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
         if (lastVisible >= lines.size - 2) state.animateScrollToItem(lines.lastIndex)
     }
 
-    // A flash can end without saying anything: no root implementation, or an installer that could
-    // not be started at all. An empty box would read as "still working" at exactly the moment the
-    // reader needs to know it stopped.
+    // The daemon narrates its own failures, so this is rare — but a flash can still end with
+    // nothing in hand if the binder dies mid-install. An empty box would read as "still working"
+    // at exactly the moment the reader needs to know it stopped.
     if (lines.isEmpty() && terminal) {
         Empty(stringResource(R.string.update_no_output))
         return
@@ -376,10 +376,9 @@ private fun UpdateBar(
                     // Above the button and only while idle: it is the question the button answers,
                     // and once a flash is running the choice has already been made.
                     VariantPicker(zips = zips, chosen = chosen, onChoose = onChoose)
-                    // Only when root is genuinely the problem. This used to print the
-                    // no-root sentence whenever the button was disabled, so a perfectly rooted
-                    // device with nothing to install was told it had no root — while the daemon
-                    // log on the same device read "Root implementation: KernelSU".
+                    // Only when root is genuinely the problem. Tying this to the button's disabled
+                    // state instead would tell a perfectly rooted device with nothing to install
+                    // that it had no root.
                     if (rootLabel != null) {
                         Text(
                             text = rootLabel,
@@ -402,9 +401,10 @@ private fun UpdateBar(
                     }
                     if (direction == ReleaseDirection.Older) {
                         // Specific, not a vague caution: the daemon's onDowngrade wipes the module
-                        // database when the schema moved, and the manager cannot tell from a
-                        // release list whether it did. Naming the consequence — and the backup
-                        // that prevents it — is the only useful thing to say.
+                        // database whenever the schema on disk is newer than the build being
+                        // installed, and the manager cannot tell from a release list whether it
+                        // moved. Naming the consequence — and the backup that prevents it — is the
+                        // only useful thing to say.
                         Text(
                             text = stringResource(R.string.update_rollback_warning),
                             style = MaterialTheme.typography.labelMedium,
@@ -460,11 +460,9 @@ private fun formatSize(bytes: Long): String =
 /**
  * Which of the release's builds to install.
  *
- * Every release publishes two: a Release zip of about 8 MB and a Debug zip of about 22 MB. The
- * screen used to flash whichever GitHub listed first, so the reader could neither choose nor tell
- * which one they were getting — while the troubleshooting flow elsewhere in this app tells them a
- * debug build is what maintainers need to help. Asking for something the app cannot install is not
- * a defensible place to leave it.
+ * CI publishes two zips per release, Release and Debug, and the choice has to be the reader's: the
+ * troubleshooting screen tells them a debug build is what maintainers need to help, so the app has
+ * to be able to install one.
  *
  * A segmented row rather than checkboxes, because this is one-of-two rather than on-and-off: two
  * checkboxes permit neither and both, and a single "install the debug build" makes the ordinary
@@ -472,8 +470,9 @@ private fun formatSize(bytes: Long): String =
  * reason — the shared outline says "it is one of these".
  *
  * The size sits on each segment because it is the part of the decision that is otherwise a
- * surprise: 2.7× is worth knowing before it starts, not after. The line beneath says what the
- * choice means, and changes with it, so the answer arrives at the moment the question is asked.
+ * surprise, and it is the size the release itself reports rather than an assumption about which
+ * build is bigger. The line beneath says what the choice means and changes with it, so the answer
+ * arrives at the moment the question is asked.
  *
  * One zip means no control at all — nobody should be asked to choose between one thing — and an
  * unrecognised name keeps its own file name rather than being labelled as something it may not be.
@@ -486,8 +485,8 @@ private fun VariantPicker(
 ) {
     if (zips.size < 2) return
     val colors = MaterialTheme.colorScheme
-    // Release first, whatever order the release listed them in — GitHub happens to put Debug
-    // first, which put the 22 MB option under the reader's thumb and the default second.
+    // Release first, whatever order the release listed its assets in, so the default sits under the
+    // reader's thumb rather than wherever GitHub happened to put it.
     val ordered = zips.sortedBy { it.variant.ordinal }
 
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -545,18 +544,17 @@ private fun VariantPicker(
  * Every build on this channel, so "no update available" is not a dead end.
  *
  * The same list that answers "is there anything newer" also answers "what could I go back to",
- * and the second question is the one people ask after a build breaks something for them. It was
- * being fetched and discarded.
+ * and the second question is the one people ask after a build breaks something for them.
  *
  * The installed build is marked rather than hidden: it is the reference point every other row is
  * read against, and removing it would leave the reader counting positions to work out where they
  * are.
  *
- * "Installed" is decided by the same rule the screen above uses, not by the version number alone.
- * That number is `git rev-list --count`, so a build from a branch and a build from master at the
- * same depth wear it identically, and a locally-built one may not come from any published commit at
- * all. Marking on the number put a confident "Installed" against a row the panel two lines up was
- * calling divergent — one screen contradicting itself, which is worse than either answer.
+ * "Installed" is decided by the same rule the bar above uses, not by the version number alone. That
+ * number is `git rev-list --count` over master, so a build from a branch and a build from master at
+ * the same depth wear it identically, and a locally built one may not come from any published
+ * commit at all. Marking on the number alone would put a confident "Installed" against a row the
+ * bar two lines up is calling divergent.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

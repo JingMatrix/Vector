@@ -23,9 +23,10 @@ import kotlin.random.Random
 class CircuitRenderer : AmbienceRenderer {
 
     private companion object {
-        /** Average gap between unprompted pulses. */
         const val MIN_SCALE = 0.4f
         const val MAX_SCALE = 3f
+
+        /** Average gap between unprompted pulses. */
         const val PULSE_INTERVAL_MS = 5_000f
 
         /** How long a board lasts before it re-routes itself. */
@@ -64,8 +65,8 @@ class CircuitRenderer : AmbienceRenderer {
     /**
      * How densely the board is laid out.
      *
-     * Pinching out routes more traces with shorter runs between turns — a busier board seen from
-     * further back; pinching in gives a few wide traces with long straight stretches. The stroke
+     * Zooming out routes more traces with shorter runs between turns — a busier board seen from
+     * further back; zooming in gives a few wide traces with long straight stretches. The stroke
      * follows it too, so a dense board does not turn into a grey wash.
      */
     override var scale: Float = 1f
@@ -91,8 +92,8 @@ class CircuitRenderer : AmbienceRenderer {
     private var nextRouteMs = ROUTE_INTERVAL_MS
 
     override val isAnimating: Boolean
-        // A board that only ever reacted looked dead until touched, and a status header is
-        // mostly looked at rather than played with. It now runs itself, so it is always live.
+        // The board runs itself rather than only reacting: a status header is mostly looked at
+        // rather than played with, and one that waits to be touched reads as dead.
         get() = true
 
     private fun seed(size: Size) {
@@ -243,8 +244,8 @@ class CircuitRenderer : AmbienceRenderer {
                 if (drawn >= target) return@zipWithNext
                 val fraction = ((target - drawn) / segment).coerceIn(0f, 1f)
                 drawLine(
-                    // Raised from barely-there: the board is the picture, not a texture, and at
-                    // the old alpha it was invisible on a light wallpaper.
+                    // The board is the picture rather than a texture behind one, and much below
+                    // this it disappears against a light wallpaper.
                     tint.copy(alpha = 0.13f),
                     a,
                     Offset(a.x + (b.x - a.x) * fraction, a.y + (b.y - a.y) * fraction),

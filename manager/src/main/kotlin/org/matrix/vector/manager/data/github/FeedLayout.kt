@@ -24,9 +24,9 @@ sealed interface FeedItem {
     /**
      * The elapsed time between two commits, as rail.
      *
-     * A separate row rather than a trailing segment inside the commit row, because a commit row's
-     * height is set by its text and would otherwise leave the line stopping short of the next
-     * node — the rail visibly broke between same-day commits.
+     * A separate row rather than a trailing segment inside the commit row: a commit row's height is
+     * set by its text, so a segment drawn inside it stops short of the next node and the rail
+     * breaks visibly between same-day commits.
      */
     data class Gap(val days: Int, val afterSha: String) : FeedItem
 
@@ -70,9 +70,13 @@ sealed interface FeedItem {
         val people: Int,
     ) : FeedItem
 
-
-
-    /** Consecutive bot commits, folded. */
+    /**
+     * Every bot commit in the window, folded into one row at the foot of the rail.
+     *
+     * Gathered out of the timeline rather than left in place: dependency bumps arrive in bursts and
+     * would otherwise be most of what the rail shows, pushing the human commits — which are what
+     * the reader came for — off the screen.
+     */
     data class Bots(val count: Int, val commits: List<TimelineCommit>) : FeedItem
 }
 
@@ -88,13 +92,12 @@ object FeedLayout {
         val bots = feed.commits.filter { it.isBot }
         val items = ArrayList<FeedItem>(visible.size * 2 + 8)
 
-        // Each commit's month, worked out once.
+        // Each commit's month, worked out once, and its totals accumulated in a second sweep.
         //
-        // This used to be a `filter` over every commit at each month boundary, with a fresh
-        // Calendar per comparison — O(commits × months), which on a six-month window was a few
-        // thousand cheap operations and on the full archive was 1517 × 55 Calendar allocations and
-        // a 1.9-second freeze on the thread laying out the feed. Two passes and a map do the same
-        // work in one sweep.
+        // The alternative — re-scanning every commit at each month boundary to total it — is
+        // O(commits × months) with a fresh Calendar per comparison. That is cheap on a six-month
+        // window and thousands of allocations on the full archive, which is the case that has to
+        // stay fast.
         val months = ArrayList<String>(visible.size)
         val calendar = Calendar.getInstance()
         visible.forEach { commit ->
@@ -191,11 +194,10 @@ object FeedLayout {
     /**
      * The grouping key, deliberately language-independent.
      *
-     * This used to be the displayed name, formatted with `Locale.getDefault()` — which is the
-     * process default, the host app's, and so it stayed French while the rest of the app was in
-     * Chinese. Worse, it was computed here in the model, where the in-composition language override
-     * is not visible at all. So the model now groups by an invariant key and the screen names the
-     * month at draw time.
+     * A displayed month name cannot be built here. `Locale.getDefault()` is the process default,
+     * which parasitically belongs to the host app rather than to the manager, and the app's own
+     * in-composition language override is not visible from the model at all. So the model groups by
+     * an invariant key and the screen names the month at draw time.
      */
     private fun monthKey(calendar: Calendar): String =
         "%d-%02d".format(Locale.ROOT, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH))

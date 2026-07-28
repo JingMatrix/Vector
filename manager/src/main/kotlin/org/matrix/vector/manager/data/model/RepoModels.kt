@@ -5,8 +5,8 @@ import com.google.gson.annotations.SerializedName
 /**
  * The module repository's JSON, as types.
  *
- * These mirror what the server actually sends, checked against a live `modules.json` (809 entries)
- * rather than against the legacy Java model, which had drifted. Two things shape the file:
+ * These mirror what the server actually sends, measured against a live `modules.json` of 809
+ * entries. Two things shape the file:
  *
  * **Nullability is not decoration here.** `scope` is null on 506 of the 809 entries, `sourceUrl` on
  * 369 and `summary` on 121. Gson constructs through `Unsafe` and runs neither Kotlin's
@@ -58,10 +58,10 @@ data class Collaborator(
 /**
  * Someone credited beyond the repository's collaborators.
  *
- * Not a list of names, which is what the field looks like and what cost a crash on the device: the
- * 49 entries carrying one hold `{type, name, link}` objects, and Gson threw `Expected a string but
- * was BEGIN_OBJECT` on the eleventh module in the catalogue — which took the whole parse, and with
- * it the entire Store, down with it.
+ * An object, not a bare name, though the field reads like a list of names: the 49 entries that
+ * carry one hold `{type, name, link}`. Typed as a list of strings it makes Gson throw `Expected a
+ * string but was BEGIN_OBJECT`, which takes the whole catalogue parse — and with it the entire
+ * Store — rather than the one module.
  */
 data class AdditionalAuthor(
     @SerializedName("name") val name: String?,
@@ -89,10 +89,10 @@ data class Release(
      * A stable identity for a lazy list.
      *
      * Release *names* are not unique in real data: `com.rww.wetypeswipe` currently publishes two
-     * releases both named `1.11.4` (tags `43-` and `42-`), which is enough to make `LazyColumn`
-     * throw `IllegalArgumentException` as soon as the Releases tab composes. `id` is unique by
-     * construction, the tag is the fallback, and the index is the last resort so that a malformed
-     * payload degrades into an odd-looking list rather than a crash.
+     * releases both named `1.11.4`, under tags `43-` and `42-`. `LazyColumn` throws
+     * `IllegalArgumentException` on a duplicate key, so identity comes from `id`, which is unique
+     * by construction, with the tag as fallback and the index as last resort — a malformed payload
+     * then degrades into an odd-looking list rather than a crash.
      */
     fun key(index: Int): String = id ?: tagName ?: "release:$index"
 
@@ -131,9 +131,9 @@ data class ReleaseAsset(
 /**
  * A module version as the repository states it: `"44-1.11.5"` is code 44, name `1.11.5`.
  *
- * The comparison is the legacy rule kept verbatim, because its second clause is load-bearing rather
- * than defensive: a release whose *code* equals what is installed but whose *name* differs is a
- * rebuild of that version, and the user does want it.
+ * The second clause of the comparison is load-bearing rather than defensive: a release whose *code*
+ * equals what is installed but whose *name* differs is a rebuild of that version, and the user does
+ * want it.
  */
 data class RepoVersion(val versionCode: Long, val versionName: String) {
 
@@ -168,15 +168,16 @@ data class StoreEntry(
     /**
      * There is a newer version *and* the reader wants to hear about it.
      *
-     * Muting is folded in here rather than at each place that reads this, because there are three
-     * of them — the header count, the updates-first priority and the row badge — and a mute that
-     * only some of them honoured would be worse than none at all.
+     * Muting is folded in here rather than at each place that reads this, because every list and
+     * count that mentions updates reads it — the Store's header count, its updates filter, its row
+     * badge, and the set the Modules screen badges from — and a mute that only some of them
+     * honoured would be worse than none at all.
      *
-     * The two screens that show a module *by itself* deliberately do not read this: the store's
-     * detail page and the module's own sheet both offer the update whether or not it is muted, and
-     * the sheet puts the switch right beside it. Muting means "stop counting this and stop
-     * mentioning it in lists", not "refuse to let me update it" — someone who has opened the page
-     * for one module is not being nagged, they are asking.
+     * The two screens that show a module *by itself* deliberately sidestep the mute: the store's
+     * detail page computes its own answer, and the module's own sheet asks this with `updatesMuted`
+     * cleared and puts the switch right beside the result. Muting means "stop counting this and
+     * stop mentioning it in lists", not "refuse to let me update it" — someone who has opened the
+     * page for one module is not being nagged, they are asking.
      */
     val upgradable: Boolean
         get() =

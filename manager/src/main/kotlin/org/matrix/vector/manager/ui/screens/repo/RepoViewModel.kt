@@ -23,7 +23,6 @@ import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.RepoRepository
 import org.matrix.vector.manager.data.repository.SettingsRepository
 
-/** How the list is ordered, on top of the independent "updates first" rule. */
 /** A group the list can be asked to bring to the front. Several may apply at once. */
 enum class StorePriority(val labelRes: Int) {
     Updates(R.string.store_updates_first),
@@ -45,9 +44,9 @@ enum class StoreSort {
 /**
  * Which releases count.
  *
- * Two options rather than the legacy manager's three. Of the 809 modules in the catalogue 14
- * publish a beta and **none** publishes a snapshot — the snapshot channel has no data behind it at
- * all, and a control that can never change anything is a control that lies.
+ * Two options, not three. Of the 809 modules in the catalogue 14 publish a beta and **none**
+ * publishes a snapshot, so a snapshot channel would have no data behind it at all — and a control
+ * that can never change anything is a control that lies.
  */
 enum class StoreChannel(val preference: String) {
     Stable("stable"),
@@ -64,10 +63,9 @@ enum class StoreChannel(val preference: String) {
  *
  * **A beta is not a flagged element of `releases`; it is a different array.** In the live catalogue
  * not one entry of any module's `releases` carries `isPrerelease`, and each of the 14 modules that
- * publish a beta keeps it exclusively in `betaReleases`. So filtering `releases` by `isPrerelease`
- * selected nothing on either channel: choosing "include prereleases" listed the same stable
- * releases, and — because the install bar takes the newest release with an APK from this very list
- * — downloaded the stable APK under a button labelled with the beta's version number.
+ * publish a beta keeps it exclusively in `betaReleases`. Selecting the prerelease channel by
+ * filtering `releases` on `isPrerelease` therefore matches nothing at all, and the install bar
+ * takes the newest release with an APK straight off this list.
  *
  * Merged, the order has to come from the version code rather than from either array's position,
  * because the two are sorted independently and a beta is not automatically newer: of today's 14,
@@ -199,17 +197,17 @@ class RepoViewModel(
         _sort.value = value
     }
 
-    /** Persisted: the channel decides what counts as an update everywhere, not just in this list. */
     /**
      * DNS over HTTPS, exposed here because the Store is what it exists for.
      *
-     * Changing it takes effect on the next lookup: [VectorDns] reads the flag per lookup rather
+     * Changing it takes effect on the next lookup: `VectorDns` reads the flag per lookup rather
      * than at client construction, so there is nothing to rebuild and no restart to ask for.
      */
     val doh: StateFlow<Boolean> = settings.dohEnabled
 
     fun setDoh(enabled: Boolean) = settings.setDohEnabled(enabled)
 
+    /** Persisted: the channel decides what counts as an update everywhere, not just in this list. */
     fun setChannel(value: StoreChannel) {
         settings.setUpdateChannel(value.preference)
     }

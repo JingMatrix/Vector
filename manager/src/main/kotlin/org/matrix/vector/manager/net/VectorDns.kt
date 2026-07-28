@@ -17,13 +17,10 @@ import org.matrix.vector.manager.data.repository.SettingsRepository
  * Name resolution: DNS over HTTPS when it helps, the system resolver when it does not.
  *
  * DoH exists here for users whose network will not resolve the module repository or GitHub over
- * plain DNS. But it used to be **all or nothing** — with the setting on, every lookup went through
- * `cloudflare-dns.com` and a failure was final. On a network where Cloudflare itself is blocked,
- * which is precisely the kind of network the setting is meant for, that meant the module list, the
- * activity feed and every avatar failed together and the app was unusable until the switch was
- * found and turned off by hand. This is the single largest cause of an empty Store.
- *
- * So DoH is now **best-effort**:
+ * plain DNS. It is deliberately **best-effort** rather than all-or-nothing, because the networks
+ * that make the setting worth having are also the ones that may block `cloudflare-dns.com` itself,
+ * and a lookup path with no fallback would then take the module list, the activity feed and every
+ * avatar down together — leaving the switch that caused it as the only way out. So:
  * - a failed DoH lookup falls through to the system resolver rather than failing the request;
  * - the first failure latches for the session, so the timeout is paid once and not per lookup;
  * - the DoH client's own timeouts are short, so that one payment is a few seconds, not fifteen;
@@ -32,9 +29,8 @@ import org.matrix.vector.manager.data.repository.SettingsRepository
  *
  * The setting is read **per lookup** rather than baked into the client at construction. OkHttp
  * cannot have its DNS swapped on a live client, and rebuilding the shared client would drop the
- * connection pool and orphan the disk cache — so the switch has to be readable from in here to take
- * effect at all. Previously it only applied to clients built after it was toggled, which in
- * practice meant "after the next process start".
+ * connection pool and orphan the disk cache, so reading it here is what lets the switch take effect
+ * before the next process start.
  */
 class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHttpClient) : Dns {
 

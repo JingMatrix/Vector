@@ -23,7 +23,7 @@ import org.matrix.vector.manager.data.github.GitHubRepository
  *   correctly classifies a locally built development copy, which is ahead of everything published.
  *
  * A reader on a release build is only ever offered releases. That is the whole point of the
- * distinction: a nightly is not something to be nudged towards by an app you did not ask for advice.
+ * distinction: a nightly is not something to be nudged towards.
  */
 class FrameworkUpdateRepository(private val github: GitHubRepository) {
 
@@ -55,8 +55,7 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
                 installedVersionCode = installedVersionCode,
                 installedCommit = installedCommit,
                 available = newest?.takeIf { it.versionCode > installedVersionCode },
-                // Kept rather than discarded, which is what this used to do with everything but
-                // the newest. "No update available" was a dead end, and the same list that answers
+                // Every release on the channel, not only the newest: the same list that answers
                 // "is there anything newer" also answers "what could I go back to" — a question
                 // people ask after a build breaks something for them.
                 history = candidates.sortedByDescending { it.versionCode },
@@ -67,9 +66,9 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
 /**
  * What is known about framework updates right now.
  *
- * [available] is null both when nothing newer exists and before anything has been fetched, which
- * the UI must not confuse — hence [loaded]. Home renders no update mark until the answer is known,
- * rather than flashing "up to date" and then contradicting itself.
+ * [available] is null both when nothing newer exists and before anything has been fetched, which a
+ * screen must not confuse: [loaded] is what separates "there is nothing newer" from "nobody has
+ * asked yet".
  */
 data class FrameworkUpdateState(
     val loaded: Boolean = false,
@@ -93,11 +92,11 @@ enum class ReleaseDirection {
 }
 
 /**
- * Whether the running build is the one this release published.
+ * Whether the running build is something other than the one this release published.
  *
  * Only askable when both sides recorded a commit: the canaries carry a SHA, a hand-made release
  * carries a branch name, and a build made before this existed carries nothing. "I cannot tell" is a
- * third answer and must not be reported as either of the other two.
+ * third answer and is reported as false rather than as divergence.
  */
 fun FrameworkUpdateState.divergesFrom(release: FrameworkRelease?): Boolean {
     if (release == null || release.versionCode != installedVersionCode) return false

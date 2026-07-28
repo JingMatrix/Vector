@@ -80,7 +80,7 @@ suspend fun SnackbarHostState.show(message: String, tone: SnackbarTone = Snackba
  * Material's default is a dark slab with a hard 4dp corner: inverse-surface, so it is dark on a
  * light theme and light on a dark one. That inversion is deliberate in the spec and wrong here — a
  * message that is the opposite colour to everything around it reads as belonging to the system
- * rather than to the app, which is exactly the complaint an easter egg's message drew.
+ * rather than to the app.
  *
  * So it sits on the app's own raised surface and earns its prominence from elevation and shape
  * instead of from inversion, and leads with an icon so the outcome is legible before the sentence

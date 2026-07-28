@@ -64,8 +64,9 @@ object ServiceLocator {
     /**
      * The daemon binder, as observable state.
      *
-     * Repositories collect this instead of being poked by a setter, which removes the old bug where
-     * the module list was fetched once, before any binder existed, and then never again.
+     * Repositories collect this rather than being poked by a setter, so a binder that arrives after
+     * they were constructed — or arrives again after a reconnect — makes them re-read instead of
+     * leaving them with whatever they managed to fetch before there was a daemon at all.
      */
     val service: StateFlow<ILSPManagerService?> = _service.asStateFlow()
 
@@ -94,7 +95,7 @@ object ServiceLocator {
      * Which packages are modules, remembered across launches.
      *
      * Shared rather than per view model: the answer is a property of the installed APKs, and a
-     * second copy would mean a second 550-zip scan on a device with 363 packages.
+     * second copy would mean a second pass of opening every APK and split on the device as a zip.
      */
     val moduleDetection: ModuleDetectionCache by lazy {
         ModuleDetectionCache(File(context.cacheDir, "module-detection.tsv"))
@@ -115,8 +116,7 @@ object ServiceLocator {
      * date" is precisely how those numbers end up contradicting each other on one device.
      *
      * Keyed by package and limited to what is installed, because every reader of this asks about a
-     * module in front of them. The Store's own list joins the other direction — catalogue first —
-     * and keeps doing so.
+     * module in front of them. The Store's own list joins the other direction, catalogue first.
      */
     val storeEntries: StateFlow<Map<String, StoreEntry>> by lazy {
         combine(
@@ -205,8 +205,8 @@ object ServiceLocator {
     /**
      * Invalidates the caches when a package is installed, updated or removed.
      *
-     * `packageEventsFlow` existed and had no collectors at all, so every list went stale for the
-     * life of the process: a module installed while the manager was open simply never appeared.
+     * The only collector of `packageEventsFlow`, and on [appScope] so it lasts as long as the
+     * process: without it a module installed while the manager is open would never appear.
      */
     private fun observePackageChanges() {
         appScope.launch {
@@ -226,17 +226,17 @@ object ServiceLocator {
      * the activity feed. Doing that on first visit means the panel appears and then fills in;
      * doing it here means it is usually already there.
      *
-     * Every one of these is idempotent and cached, so the view models that ask again on arrival
-     * get the finished answer rather than starting a second copy. Failures are ignored on purpose
-     * — this is a head start, not a load-bearing step, and a screen that cannot be reached because
-     * its prefetch failed would be strictly worse than one that is merely slow.
+     * Every one of these is idempotent and cached, so the view models that ask again on arrival get
+     * the finished answer rather than starting a second copy. Failures are ignored on purpose: this
+     * is a head start, not a load-bearing step, and a screen that could not be reached because its
+     * prefetch failed would be worse than one that is merely slow.
      */
     fun prefetch() {
         appScope.launch { runCatching { apps.getInstalledApps() } }
         appScope.launch { runCatching { store.refresh() } }
-        // From disk. Opening the manager is not a reason to talk to GitHub, and this asked for a
-        // revalidation on every single launch — which quietly overrode Home's own gate, the one
-        // that decides how rarely a launch is allowed to go and check.
+        // From disk only. Opening the manager is not by itself a reason to talk to GitHub, and
+        // asking for a revalidation here would override Home's own gate — the one that decides how
+        // rarely a launch is allowed to go and check.
         appScope.launch { runCatching { github.load(GitHubRepository.Freshness.Cached) } }
     }
 

@@ -45,11 +45,11 @@ sealed interface InstallStep {
 /**
  * Downloads a release asset straight into a `PackageInstaller` session.
  *
- * **Straight into**, with no temporary file, is the point rather than a micro-optimisation.
- * Parasitically the manager's manifest is never installed, so it has no `ContentProvider` and
- * therefore no `FileProvider`; `ACTION_INSTALL_PACKAGE` with a `content://` URI is not available at
- * all. `PackageInstaller.Session.openWrite` is the one path that works identically in both modes,
- * and it needs no storage permission.
+ * **Straight into**, with no temporary file, and not as an optimisation. Parasitically the
+ * manager's manifest is never installed, so it has no `ContentProvider` and therefore no
+ * `FileProvider`; `ACTION_INSTALL_PACKAGE` with a `content://` URI is not available at all.
+ * `PackageInstaller.Session.openWrite` is the one path that works identically in both modes, and it
+ * needs no storage permission.
  *
  * **The consent story differs sharply between the two modes, and that is why the caller's own
  * dialog matters.** Parasitically the manager runs inside `com.android.shell`, which holds
@@ -57,11 +57,11 @@ sealed interface InstallStep {
  * system confirmation whatsoever. Standalone, the same code produces the usual
  * `REQUEST_INSTALL_PACKAGES` prompt. In the mode most people run, Vector's own confirmation is the
  * *only* consent gate there is, so it must name what is about to happen before anything is
- * downloaded. README principle 3.
+ * downloaded. See ConfirmInstall, which asks the platform which of the two modes it is in.
  *
- * The session's package name is pinned to the catalogue entry's, which makes the platform reject an
- * APK that declares anything else. A module page therefore cannot install a package other than the
- * one it advertises.
+ * The session's package name is pinned to the catalogue entry's, and the platform fails an install
+ * whose staged APKs are inconsistent with it. A module page therefore cannot install a package
+ * other than the one it advertises.
  */
 class ModuleInstaller(private val context: Context, private val client: OkHttpClient) {
 

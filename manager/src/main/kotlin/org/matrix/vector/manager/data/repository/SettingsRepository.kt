@@ -6,6 +6,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * The manager's own preferences: how it looks, what it shows, and what it has been told to stop
+ * mentioning.
+ *
+ * Nothing here belongs to the framework — which modules are on and what they may hook lives in the
+ * daemon's database. This is the reader's opinion of the app, and it survives a process death,
+ * which parasitically happens far more often than a user would expect since the host is
+ * `com.android.shell`.
+ */
 class SettingsRepository(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("vector_settings", Context.MODE_PRIVATE)
@@ -35,6 +44,13 @@ class SettingsRepository(context: Context) {
     }
 
     // Updates & Network
+
+    /**
+     * Which releases of a *module* the Store offers, "stable" or "beta". See StoreChannel.
+     *
+     * The framework's own channel is not here and is not a setting: it is derived from the build
+     * that is actually running. See FrameworkUpdateRepository.
+     */
     private val _updateChannel =
         MutableStateFlow(prefs.getString("update_channel", "stable") ?: "stable")
     val updateChannel: StateFlow<String> = _updateChannel.asStateFlow()
@@ -65,13 +81,6 @@ class SettingsRepository(context: Context) {
         MutableStateFlow(prefs.getBoolean("open_links_externally", false))
     val openLinksExternally: StateFlow<Boolean> = _openLinksExternally.asStateFlow()
 
-    /**
-     * How the contributor row is ordered: by how much someone has done, or by how recently.
-     *
-     * Both are honest and they honour different people. Volume puts the maintainer first forever,
-     * which is accurate and unchanging; recency puts whoever last landed something at the front,
-     * which is what makes a first contribution visible the day it happens.
-     */
     /**
      * How the scope list is filtered and ordered, remembered across visits.
      *
@@ -125,6 +134,13 @@ class SettingsRepository(context: Context) {
         _scopeSortReversed.value = reversed
     }
 
+    /**
+     * How the contributor row is ordered: by how much someone has done, or by how recently.
+     *
+     * Both are honest and they honour different people. Volume puts the maintainer first forever,
+     * which is accurate and unchanging; recency puts whoever last landed something at the front,
+     * which is what makes a first contribution visible the day it happens.
+     */
     private val _contributorOrder =
         MutableStateFlow(prefs.getString("contributor_order", "commits") ?: "commits")
     val contributorOrder: StateFlow<String> = _contributorOrder.asStateFlow()
@@ -165,8 +181,9 @@ class SettingsRepository(context: Context) {
     fun setUpdatesMuted(packageName: String, muted: Boolean) {
         val next =
             if (muted) _mutedUpdates.value + packageName else _mutedUpdates.value - packageName
-        // A fresh set, not the one handed out: SharedPreferences keeps the instance it is given and
-        // documents that mutating it afterwards is undefined.
+        // A set of our own on the way in, and `toSet()` on the way out above: `getStringSet` hands
+        // back the instance the preferences hold, which the platform documents as not ours to
+        // modify.
         prefs.edit().putStringSet("muted_updates", HashSet(next)).apply()
         _mutedUpdates.value = next
     }
@@ -176,14 +193,6 @@ class SettingsRepository(context: Context) {
         MutableStateFlow(prefs.getString("header_ambience", DEFAULT_AMBIENCE) ?: DEFAULT_AMBIENCE)
     val headerAmbience: StateFlow<String> = _headerAmbience.asStateFlow()
 
-    /**
-     * How big, and how fast, each ambience draws itself.
-     *
-     * Per kind rather than global: a comfortable glyph size for the code rain says nothing about
-     * how large a maze cell should be, and someone who has tuned one and switches away should find
-     * it as they left it. Written straight through on every gesture — these are a handful of bytes
-     * and the alternative is losing the adjustment to the next process death.
-     */
     private val _updateVariant =
         MutableStateFlow(prefs.getString("update_variant", "release") ?: "release")
 
@@ -201,6 +210,14 @@ class SettingsRepository(context: Context) {
         _updateVariant.value = key
     }
 
+    /**
+     * How big, how varied and how fast each ambience draws itself.
+     *
+     * Per kind rather than global: a comfortable glyph size for the code rain says nothing about
+     * how large a maze cell should be, and someone who has tuned one and switches away should find
+     * it as they left it. Written straight through on every gesture — these are a handful of bytes,
+     * and the alternative is losing the adjustment to the next process death.
+     */
     fun ambienceScale(kind: String): Float = prefs.getFloat("ambience_scale_$kind", 1f)
 
     fun setAmbienceScale(kind: String, value: Float) {
@@ -281,9 +298,8 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_SEED_COLOR = 0xFF6ABFCF.toInt()
 
         /**
-         * Matches an `AmbienceKind` key. It used to read "ripple", a surface that was replaced long
-         * ago — harmless, because an unknown key falls back, but a stored default that names
-         * nothing is a lie waiting to be believed by whoever reads the preferences next.
+         * Must match an `AmbienceKind` key. An unknown one falls back harmlessly, but a stored
+         * default that names no surface misleads whoever reads the preferences next.
          */
         const val DEFAULT_AMBIENCE = "maze"
     }

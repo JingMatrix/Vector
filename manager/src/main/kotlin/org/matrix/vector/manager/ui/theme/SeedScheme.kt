@@ -210,9 +210,10 @@ object SeedScheme {
      * The most saturated colour of this hue that sRGB can actually show at this lightness.
      *
      * Binary search rather than arithmetic because the sRGB gamut is not a nice shape in LCh — its
-     * boundary depends on all three coordinates at once. Twelve iterations lands within a
-     * quarter-unit of chroma, well below what an eye resolves, and this runs a few dozen times per
-     * theme change rather than per frame.
+     * boundary depends on all three coordinates at once. Twelve iterations lands well within a
+     * quarter-unit of chroma, below what an eye resolves. A scheme asks for a few dozen of these
+     * per theme change; the only caller that wants them in bulk is the colour wheel, which renders
+     * off the main thread and caches the result.
      */
     private fun lchToColor(lightness: Float, chroma: Float, hueDegrees: Float): Color {
         val l = lightness.coerceIn(0f, 100f)

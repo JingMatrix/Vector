@@ -23,8 +23,9 @@ import org.matrix.vector.manager.di.ServiceLocator
 /** Which root implementation is in charge, and whether it can be flashed through. */
 data class RootState(val code: Int = ILSPManagerService.ROOT_UNKNOWN, val version: String? = null) {
 
-    // Named implementations only, so that ROOT_UNKNOWN — the daemon never answered — refuses to
-    // flash rather than guessing at an installer to hand the zip to.
+    // Named implementations only. ROOT_UNKNOWN is also what a binder proxy returns for a
+    // transaction the daemon does not implement, so it has to refuse rather than guess at an
+    // installer to hand the zip to.
     val canFlash: Boolean
         get() =
             code == ILSPManagerService.ROOT_MAGISK ||
@@ -137,8 +138,9 @@ class FrameworkUpdateViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            // The only log in these two init blocks: lines 132, 136 and 137 fail from the same
-            // unreachable binder and would otherwise print four lines for one dead daemon.
+            // Two logs for the four requests these blocks make. They all fail from the same
+            // unreachable binder, so only the two that decide what the screen says are recorded;
+            // the root version and the framework commit take their default in silence.
             val code =
                 daemon.getRootImplementation().getOrElse { e ->
                     Log.w(

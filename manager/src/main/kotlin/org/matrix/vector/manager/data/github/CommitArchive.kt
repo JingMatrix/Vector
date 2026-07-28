@@ -10,10 +10,9 @@ import kotlinx.serialization.json.Json
 /**
  * Every commit the app has ever seen, kept on disk.
  *
- * The activity feed used to be one request — the newest hundred commits within a date window — and
- * "from the start of the project" cannot be answered that way: `/commits` returns at most a hundred
- * per request and there is no widening the window past that. The history has to be walked backwards
- * a page at a time and remembered, which is what this is.
+ * `/commits` returns at most a hundred commits per request and no date window widens that, so
+ * "from the start of the project" can only be answered by walking the history backwards a page at
+ * a time and remembering what came back. This is where it is remembered.
  *
  * ## Why an append-only file
  *
@@ -67,9 +66,9 @@ class CommitArchive(private val file: File, private val stateFile: File, private
         /**
          * The walk that wrote this file.
          *
-         * A cursor left behind by an older, wronger walk is worse than no cursor at all — the one
-         * that stalled on the plateau above saved `complete: true`, and honouring that would mean
-         * never looking again. Anything not written by the current walk is re-walked from the top.
+         * A cursor left behind by a superseded walk is worse than no cursor at all: a walk that
+         * stalls records `complete: true`, and honouring that would mean never looking again.
+         * Anything not written by the current walk is re-walked from the top.
          */
         val algorithm: Int = 0,
     )
@@ -106,8 +105,8 @@ class CommitArchive(private val file: File, private val stateFile: File, private
      *
      * One load reads this twice — once to lay out the feed, once to know what the backfill already
      * has — and a backfill reads it again after appending. At three thousand commits that is three
-     * passes over four megabytes of JSON per visit to the foot of the list, all of it to reproduce
-     * a list that has not changed. Every writer here invalidates it, so there is no way to hold a
+     * passes over megabytes of JSON per visit to the foot of the list, all of it to reproduce a
+     * list that has not changed. Every writer here invalidates it, so there is no way to hold a
      * stale copy.
      */
     @Volatile private var parsed: List<GhCommit>? = null
@@ -133,19 +132,19 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                     ?.let { byShaLatestWins[it.sha] = it }
             }
         }
-        // Exactly one bad line is that documented tear at the tail and is not worth a line; more
-        // than one is systematic — a renamed field, and the whole archive reads as empty.
         corruptLines = skipped
         lineCount = total
         val unique = byShaLatestWins.values.sortedByDescending { it.commit.author.date }
+        // Exactly one bad line is the truncated tail above and is not worth saying anything about;
+        // more than one is systematic — a renamed field would make the whole archive read as empty.
         if (skipped > 1) {
             Log.w(Constants.TAG, "feed: skipped $skipped of $total archive lines", firstFailure)
-            // Repaired here, where it is found, and not left to [compactIfWasteful]: that runs
+            // Repaired here, where it is found, rather than left to [compactIfWasteful]: that runs
             // only during a backfill, which happens only if someone scrolls to the foot of
-            // history. A reader that silently drops the same lines on every launch forever is how
-            // this went unnoticed in the first place. Rewriting what parsed is the whole repair —
-            // the damage is unreadable text between two records, and there is nothing in it to
-            // recover — and it happens once, because the next parse finds nothing to skip.
+            // history, so damage would otherwise be re-skipped on every launch instead of being
+            // cleared once. Rewriting what parsed is the whole repair — the damage is unreadable
+            // text between two records and there is nothing in it to recover — and it happens
+            // once, because the next parse finds nothing to skip.
             rewrite(unique)
         }
         return unique
@@ -156,12 +155,10 @@ class CommitArchive(private val file: File, private val stateFile: File, private
      *
      * Serialised against every other writer, and it has to be. `appendText` opens its own stream
      * per call and a hundred commits is far more than one buffer, so two overlapping appends
-     * interleave at a buffer boundary rather than one following the other. This is not
-     * theoretical: `ServiceLocator.prefetch` launches `load()` while the home screen can be
-     * running `backfill()`, and a device's archive was found with **11 spliced lines out of
-     * 6304** — a commit message cut mid-word with the next record's `{"sha":` welded onto it.
-     * Each tear costs two commits and is permanent, and nothing said so until this file started
-     * logging what it skipped.
+     * interleave at a buffer boundary rather than one following the other, splicing a commit
+     * message into the middle of the next record. Each such tear costs two commits and is
+     * permanent. Overlap is reachable: `ServiceLocator.prefetch` launches `load()`, which appends
+     * the head window, while the home screen can be running `backfill()`.
      */
     fun append(commits: List<GhCommit>) {
         if (commits.isEmpty()) return
@@ -192,10 +189,9 @@ class CommitArchive(private val file: File, private val stateFile: File, private
     fun compactIfWasteful() {
         if (!file.isFile) return
         synchronized(writeLock) {
-            // read() first: it is memoised, and parsing is what counts the lines. The previous
-            // version read the whole file a second time purely to count them, which on this
-            // repository is six megabytes of JSON per call to answer a question the parse had
-            // already answered.
+            // read() first: it is memoised, and parsing is what sets [lineCount]. Counting the
+            // lines any other way means a second pass over megabytes of JSON to answer a question
+            // the parse has already answered.
             val unique = read()
             if (lineCount <= unique.size * 2) return
             rewrite(unique)
@@ -228,10 +224,10 @@ class CommitArchive(private val file: File, private val stateFile: File, private
     }
 
     /**
-     * Held so [compactIfWasteful] can repair what [parse] could not read.
+     * Lines the last parse could not read.
      *
-     * Counted rather than flagged because one is the documented tail — a process killed
-     * mid-append, costing that commit and nothing else — and more than one means something tore.
+     * Counted rather than flagged because one is the tail a process killed mid-append leaves
+     * behind, costing that commit and nothing else, and more than one means something tore.
      */
     @Volatile private var corruptLines = 0
 

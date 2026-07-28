@@ -67,11 +67,11 @@ import kotlinx.coroutines.launch
 import org.matrix.vector.manager.ui.theme.VectorMono
 
 /**
- * What the legacy home screen's information card was, done properly.
+ * Everything a bug report needs about this device, on one page.
  *
- * Every row is copyable, and a row that reports a *problem* carries the explanation with it rather
- * than just a red word — the user of a root framework needs to know what broke and what it costs
- * them, not merely that something did.
+ * A row that reports a *problem* carries its explanation with it rather than just a red word — the
+ * user of a root framework needs to know what broke and what it costs them, not merely that
+ * something did. The whole page goes to the clipboard from the top bar.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,10 +242,10 @@ private fun IssueCard(issue: HealthIssue) {
 /**
  * The manager's own crashes, which nothing else on the device keeps.
  *
- * On this page rather than under Logs because every other tab there belongs to the daemon, and
- * because this is the page someone opens when they are about to report something. It shows the
- * newest trace only — the older ones are on file and travel with the copy — since the question
- * being asked is "what just happened", not "what has ever happened".
+ * On this page rather than under Logs, because every log there is the daemon's and because this is
+ * the page someone opens when they are about to report something. It previews the newest trace only
+ * — the older ones are on file and travel with the copy — since the question being asked is "what
+ * just happened", not "what has ever happened".
  *
  * The card is absent when there have been no crashes, which is the normal state and deserves no
  * row of its own.
@@ -290,15 +290,13 @@ private fun CrashCard(report: String, onCopy: () -> Unit, onClear: () -> Unit) {
 /**
  * One fact, at a size meant to be read.
  *
- * Everything on this page used to be `labelMedium` over monospace at the same weight: ten
- * near-identical grey lines that had to be read one at a time, including the ones that were fine.
- * Three things changed. The value is the size of body text rather than of a caption, because the
- * value is what the page is *for*. Monospace is kept for identifiers — versions, hashes, package
- * names, ABIs, where character-by-character comparison is the point — and dropped for words like
- * "Loaded", which are prose and read worse in it.
+ * The value is the size of body text rather than of a caption, because the value is what the page
+ * is *for*. Monospace is kept for identifiers — versions, hashes, package names, ABIs, where
+ * character-by-character comparison is the point — and dropped for words like "Loaded", which are
+ * prose and read worse in it.
  *
- * And a fact that can be good or bad says which by its colour, so the page answers "is anything
- * wrong" before it is read at all.
+ * A fact that can be good or bad says which by its colour, so the page answers "is anything wrong"
+ * before it is read at all.
  */
 @Composable
 private fun InfoRow(row: InfoItem) {
@@ -372,7 +370,7 @@ private fun SectionHeading(text: String) {
  * The page's contents, in three groups.
  *
  * Grouped because they answer three different questions — what is running, is it working, and on
- * what — and a reader looking for one of those had to scan all ten rows to find it.
+ * what — so a reader after one of them does not have to scan all ten rows to find it.
  */
 private fun buildSections(
     status: FrameworkStatus,
@@ -389,9 +387,9 @@ private fun buildSections(
                     buildString {
                         append(status.versionLabel ?: unknown)
                         // The exact build, not just its number. Two builds share a version code
-                        // whenever they sit at the same depth on different branches, and a working
-                        // tree with uncommitted changes says so — which is what a bug report needs
-                        // and what a screenshot of this page could not previously give.
+                        // whenever they sit at the same depth on different branches, and a build
+                        // from a tree with uncommitted changes says so with `-dirty` — which is
+                        // what a bug report needs and what the number alone cannot give.
                         status.commit?.takeIf { it.isNotBlank() }?.let { append("  ·  ").append(it) }
                     },
                 ),
@@ -480,10 +478,11 @@ private fun FrameworkToggle(
     /**
      * False when there is no daemon to write to.
      *
-     * These two are the framework's own settings, not the app's: the value lives in the daemon and
-     * the daemon applies it. With no daemon there is nothing to read the state from and nothing to
-     * write it to, so a live switch would show a value it invented and accept a change that went
-     * nowhere. Dimmed and inert says the truth — the setting exists, and the thing that owns it is
+     * These two are the framework's settings rather than the app's, and only the daemon can reach
+     * either — one lives in its own preference store, the other in `Settings.Global`, which it
+     * reads and writes as root. With no daemon there is nothing to read the state from and nothing
+     * to write it to, so a live switch would show a value it invented and accept a change that went
+     * nowhere. Dimmed and inert says the truth: the setting exists, and the thing that owns it is
      * not running.
      */
     enabled: Boolean,

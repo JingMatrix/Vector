@@ -46,9 +46,9 @@ import org.matrix.vector.manager.di.ServiceLocator
  * theory.** One of the 809 READMEs in the catalogue ships a `googlesyndication` ad `<script>` and
  * an ad slot. What keeps that inert here:
  *
- * - **No base URL.** The previous version passed `https://github.com`, which handed arbitrary
- *   module-authored HTML *github.com's origin*, with DOM storage enabled. A null base URL lands the
- *   document in an opaque origin instead, where there is nothing worth reaching.
+ * - **No base URL.** Passing one — `https://github.com`, say — would hand arbitrary module-authored
+ *   HTML that host's origin. A null base URL lands the document in an opaque origin instead, where
+ *   there is nothing worth reaching.
  * - **JavaScript and DOM storage off.** Both, and they must stay off: enabling scripting for a
  *   rendering fix would give module authors script execution.
  * - **Every subresource goes through the app's own HTTP client**, which is what gives images the
@@ -59,8 +59,7 @@ import org.matrix.vector.manager.di.ServiceLocator
  *   in-app browser where the origin is stated in the bar.
  *
  * The page is styled from the live [ColorScheme], so it follows the app's theme and dynamic colour
- * rather than the hardcoded `#E0E0E0`-on-transparent that rendered light grey on white for every
- * light-theme user.
+ * instead of hardcoding a foreground that only reads against one of them.
  */
 @Composable
 internal fun StoreHtmlPane(
@@ -68,13 +67,13 @@ internal fun StoreHtmlPane(
     modifier: Modifier = Modifier,
     onOpenUrl: (String) -> Unit,
 ) {
-    // The night bit is baked into the context the WebView is *constructed* with, and
-    // `AndroidView` runs its factory exactly once for the life of the node — recomposition
-    // never calls it again. So remembering a differently-themed WebView when the app's own dark
-    // switch flips builds one that is never attached: the visible page keeps the old palette
-    // for good, and the orphan is destroyed by nothing. Only re-keying the node re-runs a
-    // factory, which is what `key` is here for. The system's night mode recreates the activity
-    // and needs none of this; Vector's in-app dark and AMOLED switches do not.
+    // The night bit is baked into the context the WebView is *constructed* with, and `AndroidView`
+    // runs its factory exactly once for the life of the node — recomposition never calls it again.
+    // Remembering a differently-themed WebView when the app's own dark switch flips would build one
+    // that is never attached: the visible page would keep the old palette for good and the orphan
+    // would be destroyed by nothing. Only re-keying the node re-runs a factory, which is what `key`
+    // is for here. The system's night mode recreates the activity and needs none of this; Vector's
+    // in-app dark and AMOLED switches do not.
     val dark = MaterialTheme.colorScheme.surface.isDark()
     key(dark) { HtmlPane(html, dark, modifier, onOpenUrl) }
 }
@@ -197,11 +196,9 @@ private fun fetchSubresource(
 /**
  * A 1×1 transparent GIF. A refused subresource should render as nothing, not as a broken image.
  *
- * The empty `text/plain` body this replaces did not achieve that: a body of zero bytes under a type
- * no `<img>` can decode is a decode failure, so WebKit drew its broken-image glyph and the alt text
- * beside it. WaEnhancer X's readme links a star-history chart that 404s today, and the readme opened
- * on a torn icon and a stray "Star History Chart" caption. Handing back a real, decodable image is
- * what makes the element collapse quietly.
+ * It has to be a real, decodable image. An empty body, or one under a type no `<img>` can decode,
+ * is a decode failure, and WebKit answers that with its broken-image glyph and the alt text beside
+ * it — which is what a README linking a chart that has since started 404ing would show.
  */
 private fun blocked() =
     WebResourceResponse("image/gif", null, ByteArrayInputStream(TRANSPARENT_GIF))
@@ -210,8 +207,8 @@ private val TRANSPARENT_GIF =
     byteArrayOf(
         0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
         0x01, 0x00, 0x01, 0x00, // 1 × 1
-        0x80.toByte(), 0x00, 0x00, // global colour table, one entry
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x80.toByte(), 0x00, 0x00, // global colour table present, background 0, square pixels
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // the table: two entries, both black
         0x21, 0xF9.toByte(), 0x04, 0x01, 0x00, 0x00, 0x00, 0x00, // colour 0 is transparent
         0x2C, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, // image descriptor
         0x02, 0x02, 0x44, 0x01, 0x00, // one pixel of LZW
@@ -256,9 +253,9 @@ private data class Palette(
 /**
  * The document, styled from the app's own palette.
  *
- * `dir` follows the layout direction rather than the content, which the legacy renderer got right
- * and the refactor dropped. GitHub's heading permalinks are hidden: they are 77 inline `<svg>`
- * octicons anchoring to a page there is no way to link to from here.
+ * `dir` follows the app's layout direction rather than the content's, so a README sits the way the
+ * rest of the screen does. GitHub's heading permalinks are hidden: they are inline `<svg>` octicons
+ * anchoring to a page there is no way to link to from here.
  */
 private fun document(body: String, palette: Palette, rtl: Boolean): String {
     val (text, muted, accent, fill, rule) = palette
@@ -307,11 +304,11 @@ private fun document(body: String, palette: Palette, rtl: Boolean): String {
 /**
  * Keeps a vertical drag inside the page, and lets a sideways one through.
  *
- * A WebView does not stop the Compose hierarchy above it from claiming a gesture, which on a
- * screen where this pane is one of three swipeable tabs meant that reading a long README slid the
- * tab across: every real drag on a phone held in one hand has a sideways component, and the pager
- * was taking it. The lists on the other tabs are protected by disabling the pager while they are
- * scrolling, but a WebView has no scroll state Compose can see, so it says so itself.
+ * A WebView does not stop the Compose hierarchy above it from claiming a gesture. On a screen where
+ * this pane is one of three swipeable tabs, that means reading a long README slides the tab across:
+ * every real drag on a phone held in one hand has a sideways component, and the pager takes it. The
+ * lists on the other tabs are protected by disabling the pager while they are scrolling, but a
+ * WebView has no scroll state Compose can see, so it says so itself.
  *
  * Decided once per gesture, at the moment the finger passes the touch slop, and by comparing the
  * two axes rather than by a threshold on one — the question is not "how far" but "which way did

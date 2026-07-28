@@ -248,20 +248,18 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
             /**
              * Whether the page in front of the reader is moving under their finger.
              *
-             * This is the whole of the fix. A vertical scroll and a horizontal page turn are
-             * siblings in Compose's gesture arbitration, not parent and child, so a drag that is
-             * mostly-but-not-entirely vertical — which is every real drag on a phone held in one
-             * hand — could be split between them: the list scrolled *and* the pager slid partway
-             * to the next tab. On a screen whose three tabs are all long documents, that happened
-             * constantly while simply reading.
+             * A vertical scroll and a horizontal page turn are siblings in Compose's gesture
+             * arbitration, not parent and child, so a drag that is mostly-but-not-entirely vertical
+             * — which is every real drag on a phone held in one hand — is split between them: the
+             * list scrolls *and* the pager slides partway to the next tab. On a screen whose three
+             * tabs are all long documents, that happens constantly while simply reading.
              *
-             * While a list is scrolling the pager stops accepting drags at all, so the gesture
+             * So while a list is scrolling the pager stops accepting drags at all, and the gesture
              * cannot be taken away mid-read. It becomes available again the moment the list
              * settles, which is also the moment someone who wants the next tab would ask for it.
              *
-             * The README tab is absent on purpose: it is a WebView, which consumes its own touches
-             * and tells the hierarchy not to intercept them, so it was never the one being stolen
-             * from.
+             * The README tab is absent on purpose: it is a WebView, which claims its own vertical
+             * drags — see `claimVerticalDrags` — so there is no Compose scroll state to read here.
              */
             val reading by remember {
                 derivedStateOf {
@@ -287,10 +285,9 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
                 userScrollEnabled = !reading,
-                // And when a page turn *is* offered, it has to be meant. The default settles on
-                // whichever page is nearer once the finger leaves, so a drag of a third of the
-                // screen committed; asking for most of the width makes an accidental sideways
-                // component fall back to where it started, the way a navigation gesture does.
+                // And when a page turn *is* offered, it has to be meant. Asking for most of the
+                // width makes an accidental sideways component fall back to where it started, the
+                // way a navigation gesture does.
                 flingBehavior =
                     PagerDefaults.flingBehavior(
                         state = pagerState,
@@ -442,9 +439,9 @@ private fun InstallBar(
                         color = MaterialTheme.colorScheme.error,
                     )
                     Spacer(Modifier.height(4.dp))
-                    // The same body as the resting button below, because this is the same press.
-                    // It only cleared the failure before, which put the Install button back and
-                    // left the reader to press it again — a retry that retried nothing.
+                    // The same body as the resting button below, because this is the same press:
+                    // clearing the failure on its own would only put the Install button back and
+                    // leave the reader to press it again, which is a retry that retries nothing.
                     TextButton(
                         onClick = {
                             onAcknowledge()
@@ -534,17 +531,13 @@ private fun ReleasesTab(
         return
     }
 
-    // One expanded set of notes at a time. That began as a way to keep a single WebView in the
-    // list — a renderer per card would have held a renderer process open for every release on the
-    // page — and the notes are parsed to an AnnotatedString now, so the reason is the reading
-    // rather than the memory: five releases with their notes open is a wall of text with no
-    // structure, and the list stops being skimmable.
+    // One expanded set of notes at a time, and the newest starts open: "what changed" is the
+    // question this tab is opened to answer, while five releases with their notes open is a wall of
+    // text with no structure and the list stops being skimmable.
     //
-    // The newest one starts open, because "what changed" is the question this tab is opened to
-    // answer and making everyone tap once to reach it was the whole complaint.
-    // Keyed by *which* release is newest, not by the list object. The list is rebuilt by the view
-    // model's combine on every emission — an installed-version refresh, a channel change, the
-    // detail fetch landing — so keying on the list itself re-applied the default and reopened the
+    // The default is keyed by *which* release is newest, not by the list object. The view model's
+    // combine rebuilds that list on every emission — an installed-version refresh, a channel
+    // change, the detail fetch landing — and keying on it would re-apply the default and reopen the
     // notes under a reader who had just closed them, for reasons that had nothing to do with them.
     val newest = state.releases.firstOrNull()?.key(0)
     var expanded by remember(newest) { mutableStateOf<String?>(newest) }
@@ -582,12 +575,12 @@ private fun ReleasesTab(
 /**
  * One release.
  *
- * Not a card. An outlined box around every entry turned a list of five releases into five framed
- * panels competing with each other and with the notes inside them; the list reads as a list now,
- * separated by a rule, which is what the rest of the app does.
+ * Not a card, despite the name. An outlined box around every entry turns a list of five releases
+ * into five framed panels competing with each other and with the notes inside them; a rule between
+ * plain rows reads as a list, which is what the rest of the app does.
  *
- * The two facts that decide anything — is this newer than what I have, and is it a prerelease —
- * are badges rather than grey words in a row of other grey words, and installing is a filled button
+ * The two facts that decide anything — is this newer than what I have, and is it a prerelease — are
+ * badges rather than grey words in a row of other grey words, and installing is a filled button
  * rather than one of two identical text buttons.
  */
 @Composable
@@ -632,14 +625,11 @@ private fun ReleaseCard(
         }
 
         Spacer(Modifier.height(3.dp))
-        // The version line doubles as the notes' disclosure.
-        //
-        // It used to be a sentence of its own under the notes — "Show the release notes", with a
-        // chevron, taking a full row to offer what the row above it already implies. A release's
-        // tag, its date and its notes are one object, so the line that names it is where you press
-        // to see more of it, the way every expandable row on the platform behaves. The chevron
-        // turns rather than swapping glyphs, which says the same thing without a second word to
-        // read.
+        // The version line doubles as the notes' disclosure. A release's tag, its date and its
+        // notes are one object, so the line that names it is where you press to see more of it,
+        // the way every expandable row on the platform behaves — rather than spending a second row
+        // on "Show the release notes". The chevron turns rather than swapping glyphs, which says
+        // the same thing without a word to read.
         val hasNotes = !release.descriptionHTML.isNullOrBlank()
         val chevron by animateFloatAsState(if (notesOpen) 180f else 0f, label = "notesChevron")
         val disclose =
@@ -773,10 +763,9 @@ private fun InformationTab(
         }
         item {
             // The single most useful fact before installing anything: which apps this reaches
-            // into. It is in the payload and no screen was showing it.
-            // The catalogue first, because it describes the published module. Failing that, what
-            // the installed copy declares in its own APK — accurate for the build actually on this
-            // device, and labelled as such so the two are not confused.
+            // into. The catalogue first, because it describes the published module. Failing that,
+            // what the installed copy declares in its own APK — accurate for the build actually on
+            // this device, and labelled as such so the two are not confused.
             val published = module.scope?.takeIf { it.isNotEmpty() }
             InfoRow(
                 icon = Icons.Rounded.TrackChanges,
@@ -907,9 +896,9 @@ LocalizedOverlay {
 /**
  * How much of the width a drag must cover for the tab to change.
  *
- * Above the default half. The complaint this answers is not that the wrong tab arrives, it is that
- * one arrives at all while someone is reading, so the bar for "yes, they meant this" is set where
- * an accidental sideways component cannot reach it.
+ * Above `PagerDefaults`' half. The problem is not that the wrong tab arrives, it is that one
+ * arrives at all while someone is reading, so the bar for "yes, they meant this" is set where an
+ * accidental sideways component cannot reach it.
  */
 private const val COMMIT_FRACTION = 0.65f
 

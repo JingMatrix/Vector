@@ -37,10 +37,8 @@ enum class LogTab {
 /**
  * What a pane is showing.
  *
- * These used to be one `isLoading` boolean and a list of strings, with every failure rendered as a
- * fake log line — "Failed to load logs or daemon unreachable.", "No logs available." — so four
- * genuinely different situations arrived looking like log content the daemon had written. README
- * principle 2: never show one state when another is true.
+ * Each of these is a genuinely different situation and the screen renders each as its own thing, so
+ * "the daemon is unreachable" never arrives looking like a line the daemon wrote.
  */
 sealed interface LogStatus {
     /** Opening the descriptor and indexing. Short enough that no progress is worth reporting. */
@@ -82,9 +80,8 @@ data class LogPaneState(
      * The lines actually on screen, as positions within the current view.
      *
      * Distinct from the loaded window: the reader sees a screenful, the window is a few thousand
-     * lines around it. The counter reports this, because "which lines am I looking at" is the
-     * question a line counter is read to answer, and the window's bounds answer a question about
-     * the reader's implementation instead.
+     * lines around it. The line counter reports this pair, because "which lines am I looking at" is
+     * the question it is read to answer; the window's bounds answer a question about paging.
      */
     val visibleFirst: Int = 0,
     val visibleLast: Int = 0,
@@ -95,7 +92,7 @@ data class LogPaneState(
     val scroll: ScrollCommand? = null,
     /** Rotated parts the daemon holds, oldest first. The last one is the live file. */
     val parts: List<String> = emptyList(),
-    /** Which of [parts] is on screen. Defaults to the last, which is the one being written. */
+    /** Which of [parts] is on screen. A load with no part pinned selects the last, the live one. */
     val partIndex: Int = 0,
 ) {
     val filtered: Boolean
@@ -122,10 +119,10 @@ sealed interface LogSaveState {
 /**
  * One state machine per log stream, over a windowed reader.
  *
- * The thing worth keeping in mind while changing this: the `StateFlow` only ever carries a window
- * of rows. Nothing here holds the file. Every read runs on `Dispatchers.IO` behind the pane's own
- * mutex, so a scroll that extends the window cannot race the refresh that replaced the file under
- * it, and the binder calls are already off the main thread by [DaemonClient]'s construction.
+ * The `StateFlow` only ever carries a window of rows; nothing here holds the file. Every read runs
+ * on `Dispatchers.IO` behind the pane's own mutex, so a scroll that extends the window cannot race
+ * the refresh that replaced the file under it, and the binder calls are already off the main thread
+ * by [DaemonClient]'s construction.
  */
 class LogsViewModel(private val daemon: DaemonClient, private val settings: SettingsRepository) :
     ViewModel() {
@@ -166,10 +163,11 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     /**
      * True when the user asked for verbose logging off and the daemon kept it on.
      *
-     * `ManagerService.isVerboseLog()` is `PreferenceStore.isVerboseLogEnabled() || BuildConfig.DEBUG`,
-     * so on a debug daemon the switch snaps straight back. A control that visibly refuses to move
-     * with no explanation is exactly the failure README principle 2 names, so the screen reads the
-     * value the daemon reports *after* the write and says who is overriding whom.
+     * The current daemon's `ManagerService.isVerboseLog()` returns
+     * `PreferenceStore.isVerboseLogEnabled()` unmodified, so this stays false against it. An older
+     * daemon OR'd that preference with its own build type and the switch would snap straight back;
+     * rather than let a control refuse to move with no explanation, the screen reads the value the
+     * daemon reports *after* the write and says who is overriding whom.
      */
     private val _verboseEnforced = MutableStateFlow(false)
     val verboseEnforced: StateFlow<Boolean> = _verboseEnforced.asStateFlow()
@@ -184,7 +182,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
 
     fun setWordWrap(enabled: Boolean) = settings.setLogWordWrap(enabled)
 
-    /** Called when a pager page settles. Only the visible stream is ever read. */
+    /** Called when a stream comes on screen. Only the stream on screen is ever read. */
     fun open(tab: LogTab) {
         val pane = panes.getValue(tab)
         if (pane.opened) return
@@ -334,9 +332,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     private suspend fun applyJump(pane: Pane, jumpTo: Jump, keptFirst: Int) {
         val count = pane.viewCount()
         when (jumpTo) {
-            // A log is read from the end: that is where the crash is. The legacy screen opened at
-            // the top, so on a thirty-thousand-line file the user's first action was always a
-            // thirty-thousand-line scroll.
+            // A log is read from the end: that is where the crash is.
             Jump.NEWEST -> loadWindow(pane, count - WINDOW, count, ScrollTo.END)
             Jump.OLDEST -> loadWindow(pane, 0, WINDOW, ScrollTo.START)
             Jump.KEEP -> loadWindow(pane, keptFirst, keptFirst + WINDOW, ScrollTo.NONE)
@@ -404,8 +400,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
      * Extends the window as the list approaches an edge.
      *
      * The list is keyed by absolute line number, so inserting rows above the viewport re-anchors on
-     * the first visible key instead of shifting it — which is why walking upwards through a 40 MB
-     * file at constant memory does not fight the reader's finger.
+     * the first visible key instead of shifting it.
      */
     fun onVisibleRows(tab: LogTab, firstVisible: Int, lastVisible: Int, rowCount: Int) {
         val pane = panes.getValue(tab)
@@ -549,10 +544,10 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     /**
      * Rotates the current log.
      *
-     * Named that way because that is what happens: `clearLogs()` is `LogcatMonitor.refresh()`,
-     * which closes the current part and opens a fresh one. The previous parts stay on disk under a
-     * ten-part LRU and still travel in the zip export. The dialog on the screen says so; nothing
-     * here substitutes a synthetic "cleared" line for the file, it simply re-opens and re-indexes.
+     * Named that way because that is what happens: the daemon's `clearLogs()` calls
+     * `LogcatMonitor.refresh()`, which opens a fresh part and leaves the closed one on disk under a
+     * ten-part LRU, still reachable from the part chevrons and still carried by the zip export.
+     * Nothing is truncated, so this reloads and re-indexes rather than emptying anything.
      */
     fun rotate(tab: LogTab, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
@@ -575,8 +570,12 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
      * synchronous, and [DaemonClient]'s guarantee that no binder call touches the main thread is
      * load-bearing here more than anywhere else.
      *
-     * Both sides own one copy of the descriptor: `use` closes ours, `ZipOutputStream.use` closes
-     * the daemon's.
+     * Each side owns its own copy of the descriptor and closes it: `use` closes this one, and
+     * `FileSystem.getLogs` closes the copy the daemon received.
+     *
+     * A failure reported here is a failure of the transaction or of opening the document. The
+     * daemon logs and swallows every error it hits while filling the zip, so a partial archive
+     * arrives looking like a complete one.
      */
     fun saveTo(uri: Uri) {
         if (_saveState.value == LogSaveState.Saving) return
@@ -630,7 +629,10 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
         /** Rows held at once. At ~150 bytes a line this is a third of a megabyte of text. */
         const val WINDOW = 2_000
 
-        /** How much the window walks per step. One seek and one ~75 KB read. */
+        /**
+         * How far the window's near edge moves per extension. The far edge follows it, so a step
+         * re-reads a whole [WINDOW] either way; this only sets how often that happens.
+         */
         private const val PAGE = 500
 
         /** How close to an edge the viewport gets before the window is extended. */

@@ -49,15 +49,13 @@ import org.matrix.vector.manager.ui.theme.VectorLogLine
 /**
  * Horizontal panning shared by every row of a log.
  *
- * The bug this replaces was `Modifier.horizontalScroll` applied to the `LazyColumn` itself. A lazy
- * list only measures its visible window, so the width it reported to the scroll modifier was the
- * width of whichever rows happened to be composed; scrolling vertically brought longer lines into
- * the window, the scroll extent was recomputed, and the current offset's clamp moved underneath
- * the finger. That is the jump.
+ * Neither `Modifier.horizontalScroll` on the `LazyColumn` nor a shared `ScrollState` on the rows
+ * will do, and for the same reason: both derive the pan extent from whatever is currently measured.
+ * A lazy list only measures its visible window, and a `ScrollState` holds one `maxValue` that the
+ * last row to measure wins — so scrolling vertically brings a longer line into the window, the
+ * extent is recomputed, and the clamp on the current offset moves under the reader's finger.
  *
- * Moving a shared `ScrollState` onto the rows would only relocate the same bug: one `ScrollState`
- * holds one `maxValue`, and whichever row measured last would win and re-clamp the offset. So the
- * offset lives here instead, and the extent is the **running maximum** of every row width measured
+ * So the offset lives here, and the extent is the **running maximum** of every row width measured
  * so far. It only ever grows while a window is on screen, which is what makes it impossible for a
  * newly composed row to yank the content sideways. It restarts when the reading changes — see
  * [reportRow] for why that restart has to be lazy.
@@ -79,10 +77,10 @@ class LogPan {
      * The running maximum is restarted by [reset] *lazily*, on the next row measured, rather than
      * eagerly.
      *
-     * Zeroing the width in [reset] looked equivalent and was not: `reset` is called from a
-     * `LaunchedEffect`, which can land after the rows have already measured for the frame, and
-     * nothing then re-measures them — so the extent stayed zero and the log could not be panned at
-     * all. Restarting on the next measurement is correct whichever order those two land in.
+     * [reset] must not zero the width itself. It is called from a `LaunchedEffect`, which can land
+     * after the rows have measured for the frame, and nothing re-measures them afterwards — a
+     * zeroed extent would then stay zero and the log could not be panned at all. Bumping an epoch
+     * and restarting on the next measurement is correct whichever order the two land in.
      */
     fun reportRow(width: Int) {
         if (measuredEpoch != epoch) {
@@ -142,18 +140,17 @@ private fun Modifier.panContent(pan: LogPan): Modifier =
 /**
  * One row of the log.
  *
- * The anatomy is the whole payoff of parsing: a rail in the level's colour *and* the level letter,
- * because README §6 gives the hue to the user's wallpaper and no state may be distinguishable by
- * colour alone; the time of day only, since the date lives on the day separator; the tag, tappable
- * to filter to itself; then the message. `uid:pid:tid` are the least-read twenty-two columns of
- * every line and are precisely what forces sideways panning, so they hide behind a tap.
+ * The anatomy is the payoff of parsing: a rail in the level's colour *and* the level letter, since
+ * under Material You the hue belongs to the wallpaper and no state may be distinguishable by colour
+ * alone; the time of day only, because the date lives on the day separator; the tag, tappable to
+ * filter to itself; then the message. `uid:pid:tid` are twenty-two columns wide — `%8d:%6d:%6d` in
+ * `logcat.cpp` — and are what forces sideways panning, so they hide behind a tap.
  *
- * All of it is **one** styled `Text` rather than a `Row` of cells, and that is deliberate. Cells
- * confine the message to whatever the metadata leaves over — on a phone that was about 40 % of the
- * width, so a real verbose line wrapped into a four-line stack beside a mostly empty gutter. As one
- * string the message wraps under the metadata and uses the full width, which is what makes the list
- * dense enough to skim. The cost is that the tag is no longer a `Chip` with its own click target,
- * so the tap is resolved against the text layout instead — see [tagRangeOf].
+ * All of it is **one** styled `Text` rather than a `Row` of cells. Cells confine the message to
+ * whatever the metadata leaves over, which on a phone is a narrow column beside a mostly empty
+ * gutter; as one string the message wraps under the metadata and uses the full width. The cost is
+ * that the tag is not a `Chip` with its own click target, so the tap is resolved against the text
+ * layout instead — see [tagRangeOf].
  */
 @Composable
 fun LogRowItem(
@@ -220,8 +217,9 @@ private fun EntryRow(
                     entry.index
                 ) {
                     detectTapGestures(
-                        // No onLongPress: the long press belongs to text selection now. Copying
-                        // the whole line, metadata included, moved to a double tap.
+                        // No onLongPress: the long press belongs to the enclosing
+                        // SelectionContainer, so copying the whole line — metadata included — is
+                        // the double tap.
                         onDoubleTap = { onCopy(rawText(entry)) },
                         onTap = { position ->
                             val offset = layout?.getOffsetForPosition(position)

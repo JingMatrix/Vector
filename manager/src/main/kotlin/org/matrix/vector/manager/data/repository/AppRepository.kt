@@ -23,8 +23,8 @@ class AppRepository(
     /**
      * Drops the cache so the next read goes back to the daemon.
      *
-     * Wired to package install/remove broadcasts. Without it the list went stale for the life of
-     * the process — a module installed while the manager was open never appeared.
+     * Called from the package added, replaced and removed broadcasts: without it a module installed
+     * while the manager is open would not appear for the life of the process.
      */
     fun invalidate() {
         cachedApps = null
@@ -37,7 +37,6 @@ class AppRepository(
                 return@withContext cachedApps!!
             }
 
-            // MATCH_UNINSTALLED_PACKAGES | GET_META_DATA
             val flags = PackageManager.MATCH_UNINSTALLED_PACKAGES or PackageManager.GET_META_DATA
 
             val result =
@@ -89,14 +88,14 @@ class AppRepository(
     /**
      * Which installed packages are themselves Xposed modules.
      *
-     * Answering this means opening every installed APK to look for the module markers, so it is
-     * computed once per process and held until the app list is invalidated. The scope screen needs
-     * it on open — modules are hidden from the hookable-app list by default — and paying that cost
-     * on every scope screen would be a visible stall each time.
+     * Answering this means putting every installed package through module detection, which opens
+     * the APK of any it has not seen before, so it is computed once per process and held until the
+     * app list is invalidated. The scope screen needs it on open — modules are hidden from the
+     * hookable-app list by default — and paying that cost on every scope screen would be a visible
+     * stall each time.
      *
-     * Through the shared [ModuleDetectionCache], not straight to `ModuleDetection`. This opened
-     * every APK itself, so a device that had just paid for ~550 zip opens on the Modules panel paid
-     * for all of them a second time the first time a scope screen was opened, and again after every
+     * Through the shared [ModuleDetectionCache] rather than straight to `ModuleDetection`, so a
+     * package the Modules panel has already inspected is a map lookup here, and stays one across a
      * cold start.
      */
     suspend fun modulePackages(): Set<String> =

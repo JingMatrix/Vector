@@ -11,8 +11,10 @@ import android.content.pm.ActivityInfo
 import org.lsposed.lspd.ILSPManagerService
 
 /**
- * Safely wraps synchronous Binder transactions into asynchronous Kotlin Coroutines. Ensures the
- * main UI thread is never blocked by IPC delays or daemon deadlocks.
+ * Every call the manager makes to the daemon, as coroutines.
+ *
+ * A Binder transaction is synchronous and the daemon on the other end can be slow, busy or gone, so
+ * none of this is allowed to happen on the thread that draws.
  */
 class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
 
@@ -23,14 +25,15 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         get() = service?.asBinder()?.isBinderAlive == true
 
     /**
-     * Executes a daemon IPC call on the IO thread pool. Wraps the response in a [Result] to handle
-     * RemoteExceptions gracefully without crashing.
+     * Runs one daemon transaction on the IO dispatcher and reports its outcome as a [Result], so an
+     * unreachable or refusing daemon is a value the caller can render rather than a thrown
+     * exception.
      */
     private suspend fun <T> runIpc(block: (ILSPManagerService) -> T): Result<T> =
         withContext(Dispatchers.IO) {
-            // Read the binder once. Reading it twice invited a TOCTOU where the daemon died
-            // between the liveness check and the call, and `service!!` threw an NPE that the
-            // RemoteException-only catch below let escape into the collecting coroutine.
+            // Read the binder once: it comes from a StateFlow the daemon can change underneath us,
+            // so checking one value for liveness and calling another is a race with the daemon
+            // dying.
             val binder = service
             if (binder == null || binder.asBinder()?.isBinderAlive != true) {
                 return@withContext Result.failure(IllegalStateException("Daemon is not active"))
@@ -40,14 +43,12 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
             } catch (e: Exception) {
                 // Deliberately broad. A SecurityException, an IllegalArgumentException, or a
                 // RuntimeException thrown while unparcelling a large ParcelableListSlice are all
-                // reachable here, and any of them escaping cancels the caller's scope — which in
-                // a viewModelScope means the process dies.
+                // reachable here, and any of them escaping fails the calling coroutine — which for
+                // an unhandled failure in a viewModelScope means the process goes down.
                 Log.w(Constants.TAG, "ipc: daemon transaction failed", e)
                 Result.failure(e)
             }
         }
-
-    // --- Core Methods ---
 
     suspend fun getXposedApiVersion(): Result<Int> = runIpc { it.xposedApiVersion }
 
@@ -55,24 +56,16 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     }
 
     /**
-     * Modules the daemon could not load, though they are installed and enabled.
-     *
-     * The daemon keeps what the user asked for separately from what it can actually load, and the
-     * two can disagree — an APK whose path will not resolve, or whose DEX will not parse. Without
-     * this the module simply looked switched off, which is both wrong and unexplainable.
-     */
-    /**
      * The activity that would open for this package, or null when it has none.
      *
-     * Three categories, in the order the previous manager used and for the same reasons. A module
-     * that declares the Xposed settings category is naming its companion — the screen its author
-     * wrote to configure it — and for a module that wins. `CATEGORY_INFO` comes next: it is what an
-     * app declares when it has a screen worth opening but deliberately keeps out of the launcher,
-     * which is exactly the case here and which this manager had been missing. `CATEGORY_LAUNCHER`
-     * last.
+     * Three categories, in order. A module that declares the Xposed settings category is naming its
+     * companion — the screen its author wrote to configure it — and for a module that wins.
+     * `CATEGORY_INFO` comes next: it is what an app declares when it has a screen worth opening but
+     * deliberately keeps out of the launcher, which is the common shape for a module.
+     * `CATEGORY_LAUNCHER` last.
      *
-     * Resolved as the package's own user throughout: the manager's package manager cannot see
-     * another profile's activities.
+     * Resolved as the package's own user throughout, and through the daemon: the manager's own
+     * package manager cannot see another profile's activities.
      */
     suspend fun findAppUi(
         packageName: String,
@@ -80,9 +73,9 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         /**
          * True for a module, where the companion screen is the point.
          *
-         * No default, deliberately. When it had one, a caller that asked whether a companion
-         * exists and a caller that opened it could — and did — disagree about which question they
-         * were asking, which showed a button that could never do anything.
+         * No default: the caller that asks whether a companion exists and the caller that opens it
+         * have to be asking the same question, or the manager offers a button that resolves to
+         * nothing.
          */
         companionFirst: Boolean,
     ): Result<ActivityInfo?> = runIpc { service ->
@@ -105,12 +98,12 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     /**
      * Opens that screen.
      *
-     * The `lsp_no_switch_to_user` extra is not decoration. Without it the daemon switches the
-     * device to the profile parent and locks the screen before starting the activity — right for an
-     * activity that exists in one profile only, and a startling thing to do to someone who pressed
-     * "open" on a module whose window shows for every user anyway. The flag on the resolved
-     * activity says which case this is; leaving it out, as this manager did, means always taking
-     * the disruptive path.
+     * The `lsp_no_switch_to_user` extra is not decoration. Without it, and whenever the current
+     * user is not already the target's profile parent, the daemon switches the device to that
+     * parent and locks the screen before starting the activity — right for an activity that exists
+     * in one profile only, and a startling thing to do to someone who pressed "open" on a module
+     * whose window shows for every user anyway. The flag on the resolved activity says which case
+     * this is.
      *
      * Returns false when the package has no such screen, which is an answer rather than a failure.
      */
@@ -143,14 +136,13 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
                         ),
                     userId,
                 )
-            // The daemon returns ActivityManager's own start code, and this used to return `true`
-            // over the top of it. Everything from a refused user switch (-1) to a disabled or
-            // unexported activity arrives as a negative number, and every one of them was reported
-            // to the caller as "opened" — so the screen said nothing and nothing opened, which is
-            // the same symptom as a button wired to nothing and is diagnosed the same wrong way.
-            // `ActivityManager.START_SUCCESS` is 0 and is @hide, so the number is
-            // written out; every success code (START_SUCCESS, START_RETURN_INTENT_TO_CALLER,
-            // START_TASK_TO_FRONT, START_DELIVERED_TO_TOP) is >= 0 and every failure < 0.
+            // The daemon hands back the activity manager's own start code, so a refusal reaches the
+            // caller rather than a flat `true`: a refused user switch (-1), a disabled or
+            // unexported activity, an activity that has gone since it was resolved. Reporting any
+            // of those as "opened" leaves the screen silent with nothing in front of it.
+            // `ActivityManager.START_SUCCESS` is 0 and @hide, so the comparison is written out —
+            // fatal refusals occupy -100 to -1 and successes 0 to 99, while the non-fatal band from
+            // 100 up (app switches cancelled, lock-task violation) passes this test as well.
             val started = code >= 0
             if (!started) {
                 Log.e(
@@ -163,6 +155,14 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         }
     }
 
+    /**
+     * Modules the daemon could not load, though they are installed and enabled.
+     *
+     * The daemon keeps what the user asked for separately from what it can actually load, and the
+     * two can disagree — an APK whose path will not resolve, a DEX the loader refuses. A module
+     * listed here is still switched on; it is the loading that failed, and saying so is the only
+     * way the screen can tell that apart from "switched off".
+     */
     suspend fun getUnloadableModules(): Result<List<String>> = runIpc {
         it.unloadableModules.toList()
     }
@@ -214,19 +214,10 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     }
 
     /**
-     * The current log part, or `null` when the daemon has not opened one yet.
-     *
-     * The AIDL returns a platform type, so the previous `Result<ParcelFileDescriptor>` happily
-     * carried a `null` under a non-null type parameter: `getOrNull()` could not tell "the daemon is
-     * unreachable" from "there is no log file yet", and `getOrThrow()` would have handed a null back
-     * as non-null. Those are two different situations and the Logs screen renders them differently,
-     * so the nullability is admitted here instead of being lost.
-     */
-    /**
      * The rotated parts the daemon still holds for one of the two logs, oldest first.
      *
-     * Empty against an older daemon that has no such call — the manager then simply shows the live
-     * part, which is what it did before this existed.
+     * Empty against a daemon too old to answer the call, in which case the manager shows the live
+     * part alone.
      */
     suspend fun getLogParts(verbose: Boolean): Result<List<String>> = runIpc {
         it.getLogParts(verbose).orEmpty()
@@ -237,6 +228,13 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         name: String,
     ): Result<android.os.ParcelFileDescriptor?> = runIpc { it.getLogPart(verbose, name) }
 
+    /**
+     * The part currently being written, or `null` when the daemon has not opened one yet.
+     *
+     * The AIDL returns a platform type, so the nullability is spelled out in the type parameter:
+     * "the daemon is unreachable" and "there is no log file yet" are different situations, the Logs
+     * screen renders them differently, and a `Result<ParcelFileDescriptor>` would collapse them.
+     */
     suspend fun getLog(verbose: Boolean): Result<android.os.ParcelFileDescriptor?> = runIpc {
         if (verbose) it.verboseLog else it.modulesLog
     }
@@ -283,12 +281,17 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         it.optimizePackage(packageName)
     }
 
-    /** Writes a zip of every log the daemon holds into [zipFd], for sharing a bug report. */
+    /**
+     * Writes the daemon's bug report into [zipFd].
+     *
+     * More than the logs: the daemon adds tombstones, ANR traces, both crash directories, a full
+     * logcat and dmesg, the module database and the resolved scopes.
+     */
     suspend fun writeLogsTo(zipFd: android.os.ParcelFileDescriptor): Result<Unit> = runIpc {
         it.getLogs(zipFd)
     }
 
-    /** Restarts the manager after a framework update, re-entering through the given intent. */
+    /** Kept for the AIDL's shape: the daemon implements it as a no-op, so this asks for nothing. */
     suspend fun restartFor(intent: android.content.Intent): Result<Unit> = runIpc {
         it.restartFor(intent)
     }
@@ -308,7 +311,12 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     /** Restarts the framework without rebooting the device. Everything on screen goes with it. */
     suspend fun softReboot(): Result<Unit> = runIpc { it.softReboot() }
 
-    /** Whether apps that declare no launcher entry are given one anyway; the platform default. */
+    /**
+     * Whether apps that declare no launcher entry are given one anyway.
+     *
+     * True is the platform default, and is what the daemon answers on a device where nothing has
+     * ever set it.
+     */
     suspend fun forcedLauncherIcons(): Result<Boolean> = runIpc { it.forcedLauncherIcons() }
 
     suspend fun setForcedLauncherIcons(force: Boolean): Result<Unit> = runIpc {
@@ -322,8 +330,8 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
      * Returns whether the daemon stored it, which is not the same as whether the call arrived.
      *
      * `ModuleDatabase.setIncludeNewApps` answers false when no row was updated — the package is
-     * not a known module, or it is the framework itself. Typed `Result<Unit>` this was thrown
-     * away, so a refusal and a success were the same value and the switch moved either way.
+     * not a known module, or it is the framework itself — and the switch has to follow that answer
+     * rather than assume the write landed.
      */
     suspend fun setIncludeNewApps(packageName: String, enable: Boolean): Result<Boolean> = runIpc {
         it.setIncludeNewApps(packageName, enable)
@@ -349,16 +357,16 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
 }
 
 /**
+ * `ActivityInfo.FLAG_SHOW_FOR_ALL_USERS`, which is hidden.
+ *
+ * An activity carrying it displays whichever user is current, so opening it needs no user switch.
+ */
+private const val FLAG_SHOW_FOR_ALL_USERS = 0x0400
+
+/**
  * How an Xposed module has advertised its settings screen since the original framework.
  *
  * A module that hides its launcher icon still needs somewhere to be configured from, and this is
  * where it says so.
  */
-/**
- * `ActivityInfo.FLAG_SHOW_FOR_ALL_USERS`, which is hidden.
- *
- * An activity carrying it is visible from every profile, so opening it needs no user switch.
- */
-private const val FLAG_SHOW_FOR_ALL_USERS = 0x0400
-
 private const val XPOSED_MODULE_SETTINGS_CATEGORY = "de.robv.android.xposed.category.MODULE_SETTINGS"

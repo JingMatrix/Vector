@@ -93,9 +93,9 @@ fun LocalizedContent(content: @Composable () -> Unit) {
  * A bottom sheet, a dialog and a dropdown are not part of the activity's view tree — each gets its
  * own `AndroidComposeView`, and every one of those re-provides `LocalContext` and
  * `LocalConfiguration` from the window's own context on the way in. That silently overwrites
- * whatever [LocalizedContent] provided, so the app read Chinese while its filter menus and sheets
- * stayed English. Re-establishing the override inside the popup's composition is the only place the
- * value survives.
+ * whatever [LocalizedContent] provided, so the app would read in the chosen language while its
+ * filter menus and sheets stayed in the phone's. Re-establishing the override inside the popup's
+ * composition is the only place the value survives.
  *
  * No crossfade here: the window is appearing anyway, and animating its contents on top of that
  * reads as a stutter.
@@ -144,12 +144,12 @@ private fun Configuration.layoutDirection(): LayoutDirection {
 /**
  * A context that answers with the chosen language but is still the activity.
  *
- * The obvious `createConfigurationContext(config)` was the first attempt and it crashed the Modules
- * panel: what it returns is a fresh context that does *not* wrap the activity, and Compose resolves
- * `LocalActivityResultRegistryOwner` — and `LocalActivity`, and the back-press dispatcher — by
- * walking `ContextWrapper.getBaseContext()` upwards looking for the activity. From a detached
- * context that walk finds nothing, so `rememberLauncherForActivityResult` throws the moment a screen
- * that installs or uninstalls anything enters composition.
+ * Not the bare `createConfigurationContext(config)`: what that returns is a fresh context that does
+ * *not* wrap the activity, and Compose resolves `LocalActivityResultRegistryOwner` — and
+ * `LocalActivity`, and the back-press dispatcher — by walking `ContextWrapper.getBaseContext()`
+ * upwards looking for the activity. From a detached context that walk finds nothing, so
+ * `rememberLauncherForActivityResult` throws the moment a screen that installs or uninstalls
+ * anything enters composition.
  *
  * Wrapping instead of replacing keeps that chain intact and overrides only what has to change.
  */
@@ -165,10 +165,9 @@ private class LocalizedContext(base: Context, config: Configuration) : ContextWr
  * Listed at build time from the resource folders that carry our own `strings.xml`, so a language
  * appears the moment a translator's folder lands and nobody has to maintain a list by hand.
  *
- * Deliberately *not* `AssetManager.getLocales()`, which was the first attempt: it reports every
- * locale any dependency ships a resource for — AndroidX alone contributes dozens — along with the
- * pseudo-locales, so the picker offered Afrikaans, Azerbaijani and "Éñĝļîšĥ" in an app that has
- * none of them.
+ * Deliberately *not* `AssetManager.getLocales()`: it reports every locale any dependency ships a
+ * resource for — AndroidX alone contributes dozens — along with the pseudo-locales, so the picker
+ * would offer Afrikaans, Azerbaijani and "Éñĝļîšĥ" in an app that has none of them.
  */
 fun availableLocales(): List<Locale> =
     BuildConfig.TRANSLATIONS.split(',')
@@ -185,7 +184,7 @@ fun Locale.nativeName(): String =
  *
  * `DateFormat.getDateInstance()` reads `Locale.getDefault()`, which is the *process* default — the
  * host application's, and unaffected by the in-composition override. Without this a reader who has
- * chosen 中文 still gets "29 janv. 2026" beside it, which looks like a bug because it is one.
+ * chosen 中文 still gets "29 janv. 2026" beside it.
  */
 @Composable
 fun currentLocale(): Locale =

@@ -134,11 +134,11 @@ class ScopeViewModelFactory(private val packageName: String, private val userId:
 /**
  * Which apps a module may hook.
  *
- * The screen's whole shape follows from one fact: **applying a scope makes the daemon force-stop
- * every affected app.** So edits are a draft the user builds up, and applying is a deliberate act
- * with its cost stated — *3 to add, 1 to remove* — rather than a silent side effect of ticking a
- * box. The previous implementation wrote the entire scope on every tap, so choosing ten apps
- * killed and restarted them ten times over.
+ * The screen's shape follows from one fact: **a scope is written whole, never incrementally.** The
+ * daemon deletes every scope row of the module, writes the new set and rebuilds its configuration,
+ * so sending that on each tap would mean ten rewrites to tick ten apps. Edits are therefore a
+ * draft the user builds up, and applying is a deliberate act with its size stated — *3 to add, 1
+ * to remove*.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,15 +236,14 @@ fun ScopeScreen(
         if (viewModel.wouldStrandModule()) confirmStranded = true else onNavigateBack()
     }
 
-    // The gesture leaves this screen exactly as the arrow does, so it has to ask the same question
-    // first. Only the arrow did: a swipe went straight out, past the check and past anything still
-    // sitting in the draft. Declared here it wins over the navigator's own back handling.
+    // The gesture leaves this screen exactly as the arrow does, so it asks the same question
+    // first. Declared here it wins over the navigator's own back handling.
     BackHandler { attemptBack() }
 
     Scaffold(
         topBar = {
-            // One line: back, who this is about, and the switch. The large two-line bar spent a
-            // fifth of the screen restating a name the user had just tapped, on a screen whose
+            // One line: back, who this is about, and the switch. A large two-line bar would spend
+            // a fifth of the screen restating a name the user has just tapped, on a screen whose
             // whole job is a long list.
             TopAppBar(
                 title = {
@@ -261,7 +260,7 @@ fun ScopeScreen(
                             //
                             // Finite, not endless: this is a screen someone sits on while working
                             // through a long list, and a title that never stops moving is a
-                            // distraction rather than an affordance. It says its piece and settles.
+                            // distraction. It says its piece and settles.
                             modifier = Modifier.basicMarquee(iterations = 3),
                         )
                         Text(
@@ -287,10 +286,10 @@ fun ScopeScreen(
                     }
                 },
                 actions = {
-                    // The master switch, in the bar. It is the single most consequential control
-                    // on the screen and it was previously a card competing with the app list for
-                    // the same attention; an overflow menu in its place held items that now live
-                    // in the search field, next to the list they act on.
+                    // The master switch, in the bar rather than in a card competing with the app
+                    // list: it is the single most consequential control on the screen. What an
+                    // overflow menu would hold here lives in the search field instead, next to the
+                    // list it acts on.
                     Switch(
                         checked = state.isEnabled,
                         onCheckedChange = { enable ->
@@ -308,10 +307,7 @@ fun ScopeScreen(
         snackbarHost = { VectorSnackbarHost(snackbars) },
         // The module's own screen, in the corner rather than in the bar. The bar holds what the
         // screen *is* — whose scope, and whether it runs — and this is a departure from it: it
-        // leaves for somewhere else. A module with neither a companion nor a launcher entry says
-        // so when pressed rather than hiding the button, because its absence is a fact about that
-        // module and a control that comes and goes between modules is harder to learn than one
-        // that answers.
+        // leaves for somewhere else.
         floatingActionButton = {
             // Only when there is something behind it. A module with no companion and no launcher
             // entry — which is most of them — would otherwise carry a button whose whole function
@@ -326,8 +322,8 @@ fun ScopeScreen(
             }
         },
         bottomBar = {
-            // Appears only when there is something to apply, so the cost is stated exactly when
-            // it becomes real.
+            // Appears only when the draft differs from what the daemon holds, so the count is
+            // stated exactly when there is one.
             AnimatedVisibility(
                 visible = pending.any,
                 enter = slideInVertically { it },
@@ -388,10 +384,10 @@ fun ScopeScreen(
             Spacer(Modifier.height(10.dp))
 
             // Every installed package, with its label and its icon, read through the package
-            // manager: on a phone with a few hundred of them that is a visible wait, and it used
-            // to be spent staring at a blank half-screen with no way to tell a slow load from a
-            // filter that had matched nothing. Only while there is nothing to show — a spinner
-            // over a list already on screen would be the worse lie.
+            // manager: on a phone with a few hundred of them that is a visible wait, and without
+            // this there is no way to tell a slow load from a filter that has matched nothing.
+            // Only while there is nothing to show — a spinner over a list already on screen would
+            // be the worse lie.
             if (state.loading && apps.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -408,12 +404,12 @@ fun ScopeScreen(
             //
             // The saved scope arrives after the app list does, and applying it re-sorts the list so
             // that what is in the scope leads. `items` is keyed, so LazyColumn holds whatever row
-            // was under the viewport and lets the promoted ones appear *above* it — the screen
-            // opened part-way down a list of several hundred, with the module's own targets
-            // scrolled off the top, which reads exactly like they are not there.
+            // was under the viewport and lets the promoted ones appear *above* it, leaving the
+            // screen part-way down a list of several hundred with the module's own targets
+            // scrolled off the top — which reads exactly like they are not there.
             //
-            // Keyed on the module, not on the list: re-running this whenever the order changed
-            // would yank the view back every time a row was ticked, since ticking is what moves a
+            // Keyed on the module, not on the list: re-running this whenever the order changes
+            // would yank the view back every time a row is ticked, since ticking is what moves a
             // row to the top.
             LaunchedEffect(packageName, userId, state.loading) { listState.scrollToItem(0) }
             LazyColumn(
@@ -476,10 +472,10 @@ fun ScopeScreen(
 /**
  * Everything that changes the *selection*, in the search field's trailing slot.
  *
- * A sheet rather than a dropdown, for the same reason the catalogue's filters became one: these are
- * sentences, not words. "Sélectionner tout ce qui est affiché" does not fit the width a menu gives
- * itself, so in French every second row wrapped and the menu read as a paragraph. A sheet has the
- * full width, and it can carry the leading icons that tell an action from a setting.
+ * A sheet rather than a dropdown, as elsewhere in the app: these entries are sentences, not words.
+ * "Sélectionner tout ce qui est affiché" does not fit the width a menu gives itself, so in French
+ * every second row wraps and the menu reads as a paragraph. A sheet has the full width, and it can
+ * carry the leading icons that tell an action from a setting.
  */
 @Composable
 private fun ScopeSelectMenu(
@@ -532,10 +528,8 @@ private fun ScopeSelectMenu(
                     open = false
                 },
             )
-            // The label used to read "include the module itself", which is a different feature
-            // altogether — so the one thing in this sheet that changes the future of the scope
-            // looked like a niche toggle about the present, and went unnoticed. What it actually
-            // does is what it now says.
+            // The one entry in this sheet that changes the *future* of the scope rather than its
+            // present, so its label says exactly that and not something narrower.
             ToggleRow(
                 title = stringResource(R.string.scope_include_new_apps),
                 subtitle = stringResource(R.string.scope_include_new_apps_summary),
@@ -594,10 +588,10 @@ private fun ScopeFilterMenu(
 ) {
     var open by remember { mutableStateOf(false) }
     // Anything other than the defaults must not be silent — and "other than the defaults" is the
-    // point. The old expression asked whether modules were hidden, which they are by default, so
-    // the mark was lit on a device nobody had touched and therefore said nothing. It matters now
-    // that these choices survive the visit: returning to a list filtered the way you left it a
-    // week ago is exactly when you need telling.
+    // point, because the defaults themselves hide system apps and other modules. Asking whether
+    // anything is hidden would light the mark on a device nobody had touched, which says nothing.
+    // It matters because these choices survive the visit: returning to a list filtered the way you
+    // left it a week ago is exactly when you need telling.
     val filtering =
         !locked &&
             (showSystem != ScopeViewModel.DEFAULT_SHOW_SYSTEM ||
@@ -629,8 +623,8 @@ private fun ScopeFilterMenu(
             { open = false },
         ) {
             if (hasRecommended) {
-                // The static-scope view, on request. Offered only when the module actually asked
-                // for something — otherwise it would narrow the list to nothing.
+                // The static-scope view, on request. Offered only when the module has actually
+                // asked for something — otherwise it would narrow the list to nothing.
                 ChoiceRow {
                     FilterChip(
                         selected = recommendedOnly,
@@ -642,9 +636,10 @@ private fun ScopeFilterMenu(
             }
             // Off while the module's own request is what the list is answering. That question has
             // one answer — what it asked for, and what it has been given — and these three can
-            // only subtract from it, which is how a module asking for Chrome showed an empty list
-            // to anyone who had not also turned system apps on. Greyed rather than hidden, so the
-            // reader can see the settings are still there and why they are not in play.
+            // only subtract from it: Chrome is a system app, so a module asking for Chrome would
+            // show an empty list to anyone who had not also turned system apps on. Greyed rather
+            // than hidden, so the reader can see the settings are still there and why they are not
+            // in play.
             ChoiceRow {
                 FilterChip(
                     selected = showSystem,
@@ -669,7 +664,7 @@ private fun ScopeFilterMenu(
     }
 }
 
-/** What order it is in. Four keys and a reverse, as the legacy manager had. */
+/** What order it is in: every [ScopeSort], and a reverse toggle over whichever is chosen. */
 @Composable
 private fun ScopeSortMenu(
     sort: ScopeSort,
@@ -766,14 +761,13 @@ private fun ScopeEmptyState() {
  *
  * Different mechanisms can put an app in a module's scope and they behave differently when the
  * world changes — one is fixed forever, one is the module's suggestion, one is only ever what you
- * ticked. Before this they all rendered as an identical checkbox, so a scope the module controls
- * looked exactly like a scope the user controls.
+ * ticked. Rendered as an identical checkbox, a scope the module controls looks exactly like a
+ * scope the user controls.
  *
- * There was a fourth, "auto-included", shown when a recommended app met a module that adds new
- * apps automatically. It was a guess: that setting reacts to packages *installed from now on*, and
- * nothing records how an app already in scope got there. So it labelled recommended apps with a
- * mechanism that had not touched them. The setting explains itself in the sheet, where it is a
- * property of the module rather than a claim about a row.
+ * There is deliberately no "auto-included" origin. The include-new-apps setting reacts to packages
+ * installed *from now on*, and nothing records how an app already in the scope got there, so any
+ * such label would be a guess. It is explained in the sheet, where it is a property of the module
+ * rather than a claim about a row.
  */
 private enum class ScopeOrigin {
     /** The module fixed this scope; the user cannot change it. */
@@ -885,7 +879,7 @@ private fun AppRow(
     }
 }
 
-/** States what applying will actually do, before it does it. */
+/** States how much applying will change — so many to add, so many to remove — before it does it. */
 @Composable
 private fun ApplyBar(
     added: Int,
@@ -905,7 +899,6 @@ private fun ApplyBar(
                     style = MaterialTheme.typography.labelLarge,
                 )
                 Text(
-                    // The consequence, stated before the act.
                     text = stringResource(R.string.scope_apply_warning),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

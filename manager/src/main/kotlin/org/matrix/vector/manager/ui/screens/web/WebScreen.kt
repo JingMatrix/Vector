@@ -65,16 +65,17 @@ import org.matrix.vector.manager.R
  *
  * Three things this has to get right, and the first is the one that is easy to get wrong:
  *
- * **The page must be in the app's theme, not the system's.** A `WebView` decides
- * `prefers-color-scheme` from *its own context's* configuration, so a user reading Vector in light
- * mode on a dark-themed phone got a black GitHub page under a white app bar. The WebView is
- * therefore built against a configuration context whose night bit is forced to match the Compose
- * theme, and algorithmic darkening is allowed so sites without a dark mode of their own are
- * darkened rather than left glaring.
+ * **The page must be in the app's theme, not the system's.** A `WebView` sets
+ * `prefers-color-scheme` from the theme of the context it was constructed with, which resolves
+ * through that context's configuration — so with the activity's own context, Vector in light mode
+ * on a dark-themed phone renders a black GitHub page under a white app bar. The WebView is built
+ * against a configuration context whose night bit is forced to match the Compose theme instead, and
+ * algorithmic darkening is allowed so that sites with no dark mode of their own are darkened rather
+ * than left glaring.
  *
- * **The seam must not show.** The bar takes the surface colour, the WebView's own background is
- * set to the same colour before the page paints, and the scrim under the status bar matches — so
- * there is no white flash on load and no hard line between chrome and content.
+ * **The seam must not show.** The bar, the Scaffold container and the WebView's own background are
+ * all the same surface colour, and the WebView's is set before the page paints — so there is no
+ * white flash on load and no hard line between chrome and content.
  *
  * **It should get out of the way.** The bar retracts as the page scrolls down and returns on the
  * way up, which is what makes a full-screen reading surface feel immersive rather than framed.
@@ -92,9 +93,8 @@ fun WebScreen(url: String, onNavigateBack: () -> Unit) {
     var secure by remember { mutableStateOf(url.startsWith("https")) }
     var barVisible by remember { mutableStateOf(true) }
 
-    // A WebView reads prefers-color-scheme from the configuration of the context it was built
-    // with, so forcing the night bit here is what makes the page follow Vector's own theme rather
-    // than the system's.
+    // The night bit is read from the context the WebView is constructed with, so forcing it here is
+    // what makes the page follow Vector's own theme rather than the system's.
     val themedContext =
         remember(dark) {
             val config =
@@ -126,13 +126,13 @@ fun WebScreen(url: String, onNavigateBack: () -> Unit) {
                 settings.displayZoomControls = false
 
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                    // Applies only to sites with no dark mode of their own; GitHub has one and
-                    // keeps using it.
+                    // Only reaches content that defines no dark styles of its own; GitHub does, and
+                    // keeps using them.
                     WebSettingsCompat.setAlgorithmicDarkeningAllowed(settings, true)
                 }
 
-                // The bar retracts going down and comes back coming up — the page gets the whole
-                // screen while being read, and the controls are one flick away.
+                // Past the first 120px only, and with a 12px deadband either way, so the bar does
+                // not flicker on the small offsets a tap or a settling fling produces.
                 setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
                     val delta = scrollY - oldScrollY
                     if (delta > 12 && scrollY > 120) barVisible = false
@@ -243,7 +243,8 @@ fun WebScreen(url: String, onNavigateBack: () -> Unit) {
                                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     )
                                 } catch (_: ActivityNotFoundException) {
-                                    // No browser in the host process is normal here.
+                                    // Nothing registered for http on this device. The page is
+                                    // already open here, so there is nothing to tell the user.
                                 }
                             }
                         ) {

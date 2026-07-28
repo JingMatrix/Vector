@@ -41,8 +41,8 @@ fun relativeTime(epochSeconds: Long): String {
  * Compact counts for the project footer: 11905 becomes "11.9k".
  *
  * The locale is passed in rather than read from `Locale.getDefault()`, which is the *process*
- * default and stays the host app's: a reader on a French phone who has set the app to English was
- * being shown "11,9k".
+ * default and stays the host app's: a reader on a French phone who has set the app to English would
+ * otherwise be shown "11,9k".
  */
 fun compactCount(value: Int, locale: Locale): String =
     when {
@@ -63,9 +63,9 @@ fun compactCount(value: Int, locale: Locale): String =
 fun exactTime(epochSeconds: Long): String {
     val context = LocalContext.current
     val locale = currentLocale()
-    // Built once per language rather than once per row. The first version constructed two
+    // Built once per language rather than once per row. Formatting in place would cost two
     // Calendars, a time format, an ICU pattern lookup and a SimpleDateFormat for *every commit on
-    // screen, on every recomposition* — invisible on a feed of a hundred, not on one that now holds
+    // screen, on every recomposition* — invisible on a feed of a hundred, not on one that holds
     // thousands and re-lays itself out whenever the author filter changes.
     val formats = remember(context, locale) { TimeFormats(context, locale) }
     return remember(formats, epochSeconds) { formats.format(epochSeconds) }
@@ -116,11 +116,11 @@ private class TimeFormats(context: android.content.Context, private val locale: 
         return "$day $time"
     }
 
-    // Not DateUtils, which was the first version of this: its formatting runs through
-    // `Locale.getDefault()` regardless of the context handed to it, so the month abbreviation
-    // stayed in the phone's language while everything around it followed the app's. Asking for the
-    // best pattern for a locale and formatting with it keeps the same shape — abbreviated month,
-    // year only when it is not this one — and actually honours the choice.
+    // Not DateUtils: its formatting runs through `Locale.getDefault()` regardless of the context
+    // handed to it, so the month abbreviation would stay in the phone's language while everything
+    // around it followed the app's. Asking for the best pattern for a locale and formatting with
+    // it keeps the same shape — abbreviated month, year only when it is not this one — and honours
+    // the choice.
     private fun pattern(skeleton: String) =
         java.text.SimpleDateFormat(
             android.text.format.DateFormat.getBestDateTimePattern(locale, skeleton),

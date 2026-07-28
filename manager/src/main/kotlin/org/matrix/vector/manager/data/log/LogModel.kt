@@ -10,8 +10,7 @@ package org.matrix.vector.manager.data.log
  * "[ " %Y-%m-%dT%H:%M:%S ".%03ld %8d:%6d:%6d %c/%-15.*s ] " <message> "\n"
  * ```
  *
- * Three properties of that format decide how this parser is written, and guessing any of them
- * wrong is how log parsers rot:
+ * Three properties of that format decide how this parser is written:
  *
  * 1. **The widths are `printf` minimums, not columns.** A uid of `1010324` is seven digits and a
  *    future pid can exceed six, so the prefix has to be *scanned*. Slicing at constant offsets
@@ -38,7 +37,7 @@ enum class LogLevel(val char: Char) {
     UNKNOWN('?');
 
     companion object {
-        /** `kLogChar` in logcat.cpp, in the same order Android's priorities are numbered. */
+        /** The characters `kLogChar` in logcat.cpp emits, indexed by Android's log priority. */
         fun of(c: Char): LogLevel =
             when (c) {
                 'V' -> VERBOSE
@@ -51,7 +50,10 @@ enum class LogLevel(val char: Char) {
                 else -> UNKNOWN
             }
 
-        /** The levels worth offering as a filter; `SILENT` and `UNKNOWN` never reach a reader. */
+        /**
+         * The levels worth offering as a filter. Nothing writes at `SILENT`, and `UNKNOWN` is what
+         * an unrecognised level character degrades to.
+         */
         val selectable = listOf(VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL)
     }
 }
@@ -100,7 +102,7 @@ sealed interface LogRow {
 }
 
 /**
- * Cut point for a single line.
+ * Cut point for a single line, applied to the raw bytes as the line is read.
  *
  * The longest line observed in either log on a real device is 816 characters (an attestation
  * dump), so this only ever bites on pathological output — but without it one runaway line sets
@@ -111,7 +113,7 @@ const val MAX_LINE_CHARS = 4096
 /** The three-character delimiter that ends the prefix. See [parseLogLine]. */
 private const val DELIMITER = " ] "
 
-/** `"[ "` + 23 characters of timestamp + at least `" 0: 0: 0 V/x ] "`. */
+/** `"[ "` plus the 23-character timestamp; below this the fixed-position checks run off the end. */
 private const val MIN_PREFIX = 26
 
 /** A line is a continuation of the entry above it when it starts with whitespace. */

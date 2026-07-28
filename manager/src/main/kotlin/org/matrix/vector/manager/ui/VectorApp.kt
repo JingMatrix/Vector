@@ -44,11 +44,8 @@ import org.matrix.vector.manager.ui.screens.web.WebScreen
  * [NavigationSuiteScaffold] picks the navigation container from the window size — a bottom bar on a
  * phone, a rail when there is width to spare. That is not decoration: from targetSdk 37 an app may
  * no longer lock itself to portrait or declare itself non-resizable on large screens, so the shell
- * has to work unfolded and in landscape regardless.
- *
- * It also replaces the hand-built floating pill bar, which announced four unlabelled clickable
- * images to TalkBack with no indication of the current destination, applied no horizontal or IME
- * insets, and forced every screen to guess a fixed bottom padding to clear it.
+ * has to work unfolded and in landscape regardless. The scaffold also owns where that container
+ * sits, so the destinations below it are laid out beside or above it rather than under it.
  */
 @Composable
 fun VectorApp() {
@@ -59,9 +56,9 @@ fun VectorApp() {
         // the current destination, and a navigation bar highlighting nothing is worse than none.
         val atRoot = !navigator.canGoBack
 
-        // Hiding the *items* alone still left the container laid out, so a detail screen — the
-        // in-app browser especially — kept a dead strip of navigation-bar-sized space at the
-        // bottom. Driving the scaffold's own state removes the container and animates it away.
+        // Driving the scaffold's own state rather than dropping the items: hiding the items alone
+        // leaves the container laid out, so a detail screen — the in-app browser especially —
+        // keeps a dead strip of navigation-bar-sized space at the bottom.
         val suiteState = rememberNavigationSuiteScaffoldState()
         LaunchedEffect(atRoot) { if (atRoot) suiteState.show() else suiteState.hide() }
 
@@ -84,11 +81,12 @@ fun VectorApp() {
             NavDisplay(
                 backStack = navigator.backStack,
                 onBack = { navigator.back() },
-                // NavDisplay applies its own scene-setup decorator internally; these are the
-                // two that must be added by hand. The ViewModel one is the important one: it
-                // scopes a ViewModelStore per entry, so opening the scope editor for a second
-                // module builds a second ViewModel instead of silently reusing the first
-                // (they would otherwise share one default key under the activity's store).
+                // Naming any decorator replaces NavDisplay's default, which is the saveable-state
+                // one alone, so it is repeated here; the scene-setup decorator NavDisplay applies
+                // internally is untouched. The ViewModel one is what this list is for: it scopes a
+                // ViewModelStore per entry, so opening the scope editor for a second module builds
+                // a second ViewModel instead of reusing the first (they would otherwise share one
+                // default key under the activity's store).
                 entryDecorators =
                     listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),

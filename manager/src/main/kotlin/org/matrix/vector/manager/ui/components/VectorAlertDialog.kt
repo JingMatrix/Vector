@@ -10,8 +10,8 @@ import org.matrix.vector.manager.ui.theme.LocalizedOverlay
  *
  * A dialog is its own window, and Compose gives every window a fresh set of Android composition
  * locals taken from that window's context — which undoes the app's in-composition language
- * override on the way in. The plain `AlertDialog` therefore always spoke the *phone's* language
- * while the screen behind it spoke the reader's.
+ * override on the way in. A plain `AlertDialog` therefore speaks the *phone's* language while the
+ * screen behind it speaks the reader's.
  *
  * The override cannot be re-applied around the call, because the crossing happens inside it. It has
  * to happen in each slot, which is exactly what this wrapper exists to not forget: every dialog in

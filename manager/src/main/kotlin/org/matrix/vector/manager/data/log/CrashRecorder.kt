@@ -29,8 +29,7 @@ import org.matrix.vector.manager.BuildConfig
  * Those are this process's `cacheDir/crash` in each of the two ways the manager can run —
  * parasitically inside `com.android.shell`, or standalone. Writing here means a crash travels in
  * the export with no new binder call, no daemon change, and no second place for anyone to look.
- * It is also what the previous manager did (`App.setCrashReport`), so an export from either build
- * has the same shape. One file per crash named for its epoch second, as before.
+ * One file per crash, named for its epoch second.
  *
  * Two properties matter more than anything this class does:
  *
@@ -39,9 +38,9 @@ import org.matrix.vector.manager.BuildConfig
  *   so every step is wrapped and failure is silent by design.
  * - **It always delegates.** The previous handler is captured and called even if the write fails.
  *   Parasitically this is not our process — it is `com.android.shell`, and quietly swallowing that
- *   process's crashes because the manager happened to be open would be a much worse bug than the
- *   one this exists to fix. For the same reason it records whatever crashes, ours or not, rather
- *   than trying to guess whose stack frame it is looking at.
+ *   process's crashes because the manager happened to be open would be far worse than losing a
+ *   trace. For the same reason it records whatever crashes, ours or not, rather than trying to
+ *   guess whose stack frame it is looking at.
  */
 object CrashRecorder {
 
@@ -55,9 +54,9 @@ object CrashRecorder {
     /**
      * Takes over the default handler, once per process.
      *
-     * Called from [org.matrix.vector.manager.di.ServiceLocator.attach], which is the first thing
-     * the activity does and is itself idempotent — so this is in place before any screen exists,
-     * and before the daemon binder arrives.
+     * Called from [org.matrix.vector.manager.di.ServiceLocator.attach], early in the activity's
+     * `onCreate` and before anything that could fail, so the handler is in place before any screen
+     * exists.
      */
     @Synchronized
     fun install(context: Context) {

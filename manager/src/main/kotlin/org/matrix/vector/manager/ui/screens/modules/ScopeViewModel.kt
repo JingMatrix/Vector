@@ -31,9 +31,9 @@ data class ScopeTarget(val packageName: String, val userId: Int)
 /**
  * How the list is ordered.
  *
- * The legacy manager offered four orderings plus a reverse toggle, and dropping them was a real
- * loss: sorting by package name is how you find something whose display name you cannot recall,
- * and by install time is how you find the app you added five minutes ago.
+ * Five orderings and a reverse toggle, which is more than a picker usually earns: sorting by
+ * package name is how you find something whose display name you cannot recall, and by install time
+ * is how you find the app you added five minutes ago.
  */
 enum class ScopeSort {
     /** Selected first, then recommended, then alphabetical — the working order. */
@@ -63,9 +63,9 @@ data class ScopeUiState(
 class ScopeViewModel(
     private val modulePackageName: String,
     /**
-     * The user the module is installed for. The previous navigation layer parsed this out of the
-     * route and then threw it away, so a module in a work profile had its scope resolved against
-     * the wrong user.
+     * The user the module is installed for. It has to travel with the package name: the same
+     * module in a work profile is a different copy with a different scope, and resolving it
+     * against the owner would edit the wrong one.
      */
     private val userId: Int,
     private val daemonClient: DaemonClient,
@@ -83,10 +83,10 @@ class ScopeViewModel(
     /**
      * What the user has built up but not yet applied.
      *
-     * The whole reason this is separate: applying a scope makes the daemon force-stop every
-     * affected app. The previous implementation wrote the entire scope on *every checkbox tap*, so
-     * ticking ten apps killed and restarted them ten times over. Edits accumulate here and go out
-     * as one write.
+     * Writing a scope is not incremental — the daemon deletes every scope row of the module and
+     * writes the new set in one transaction, then asks for a configuration rebuild. Sending that
+     * on every checkbox tap means ten rewrites and ten rebuilds to tick ten apps, so edits
+     * accumulate here and go out as one write.
      */
     private val draftScope = MutableStateFlow<Set<ScopeTarget>>(emptySet())
 
@@ -113,12 +113,10 @@ class ScopeViewModel(
      * already knows which they are — so this is the "just show me what it wants" the static case
      * gets for free.
      *
-     * It is not exclusive, and the word "only" is gone from its label for that reason. It used to
-     * be: it dropped every app the module had not named, including the ones the user had ticked
-     * themselves, so a stray selection became invisible and therefore un-untickable, and a module
-     * declaring no scope at all narrowed the list to nothing. Every other filter on this screen
-     * already exempts what is in the draft; this one now does too, which is what makes it a way of
-     * finding the missing apps rather than a way of losing the found ones.
+     * Not exclusive, despite the name: it exempts what is already in the draft, as every other
+     * filter on this screen does. Dropping every app the module had not named would hide a stray
+     * selection and leave it un-untickable, and would narrow the list to nothing for a module that
+     * declares no scope at all.
      */
     val showRecommendedOnly = MutableStateFlow(false)
 
@@ -141,12 +139,11 @@ class ScopeViewModel(
     /**
      * Whether the list is filtered differently from how it ships.
      *
-     * Compared against the defaults, not against "is anything hidden" — the defaults hide system
-     * apps and other modules on purpose, so the second reading is true on a device nobody has
-     * touched, and a mark that is always on is a mark that says nothing. It was: the old expression
-     * asked for `!showModules`, which is the default, so the dot was lit permanently.
+     * Compared against the defaults rather than against "is anything hidden": the defaults hide
+     * system apps and other modules on purpose, so the second reading would be true on a device
+     * nobody has touched, and a mark that is always on is a mark that says nothing.
      *
-     * It earns its place now that these choices are remembered. Coming back to a list that is
+     * It earns its place because these choices are remembered. Coming back to a list that is
      * filtered the way you left it a week ago is exactly the moment you need telling.
      */
     val filtersChanged: StateFlow<Boolean> =
@@ -169,11 +166,10 @@ class ScopeViewModel(
      * have no companion and no launcher entry, and offering to open one is offering nothing —
      * which is why this is worth a lookup rather than a snackbar after the fact.
      *
-     * Declared above [init] and not beside the function that fills it, because it has to be. The
-     * lookup runs on `Main.immediate`, which starts the coroutine inline on the constructing
-     * thread: the body reaches this field while the constructor is still running, and every
-     * property below the `init` block is still null at that point. It was — a `null` field read,
-     * parked across the suspension, and a crash on the way back.
+     * Declared above [init] rather than beside the function that fills it, and it has to stay
+     * there. `viewModelScope` dispatches on `Main.immediate`, so [findCompanion] starts inline on
+     * the constructing thread and reads this field before the first suspension — while every
+     * property declared below the `init` block is still null.
      */
     private val _companion = MutableStateFlow<Boolean?>(null)
     val hasCompanion: StateFlow<Boolean?> = _companion.asStateFlow()
@@ -195,9 +191,9 @@ class ScopeViewModel(
     /**
      * Packages that are themselves modules.
      *
-     * Null until known. Deciding this means opening every installed APK, so it is computed once
-     * per process by [AppRepository] and shared; until it arrives the filter simply does not apply,
-     * which shows a few extra rows for a moment rather than blocking the list on disk I/O.
+     * Null until known. Deciding this means inspecting every installed package, so it is computed
+     * once per process by [AppRepository] and shared; until it arrives the filter simply does not
+     * apply, which shows a few extra rows for a moment rather than blocking the list on disk I/O.
      */
     private val modulePackages = MutableStateFlow<Set<String>?>(null)
 
@@ -228,9 +224,8 @@ class ScopeViewModel(
             }
             .combine(showRecommendedOnly) { filters, only -> filters.copy(recommendedOnly = only) }
             // Two typed halves rather than one list of Any. The inputs outnumber the arities
-            // `combine` provides, and the previous shape carried them positionally through a
-            // `List<Any>` and cast each one back out — a rename or a reorder would have compiled
-            // and then failed at runtime.
+            // `combine` provides, and carrying them positionally through a `List<Any>` and casting
+            // each one back out lets a rename or a reorder compile and then fail at runtime.
             .combine(
                 combine(showModules, modulePackages, sort, reverseSort, _uiState) {
                     showMods,
@@ -264,20 +259,19 @@ class ScopeViewModel(
                         val chosen = ScopeTarget(app.packageName, app.userId) in filters.draft
                         if (filters.recommendedOnly) {
                             // Answers one question — what does this module want, and what have I
-                            // given it — and the other filters have no say in it. They used to:
-                            // Chrome is a system app, so a module asking for Chrome showed nothing
-                            // at all unless the reader had also thought to turn system apps on,
-                            // which is the opposite of what asking this question is for. The
-                            // screen greys the other three out while this is on, and this is the
-                            // code that makes that honest rather than decorative.
+                            // given it — and the other filters have no say in it. Chrome is a
+                            // system app, so letting them apply would show nothing at all for a
+                            // module asking for Chrome unless the reader had also thought to turn
+                            // system apps on. The screen greys the other three out while this is
+                            // on, and this is the code that makes that honest rather than
+                            // decorative.
                             return@filter matchesQuery &&
                                 (chosen || app.packageName in recommended)
                         }
-                        // The framework is a system target and is filtered like one. It used to be
-                        // exempt, on the reasoning that a module which needs it would otherwise be
-                        // stranded — but the exemption above already covers that: once it is in the
-                        // scope no filter can hide it. Before it was chosen it is simply the most
-                        // system of system apps, and someone who has asked not to see those has
+                        // The framework is a system target and is filtered like one. It needs no
+                        // exemption of its own: once it is in the scope the line above puts it
+                        // beyond every filter, and before it is chosen it is simply the most
+                        // system of system apps, so someone who has asked not to see those has
                         // asked not to see it.
                         val matchesSys = chosen || filters.showSystem || !app.isSystemApp
                         val matchesGame = chosen || filters.showGames || !app.isGame
@@ -303,11 +297,12 @@ class ScopeViewModel(
                     // several hundred is the work the sort was supposed to save. Each sort still
                     // orders within the two groups.
                     //
-                    // The framework still needs a pin, because it is not an app and does not sort
-                    // like one: by name it lands under S, by install time wherever its borrowed
-                    // timestamp puts it, and either way the one target that is not discoverable
-                    // any other way is lost in a list of thousands. But the pin used to be
-                    // absolute, which put a target nobody had chosen above every target they had.
+                    // The framework needs a pin of its own because it is not an app and does not
+                    // sort like one: by name it lands under S, by install time wherever its
+                    // borrowed timestamp puts it, and either way the one target that is not
+                    // discoverable any other way is lost in a list of thousands. It sits below the
+                    // chosen rather than above them, so a target nobody has picked never leads the
+                    // ones they have.
                     //
                     // After the reverse, so reversing cannot bury any of it at the bottom.
                     .let { list ->
@@ -386,17 +381,18 @@ class ScopeViewModel(
             //
             // Offered to every user, not only the owner. There is exactly one system_server on the
             // device, so it is not a per-user target that other users happen to lack — it is one
-            // process they all share. Restricting the row to user 0 left a module in a work profile
-            // or a private space with no way to ask for the only target it may need (issue #136);
-            // the daemon never had that restriction, mapping any `system` scope row straight to
-            // system_server without looking at whose module it was.
+            // process they all share, and a module in a work profile or a private space would
+            // otherwise have no way to ask for the only target it may need (issue #136). The
+            // daemon agrees: `ModuleDatabase.setModuleScope` stores a `system` row under user 0
+            // whoever asked, and `ConfigCache` maps it to system_server without looking at whose
+            // module it was.
             val withFramework = listOf(systemFrameworkEntry(apps)) + apps
             allApps.value = withFramework
 
-            // Asked once per load rather than per row, and carried into the state built at the
-            // end of this function rather than copied into the state that exists now — that copy
-            // was silently discarded when the final ScopeUiState was constructed from scratch. A
-            // failure to ask means not explaining, never explaining wrongly.
+            // Asked once per load rather than per row, and held here until the state is built at
+            // the end of this function — anything written into `_uiState` before then is discarded
+            // when that fresh ScopeUiState replaces it. A failure to ask means not explaining,
+            // never explaining wrongly.
             val userCount =
                 withContext(Dispatchers.IO) { daemonClient.getUsers().getOrNull()?.size ?: 1 }
 
@@ -522,10 +518,7 @@ class ScopeViewModel(
         reverseSort.value = !reverseSort.value
     }
 
-    /**
-     * Turns the "show modules" filter on or off, computing the module set the first time it is
-     * needed.
-     */
+    /** Turns the "show modules" filter on or off. */
     fun setShowModules(show: Boolean) {
         showModules.value = show
     }
@@ -539,9 +532,9 @@ class ScopeViewModel(
             daemonClient
                 .setIncludeNewApps(modulePackageName, enabled)
                 .onSuccess { stored ->
-                    // The daemon's answer, not merely the fact that it answered. It refuses a
-                    // package it holds no row for, and moving the switch anyway showed a setting
-                    // that was never saved.
+                    // The daemon's answer, not merely the fact that it answered: it refuses a
+                    // package it holds no row for, and moving the switch on a refusal would show a
+                    // setting that was never saved.
                     if (stored) {
                         _uiState.value = _uiState.value.copy(includeNewApps = enabled)
                     } else {
@@ -586,12 +579,11 @@ class ScopeViewModel(
      *
      * Here as well as in the long-press sheet because this is the screen you are on when you are
      * thinking about that module: a scope is half of its configuration and the other half lives
-     * inside the module, so having to go back to the list to reach it was a detour through a place
-     * you had just come from.
+     * inside the module, so reaching it from the list would be a detour through a place you had
+     * just come from.
      *
-     * Asks the same question [findCompanion] asked. It did not: the button appeared when a
-     * companion existed and then opened whatever a plain app would open, so a module whose only
-     * screen is its Xposed settings activity showed a button that could never work.
+     * Passes `companionFirst` exactly as [findCompanion] does, so the control cannot appear for a
+     * module whose only screen this call would then decline to open.
      */
     fun openModule() {
         viewModelScope.launch {
@@ -623,8 +615,11 @@ class ScopeViewModel(
     /**
      * Writes the draft, once.
      *
-     * The daemon force-stops every app whose scope changed, which is why this is an explicit act
-     * with a visible cost rather than a side effect of ticking a box.
+     * The whole draft goes out as one `setModuleScope`, which replaces every scope row of the
+     * module and triggers one configuration rebuild. The new scope reaches an app when its process
+     * next starts; nothing running is restarted here.
+     *
+     * The daemon enables the module as a side effect of storing a scope.
      */
     fun apply() {
         if (_applying.value) return
@@ -663,8 +658,8 @@ class ScopeViewModel(
     /**
      * True when leaving now would leave the module enabled with nothing to hook.
      *
-     * That combination does nothing at all but looks like it works, so the user is warned rather
-     * than left to discover it. The legacy manager offered to disable the module; so does this.
+     * That combination does nothing at all but looks like it works, so the user is warned and
+     * offered the switch rather than left to discover it.
      */
     fun wouldStrandModule(): Boolean =
         _uiState.value.isEnabled && draftScope.value.isEmpty() && savedScope.value.isEmpty()
@@ -721,7 +716,7 @@ class ScopeViewModel(
                 onDone(false)
             } else {
                 // Into the draft, not straight to the daemon: a restore is an edit like any
-                // other, and the user should see what it will do before it force-stops anything.
+                // other, and the user should see what it will do before it is written.
                 draftScope.value = targets
                 onDone(true)
             }

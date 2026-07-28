@@ -134,15 +134,15 @@ import org.matrix.vector.manager.ui.theme.VectorMono
  * and searched instead of dumped, and a tag chip turns "why is this log 4,700 lines of
  * TEESimulator" into one tap.
  *
- * Only the settled page reads. Opening Logs used to index both files whether or not either was
- * visible.
+ * Only the stream on screen is opened and indexed; the other one is not touched until it is asked
+ * for.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFactory())) {
-    // One pane, one search field, and the source is a control inside it. Two tabs meant two search
-    // boxes, two filter states and two scroll positions for what is one question — "what does the
-    // log say" — and the answer often has to be looked for in both.
+    // One pane, one search field, and the source is a control inside it. Two tabs would mean two
+    // search boxes, two filter states and two scroll positions for what is one question — "what
+    // does the log say" — whose answer often has to be looked for in both streams.
     var currentTab by rememberSaveable { mutableStateOf(LogTab.MODULES) }
     val currentState by viewModel.state(currentTab).collectAsStateWithLifecycle()
     val wordWrap by viewModel.wordWrap.collectAsStateWithLifecycle()
@@ -186,9 +186,9 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
             }
             is LogSaveState.Failed -> {
                 snackbars.currentSnackbarData?.dismiss()
-                // Report the daemon's own words. getLogs() can fail for reasons only it knows —
-                // a full filesystem, a tombstone it cannot read — and a generic "failed" throws
-                // that away.
+                // Whatever words came back are shown rather than a generic "failed": the two ways
+                // this arrives — the document could not be opened, or the transaction did not
+                // complete — read very differently to someone trying to file a report.
                 snackbars.showSnackbar(
                     if (s.message.isNullOrBlank()) context.getString(R.string.logs_save_failed)
                     else context.getString(R.string.logs_save_failed_reason, s.message)
@@ -205,8 +205,8 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
         snackbarHost = { SnackbarHost(snackbars) },
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            // The same header the other two list panels use, so the search field below it does not
-            // move when the tab does. It used to be a TopAppBar, which is a different height again.
+            // The same header the other two list panels use, so the search field below it sits at
+            // the same height on all three.
             PanelHeader(
                 title = stringResource(R.string.logs_title),
                 modifier =
@@ -223,9 +223,8 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
                     )
                 },
                 actions = {
-                    // Selected, not shouted. A filled accent with a shadow made a reading
-                    // preference look like the most important control on the screen; a quiet
-                    // neutral container says pressed-in without competing with anything.
+                    // Selected, not shouted: a quiet neutral container says pressed-in without
+                    // making a reading preference look like the most important control here.
                     FilledIconToggleButton(
                         checked = wordWrap,
                         onCheckedChange = { viewModel.setWordWrap(it) },
@@ -281,9 +280,9 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
         VectorAlertDialog(
             onDismissRequest = { confirmRotate = false },
             title = { Text(stringResource(R.string.logs_rotate_title)) },
-            // README principle 3: the dangerous action names its consequence — and here the
-            // consequence is not what a delete icon implies. clearLogs() is LogcatMonitor.refresh(),
-            // which rotates to a new file rather than truncating.
+            // The body names the consequence, which here is not what a delete icon implies: the
+            // daemon's clearLogs() calls LogcatMonitor.refresh(), which opens a new part rather
+            // than truncating anything.
             text = { Text(stringResource(R.string.logs_rotate_body)) },
             confirmButton = {
                 TextButton(
@@ -297,9 +296,9 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
                     Text(stringResource(R.string.logs_rotate_confirm))
                 }
             },
-            // No "save first". Rotating no longer puts anything out of reach: the closed part
-            // stays on disk and is a swipe away, so pressing save on the way past was protecting
-            // against a loss that does not happen.
+            // No "save first" button. Rotating puts nothing out of reach — the closed part stays
+            // on disk and is one step of the part chevrons away — so there is no loss to guard
+            // against.
             dismissButton = {
                 TextButton(onClick = { confirmRotate = false }) {
                     Text(stringResource(R.string.logs_cancel))
@@ -323,10 +322,9 @@ private fun LogPane(
     val context = LocalContext.current
 
     // The jump buttons float over the list, so the list has to end above them. Measured rather than
-    // assumed — README §8 records a hardcoded bottom inset as a bug precisely because a constant
-    // stops clearing what it was meant to clear the moment anything about it changes. Both buttons
-    // are always present so the height is stable once measured; a container that grew and shrank
-    // would move the log under the reader's eye.
+    // hardcoded: a constant stops clearing what it was meant to clear the moment the buttons, the
+    // density or the font scale change. Both buttons are always present so the height is stable
+    // once measured; a container that grew and shrank would move the log under the reader's eye.
     var jumpInset by remember { mutableIntStateOf(0) }
     // Shown whenever the log does not fit, rather than only past a window's worth of lines. A
     // freshly rotated module log is a few hundred lines — far under the window — and still far too
@@ -339,9 +337,9 @@ private fun LogPane(
     // the whole reading changes — not while paging, which would snap the offset back mid-scroll.
     LaunchedEffect(wordWrap, state.query) { pan.reset() }
 
-    // Keyed on the inset as well as on the command: the first layout measures the buttons *after*
-    // the open-at-the-tail scroll has already run, and without the second pass the newest line —
-    // the one line everybody opens this screen to read — sits underneath them.
+    // Keyed on the inset as well as on the command, because the first layout measures the buttons
+    // *after* the open-at-the-tail scroll has run. Without the second pass the newest line — the
+    // one line everybody opens this screen to read — sits underneath them.
     LaunchedEffect(state.scroll?.token, jumpInset) {
         val command = state.scroll ?: return@LaunchedEffect
         if (state.rows.isNotEmpty()) {
@@ -473,8 +471,8 @@ private fun LogList(
             modifier = if (wordWrap) Modifier else gesture,
         ) {
             // Text here is selectable the way text anywhere else on the platform is: long press
-            // and drag. That is why the rows no longer take the long press for themselves — see
-            // LogRows, where copying a whole line moved to a double tap.
+            // and drag. The rows must therefore leave the long press alone — see LogRows, where
+            // copying a whole line is the double tap.
             SelectionContainer {
             LazyColumn(
                 state = listState,
@@ -503,10 +501,10 @@ private fun LogList(
             }
         }
 
-        // On a thirty-thousand-line log with no jump affordance the newest line is unreachable in
-        // practice, which is the one line everybody opens this screen to read. Both buttons stay
-        // put even at an end of the file — hiding one would change the container's height and
-        // shift the log under the reader as a side effect of scrolling.
+        // On a thirty-thousand-line log the newest line is unreachable by thumb, and it is the one
+        // line everybody opens this screen to read. Both buttons stay put even at an end of the
+        // file: hiding one would change the container's height, which is the list's bottom inset,
+        // and so shift the log under the reader as a side effect of scrolling.
         if (showJump) {
             // Side by side rather than stacked: whatever height these take is height the log
             // cannot use, and one button's worth of dead space at the bottom of every log is
@@ -585,8 +583,8 @@ private fun LogSearch(
  *
  * The verbose log is not a different subject, it is the same one with the framework's own lines
  * left in — module logs plus everything underneath them. So this is a detail control, not a choice
- * between two places: unfold for more, fold for less. A two-segment control spelled out a decision
- * that does not need making, and spent half the search field doing it.
+ * between two places: unfold for more, fold for less, in one icon rather than a two-segment control
+ * spending half the search field on a decision that does not need making.
  *
  * Not to be confused with the verbose *logging* switch in the settings sheet. That one tells the
  * daemon whether to write those lines at all; this one only decides which of the two files is on
@@ -677,13 +675,13 @@ private fun ActiveFilterRow(
  * Everything about the log that is a setting rather than a filter.
  *
  * A half sheet, matching the filter sheet next to it, because these are the same kind of thing:
- * something you open, change, and dismiss. They were a dropdown menu, which could hold two verbs
- * and nothing that needed a switch or a sentence — and the verbose control needs both.
+ * something you open, change, and dismiss. A dropdown menu holds two verbs and nothing that needs a
+ * switch or a sentence, and the verbose control needs both.
  *
- * The verbose switch shows the value **the daemon reports**, not the one the user picked.
- * `ManagerService.isVerboseLog()` ORs the stored preference with `BuildConfig.DEBUG`, so against a
- * debug daemon it snaps straight back, and a control that visibly refuses to move with no
- * explanation is the same failure as showing one state when another is true.
+ * The verbose switch shows the value **the daemon reports**, not the one the user picked. The
+ * current daemon returns the stored preference unmodified, but an older one OR'd it with its own
+ * build type and would refuse to move — which the row then explains rather than leaving to be
+ * guessed at.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -695,11 +693,10 @@ private fun LogSettingsSheet(
 ) {
     val enabled by viewModel.verboseEnabled.collectAsStateWithLifecycle()
     val enforced by viewModel.verboseEnforced.collectAsStateWithLifecycle()
-    // No skipPartiallyExpanded. Passing it removed the half-height stop, which is the only thing
-    // a drag on a sheet can *do* other than dismiss it — so a sheet taller than half the screen
-    // opened at full height and could not be made smaller. Left at the default, Material adds the
-    // stop only when the content is actually taller than half the screen, so short sheets still
-    // open at their own height and nothing gains a useless drag.
+    // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
+    // stop — the only thing a drag on a sheet can do other than dismiss it. Material adds that stop
+    // only when the content is taller than half the screen, so short sheets still open at their own
+    // height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -715,8 +712,8 @@ LocalizedOverlay {
 
             ListItem(
                 // Never disabled. A daemon that overrides the setting is a reason to *say so*, not
-                // a reason to take the control away — and the override is now only possible against
-                // an older daemon, since this one reports the stored preference as it stands.
+                // a reason to take the control away — and only an older daemon can, since the
+                // current one reports the stored preference as it stands.
                 modifier = Modifier.clickable { viewModel.setVerbose(!enabled) },
                 headlineContent = { Text(stringResource(R.string.logs_verbose_switch)) },
                 supportingContent = {
@@ -776,12 +773,10 @@ LocalizedOverlay {
 /**
  * Drag the title block sideways to move between rotated parts.
  *
- * The chevrons beside the counter remain the discoverable way to do it; this is the fast one, and
- * it is safe here in a way it was not over the log itself: nothing else in the app bar wants a
- * horizontal drag, so there is no arbitration, no threshold tuning against another gesture and no
- * band of the screen where it does or does not apply.
- *
- * Dragging leftwards moves to the newer part, the way a carousel does.
+ * The chevrons beside the counter are the discoverable way to do it; this is the fast one, and it
+ * goes on the header rather than on the log because nothing else in the header wants a horizontal
+ * drag. Over the log it would have to be arbitrated against the row-level pan and fenced into some
+ * band of the screen. Dragging leftwards moves to the newer part, the way a carousel does.
  */
 @Composable
 private fun Modifier.partSwipe(state: LogPaneState, onSelectPart: (Int) -> Unit): Modifier {
@@ -812,16 +807,13 @@ private fun Modifier.partSwipe(state: LogPaneState, onSelectPart: (Int) -> Unit)
 /**
  * Which lines are on screen, and which rotated part they come from.
  *
- * This line was already the only place that says where you are in the file, so it is also where you
- * move between files. A sideways swipe was tried first and was the wrong gesture: it competed with
- * the row-level pan, it had to be fenced into a corner of the screen and into one scroll position
- * to stop it firing by accident, and after all that it was still invisible until it happened. A
- * pair of chevrons on the counter is none of those things — it says how many parts there are, which
- * one you are on, and it cannot be triggered by a drag meant for something else.
+ * This line is the only place that says where you are in the file, so it is also where you move
+ * between files. The chevrons carry that: they say how many parts there are and which one is up,
+ * neither of which a gesture on its own can, and they cannot be triggered by a drag meant for
+ * something else. [partSwipe] on the header is the shortcut for anyone who has found it.
  *
- * The range follows the **viewport**, not the loaded window. "Which lines am I looking at" is what a
- * line counter is read to answer; the window's bounds answer a question about the reader's paging
- * strategy, which is nobody's business but the reader's.
+ * The range follows the **viewport**, not the loaded window. "Which lines am I looking at" is what
+ * a line counter is read to answer; the window's bounds answer a question about paging.
  */
 @Composable
 private fun WindowCounter(state: LogPaneState, onSelectPart: (Int) -> Unit) {
@@ -900,10 +892,11 @@ private fun PartStep(
 }
 
 /**
- * The four nothing-to-show states, rendered as four different things.
+ * The five nothing-to-show states — unreachable daemon, no log file, empty file, no matches, read
+ * failure — each with its own icon and sentence.
  *
- * They used to be four strings pushed into the log list itself, so "the daemon is down" arrived
- * looking exactly like a line the daemon had written.
+ * Rendered here rather than as a line pushed into the log list, so that "the daemon is down" cannot
+ * arrive looking like a line the daemon wrote.
  */
 @Composable
 private fun LogEmptyState(icon: ImageVector, title: String, body: String) {

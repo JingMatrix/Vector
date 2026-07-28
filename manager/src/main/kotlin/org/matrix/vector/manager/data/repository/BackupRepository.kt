@@ -18,12 +18,11 @@ import org.matrix.vector.manager.ipc.DaemonClient
  * Backup and restore of which modules are on and what each may hook.
  *
  * This is the configuration a user would most hate to rebuild by hand — a dozen modules each with
- * a hand-picked scope — and it is exactly what a bad flash destroys. It was a `Toast` stub that
- * showed a file picker and then silently wrote nothing, which is worse than not offering it.
+ * a hand-picked scope — and it is exactly what a bad flash destroys.
  *
  * Deliberately *not* backed up: anything the manager can rediscover. The module APKs themselves
- * belong to the package manager, and a restore onto a device where a module is not installed
- * simply skips it rather than failing the whole operation.
+ * belong to the package manager, and a restore proceeds module by module, so one the daemon
+ * refuses costs that module alone rather than the whole operation.
  */
 class BackupRepository(private val context: Context, private val daemon: DaemonClient) {
 
@@ -117,8 +116,10 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
                 var restored = 0
                 var skipped = 0
                 payload.modules.forEach { module ->
-                    // A module that is not installed here is skipped rather than failing the
-                    // restore — a backup is routinely carried between devices.
+                    // A refusal is counted and stepped over rather than failing the restore — a
+                    // backup is routinely carried between devices. It is not the missing-module
+                    // case: the daemon accepts an enable for a package this device does not have,
+                    // and drops the row itself on its next cache update.
                     val enabledOk =
                         daemon
                             .setModuleEnabled(module.packageName, module.enabled)

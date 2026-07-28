@@ -30,11 +30,9 @@ import org.matrix.vector.manager.di.ServiceLocator
  * content, so the settings and details buttons above it keep working normally — only the open
  * space responds.
  *
- * The frame loop parks itself whenever the renderer reports nothing moving, which is why the
- * circuit ambience costs nothing at rest and why [AmbienceKind.None] skips the loop entirely. A
- * status header is on screen for as long as someone reads the activity feed, so an idle animation
- * is not free.
- *
+ * The frame loop parks itself on a single frame per wake-up whenever the renderer reports nothing
+ * moving, and [AmbienceKind.None] skips the loop entirely. A status header is on screen for as long
+ * as someone reads the activity feed, so an idle animation is not free.
  */
 @Composable
 fun AmbientSurface(kind: AmbienceKind, tint: Color, modifier: Modifier = Modifier) {

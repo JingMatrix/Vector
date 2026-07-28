@@ -64,10 +64,9 @@ enum class FrameworkState {
 /**
  * The framework's state, as the top of the app.
  *
- * This replaced both a plain "Vector" app bar and a separate status row. The app bar was spending a
- * full row restating the app's own name — which the launcher icon, the task switcher and the
- * system already say — so it is gone, and the space went to the one thing that is genuinely
- * unknown on opening the app.
+ * There is no app bar above it and no separate status row. A bar naming the app spends a whole row
+ * on what the launcher icon, the task switcher and the system already say; that row goes instead to
+ * the one thing that is genuinely unknown on opening the app.
  *
  * The header is full-bleed and runs under the status bar, tinted by state, with only its bottom
  * corners rounded so it reads as a single pane hanging from the top edge rather than a card
@@ -116,9 +115,8 @@ fun StatusHeader(
             label = "headerOnContainer",
         )
 
-    // The title bar that used to say "Vector" is gone, so the brand rides with the state and the
-    // two read as one sentence: *Vector — Active*. The name is set lighter than the state, so the
-    // eye still lands on the word that changes.
+    // The brand rides with the state, so the two read as one sentence: *Vector — Active*. The name
+    // is set lighter than the state, so the eye still lands on the word that changes.
     val stateWord =
         stringResource(
             when (state) {
@@ -146,7 +144,7 @@ fun StatusHeader(
                 )
     ) {
         // matchParentSize, NOT fillMaxSize: a Box child that fills its maximum constraint drags
-        // the Box to full height with it, which made the header swallow the entire screen.
+        // the Box to full height with it, and the header would swallow the whole screen.
         // matchParentSize sizes to whatever the *content* settled on without influencing it.
         AmbientSurface(
             kind = ambience,
@@ -159,9 +157,8 @@ fun StatusHeader(
                 Modifier.windowInsetsPadding(WindowInsets.statusBars)
                     .padding(start = 20.dp, end = 6.dp, top = 6.dp, bottom = 20.dp)
         ) {
-            // The surface gets the upper half of the pane to itself; the status settles at the
-            // bottom, where it sits on the surface rather than floating above a gap.
-            // Trimmed to pay for the taller status row below, so the pane keeps its height.
+            // The ambient surface gets the upper part of the pane to itself; the status settles at
+            // the bottom, where it sits on the surface rather than floating above a gap.
             Spacer(Modifier.height(66.dp))
 
             Row(verticalAlignment = Alignment.Top) {
@@ -169,10 +166,10 @@ fun StatusHeader(
                 // looking at when they wonder *why* it says what it says, so it should be the
                 // thing that answers — a separate chevron was a second control for one intent.
                 //
-                // Centred on the *headline* rather than on the whole block. Centring it against
-                // the block put it level with the gap between "Vector Active" and the version
-                // line, so it read as belonging to neither; against the headline it sits square
-                // with the word it is the state of.
+                // Centred on the *headline* rather than on the whole block: against the block it
+                // lands level with the gap between "Vector Active" and the version line and reads
+                // as belonging to neither, while against the headline it sits square with the word
+                // it is the state of.
                 Box(
                     modifier = Modifier.height(HEADLINE_ROW),
                     contentAlignment = Alignment.Center,
@@ -187,10 +184,8 @@ fun StatusHeader(
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     // The buttons live *inside* the headline row rather than beside the whole
-                    // block. Centred against the block they were centred against nothing in
-                    // particular — one floated above the wordmark, the other below the version
-                    // line. Here the stack and the state word share a centre line by
-                    // construction, so the eye reads one row, not three loose objects.
+                    // block, so the stack and the state word share a centre line by construction
+                    // and the eye reads one row rather than three loose objects.
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Row(
                             modifier = Modifier.weight(1f),
@@ -222,9 +217,9 @@ fun StatusHeader(
                         // itself — its colours and its language — rather than what it does, and
                         // the icons should say so. Stacked because they belong together.
                         // Deliberately tighter than a default icon button: the pair sets the
-                        // height of the row it shares with the wordmark, and at 48dp each it
-                        // pushed the version line a finger's width away from the name it belongs
-                        // to.
+                        // height of the row it shares with the wordmark, and at the standard 48 dp
+                        // each it would push the version line a finger's width from the name it
+                        // belongs to.
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(
                                 onClick = onOpenAppearance,

@@ -99,7 +99,8 @@ fun CommitRow(
                 remember(commit.shortSha, prLabel) {
                     val sha = measurer.measure(commit.shortSha, VectorMono).size
                     val pr = prLabel?.let { measurer.measure(it, VectorMono).size }
-                    // chip padding (10) + border, per chip, plus the gap between them
+                    // Slack over the measured text: one chip's horizontal padding and border,
+                    // per chip, plus the gap between them.
                     val width =
                         sha.width + CHIP_PAD_PX + (pr?.let { it.width + CHIP_PAD_PX + GAP_PX } ?: 0)
                     val height = maxOf(sha.height, pr?.height ?: 0) + CHIP_PAD_PX
@@ -172,8 +173,8 @@ fun CommitRow(
                 style = MaterialTheme.typography.bodyLarge,
                 color = colors.onSurface,
             )
-            // The subject and its attribution are separate thoughts; crowding them made
-            // the row read as one dense block.
+            // The subject and its attribution are separate thoughts, and read as one dense block
+            // when they are crowded.
             Spacer(Modifier.height(7.dp))
             val credit =
                 when (commit.coAuthors.size) {
@@ -228,8 +229,8 @@ fun CommitRow(
 /**
  * Consecutive bot commits collapse into one expandable row.
  *
- * 56 of the last 300 commits on this repository are dependabot `Bump …`. Left inline they bury the
- * human work the section exists to celebrate.
+ * About one in five of the last 300 commits on this repository is a dependabot `Bump …`. Left
+ * inline they bury the human work the section exists to celebrate.
  */
 @Composable
 fun BotBundleRow(
@@ -271,8 +272,8 @@ private fun Rail(
     nodeSize: androidx.compose.ui.unit.Dp = 11.dp,
 ) {
     val line = MaterialTheme.colorScheme.outlineVariant
-    // The line fills the row's whole height. Sizing it to a fixed length instead left it stopping
-    // short of the next node whenever a commit's text ran to two lines, so the rail visibly broke.
+    // The line fills the row's whole height rather than a fixed length, so it still reaches the
+    // next node when a commit's subject runs to two lines.
     Column(
         modifier = Modifier.width(22.dp).fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -331,11 +332,10 @@ fun GapRow(days: Int, heightDp: Float, showLabel: Boolean, modifier: Modifier = 
 /**
  * The rail encodes **authorship only**, not commit type.
  *
- * Colouring by type was tried and dropped: 52 of the last 300 subjects begin with "Fix", so an
- * error-coloured node made a perfectly healthy history read as a wall of alarm. It was also
- * redundant — this project writes plain imperative subjects, so the first word of the line the
- * user is already reading *is* the type. Saying it twice, once in a colour that means "something
- * is wrong", was worse than not saying it.
+ * Not by type. About one subject in five begins with "Fix", so an error-coloured node would make a
+ * perfectly healthy history read as a wall of alarm — and it would be redundant, because this
+ * project writes plain imperative subjects and the first word of the line the reader is already on
+ * *is* the type.
  *
  * [CommitKind] is still parsed and kept on the model, for filtering later.
  */
@@ -441,7 +441,12 @@ fun MonthMarkerRow(month: Int, year: Int?, commits: Int, people: Int, modifier: 
 
 private const val BADGE_SLOT = "badges"
 
-/** Horizontal padding inside a chip, and the gap between the two, in raw pixels. */
+/**
+ * Horizontal padding inside a chip, and the gap between the two, in raw pixels.
+ *
+ * Raw rather than converted from the 5 dp and 4 dp the chips are laid out with, so the placeholder
+ * they size is a little tight or a little loose away from the density they were taken at.
+ */
 private const val CHIP_PAD_PX = 26
 private const val GAP_PX = 12
 

@@ -25,7 +25,7 @@ sealed interface FlashStep {
 
     data class Downloading(val bytes: Long, val total: Long) : FlashStep
 
-    /** The daemon is running the installer; [lines] grows as it speaks. */
+    /** The daemon is running the installer; [FrameworkInstaller.lines] grows as it speaks. */
     data object Flashing : FlashStep
 
     /** The installer exited zero. A reboot is what makes it take effect. */
@@ -89,8 +89,8 @@ class FrameworkInstaller(
         try {
             awaitInstall(zip.absolutePath)
         } finally {
-            // The daemon has read it by now; leaving a release zip in the cache costs tens of
-            // megabytes that nothing will ever clean up.
+            // Deleted once this is no longer waiting on the install: a release zip left in the
+            // cache costs tens of megabytes that nothing else will ever clean up.
             runCatching { zip.delete() }
         }
     }
@@ -126,10 +126,11 @@ class FrameworkInstaller(
     /**
      * Runs the daemon-side install and suspends until it reports an exit code.
      *
-     * A plain suspendCancellableCoroutine would be the obvious shape, and it is wrong here: the
-     * installer's last act on some root implementations is to restart the device, so the
-     * continuation may simply never be resumed. The state flow is updated from the callback
-     * instead, and this returns once the daemon has answered *or* the caller navigates away.
+     * The installer's output arrives on the callback as it is produced rather than with the result,
+     * so the screen fills in during a flash that takes minutes. The exit code comes separately,
+     * over a deferred whose await is cancellable — leaving the screen stops the wait, and the
+     * daemon keeps flashing regardless, which is the only safe thing for it to do half way through
+     * writing a module tree.
      */
     private suspend fun awaitInstall(path: String) {
         val done = kotlinx.coroutines.CompletableDeferred<Int>()
@@ -159,7 +160,7 @@ class FrameworkInstaller(
 
     private fun append(line: String) {
         // Bounded: an installer that loops would otherwise grow this without limit, and the screen
-        // only ever shows the tail anyway.
+        // follows the tail.
         _lines.value = (_lines.value + line).takeLast(MAX_LINES)
     }
 

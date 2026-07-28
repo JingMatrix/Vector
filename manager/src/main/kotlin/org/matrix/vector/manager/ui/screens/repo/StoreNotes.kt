@@ -20,20 +20,17 @@ import androidx.core.text.HtmlCompat
 /**
  * Release notes as text, not as a web page.
  *
- * The notes used to be a `WebView` with a bounded height inside the releases list, which put a
- * scrolling view inside a scrolling view: the inner one swallowed the drag whenever a finger
- * happened to land on it, and no amount of tuning makes that read as anything but broken. Nothing
- * should ship that pattern.
+ * A bounded-height `WebView` inside the releases list would put a scrolling view inside a scrolling
+ * view, and the inner one swallows the drag whenever a finger lands on it. So the HTML is flattened
+ * to an [AnnotatedString] and laid out as ordinary text of whatever height it needs, and the list —
+ * the one scrolling thing on the screen — scrolls it. It also costs no renderer process per
+ * expanded release.
  *
- * So the HTML is flattened to an [AnnotatedString] and laid out as ordinary text of whatever height
- * it needs, and the list — the one scrolling thing on the screen — scrolls it. That also removes a
- * renderer process per expanded release, which is why only one set of notes could be open at a time.
- *
- * The full page keeps its WebView: a README is a document with its own layout, images and tables,
- * and it is the whole content of its tab rather than a paragraph inside a list. Release notes are
- * a few lines of markdown, and this covers what they actually use — emphasis, code, links, lists
- * and strikethrough. Links are marked but not individually tappable; every release already carries
- * an "open this release" action, which is where a link-following reader is headed anyway.
+ * The README pane keeps its WebView: a README is a document with its own layout, images and tables,
+ * and it is the whole content of its tab rather than a paragraph inside a list. Release notes are a
+ * few lines of markdown, and this covers what they actually use — emphasis, code, links, lists and
+ * strikethrough. Links are marked but not individually tappable; every release already carries an
+ * "open this release" action, which is where a link-following reader is headed anyway.
  */
 internal fun releaseNotes(html: String, linkColor: Color, codeColor: Color): AnnotatedString {
     val spanned = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)

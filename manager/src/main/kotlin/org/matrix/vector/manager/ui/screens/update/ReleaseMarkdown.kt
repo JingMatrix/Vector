@@ -5,21 +5,20 @@ import org.matrix.vector.manager.data.github.GitHubRepository
 /**
  * GitHub-flavoured markdown, as the HTML the store's renderer already knows how to display.
  *
- * **Why this exists at all, given the store "already renders markdown".** It does not: the module
- * catalogue serves `readmeHTML` — HTML that GitHub has already rendered — and `StoreHtmlPane` is an
- * HTML renderer with a sandbox around it. The releases API is the one source in the app that hands
- * over *raw markdown*, in a release's `body`. So reusing that renderer, which is the right thing to
- * do, needs the one adapter that was missing rather than a second rendering path.
+ * The module catalogue serves `readmeHTML` — HTML that GitHub has already rendered — so
+ * `StoreHtmlPane` is an HTML renderer with a sandbox around it. The releases API is the one source
+ * in the app that hands over *raw markdown*, in a release's `body`, and this is the adapter that
+ * lets it reuse that renderer instead of adding a second rendering path.
  *
- * The alternative was GitHub's own `POST /markdown`, which would be exact. It is rejected because
- * it puts a network round trip between the reader and a page they may be reading precisely because
- * they are about to flash something — and an unauthenticated POST is the most rate-limited thing we
- * could reach for. This runs offline on a body already in hand.
+ * GitHub's own `POST /markdown` would be exact, and is rejected because it puts a network round
+ * trip between the reader and a page they may be reading precisely because they are about to flash
+ * something — and an unauthenticated POST is the most rate-limited thing we could reach for. This
+ * runs offline on a body already in hand.
  *
  * Deliberately a *subset*, matching what release notes actually contain: headings, lists including
  * GitHub's task lists, links, images, emphasis, inline and fenced code, block quotes, rules, and
- * GFM tables. Tables were the one omission and it showed immediately — this project's own notes use
- * one to compare the debug and release zips, and it arrived as pipe-littered paragraphs.
+ * GFM tables. Tables matter because CI writes one into every canary's notes to compare the debug
+ * and release zips.
  *
  * Anything unrecognised survives as its own text rather than vanishing, which is the property that
  * matters: a reader must never be shown a silently emptier release note than the one published.
@@ -106,10 +105,8 @@ internal fun releaseMarkdownToHtml(markdown: String): String {
             continue
         }
 
-        // A GFM table, recognised by its alignment row. Release notes here use one to compare the
-        // debug and release zips, and without this the whole thing landed as pipe-littered
-        // paragraphs. The store's readme pane already styles <table>, because GitHub hands it
-        // rendered HTML — so the gap was only ever in this converter, not in the renderer.
+        // A GFM table, recognised by its alignment row. The store's readme pane already styles
+        // <table>, because GitHub hands it rendered HTML, so only the conversion is needed here.
         if (trimmed.startsWith("|") && index + 1 < lines.size && isAlignmentRow(lines[index + 1])) {
             closeParagraph()
             closeList()
@@ -202,10 +199,10 @@ private fun styleFor(alignment: String?): String =
  * Inline spans.
  *
  * Order matters twice over. Code is lifted out first so its contents are never re-parsed — a
- * backticked `#795` is a literal, not an issue. Then, once links exist, they are lifted out too,
- * so the reference pass below cannot go rewriting the inside of an `href` it just produced. Both
- * use a placeholder rather than a lookbehind, because the lookbehind version of this needs to know
- * every context an anchor can appear in and gets one of them wrong.
+ * backticked `#795` is a literal, not an issue. Then, once links exist, they are lifted out too, so
+ * the reference pass below cannot go rewriting the inside of an `href` it just produced. Both use a
+ * placeholder rather than a lookbehind: a lookbehind would have to enumerate every context an
+ * anchor can appear in, and the placeholder needs to know none of them.
  */
 private fun inline(text: String): String {
     val vault = mutableListOf<String>()
@@ -247,11 +244,11 @@ private fun inline(text: String): String {
  * The three shorthands release notes are written in: `#795`, a bare commit SHA, and `@handle`.
  *
  * GitHub renders all three as links and authors write them expecting that, so left as plain text
- * they read as noise — `(#795)` in particular is the only pointer to why a build exists.
+ * they read as noise — a trailing `(#795)` is often the only pointer to why a build exists.
  *
- * The SHA rule wants seven or more hex digits and refuses anything longer than a full hash, which
- * is what keeps it off ordinary words: `deadbeef` is a real risk in a changelog, and seven is
- * GitHub's own abbreviation length, so this matches what a reader already believes is a commit.
+ * The SHA rule wants between seven and forty hex digits, which is what keeps it off ordinary words:
+ * `deadbeef` is a real risk in a changelog, and seven is GitHub's own abbreviation length, so this
+ * matches what a reader already believes is a commit.
  */
 private fun linkReferences(text: String, stash: (String) -> String): String {
     var working =

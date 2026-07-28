@@ -44,8 +44,9 @@ import org.matrix.vector.manager.ui.theme.VectorMono
 /**
  * Where the page turns a reader into a participant.
  *
- * Four doors into the project, all of which open in a browser and none of which need an account:
- * pull requests to review, discussions to join, a canary build to test, and issues to report.
+ * Four doors into the project, none of which needs an account to walk through: pull requests to
+ * review, discussions to join, a canary build to test, and an issue to report. The first two open
+ * GitHub in the built-in viewer; the last two open screens of their own.
  *
  * The canary door is the one that matters most for a project like this. Testing a CI build needs
  * no account, no Git and no code, so it is the lowest-friction way for an ordinary user to help —
@@ -98,10 +99,9 @@ fun TakePartSection(
             modifier = Modifier.height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // The one door that opens a screen rather than a browser. The Actions page shows an
-            // anonymous visitor that a build exists and then refuses to hand it over, so sending
-            // people there was sending them to a dead end; the screen explains the sign-in and
-            // still lists the builds without one.
+            // A screen rather than a link to the Actions page, which shows an anonymous visitor
+            // that a build exists and then refuses to hand it over. The screen lists the builds
+            // without a sign-in and explains what signing in would buy.
             Door(
                 Icons.Rounded.Science,
                 stringResource(R.string.home_test_canary),

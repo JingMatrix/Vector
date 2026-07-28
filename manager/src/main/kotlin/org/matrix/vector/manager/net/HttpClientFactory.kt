@@ -15,10 +15,10 @@ import org.matrix.vector.manager.data.repository.SettingsRepository
  *   upgrade, because the manager is routinely opened with no connectivity. The cache also makes
  *   GitHub's conditional requests cheap: a `304 Not Modified` does not count against the 60
  *   requests/hour an unauthenticated client gets, so revalidation is effectively free.
- * - **DNS over HTTPS, as a fallback rather than a replacement.** Users in censored networks cannot
+ * - **DNS over HTTPS, as a fallback rather than a replacement.** Users on censored networks cannot
  *   resolve the module repository or GitHub over plain DNS. See [VectorDns] for why it must never
- *   be the only path: making it one is what leaves the Store permanently empty on a network where
- *   Cloudflare is itself blocked.
+ *   be the only path: a network that blocks Cloudflare as well would then leave the Store
+ *   permanently empty.
  */
 object HttpClientFactory {
 

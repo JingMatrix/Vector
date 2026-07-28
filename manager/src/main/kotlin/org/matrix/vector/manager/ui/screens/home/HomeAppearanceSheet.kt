@@ -106,11 +106,11 @@ fun HomeAppearanceSheet(onDismiss: () -> Unit) {
     val windowMonths by settings.activityWindowMonths.collectAsStateWithLifecycle()
     val openExternally by settings.openLinksExternally.collectAsStateWithLifecycle()
 
-    // No skipPartiallyExpanded. Passing it removed the half-height stop, which is the only thing
-    // a drag on a sheet can *do* other than dismiss it — so a sheet taller than half the screen
-    // opened at full height and could not be made smaller. Left at the default, Material adds the
-    // stop only when the content is actually taller than half the screen, so short sheets still
-    // open at their own height and nothing gains a useless drag.
+    // The default state, deliberately. `skipPartiallyExpanded` removes the half-height stop, which
+    // is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than
+    // half the screen would open at full height and could not be made smaller. Left alone, Material
+    // adds the stop only when the content is actually taller than half the screen, so short sheets
+    // still open at their own height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -223,8 +223,9 @@ private fun BrightnessSelector(selected: ThemeMode, onSelect: (ThemeMode) -> Uni
                 shape =
                     SegmentedButtonDefaults.itemShape(index = index, count = ThemeMode.entries.size),
                 // Icon only. A sun, a moon and an auto-brightness glyph are already unambiguous,
-                // and three words beside them pushed the row to the width of the screen for no
-                // information — the content description still carries the name for screen readers.
+                // and three words beside them would push the row past the width of the screen for
+                // no information — the content description still carries the name for screen
+                // readers.
                 icon = {},
                 label = {
                     Icon(
@@ -446,10 +447,6 @@ private fun ThemeMode.icon() =
         ThemeMode.Light -> Icons.Rounded.LightMode
         ThemeMode.Dark -> Icons.Rounded.DarkMode
     }
-
-
-/** A row of chips that scrolls if it must, so a long option set never clips. */
-
 
 private fun ThemeMode.labelRes(): Int =
     when (this) {

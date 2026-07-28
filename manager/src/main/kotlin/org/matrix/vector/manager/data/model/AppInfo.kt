@@ -13,7 +13,7 @@ data class AppInfo(
     val isRecommended: Boolean,
     /** When the package was last installed or updated, for the "recently updated" sort. */
     val lastUpdateTime: Long,
-    /** When it was first installed — a different question, and the legacy UI sorted on both. */
+    /** When it was first installed — a different question, and the list sorts on both. */
     val firstInstallTime: Long,
     /**
      * The installed version, which with [lastUpdateTime] is the module detection cache's key.

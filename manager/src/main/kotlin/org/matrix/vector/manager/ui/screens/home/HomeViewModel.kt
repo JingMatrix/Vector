@@ -106,15 +106,11 @@ class HomeViewModel(
     init {
         // The binder may arrive after this ViewModel exists — injection order is not ours to
         // control — so status is re-derived whenever it changes rather than read once in init.
-        // Reading it once is why the previous Home could get permanently stuck on "Not Activated".
         viewModelScope.launch {
             ServiceLocator.service.collect { service ->
                 refreshStatus(service)
-                // Both switches on the status page are the daemon's state, not ours, and this is
-                // the moment there is a daemon to ask. It was written and never called: they had
-                // always shown their initial values, so a notification the user had turned on
-                // months ago read as off on every launch, and turning it "on" again wrote a value
-                // that was already there. The database said true throughout.
+                // Both switches on the status page hold the daemon's state rather than ours, and
+                // this is the moment there is a daemon to ask.
                 if (service != null) refreshToggles()
             }
         }
@@ -182,8 +178,10 @@ class HomeViewModel(
         val issues = buildList {
             if (!sepolicy) add(HealthIssue.SepolicyNotLoaded)
             if (!systemServer) add(HealthIssue.SystemServerNotInjected)
-            // Matches the daemon's own rule: a non-OK wrapper only matters when the flags did
-            // not load.
+            // The wrapper and the property are alternatives, not a pair: the daemon deletes
+            // `dalvik.vm.dex2oat-flags` when it mounts the wrapper over dex2oat and sets it when
+            // it unmounts, so either route suppresses the inlining. A wrapper that is not OK
+            // therefore only costs anything when the flag did not load either.
             if (dex2oat != ILSPManagerService.DEX2OAT_OK && !dex2oatFlags) {
                 add(HealthIssue.Dex2oatWrapperBroken)
             }
@@ -241,9 +239,9 @@ class HomeViewModel(
     val feedItems: StateFlow<List<org.matrix.vector.manager.data.github.FeedItem>> =
         combine(_feed, _status, _authorFilter) { feed, status, filter ->
                 // The framework's version when the daemon is up, otherwise this manager's own.
-                // Both are `git rev-list --count` on the same repository, so either locates a
-                // build on the timeline correctly — and without the fallback the marker would
-                // simply never appear for anyone running the manager standalone.
+                // Both are `git rev-list --count origin/master` on the same repository, so either
+                // locates a build on the timeline correctly — and without the fallback the marker
+                // would never appear at all while the daemon is not answering.
                 val installed =
                     if (status.versionCode > 0) status.versionCode
                     else org.matrix.vector.manager.BuildConfig.VERSION_CODE.toLong()
@@ -253,16 +251,16 @@ class HomeViewModel(
                 )
             }
             // Off the main thread, and this is not a precaution. `stateIn(viewModelScope, …)`
-            // collects on the main dispatcher, so laying the rail out — filtering, grouping by
-            // month, measuring every gap — happened there. At a hundred commits that was invisible.
-            // At the two thousand the archive now holds, every filter toggle froze the very frame
-            // that was meant to acknowledge the touch.
+            // collects on the main dispatcher, and laying the rail out — filtering, grouping by
+            // month, measuring every gap — is a full pass over an archive that runs to thousands
+            // of commits. On the main thread a filter toggle freezes the very frame that is meant
+            // to acknowledge the touch.
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // --- framework toggles ------------------------------------------------------------------
-    // These used to live on a catch-all Settings screen. They are properties of the *framework*,
-    // so they belong on the screen that reports the framework's state.
+    // Properties of the *framework* rather than of the app, so they belong on the screen that
+    // reports the framework's state rather than in a settings screen of their own.
 
     private val _statusNotification = MutableStateFlow(false)
     val statusNotification: StateFlow<Boolean> = _statusNotification.asStateFlow()
@@ -276,8 +274,9 @@ class HomeViewModel(
      */
     val frameworkUpdate: StateFlow<FrameworkUpdateState> = ServiceLocator.frameworkUpdates.state
 
-    // True is the platform's own default, so the switch shows what the system is doing on a device
-    // where nobody has touched it — rather than reading "off" until the daemon answers.
+    // True is the platform's own default for `show_hidden_icon_apps_enabled`, so the switch shows
+    // what the system is doing on a device where nobody has touched it rather than reading "off"
+    // until the daemon answers.
     private val _hiddenIcon = MutableStateFlow(true)
     val hiddenIcon: StateFlow<Boolean> = _hiddenIcon.asStateFlow()
 
@@ -289,9 +288,8 @@ class HomeViewModel(
                     Log.w(Constants.TAG, "status: notification toggle unreadable, showing off", e)
                 }
                 .getOrDefault(false)
-        // Read, not assumed. This one had no getter at all, so the switch started at a hardcoded
-        // value on every launch and told the reader whatever that value was — which on a device
-        // where the setting had been changed was simply wrong.
+        // Read rather than assumed: this one is a global system setting, so anything on the device
+        // can have moved it since the manager last wrote it.
         _hiddenIcon.value =
             daemon
                 .forcedLauncherIcons()
@@ -318,13 +316,10 @@ class HomeViewModel(
 
     fun setForcedLauncherIcons(force: Boolean) {
         viewModelScope.launch {
-            // The old implementation wrote the inverse of what it read — it set the daemon flag
-            // from one source of truth and read its state back from Settings.Global — so the
-            // switch could show a state the framework did not hold. It now reports only what it
-            // successfully wrote.
             daemon.setForcedLauncherIcons(force).onSuccess {
-                // Read back rather than assumed: the write reaches a system setting that can
-                // refuse, and this switch has spent its life reporting a success it never checked.
+                // Read back rather than assumed. The AIDL call returns nothing, and the daemon
+                // applies it by running `settings put global`, which can fail without saying so —
+                // so a transaction that arrived is not yet a setting that changed.
                 _hiddenIcon.value = daemon.forcedLauncherIcons().getOrDefault(force)
             }
         }
@@ -333,16 +328,16 @@ class HomeViewModel(
     fun refreshFeed(freshness: GitHubRepository.Freshness) {
         viewModelScope.launch {
             _refreshing.value = true
-            // Loaded first, assigned second. `MutableStateFlow.update` is a compare-and-set spin
-            // loop: it re-invokes its lambda whenever another writer wins the race, and this
-            // lambda is a network fetch, an archive append, a snapshot rewrite and a
-            // several-thousand-commit re-parse. Three writers touch this flow — the window
-            // collector, pull-to-refresh and the backfill — so under contention the whole of that
-            // ran twice for one result.
+            // Loaded first, assigned second, rather than through `MutableStateFlow.update`. That
+            // is a compare-and-set spin loop — it re-invokes its lambda whenever another writer
+            // wins the race — and the lambda here would be a network fetch, an archive append, a
+            // snapshot rewrite and a several-thousand-commit re-parse. Three writers touch this
+            // flow: the window collector, pull-to-refresh and the backfill.
             val loaded = github.load(freshness)
             _feed.value = loaded
             _refreshing.value = false
-            // Anything that actually went to the network settles the debt below.
+            // Any load that asked the network for something settles the debt below, whether or not
+            // the answer came from there in the end.
             if (freshness != GitHubRepository.Freshness.Cached) _windowChanged.value = false
         }
     }
@@ -350,12 +345,11 @@ class HomeViewModel(
     /**
      * True when the window was changed and nothing has been fetched since.
      *
-     * Changing "the last six months" to "since the beginning" used to do nothing visible until the
-     * next launch: the window is read inside the repository at load time, and nothing reloaded. It
-     * now redraws immediately from what is already on disk — which for a *narrower* window is the
-     * whole answer, and for a wider one is as much of it as has been walked so far. The difference
-     * is what this flag is for: the page says a fetch would help and leaves the choice to the
-     * reader, rather than spending their rate limit the moment they touch a setting.
+     * Changing "the last six months" to "since the beginning" redraws immediately from what is
+     * already on disk, which for a *narrower* window is the whole answer and for a wider one is as
+     * much of it as has been walked so far. This flag carries the difference: the page says a fetch
+     * would help and leaves the choice to the reader, rather than spending their rate limit the
+     * moment they touch a setting.
      */
     private val _windowChanged = MutableStateFlow(false)
     val windowChanged: StateFlow<Boolean> = _windowChanged.asStateFlow()
@@ -387,10 +381,10 @@ class HomeViewModel(
             // happens even when nothing was added, so that a walk which ended by finding no new
             // commits can clear the invitation to keep scrolling.
             _feed.value = github.load(GitHubRepository.Freshness.Cached)
-            // Assigned, not raised. A walk that came back with commits is proof the network and the
-            // rate limit are fine, and it has to say so. This was `if (added == 0) … = true`, which
-            // could only ever latch: one refused walk left the rail insisting history had run out
-            // for the rest of the process, including over every later walk that succeeded.
+            // Assigned rather than latched. A walk that came back with commits is proof the
+            // network and the rate limit are fine, so it has to be able to clear this as well as
+            // to set it; otherwise one refused walk would leave the rail insisting history had run
+            // out for the rest of the process.
             _exhausted.value = added == 0
             _loadingHistory.value = false
         }

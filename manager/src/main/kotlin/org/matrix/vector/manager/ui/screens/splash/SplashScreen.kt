@@ -39,22 +39,21 @@ private const val ANIMATION_MS = 800L
 private const val DAEMON_TIMEOUT_MS = 2_500L
 
 /**
- * The Winged Victory, fading and scaling in exactly as designed — Vector, from *Victoria*.
+ * The Winged Victory, fading and scaling in — Vector, from *Victoria*.
  *
- * The behaviour behind it changed in two ways, both of which the fixed 1.5-second delay it
- * replaced got wrong:
- * - It **waits on the daemon**, not on a timer. The old delay's comment claimed it gave the binder
- *   time to connect, but it awaited nothing; a fast device paid the full 1.5 s and a slow one
- *   arrived at Home before the daemon was up and showed "Not Activated" incorrectly.
- * - It waits for the animation to finish too, so gating on a binder that resolves instantly does
- *   not produce a flash of half-drawn artwork.
+ * The handover is gated on the daemon rather than on a fixed timer, because arriving at Home before
+ * the binder is up shows "Not Activated" on a device that is activated. [DAEMON_TIMEOUT_MS] is the
+ * ceiling, so a daemon that never answers costs that much and no more.
+ *
+ * [ANIMATION_MS] is then spent after the handshake rather than overlapped with it, so a binder that
+ * resolves instantly still leaves the fade its full length instead of a flash of half-drawn artwork.
  */
 @Composable
 fun SplashGate(content: @Composable () -> Unit) {
     var ready by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        // Race the two: the artwork's own duration, and the daemon handshake with a ceiling.
+        // The handshake first, under a ceiling; then the artwork's own duration.
         val bound =
             withTimeoutOrNull(DAEMON_TIMEOUT_MS) { ServiceLocator.service.first { it != null } }
         if (bound == null) {
@@ -104,9 +103,9 @@ fun WingedVictory() {
             painter = painterResource(id = R.drawable.ic_winged_victory),
             contentDescription = null,
             tint = Color.Unspecified,
-            // The artwork occupies only a slice of its square viewport, so sizing by width gave
-            // a statue a third the size intended. Sized by the smaller dimension instead, which
-            // holds on both portrait and landscape without stretching or clipping.
+            // The drawable is a 108dp square whose figure runs nearly the full height of its
+            // viewport, so it is given 92% of both dimensions and fitted inside — which keeps its
+            // proportions in portrait and landscape without stretching or clipping.
             modifier = Modifier.fillMaxSize(0.92f).scale(scale).alpha(alpha),
         )
     }

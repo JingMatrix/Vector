@@ -63,19 +63,18 @@ import org.matrix.vector.manager.ui.components.show
 /**
  * What to try, and what to bring, before opening an issue.
  *
- * "Report a problem" used to go straight to the issue tracker. That is the wrong first step for
- * everyone involved: the maintainer's own first reply to a bug report is a checklist — try the
- * latest canary, update your Zygisk implementation, and attach logs — and a screen can *do* most of
- * that instead of describing it.
+ * The tracker sits at the foot of the screen rather than being the whole of it, because the first
+ * reply to a bug report is a checklist — try the latest canary, update your Zygisk implementation,
+ * attach logs — and a screen can *do* most of that instead of describing it.
  *
  * The part worth the screen is the logs. A report without them is a conversation that has to start
  * over, and the two ways of getting them are not equivalent:
- * - the **zip** comes from the daemon, which is the complete and correct export — when the daemon
- *   is alive;
+ * - the **zip** comes from the daemon, which assembles the complete export — when the daemon is
+ *   alive;
  * - the **log folder** is the fallback for when it is not, which is exactly the case for the bugs
- *   worth reporting. The manager cannot read `/data/adb/lspd/log` itself — it runs as
- *   `com.android.shell` with no root of its own — so it hands over the command that can, rather
- *   than offering a button that would fail precisely when it is needed.
+ *   worth reporting. The manager cannot read `/data/adb/lspd/log` itself — parasitically it runs as
+ *   `com.android.shell`, with no root of its own — so that path goes out through `su`, where a
+ *   refusal is an answer the reader can act on rather than a fault.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,8 +100,8 @@ fun TroubleshootScreen(
                     withContext(Dispatchers.IO) {
                         runCatching {
                                 context.contentResolver.openFileDescriptor(uri, "wt").use { fd ->
-                                    // Thrown rather than returned, so one log covers all three
-                                    // ways this fails: no descriptor, a refused open, and a
+                                    // Thrown rather than returned, so one catch covers all three
+                                    // ways this fails: a refused open, no descriptor, and a
                                     // failed transaction.
                                     checkNotNull(fd) { "no descriptor for the chosen file" }
                                     ServiceLocator.daemon.writeLogsTo(fd).getOrThrow()
@@ -217,9 +216,8 @@ fun TroubleshootScreen(
                     body = stringResource(R.string.report_step_crashed_body),
                 ) {
                     Column {
-                        // Two audiences, and the phone-only one is not an afterthought: root can
-                        // read the folder the manager cannot, so the export works with no computer
-                        // in the room. The command stays for whoever has one.
+                        // Root can read the folder the manager cannot, so this works with no
+                        // computer in the room — which is the situation the whole step exists for.
                         Button(
                             onClick = {
                                 scope.launch {
@@ -260,9 +258,9 @@ fun TroubleshootScreen(
                             Text(stringResource(R.string.report_save_with_root))
                         }
                         Spacer(Modifier.height(10.dp))
-                        // The adb one-liner lived here and is gone: it is four lines of shell that
-                        // only helps someone at a computer, and that reader is better served by the
-                        // thread itself, where it sits in context and stays current.
+                        // The adb route is a link rather than a printed one-liner: it only helps
+                        // someone at a computer, and that reader is better served by the thread,
+                        // where it sits in context and stays current.
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 stringResource(R.string.report_see_guide),
@@ -282,7 +280,7 @@ fun TroubleshootScreen(
     }
 }
 
-/** One numbered thing to try, with the control that does it. */
+/** One thing to try, with the control that does it. */
 @Composable
 private fun Step(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -330,17 +328,17 @@ private fun stringResourceOf(context: Context, id: Int): String = context.getStr
 /**
  * Copies the daemon's log folder somewhere the user can attach it, using root.
  *
- * `/data/adb/lspd/log` is readable by root and nothing else, and this is the only way to get those
- * files off a phone with no computer attached — which is the situation this whole section exists
- * for. Invoking `su` is also what raises the grant prompt, so the first press is the request.
+ * The daemon chmods `/data/adb/lspd` to 0700 and owns it as root, so this is the only way to get
+ * those files off a phone with no computer attached. Invoking `su` is also what raises the grant
+ * prompt, so the first press is the request.
  *
  * Whether it works depends on how the manager is running. Parasitically it is inside
  * `com.android.shell`, which root managers usually trust already; installed as an ordinary app it
  * has its own uid and has to be allowed like anything else. A refusal is therefore an expected
- * outcome rather than an error, and it is reported as an instruction — see [rootRefused].
+ * outcome rather than an error, and [RootRefused] carries it back to be reported as an instruction.
  *
- * `tar` rather than a copy: the folder holds several parts of several megabytes, and it is going to
- * be attached to an issue.
+ * `tar` rather than a copy: the folder accumulates rotated parts of both logs, and the result is
+ * going to be attached to an issue.
  */
 private fun exportWithRoot(): Result<String> = runCatching {
     val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))

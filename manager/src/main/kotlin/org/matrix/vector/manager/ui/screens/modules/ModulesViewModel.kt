@@ -42,15 +42,15 @@ enum class ModuleFilter {
     Inactive,
 }
 
+/** Identifies one module row: a package can be installed for several users at once. */
+data class ModuleKey(val packageName: String, val userId: Int)
+
 /**
  * How far a module reaches, and whether it can run at all.
  *
  * The scope count is the useful part: it lets the list answer "what does this module actually
  * touch" without opening it, which is the question behind most visits to the scope editor.
  */
-/** Identifies one module row: a package can be installed for several users at once. */
-data class ModuleKey(val packageName: String, val userId: Int)
-
 data class ModuleFacts(
     val scopeCount: Int = -1,
     val incompatible: Boolean = false,
@@ -112,8 +112,8 @@ class ModulesViewModel(
      * Whether the daemon answered at all.
      *
      * An empty list means two completely different things — "you have no modules" and "the
-     * framework is not running" — and showing the first when the second is true is a lie the
-     * previous build told. The UI branches on this.
+     * framework is not running" — and the empty state has to say which. Set from whether the user
+     * list came back at all.
      */
     private val _daemonAvailable = MutableStateFlow(true)
     val daemonAvailable: StateFlow<Boolean> = _daemonAvailable.asStateFlow()
@@ -127,15 +127,14 @@ class ModulesViewModel(
     private val _sort = MutableStateFlow(ModuleSort.EnabledFirst)
     val sort: StateFlow<ModuleSort> = _sort.asStateFlow()
 
-    /** Keyed by package name. Filled in after the list appears, so it never delays first paint. */
     /**
-     * Per module *per user*, not per package.
+     * Per module *per user*, not per package. Filled in after the list appears, so it never delays
+     * first paint.
      *
-     * A module installed in both the owner's space and a private space is two rows with two scopes,
-     * and keying this by package alone meant the second row was handed the first one's facts —
-     * so the private space tab depicted the owner's apps. Filtering the scope by user, which is
-     * also necessary, could not fix that on its own: the entry being filtered already belonged to
-     * the wrong copy of the module.
+     * A module installed in both the owner's space and a private space is two rows with two
+     * scopes. Keying by package alone would hand the second row the first one's facts, and
+     * filtering the scope by user cannot repair that on its own — the entry being filtered would
+     * already belong to the wrong copy of the module.
      */
     private val _facts = MutableStateFlow<Map<ModuleKey, ModuleFacts>>(emptyMap())
     val facts: StateFlow<Map<ModuleKey, ModuleFacts>> = _facts.asStateFlow()
@@ -143,8 +142,9 @@ class ModulesViewModel(
     /**
      * Which of the installed modules the catalogue has something newer for, minus the muted ones.
      *
-     * The catalogue is the Store's, not a second fetch: this is the same set the Store counts in
-     * its header, so the mark on a row and the number on the tab cannot disagree.
+     * The catalogue is the Store's, not a second fetch: both this and the Store's own header count
+     * derive from `StoreEntry.upgradable` over the same flow, so a mark on a row and the number on
+     * the Store panel cannot disagree.
      */
     val upgradable: StateFlow<Set<String>> = ServiceLocator.upgradablePackages
 
@@ -234,10 +234,10 @@ class ModulesViewModel(
     init {
         loadModules()
         moduleRepository.refresh()
-        // The update marks, the header line and the sheet all read the catalogue, and until now
-        // nothing on this screen asked for it — the marks appeared only if the splash prefetch had
-        // happened to succeed. Cheap to repeat: the request is cache-controlled and a concurrent
-        // caller is a no-op rather than a second 1.2 MB download.
+        // The update marks, the header line and the sheet all read the catalogue, so this screen
+        // asks for it rather than relying on the splash prefetch having succeeded. Cheap to
+        // repeat: the request is cache-controlled and a concurrent caller returns immediately
+        // rather than starting a second 1.2 MB download.
         ServiceLocator.appScope.launch { runCatching { ServiceLocator.store.refresh() } }
         viewModelScope.launch {
             // drop(1): the current value is the state we just rendered, not a change.
@@ -311,18 +311,18 @@ class ModulesViewModel(
     /**
      * Enables or disables everything selected, then reports how many actually changed.
      *
-     * Sequential rather than concurrent: each toggle is a Binder call into the daemon that rewrites
-     * the same config, and firing twenty at once at a single-threaded service buys nothing but a
-     * harder failure to explain.
+     * Sequential rather than concurrent: each toggle is a Binder call that rewrites the same
+     * configuration, and the rebuild it asks for is conflated and serialised at the daemon anyway,
+     * so firing twenty at once buys nothing but a harder failure to explain.
      */
     fun setSelectedEnabled(enable: Boolean, onResult: (BatchOutcome) -> Unit) {
         val targets = _selection.value.toList()
         viewModelScope.launch {
             // What the daemon already thinks, so a module that is in the asked-for state is neither
-            // toggled nor counted as a change. It used to be both: the write went out, the daemon
-            // reported the row as written, and five modules of which two were already on were
-            // announced as five enabled. The report is the only evidence the user has of what
-            // happened, so it has to distinguish "done" from "was already so".
+            // toggled nor counted as a change. The daemon reports a row it rewrote as written
+            // whether or not the value moved, so counting its answers alone would announce five
+            // enabled when two of them already were. The report is the only evidence the user has
+            // of what happened, so it has to distinguish "done" from "was already so".
             val current = moduleRepository.enabledModulesState.value
             var changed = 0
             var failed = 0
@@ -337,8 +337,7 @@ class ModulesViewModel(
             // No re-read, and no rediscovery. Each toggle above already returned the daemon's own
             // answer and the repository recorded it; asking again could only replace something
             // confirmed with something less fresh, and a toggle changes nothing about which
-            // packages are installed. The single-module path never did either, which is why it
-            // moved the row and this one did not.
+            // packages are installed.
             _selection.value = emptySet()
             onResult(BatchOutcome(changed = changed, already = already, failed = failed))
         }
@@ -422,18 +421,18 @@ class ModulesViewModel(
                 daemonClient.getModuleLoadState(pkg).getOrNull()?.let { unloadable[pkg] = it }
             }
             // One lookup table for every scope preview, rather than a package-manager query per
-            // scoped app per module.
-            // Keyed by package *and* user. A device with a work profile or a private space holds
-            // the same package twice, and collapsing them meant a row could depict the wrong
-            // profile's copy of an app.
+            // scoped app per module. Keyed by package *and* user: a device with a work profile or
+            // a private space holds the same package twice, and collapsing them would let a row
+            // depict the wrong profile's copy of an app.
             val byPackage =
                 ServiceLocator.apps.getInstalledApps().associateBy {
                     it.packageName to it.userId
                 }
 
             val collected = mutableMapOf<ModuleKey, ModuleFacts>()
-            // Every copy of every module, not one per package: the scope is read once but split
-            // per user below, and each row needs its own answer.
+            // The daemon holds one scope per module package covering every user, so it is read
+            // once here and split per user below — the loop runs over every copy of every module,
+            // because each row needs its own answer.
             val scopeCache = mutableMapOf<String, List<Application>?>()
             tabs.flatMap { it.modules }.forEach { module ->
                 val scope =
@@ -444,7 +443,7 @@ class ModulesViewModel(
                 // leading image — counting or showing it again says nothing.
                 //
                 // Only this user's targets. A module installed in two profiles has one scope list
-                // covering both, so the owner's row was showing the work profile's apps as well —
+                // covering both, so an unfiltered row would show the other profile's apps too —
                 // visibly, as the same app icon twice.
                 val targets =
                     scope?.filter {
@@ -455,19 +454,20 @@ class ModulesViewModel(
 
                 collected[ModuleKey(module.packageName, module.userId)] =
                     ModuleFacts(
-                        // Counts what the row actually depicts. It used to count raw scope rows,
-                        // so a module scoped to itself and the framework claimed "2 apps" while
-                        // showing neither of them — the count and the icons disagreed because
-                        // they were derived from different lists.
+                        // Counts what the row actually depicts, from the same list the icons come
+                        // from. Counting raw scope rows instead would have a module scoped to
+                        // itself and the framework claim "2 apps" while showing neither.
                         scopeCount = if (targets == null) -1 else apps.size,
-                        // Still the *minimum*, and deliberately: it is the author's stated floor,
-                        // and this is the only place it is honoured at all — the framework never
-                        // reads it. A module saying it needs 102 on a framework implementing 101
-                        // will be loaded anyway, and its author has said not to expect it to work.
+                        // The *minimum*, deliberately: it is the author's stated floor, and this
+                        // is the only place it is honoured at all. The daemon picks its loading
+                        // strategy from `targetApiVersion` alone, so a module saying it needs 102
+                        // on a framework implementing 101 is loaded anyway — and its author has
+                        // said not to expect it to work.
                         incompatible = api > 0 && module.minVersion > api,
-                        // Judged on what the module was built against, not on the floor it
-                        // asks for. A module declaring min 100 and target 101 is a 101 module and
-                        // was being warned about a break it is on the far side of.
+                        // Judged on what the module was built against, not on the floor it asks
+                        // for: a module declaring min 100 and target 101 is a 101 module, and
+                        // judging by the floor would warn it about a break it is on the far side
+                        // of.
                         apiBrokenSince =
                             if (api <= 0) null
                             else XposedApi.brokenSince(module.apiVersion, api),
@@ -551,8 +551,8 @@ class ModulesViewModel(
 
         detection.flush(packages.mapNotNull { it.packageName }.toSet())
         // The one number that explains a slow Modules panel: how many APKs this scan had to open.
-        // Everything else is a map lookup, so a large figure here after the first run means the
-        // cache key is wrong rather than that the device is slow.
+        // Everything else is a map lookup, so a large figure here on a second run means the cache
+        // key is wrong rather than that the device is slow.
         Log.i(
             Constants.TAG,
             "modules: scanned ${packages.size} packages in " +

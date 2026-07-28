@@ -14,8 +14,8 @@ import org.matrix.vector.manager.R
  * Every destination, as a type.
  *
  * Navigation 3 models the back stack as a plain observable list of these rather than a graph of
- * route strings, so an argument like a module's user id cannot be parsed and silently dropped the
- * way it was on the previous navigation layer — it is a constructor parameter.
+ * route strings, so an argument like a module's user id is a constructor parameter and cannot be
+ * mis-parsed out of a URL-shaped route.
  */
 @Serializable sealed interface Route : NavKey
 

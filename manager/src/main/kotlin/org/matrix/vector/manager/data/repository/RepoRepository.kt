@@ -34,19 +34,17 @@ import org.matrix.vector.manager.ipc.DaemonClient
  * The Store's data: the online catalogue, and what this device already has of it.
  *
  * **The mirror list is two lists, and that is not an oversight.** The full `modules.json` is served
- * by exactly one host today — `modules.lsposed.org` answers it with a 403, and the blogcdn and
- * cloudflare mirrors the previous code listed no longer resolve at all, which left the Store
- * permanently empty on a fresh install. Per-module `module/<package>.json` *is* served by both
- * hosts, so the public site is a real fallback there and only there. Merging these two lists back
- * into one would quietly take the Store offline again.
+ * by exactly one host today: `modules.lsposed.org` answers that path with a 403. Per-module
+ * `module/<package>.json` *is* served by both hosts, so the public site is a real fallback there
+ * and only there. Merging these two lists back into one would quietly take the Store offline.
  *
  * **Caching is declared, not hoped for.** Every request states its own freshness, so the 16 MB disk
  * cache in `HttpClientFactory` is actually used: the catalogue revalidates against the server's own
  * ten-minute `max-age` and its ETag, pull-to-refresh forces the network, and when every mirror
  * fails the same request is replayed against the cache alone. That last step is why a cold start
- * with no network renders the last known catalogue rather than an error — README principle 4 — and
- * it is also what gives the DNS-over-HTTPS setting an effect here, since the shared client is the
- * one carrying the DoH resolver.
+ * with no network renders the last known catalogue rather than an error, and it is also what gives
+ * the DNS-over-HTTPS setting an effect here, since the shared client is the one carrying the DoH
+ * resolver.
  *
  * There is deliberately **no snapshot file** of our own, unlike `GitHubRepository`. The OkHttp
  * cache already holds these exact bytes; a 1.2 MB duplicate in the same cache directory would buy
@@ -77,7 +75,7 @@ class RepoRepository(
     val installedVersions: StateFlow<Map<String, RepoVersion>> = _installed.asStateFlow()
 
 
-    /** Guards a refresh without the check-then-set race the previous boolean flag had. */
+    /** Held for the length of a refresh; `tryLock` leaves no window between checking and taking. */
     private val refreshing = Mutex()
 
     init {
@@ -98,7 +96,7 @@ class RepoRepository(
      */
     suspend fun refresh(force: Boolean = false) {
         // A second caller during a refresh is a no-op rather than a queued duplicate of a 1.2 MB
-        // download, and `tryLock` closes the window two callers had between check and set.
+        // download.
         if (!refreshing.tryLock()) return
         try {
             _isRefreshing.value = true
@@ -155,7 +153,7 @@ class RepoRepository(
                 }
         }
 
-    /** Re-reads installed versions; called after an install so the badges settle immediately. */
+    /** Re-reads installed versions; called on opening the Store and after an install lands. */
     fun refreshInstalled() {
         scope.launch { loadInstalled() }
     }
@@ -184,8 +182,8 @@ class RepoRepository(
     private fun fetchCatalog(baseUrl: String, cacheControl: CacheControl): StoreCatalog? {
         val url = baseUrl + "modules.json"
         return try {
-            // `use` rather than a close on the success branch. The failure path is the one that
-            // runs whenever a mirror is down, and it was the path leaking the connection.
+            // `use` covers the failure branch as well as the success one, and the failure branch is
+            // the one that runs whenever a mirror is down.
             client.newCall(request(url, cacheControl)).execute().use { response ->
                 if (!response.isSuccessful) {
                     // The FORCE_CACHE replay synthesises 504 without contacting the mirror, so
@@ -238,11 +236,10 @@ class RepoRepository(
     /**
      * Reads the catalogue one entry at a time, and survives a bad one.
      *
-     * Binding the whole array in a single `fromJson` call is what the previous code did, and on the
-     * real payload it threw: `additionalAuthors` holds objects rather than the strings its name
-     * suggests, and the eleventh module of 809 took the entire Store down with it. This is
-     * third-party data written by hundreds of authors, so one entry the model does not expect must
-     * cost that entry and nothing else.
+     * Binding the whole array in a single `fromJson` call fails the entire Store on one unexpected
+     * field — `additionalAuthors` holds objects rather than the strings its name suggests, and
+     * `AdditionalAuthor` exists because of it. This is third-party data written by hundreds of
+     * authors, so an entry the model does not expect must cost that entry and nothing else.
      *
      * Streamed off the response rather than through a `String`, which also keeps the 1.2 MB body
      * from being materialised twice.
@@ -268,10 +265,10 @@ class RepoRepository(
     /**
      * What is worth showing of a parsed catalogue.
      *
-     * `distinctBy` is not superstition about today's data — it is what stops a malformed mirror
-     * from crashing a `LazyColumn` keyed by package name. Entries with no release at all are
-     * dropped because there is nothing to install and nothing to say about them; there is exactly
-     * one such entry today, and the legacy loader dropped it too.
+     * `distinctBy` is not superstition about today's data — it is what stops a mirror serving the
+     * same package twice from crashing the Store's `LazyColumn`, which is keyed by package name.
+     * Entries with no release at all are dropped because there is nothing to install and nothing to
+     * say about them.
      */
     private fun usable(parsed: List<OnlineModule>): List<OnlineModule> =
         parsed
@@ -288,9 +285,8 @@ class RepoRepository(
 
     private companion object {
         /**
-         * The only host serving the full list. Probed rather than assumed: 1,226,889 bytes and 809
-         * entries here, a 403 from `modules.lsposed.org`, and no DNS at all for the other two
-         * mirrors the previous code carried.
+         * The only host serving the full list. Probed rather than assumed: roughly 1.2 MB and 800
+         * entries here, against a 403 from `modules.lsposed.org`.
          */
         val LIST_MIRRORS = listOf("https://backup.modules.lsposed.org/")
 

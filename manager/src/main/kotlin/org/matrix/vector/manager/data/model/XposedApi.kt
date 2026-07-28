@@ -26,8 +26,8 @@ object XposedApi {
      * framework still implements all of it, so a legacy module's declared version says how old it
      * is and nothing about whether it works.
      *
-     * Add a version here when a release breaks what came before it. The lists in the UI derive
-     * from this one, so nothing else needs touching.
+     * Add a version here when a release breaks what came before it. [brokenSince] is the only
+     * reader, and the warning the module list shows derives from what it returns.
      */
     val BREAKING = listOf(101)
 

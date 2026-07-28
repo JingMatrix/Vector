@@ -17,16 +17,16 @@ import org.matrix.vector.manager.ui.theme.VectorTheme
 /**
  * The only activity.
  *
- * Parasitically, every activity has to be tracked by hand by the zygisk hooker — it captures and
- * restores their saved state itself, because `system_server` does not know these spoofed activities
- * exist. One activity is therefore not a style preference, it is the shape the injection model
- * wants.
+ * Parasitically, every activity has to be tracked by hand by the zygisk hooker: it captures and
+ * restores their saved state itself and rewrites every launch intent to this class, because
+ * `system_server` does not know these spoofed activities exist. A single activity is what the
+ * injection model wants, not a style preference.
  */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Must precede super.onCreate. Handing off from the platform splash removes the frame of
-        // unthemed window the previous build showed between the system splash and the Compose one.
+        // Must precede super.onCreate. Handing off from the platform splash is what keeps an
+        // unthemed frame from appearing between the system splash and the Compose one.
         val splash = installSplashScreen()
 
         enableEdgeToEdge()
