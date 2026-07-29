@@ -700,6 +700,23 @@ class GitHubRepository(
     }
 
     /**
+     * The releases page, or null when GitHub could not be reached.
+     *
+     * Both readers of this endpoint are launched from a `viewModelScope` or a `LaunchedEffect`,
+     * neither of which has a `CoroutineExceptionHandler` anywhere in this app — so a throw here is
+     * a fatal on the main thread rather than a card that stays empty. Every other request in this
+     * file already guards itself; these two did not, which is how a resolver failure took the whole
+     * manager down instead of leaving the update card blank.
+     *
+     * One helper for both because it is the same request: fetching it twice under two URLs built
+     * from the same three constants is how the two lists drift apart.
+     */
+    private fun releaseListJson(freshness: Freshness): String? =
+        runCatching { get("$API/$REPO/releases?per_page=$CANARY_FETCH", freshness) }
+            .onFailure { e -> Log.w(Constants.TAG, "update: github release list unavailable", e) }
+            .getOrNull()
+
+    /**
      * The canary builds, newest first.
      *
      * These are **prereleases**, not Actions artifacts, and that is the whole point. GitHub gates an
@@ -714,9 +731,7 @@ class GitHubRepository(
      */
     suspend fun canaryBuilds(freshness: Freshness = Freshness.Revalidate): List<CanaryBuild> =
         withContext(Dispatchers.IO) {
-            val body =
-                get("$API/$REPO/releases?per_page=$CANARY_FETCH", freshness)
-                    ?: return@withContext emptyList()
+            val body = releaseListJson(freshness) ?: return@withContext emptyList()
 
             runCatching { json.decodeFromString<List<GhRelease>>(body) }
                 .onFailure { e -> Log.e(Constants.TAG, "update: canary release list unreadable", e) }
@@ -757,9 +772,7 @@ class GitHubRepository(
     suspend fun frameworkReleases(freshness: Freshness = Freshness.Revalidate):
         List<FrameworkRelease> =
         withContext(Dispatchers.IO) {
-            val body =
-                get("$API/$REPO/releases?per_page=$CANARY_FETCH", freshness)
-                    ?: return@withContext emptyList()
+            val body = releaseListJson(freshness) ?: return@withContext emptyList()
 
             runCatching { json.decodeFromString<List<GhRelease>>(body) }
                 .onFailure { e -> Log.e(Constants.TAG, "update: release list unreadable", e) }

@@ -5,7 +5,6 @@ import android.util.Log
 import java.net.InetAddress
 import java.net.Proxy
 import java.net.ProxySelector
-import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -78,7 +77,18 @@ class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHtt
         if (settings.dohEnabled.value && direct && !dohUnavailable) {
             try {
                 return doh.lookup(hostname)
-            } catch (e: UnknownHostException) {
+            } catch (e: Exception) {
+                // Every way DoH can fail, not only "no such host". A blocked endpoint raises
+                // UnknownHostException, a slow one raises InterruptedIOException from the timeouts
+                // above, and a resolver that cannot read its own public suffix list raises
+                // IllegalStateException before a socket is ever opened — which used to escape this
+                // method entirely, so the latch never closed and the fallback this class is built
+                // around never engaged. Anything arriving here means DoH is not usable, which is
+                // the condition documented above.
+                //
+                // Exception and not Throwable: an OutOfMemoryError is not a DNS outcome. There is
+                // no CancellationException to preserve either — this is a plain blocking call on an
+                // OkHttp dispatcher thread, with no coroutine in the stack.
                 dohUnavailable = true
                 Log.w(
                     Constants.TAG,

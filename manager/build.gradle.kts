@@ -97,6 +97,9 @@ android {
     packaging {
         resources {
             excludes += "META-INF/**"
+            // Java resources only, so it is inert against the Android artifact, which ships its
+            // public suffix list under assets/. Pinning the JVM variant would move that list back
+            // to okhttp3/internal/publicsuffix/ and this line would then delete it.
             excludes += "okhttp3/**"
             excludes += "kotlin/**"
             excludes += "**.properties"
