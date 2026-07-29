@@ -3,6 +3,7 @@ package org.matrix.vector.manager.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,6 +106,44 @@ fun ToggleRow(
         leadingContent = { Icon(icon, contentDescription = null) },
         trailingContent = { Switch(checked = checked, onCheckedChange = null) },
     )
+}
+
+/**
+ * What the setting above is currently doing, and — when it is not working — the way back.
+ *
+ * Indented to the same column as a [ToggleRow]'s subtitle rather than given a row of its own,
+ * because it is not another setting: it belongs to the switch above it and has to read as a
+ * consequence of that switch, not as a sibling of it.
+ *
+ * The action is optional and deliberately quiet. A row that always carries a button trains people
+ * to press it, and most of the states here are the ones where there is nothing to fix.
+ */
+@Composable
+fun StatusNote(
+    text: String,
+    modifier: Modifier = Modifier,
+    tone: Color? = null,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Row(
+        modifier =
+            modifier.fillMaxWidth().padding(start = 72.dp, end = 24.dp, top = 2.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = tone ?: MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        if (actionLabel != null && onAction != null) {
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = onAction, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                Text(actionLabel, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
 }
 
 /**

@@ -36,6 +36,7 @@ import org.matrix.vector.manager.data.repository.SettingsRepository
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.ipc.packageEventsFlow
 import org.matrix.vector.manager.net.HttpClientFactory
+import org.matrix.vector.manager.net.VectorDns
 
 /**
  * Hand-rolled service location, deliberately not a DI framework.
@@ -77,7 +78,16 @@ object ServiceLocator {
 
     val daemon: DaemonClient by lazy { DaemonClient(service) }
 
-    val http: OkHttpClient by lazy { HttpClientFactory.create(context, settings) }
+    private val net: HttpClientFactory.NetStack by lazy {
+        HttpClientFactory.create(context, settings)
+    }
+
+    val http: OkHttpClient
+        get() = net.client
+
+    /** The resolver inside [http], so the settings sheet can report what DoH is actually doing. */
+    val dns: VectorDns
+        get() = net.dns
 
     val settings: SettingsRepository by lazy { SettingsRepository(context) }
 

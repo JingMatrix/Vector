@@ -422,4 +422,9 @@
     <string name="settings_network">רשת</string>
     <string name="settings_doh">פענוח שמות דרך HTTPS</string>
     <string name="settings_doh_summary">מפענח שמות דרך Cloudflare במקום דרך המפענח של הרשת. לרשתות שחוסמות או משבשות DNS.</string>
+    <string name="settings_doh_untested">עדיין לא פוענח אף שם.</string>
+    <string name="settings_doh_bypassed">לא בשימוש: מוגדר פרוקסי, ולכן הוא מפענח את השמות.</string>
+    <string name="settings_doh_working">עובד — %1$s פוענח דרך Cloudflare.</string>
+    <string name="settings_doh_fell_back">לא ניתן היה להגיע ל-Cloudflare (%1$s), ולכן ייעשה שימוש במפענח של הרשת בהמשך ההפעלה הזו.</string>
+    <string name="settings_doh_retry">ניסיון נוסף</string>
 </resources>

@@ -418,4 +418,9 @@
     <string name="settings_network">Sieć</string>
     <string name="settings_doh">Rozwiązuj nazwy przez HTTPS</string>
     <string name="settings_doh_summary">Rozwiązuje nazwy przez Cloudflare zamiast przez resolver sieci. Dla sieci, które blokują lub zmieniają DNS.</string>
+    <string name="settings_doh_untested">Nie rozwiązano jeszcze żadnej nazwy.</string>
+    <string name="settings_doh_bypassed">Nieużywane: skonfigurowano proxy, więc to ono rozwiązuje nazwy.</string>
+    <string name="settings_doh_working">Działa — %1$s rozwiązano przez Cloudflare.</string>
+    <string name="settings_doh_fell_back">Nie udało się połączyć z Cloudflare (%1$s), więc przez resztę tej sesji używany jest resolver sieci.</string>
+    <string name="settings_doh_retry">Spróbuj ponownie</string>
 </resources>

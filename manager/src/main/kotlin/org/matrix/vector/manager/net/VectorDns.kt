@@ -6,11 +6,46 @@ import java.net.InetAddress
 import java.net.Proxy
 import java.net.ProxySelector
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import org.matrix.vector.manager.data.repository.SettingsRepository
+
+/**
+ * What the last name lookup of this session actually did.
+ *
+ * Deliberately a record of the real resolver rather than something a probe could produce. A "test
+ * DoH" button would be a second code path — another host, another moment — and it can pass while
+ * the client that fetches the module list is failing. Only the shared resolver knows the truth, so
+ * only the shared resolver reports it.
+ */
+sealed interface DohStatus {
+    /** Nothing has been resolved yet, so there is nothing to report. */
+    data object Untested : DohStatus
+
+    /** The setting is off; names went to the system resolver. */
+    data object Disabled : DohStatus
+
+    /** A proxy is configured, so resolving is its job and DoH was skipped. */
+    data object Bypassed : DohStatus
+
+    /** The last lookup went through the DoH endpoint. */
+    data class Working(val host: String) : DohStatus
+
+    /**
+     * DoH failed and the session has fallen back to the system resolver.
+     *
+     * No hostname here on purpose. What failed is reaching the DoH endpoint; whichever name was
+     * being looked up at that moment is incidental — it is simply whatever the app asked for first
+     * — and naming it reads as though that host were the subject of a test. The log line keeps it
+     * for anyone diagnosing; the sheet does not need it.
+     */
+    data class FellBack(val reason: String) : DohStatus
+}
 
 /**
  * Name resolution: DNS over HTTPS when it helps, the system resolver when it does not.
@@ -26,14 +61,23 @@ import org.matrix.vector.manager.data.repository.SettingsRepository
  * - a configured HTTP proxy disables DoH entirely, because the proxy is doing the resolving and
  *   bootstrap IPs are meaningless to it.
  *
- * The setting is read **per lookup** rather than baked into the client at construction. OkHttp
- * cannot have its DNS swapped on a live client, and rebuilding the shared client would drop the
- * connection pool and orphan the disk cache, so reading it here is what lets the switch take effect
- * before the next process start.
+ * Every one of those branches used to be invisible: off, bypassed and latched all looked like the
+ * same working switch, and the fallback existed only as a log line. [status] is what each lookup
+ * did, so the sheet that owns the switch can say which of them is happening.
+ *
+ * The setting and the proxy are both read **per lookup** rather than baked into the client at
+ * construction. OkHttp cannot have its DNS swapped on a live client, and rebuilding the shared
+ * client would drop the connection pool and orphan the disk cache, so reading them here is what
+ * lets a switch — or joining a VPN — take effect before the next process start.
  */
 class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHttpClient) : Dns {
 
     private val endpoint = "https://cloudflare-dns.com/dns-query".toHttpUrl()
+
+    private val _status = MutableStateFlow<DohStatus>(DohStatus.Untested)
+
+    /** What the last lookup did. See [DohStatus] for why this is observed and never probed. */
+    val status: StateFlow<DohStatus> = _status.asStateFlow()
 
     /**
      * Latched once the DoH endpoint proves unreachable.
@@ -65,18 +109,43 @@ class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHtt
             .build()
     }
 
-    /** True when nothing is proxying our traffic, which is the only case where DoH is ours to do. */
-    private val direct: Boolean by lazy {
+    /**
+     * True when nothing is proxying our traffic, which is the only case where DoH is ours to do.
+     *
+     * Asked on every lookup rather than cached. A proxy can appear mid-session — joining a VPN or a
+     * work profile does exactly that — and a value read once at startup would keep sending queries
+     * to Cloudflare long after the answer changed, while [status] claimed a state that was no
+     * longer true. The call is local and a lookup is about to do network I/O anyway.
+     */
+    private fun direct(): Boolean =
         runCatching {
                 ProxySelector.getDefault().select(endpoint.toUri()).firstOrNull() == Proxy.NO_PROXY
             }
             .getOrDefault(true)
+
+    /**
+     * Clears the session latch so the next lookup tries DoH again.
+     *
+     * The latch is what keeps a blocked endpoint from costing five seconds per name, but "the
+     * session" here is `com.android.shell`, a process nobody can restart on purpose — so without
+     * this a single bad lookup on a captive portal disables DoH until something else happens to
+     * kill the host. This is the way back, and it is offered only once the fallback has happened.
+     */
+    fun retry() {
+        dohUnavailable = false
+        _status.value = DohStatus.Untested
     }
 
     override fun lookup(hostname: String): List<InetAddress> {
-        if (settings.dohEnabled.value && direct && !dohUnavailable) {
+        if (!settings.dohEnabled.value) {
+            _status.value = DohStatus.Disabled
+        } else if (!direct()) {
+            _status.value = DohStatus.Bypassed
+        } else if (!dohUnavailable) {
             try {
-                return doh.lookup(hostname)
+                val resolved = doh.lookup(hostname)
+                _status.value = DohStatus.Working(hostname)
+                return resolved
             } catch (e: Exception) {
                 // Every way DoH can fail, not only "no such host". A blocked endpoint raises
                 // UnknownHostException, a slow one raises InterruptedIOException from the timeouts
@@ -90,6 +159,7 @@ class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHtt
                 // no CancellationException to preserve either — this is a plain blocking call on an
                 // OkHttp dispatcher thread, with no coroutine in the stack.
                 dohUnavailable = true
+                _status.value = DohStatus.FellBack(e.describe(hostname))
                 Log.w(
                     Constants.TAG,
                     "dns: DoH lookup of $hostname failed, using the system resolver for this session",
@@ -97,7 +167,21 @@ class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHtt
                 )
             }
         }
+        // Latched: the status already says why, and repeating it on every name would only replace
+        // the host that actually failed with whichever one asked next.
         return Dns.SYSTEM.lookup(hostname)
     }
 
+    /**
+     * A line short enough to sit under a switch, and worth the room it takes.
+     *
+     * The class name whenever the message would not add anything. `UnknownHostException` carries
+     * the hostname as its entire message, so using it verbatim printed the name twice — "could not
+     * resolve example.org (example.org)" — while the one thing a reader wants, *which way* it
+     * failed, went missing. The class name is jargon, but it is jargon that distinguishes a blocked
+     * endpoint from a timeout, and it is what a bug report needs to carry anyway.
+     */
+    private fun Throwable.describe(host: String): String =
+        message?.takeIf { it.isNotBlank() && !it.equals(host, ignoreCase = true) }
+            ?: javaClass.simpleName
 }

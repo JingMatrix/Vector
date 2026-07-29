@@ -26,7 +26,16 @@ object HttpClientFactory {
     private const val CACHE_DIR = "http_cache"
     private const val CACHE_SIZE_BYTES = 16L * 1024 * 1024
 
-    fun create(context: Context, settings: SettingsRepository): OkHttpClient {
+    /**
+     * The client and the resolver inside it.
+     *
+     * The resolver comes back alongside rather than being fished out of `client.dns` later: it is
+     * the only thing that knows whether DoH is actually working, the settings sheet reports that,
+     * and a cast back from the `Dns` interface would be a promise that nothing checks.
+     */
+    class NetStack(val client: OkHttpClient, val dns: VectorDns)
+
+    fun create(context: Context, settings: SettingsRepository): NetStack {
         // OkHttp's Android artifact ships the public suffix list as an *asset* and reaches it
         // through a process-static Context that `PlatformInitializer` sets from `androidx.startup`.
         // Parasitically this app's manifest is never installed, so that provider never runs and the
@@ -55,6 +64,7 @@ object HttpClientFactory {
         // and the shared client — with its connection pool and its disk cache — is never rebuilt.
         // `base` is passed in as the bootstrap client because a DoH client must not itself resolve
         // through DoH.
-        return base.newBuilder().dns(VectorDns(settings, base)).build()
+        val dns = VectorDns(settings, base)
+        return NetStack(base.newBuilder().dns(dns).build(), dns)
     }
 }
