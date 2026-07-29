@@ -390,4 +390,7 @@
     <string name="info_dex2oat_mount_failed">Échec du montage</string>
     <string name="info_dex2oat_selinux_permissive">SELinux est permissif</string>
     <string name="info_dex2oat_sepolicy_incorrect">Stratégie SELinux incorrecte</string>
+    <string name="scope_framework_restart_title">Le framework n\'a pas encore pris en compte ce changement</string>
+    <string name="scope_framework_restart_body">Le framework système n\'est chargé qu\'une fois, au démarrage d\'Android. Ce changement ne l\'atteindra qu\'au redémarrage du framework — toutes les applications en cours se ferment, et le téléphone reste allumé.</string>
+    <string name="scope_framework_restart_later">Plus tard</string>
 </resources>

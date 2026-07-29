@@ -416,4 +416,7 @@
     <string name="info_dex2oat_mount_failed">העגינה נכשלה</string>
     <string name="info_dex2oat_selinux_permissive">SELinux במצב מתירני</string>
     <string name="info_dex2oat_sepolicy_incorrect">מדיניות SELinux שגויה</string>
+    <string name="scope_framework_restart_title">מסגרת המערכת עדיין לא החילה את זה</string>
+    <string name="scope_framework_restart_body">מסגרת המערכת נטענת פעם אחת בלבד, כשאנדרואיד עולה. השינוי הזה יגיע אליה רק כשהמסגרת תופעל מחדש — כל האפליקציות הפועלות נסגרות, והטלפון עצמו נשאר דלוק.</string>
+    <string name="scope_framework_restart_later">מאוחר יותר</string>
 </resources>

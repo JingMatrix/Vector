@@ -434,4 +434,7 @@
     <string name="info_dex2oat_mount_failed">فشل التركيب</string>
     <string name="info_dex2oat_selinux_permissive">SELinux في الوضع المتساهل</string>
     <string name="info_dex2oat_sepolicy_incorrect">سياسة SELinux غير صحيحة</string>
+    <string name="scope_framework_restart_title">لم يطبّق إطار النظام هذا بعد</string>
+    <string name="scope_framework_restart_body">يُحمَّل إطار النظام مرة واحدة، عند بدء تشغيل أندرويد. لن يصل هذا التغيير إليه إلا بعد إعادة تشغيل الإطار — تُغلق كل التطبيقات العاملة، ويبقى الهاتف نفسه قيد التشغيل.</string>
+    <string name="scope_framework_restart_later">لاحقًا</string>
 </resources>

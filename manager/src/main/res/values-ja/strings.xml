@@ -379,4 +379,7 @@
     <string name="info_dex2oat_mount_failed">マウントに失敗しました</string>
     <string name="info_dex2oat_selinux_permissive">SELinux が permissive です</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux ポリシーが正しくありません</string>
+    <string name="scope_framework_restart_title">フレームワークはまだ反映していません</string>
+    <string name="scope_framework_restart_body">システムフレームワークは Android の起動時に一度だけ読み込まれます。この変更が届くのは、フレームワークが再起動したときだけです。実行中のアプリはすべて終了しますが、端末自体は起動したままです。</string>
+    <string name="scope_framework_restart_later">後で</string>
 </resources>

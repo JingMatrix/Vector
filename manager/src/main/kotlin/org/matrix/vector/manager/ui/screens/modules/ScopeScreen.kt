@@ -5,7 +5,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.DoneAll
-import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
@@ -25,7 +24,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -44,13 +42,12 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Launch
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material3.Button
@@ -58,12 +55,9 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -199,8 +193,8 @@ fun ScopeScreen(
             }
         }
     val haptics = LocalHapticFeedback.current
-    var menuOpen by remember { mutableStateOf(false) }
     var confirmStranded by remember { mutableStateOf(false) }
+    val frameworkRestartNeeded by viewModel.frameworkRestartNeeded.collectAsStateWithLifecycle()
 
     val staticScopeNotice = stringResource(R.string.scope_static)
     val applied = stringResource(R.string.scope_applied)
@@ -442,6 +436,31 @@ fun ScopeScreen(
                 }
             }
         }
+    }
+
+    // Asked after the apply has already succeeded, so it is not a confirmation — the scope is
+    // stored either way. It exists because system_server is the one target that cannot pick a
+    // scope up by itself.
+    if (frameworkRestartNeeded) {
+        VectorAlertDialog(
+            onDismissRequest = { viewModel.dismissFrameworkRestart() },
+            icon = { Icon(Icons.Rounded.RestartAlt, contentDescription = null) },
+            title = { Text(stringResource(R.string.scope_framework_restart_title)) },
+            text = { Text(stringResource(R.string.scope_framework_restart_body)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.softRebootForFramework() }) {
+                    Text(
+                        stringResource(R.string.action_soft_reboot),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissFrameworkRestart() }) {
+                    Text(stringResource(R.string.scope_framework_restart_later))
+                }
+            },
+        )
     }
 
     if (confirmStranded) {
@@ -899,7 +918,7 @@ private fun ApplyBar(
                     style = MaterialTheme.typography.labelLarge,
                 )
                 Text(
-                    text = stringResource(R.string.scope_apply_warning),
+                    text = stringResource(R.string.scope_apply_effect),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

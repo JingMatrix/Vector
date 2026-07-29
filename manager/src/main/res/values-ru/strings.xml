@@ -393,4 +393,7 @@
     <string name="info_dex2oat_mount_failed">Не удалось смонтировать</string>
     <string name="info_dex2oat_selinux_permissive">SELinux в разрешающем режиме</string>
     <string name="info_dex2oat_sepolicy_incorrect">Неверная политика SELinux</string>
+    <string name="scope_framework_restart_title">Фреймворк ещё не применил это</string>
+    <string name="scope_framework_restart_body">Системный фреймворк загружается один раз, при запуске Android. Это изменение дойдёт до него только при перезапуске фреймворка — все работающие приложения закроются, а телефон останется включённым.</string>
+    <string name="scope_framework_restart_later">Позже</string>
 </resources>

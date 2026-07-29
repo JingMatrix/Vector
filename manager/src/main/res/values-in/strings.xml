@@ -383,4 +383,7 @@
     <string name="info_dex2oat_mount_failed">Gagal memasang</string>
     <string name="info_dex2oat_selinux_permissive">SELinux dalam mode permissive</string>
     <string name="info_dex2oat_sepolicy_incorrect">Kebijakan SELinux salah</string>
+    <string name="scope_framework_restart_title">Framework belum menerapkan perubahan ini</string>
+    <string name="scope_framework_restart_body">Framework sistem hanya dimuat sekali, saat Android dijalankan. Perubahan ini baru menjangkaunya setelah framework dimulai ulang — semua aplikasi yang berjalan akan ditutup, dan ponsel sendiri tetap menyala.</string>
+    <string name="scope_framework_restart_later">Nanti</string>
 </resources>

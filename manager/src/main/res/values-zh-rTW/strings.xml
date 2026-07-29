@@ -380,4 +380,7 @@
     <string name="info_dex2oat_mount_failed">掛載失敗</string>
     <string name="info_dex2oat_selinux_permissive">SELinux 處於寬容模式</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux 政策不正確</string>
+    <string name="scope_framework_restart_title">系統框架尚未套用此變更</string>
+    <string name="scope_framework_restart_body">系統框架只在 Android 啟動時載入一次。此變更要等到框架重新啟動後才會生效——所有正在執行的應用程式都會關閉，手機本身保持開機。</string>
+    <string name="scope_framework_restart_later">稍後</string>
 </resources>

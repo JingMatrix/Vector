@@ -412,4 +412,7 @@
     <string name="info_dex2oat_mount_failed">Montowanie nie powiodło się</string>
     <string name="info_dex2oat_selinux_permissive">SELinux jest permisywny</string>
     <string name="info_dex2oat_sepolicy_incorrect">Nieprawidłowa polityka SELinux</string>
+    <string name="scope_framework_restart_title">Szkielet jeszcze tego nie uwzględnił</string>
+    <string name="scope_framework_restart_body">Szkielet systemu wczytywany jest raz, przy starcie Androida. Ta zmiana dotrze do niego dopiero po restarcie szkieletu — wszystkie działające aplikacje zostaną zamknięte, a telefon pozostanie włączony.</string>
+    <string name="scope_framework_restart_later">Później</string>
 </resources>

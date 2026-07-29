@@ -390,4 +390,7 @@
     <string name="info_dex2oat_mount_failed">Bağlama başarısız</string>
     <string name="info_dex2oat_selinux_permissive">SELinux izin verici durumda</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux ilkesi hatalı</string>
+    <string name="scope_framework_restart_title">Çatı bunu henüz almadı</string>
+    <string name="scope_framework_restart_body">Sistem çatısı yalnızca bir kez, Android başlarken yüklenir. Bu değişiklik ona ancak çatı yeniden başlatıldığında ulaşır — çalışan tüm uygulamalar kapanır, telefonun kendisi açık kalır.</string>
+    <string name="scope_framework_restart_later">Daha sonra</string>
 </resources>

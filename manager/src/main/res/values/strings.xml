@@ -424,4 +424,7 @@
     <string name="update_rollback_warning">Older than what you have. If it uses an older database, rolling back resets which modules are on and what they hook — back your modules up first.</string>
     <string name="settings_window_all">From the start</string>
     <string name="update_diverged">Same version number, different build — what is running was not built from this release</string>
+    <string name="scope_framework_restart_title">The framework has not picked this up yet</string>
+    <string name="scope_framework_restart_body">System Framework is loaded once, when Android starts it. This change reaches it only when the framework restarts — every running app closes, and the phone itself stays on.</string>
+    <string name="scope_framework_restart_later">Later</string>
 </resources>

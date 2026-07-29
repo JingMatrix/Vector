@@ -379,4 +379,7 @@
     <string name="info_dex2oat_mount_failed">Gắn kết thất bại</string>
     <string name="info_dex2oat_selinux_permissive">SELinux đang ở chế độ permissive</string>
     <string name="info_dex2oat_sepolicy_incorrect">Chính sách SELinux không đúng</string>
+    <string name="scope_framework_restart_title">Framework chưa tiếp nhận thay đổi này</string>
+    <string name="scope_framework_restart_body">Framework hệ thống chỉ được nạp một lần, khi Android khởi động. Thay đổi này chỉ tới được nó khi framework khởi động lại — mọi ứng dụng đang chạy sẽ đóng, còn điện thoại vẫn bật.</string>
+    <string name="scope_framework_restart_later">Để sau</string>
 </resources>

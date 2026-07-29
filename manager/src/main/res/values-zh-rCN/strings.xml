@@ -380,4 +380,7 @@
     <string name="info_dex2oat_mount_failed">挂载失败</string>
     <string name="info_dex2oat_selinux_permissive">SELinux 处于宽容模式</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux 策略不正确</string>
+    <string name="scope_framework_restart_title">系统框架尚未应用此更改</string>
+    <string name="scope_framework_restart_body">系统框架只在 Android 启动时加载一次。此更改要等到框架重启后才会生效——所有正在运行的应用都会关闭，手机本身保持开机。</string>
+    <string name="scope_framework_restart_later">稍后</string>
 </resources>

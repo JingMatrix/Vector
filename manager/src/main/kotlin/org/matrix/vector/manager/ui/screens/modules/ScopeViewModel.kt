@@ -137,29 +137,6 @@ class ScopeViewModel(
     val reverseSort = MutableStateFlow(settings.scopeSortReversed.value)
 
     /**
-     * Whether the list is filtered differently from how it ships.
-     *
-     * Compared against the defaults rather than against "is anything hidden": the defaults hide
-     * system apps and other modules on purpose, so the second reading would be true on a device
-     * nobody has touched, and a mark that is always on is a mark that says nothing.
-     *
-     * It earns its place because these choices are remembered. Coming back to a list that is
-     * filtered the way you left it a week ago is exactly the moment you need telling.
-     */
-    val filtersChanged: StateFlow<Boolean> =
-        combine(showSystemApps, showGames, showModules, showRecommendedOnly) {
-                system,
-                games,
-                modules,
-                recommendedOnly ->
-                system != DEFAULT_SHOW_SYSTEM ||
-                    games != DEFAULT_SHOW_GAMES ||
-                    modules != DEFAULT_SHOW_MODULES ||
-                    recommendedOnly
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
-
-    /**
      * Whether this module has a screen to open at all.
      *
      * Null until asked, so the control does not flicker into existence on arrival. Most modules
@@ -557,6 +534,36 @@ class ScopeViewModel(
         }
     }
 
+    /**
+     * Set when an apply changed whether the framework is in this scope.
+     *
+     * A dialog rather than the usual snackbar: this one asks for a decision, and a message that
+     * scrolls away on its own would leave the reader believing a scope is in force when it is
+     * stored and inert.
+     */
+    private val _frameworkRestartNeeded = MutableStateFlow(false)
+    val frameworkRestartNeeded: StateFlow<Boolean> = _frameworkRestartNeeded.asStateFlow()
+
+    fun dismissFrameworkRestart() {
+        _frameworkRestartNeeded.value = false
+    }
+
+    /**
+     * Restarts the primary zygote, and with it system_server.
+     *
+     * Sufficient on its own: the daemon survives — it holds a death recipient on the bridge and
+     * re-injects into the replacement — and the new system_server asks for its module list on the
+     * way up, by which time the write that prompted this has already rebuilt the cache.
+     */
+    fun softRebootForFramework() {
+        _frameworkRestartNeeded.value = false
+        viewModelScope.launch {
+            daemonClient.softReboot().onFailure { e ->
+                Log.e(Constants.TAG, "scope: soft reboot after a framework scope change failed", e)
+            }
+        }
+    }
+
     /** Fills [hasCompanion], which is declared next to [init] for the reason given there. */
     private fun findCompanion() {
         viewModelScope.launch {
@@ -635,13 +642,44 @@ class ScopeViewModel(
                 }
             daemonClient
                 .setModuleScope(modulePackageName, aidl)
-                .onSuccess {
-                    savedScope.value = draft
-                    _message.value = ScopeMessage.Applied
-                    // The module list depicts this scope as a row of app icons. It is a different
-                    // screen with a different view model, so it is told rather than left to
-                    // discover the change on the next manual refresh.
-                    ServiceLocator.modules.noteScopeChanged()
+                .onSuccess { stored ->
+                    // The daemon's answer, not merely the fact that it answered: it refuses a
+                    // draft that reaches beyond a scope the module fixes for itself, and keeping
+                    // the draft on a refusal would show a scope the framework never took.
+                    if (!stored) {
+                        Log.e(
+                            Constants.TAG,
+                            "scope: daemon refused ${draft.size} targets for $modulePackageName",
+                        )
+                        _message.value = ScopeMessage.ApplyFailed
+                    } else {
+                        // Whether the framework itself just joined or left this scope. Compared
+                        // against what was stored before the write, so it is the change that is
+                        // reported and not the mere presence of the row.
+                        val framework = ScopeTarget(SYSTEM_FRAMEWORK_PACKAGE, 0)
+                        val wasThere = framework in savedScope.value
+                        val isThere = framework in draft
+                        savedScope.value = draft
+                        // Storing a scope enables the module, so applying one to a disabled
+                        // module would leave the switch here and the row in the module list
+                        // both saying it is off. Followed through the switch's own path, so
+                        // the enabled set keeps a single keeper.
+                        if (!_uiState.value.isEnabled) setModuleEnabled(true)
+                        _message.value = ScopeMessage.Applied
+                        // system_server reads its module list once, when it starts:
+                        // SystemServerService hands the zygisk module whatever
+                        // ConfigCache.getModulesForSystemServer() holds at that moment. Every
+                        // other target picks a scope up when its own process next starts, which
+                        // happens on its own; this one does not until the framework is restarted,
+                        // so the change is stored and inert and nothing on screen would say so.
+                        // True for leaving as well as joining — a module already loaded into
+                        // system_server stays loaded until that process goes.
+                        if (wasThere != isThere) _frameworkRestartNeeded.value = true
+                        // The module list depicts this scope as a row of app icons. It is a
+                        // different screen with a different view model, so it is told rather than
+                        // left to discover the change on the next manual refresh.
+                        ServiceLocator.modules.noteScopeChanged()
+                    }
                 }
                 .onFailure { e ->
                     Log.e(
@@ -730,7 +768,7 @@ class ScopeViewModel(
     // Not private: the scope list has to recognise the framework row to explain what it is, and
     // a second copy of the literal in the screen would be a second thing to keep in step.
     internal companion object {
-        /** What the list looks like before anyone touches it; see [filtersChanged]. */
+        /** What the list looks like before anyone touches it; the filter sheet marks a change. */
         const val DEFAULT_SHOW_SYSTEM = false
         const val DEFAULT_SHOW_GAMES = true
         const val DEFAULT_SHOW_MODULES = false

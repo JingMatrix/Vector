@@ -379,4 +379,7 @@
     <string name="info_dex2oat_mount_failed">마운트 실패</string>
     <string name="info_dex2oat_selinux_permissive">SELinux가 permissive 상태입니다</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux 정책이 올바르지 않습니다</string>
+    <string name="scope_framework_restart_title">프레임워크가 아직 반영하지 않았습니다</string>
+    <string name="scope_framework_restart_body">시스템 프레임워크는 Android가 시작될 때 한 번만 로드됩니다. 이 변경은 프레임워크가 다시 시작될 때에만 반영됩니다. 실행 중인 앱은 모두 종료되지만 휴대전화 자체는 켜져 있습니다.</string>
+    <string name="scope_framework_restart_later">나중에</string>
 </resources>

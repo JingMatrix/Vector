@@ -390,4 +390,7 @@
     <string name="info_dex2oat_mount_failed">Mounten fehlgeschlagen</string>
     <string name="info_dex2oat_selinux_permissive">SELinux ist permissiv</string>
     <string name="info_dex2oat_sepolicy_incorrect">SELinux-Richtlinie fehlerhaft</string>
+    <string name="scope_framework_restart_title">Das Framework hat das noch nicht übernommen</string>
+    <string name="scope_framework_restart_body">Das System-Framework wird einmal geladen, wenn Android startet. Diese Änderung erreicht es erst, wenn das Framework neu startet — alle laufenden Apps werden beendet, das Telefon selbst bleibt an.</string>
+    <string name="scope_framework_restart_later">Später</string>
 </resources>

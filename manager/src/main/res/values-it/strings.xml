@@ -390,4 +390,7 @@
     <string name="info_dex2oat_mount_failed">Mount non riuscito</string>
     <string name="info_dex2oat_selinux_permissive">SELinux è permissivo</string>
     <string name="info_dex2oat_sepolicy_incorrect">Criterio SELinux errato</string>
+    <string name="scope_framework_restart_title">Il framework non ha ancora recepito la modifica</string>
+    <string name="scope_framework_restart_body">Il framework di sistema viene caricato una sola volta, all\'avvio di Android. Questa modifica lo raggiunge solo quando il framework viene riavviato: tutte le app in esecuzione si chiudono e il telefono resta acceso.</string>
+    <string name="scope_framework_restart_later">Più tardi</string>
 </resources>

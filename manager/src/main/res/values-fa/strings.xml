@@ -390,4 +390,7 @@
     <string name="info_dex2oat_mount_failed">سوارسازی ناموفق بود</string>
     <string name="info_dex2oat_selinux_permissive">SELinux در حالت آسان‌گیر است</string>
     <string name="info_dex2oat_sepolicy_incorrect">سیاست SELinux نادرست است</string>
+    <string name="scope_framework_restart_title">چارچوب سامانه هنوز این را اعمال نکرده است</string>
+    <string name="scope_framework_restart_body">چارچوب سامانه تنها یک بار، هنگام راه‌اندازی اندروید، بارگذاری می‌شود. این تغییر تنها پس از راه‌اندازی دوبارهٔ چارچوب به آن می‌رسد — همهٔ برنامه‌های در حال اجرا بسته می‌شوند و خود گوشی روشن می‌ماند.</string>
+    <string name="scope_framework_restart_later">بعداً</string>
 </resources>
