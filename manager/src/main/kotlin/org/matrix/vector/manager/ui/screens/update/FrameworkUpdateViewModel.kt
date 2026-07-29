@@ -1,6 +1,4 @@
 package org.matrix.vector.manager.ui.screens.update
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import org.matrix.vector.manager.data.repository.ReleaseDirection
 import org.matrix.vector.manager.data.github.FrameworkRelease
@@ -19,6 +17,8 @@ import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.repository.FlashStep
 import org.matrix.vector.manager.data.repository.FrameworkUpdateState
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /** Which root implementation is in charge, and whether it can be flashed through. */
 data class RootState(val code: Int = ILSPManagerService.ROOT_UNKNOWN, val version: String? = null) {
@@ -162,11 +162,7 @@ class FrameworkUpdateViewModel : ViewModel() {
             // the root version and the framework commit take their default in silence.
             val code =
                 daemon.getRootImplementation().getOrElse { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "update: root implementation unreadable, screen will say it is unknown",
-                        e,
-                    )
+                    logW("update: root implementation unreadable, screen will say it is unknown", e)
                     ILSPManagerService.ROOT_UNKNOWN
                 }
             val version = daemon.getRootImplementationVersion().getOrNull()
@@ -175,11 +171,7 @@ class FrameworkUpdateViewModel : ViewModel() {
         viewModelScope.launch {
             val installed =
                 daemon.getXposedVersionCode().getOrElse { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "update: installed framework version unavailable, update check skipped",
-                        e,
-                    )
+                    logW("update: installed framework version unavailable, update check skipped", e)
                     0L
                 }
             updates.refresh(installed, daemon.getFrameworkCommit().getOrNull())
@@ -198,8 +190,7 @@ class FrameworkUpdateViewModel : ViewModel() {
         val zip =
             chosenZip.value
                 ?: run {
-                    Log.e(
-                        Constants.TAG,
+                    logE(
                         "update: flash pressed with no zip selected, " +
                             "release=${selected.value?.tag}",
                     )
@@ -208,10 +199,7 @@ class FrameworkUpdateViewModel : ViewModel() {
         val url =
             zip.downloadUrl
                 ?: run {
-                    Log.e(
-                        Constants.TAG,
-                        "update: flash pressed but zip ${zip.name} has no download url",
-                    )
+                    logE("update: flash pressed but zip ${zip.name} has no download url")
                     return
                 }
         installer.start(url, zip.sizeInBytes, zip.name)
@@ -238,6 +226,6 @@ class FrameworkUpdateViewModel : ViewModel() {
     fun acknowledge() = installer.acknowledge()
 
     suspend fun reboot() {
-        daemon.reboot().onFailure { Log.e(Constants.TAG, "update: reboot request failed", it) }
+        daemon.reboot().onFailure { logE("update: reboot request failed", it) }
     }
 }

@@ -32,6 +32,24 @@
     <string name="crash_recorded_title">The manager closed unexpectedly</string>
     <string name="crash_recorded_summary">The full trace travels in the log export, under crash_manager.</string>
     <string name="crash_recorded_clear">Discard</string>
+    <string name="crash_what">What</string>
+    <string name="crash_message">Message</string>
+    <string name="crash_where">Where</string>
+    <string name="crash_when">When</string>
+    <!-- Shown for "Where" when no frame in the trace belongs to Vector's own code. -->
+    <string name="crash_where_unknown">Nowhere in Vector\'s own code</string>
+    <!-- %1$s is a timestamp, %2$s a thread name, e.g. "2026-07-29 11:42:03 +0200 on main". -->
+    <string name="crash_when_value">%1$s on %2$s</string>
+    <string name="crash_open_trace">See the trace</string>
+    <string name="crash_trace">Crash</string>
+    <string name="crash_caused_by">Caused by</string>
+    <!-- The frames printStackTrace replaced with "... N more" because it had printed them already. -->
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%d more frame, the same as above</item>
+        <item quantity="other">%d more frames, the same as above</item>
+    </plurals>
+    <string name="crash_frame_copied">Frame copied</string>
+    <string name="crash_unreadable">This crash could not be read. Copy it and attach it to the report as it is.</string>
 
     <!-- System status detail -->
     <string name="system_status">System status</string>

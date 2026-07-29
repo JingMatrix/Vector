@@ -1,7 +1,6 @@
 package org.matrix.vector.manager.data.repository
 
 import android.content.Context
-import android.util.Log
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
@@ -21,8 +20,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.lsposed.lspd.IFrameworkInstallCallback
 import org.lsposed.lspd.ILSPManagerService
-import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /** Where a framework flash has got to. */
 sealed interface FlashStep {
@@ -133,7 +133,7 @@ class FrameworkInstaller(
         val call =
             runCatching { client.newCall(Request.Builder().url(url).build()) }
                 .getOrElse { e ->
-                    Log.w(Constants.TAG, "update: unusable download url $url", e)
+                    logW("update: unusable download url $url", e)
                     append("Download failed: ${e.message}")
                     _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
                     return
@@ -225,7 +225,7 @@ class FrameworkInstaller(
                 // through its call, which arrives above — but a cancellation is a coroutine ending,
                 // not a file that could not be fetched, and it must never be recorded as one.
                 if (e is CancellationException) throw e
-                Log.w(Constants.TAG, "update: download failed", e)
+                logW("update: download failed", e)
                 append("Download failed: ${e.message}")
                 _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
                 return
@@ -313,7 +313,7 @@ class FrameworkInstaller(
         val started = daemon.installFrameworkZip(path, callback)
         if (started.isFailure) {
             val cause = started.exceptionOrNull()
-            Log.e(Constants.TAG, "update: daemon did not start the install of $path", cause)
+            logE("update: daemon did not start the install of $path", cause)
             append("The daemon refused the install: ${cause?.message}")
             _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NOT_EXECUTED)
             return

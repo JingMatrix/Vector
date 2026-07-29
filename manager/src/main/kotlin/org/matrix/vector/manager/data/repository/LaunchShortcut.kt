@@ -19,11 +19,11 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
 import android.os.Build
-import android.util.Log
 import androidx.core.content.ContextCompat
 import java.util.UUID
 import org.matrix.vector.manager.BuildConfig
-import org.matrix.vector.manager.Constants
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.R
 
 /**
@@ -69,12 +69,12 @@ object LaunchShortcut {
      */
     fun isSupported(context: Context): Boolean =
         runCatching { manager(context)?.isRequestPinShortcutSupported == true }
-            .onFailure { Log.w(Constants.TAG, "actions: pin support query failed", it) }
+            .onFailure { logW("actions: pin support query failed", it) }
             .getOrDefault(false)
 
     fun isPinned(context: Context): Boolean =
         runCatching { manager(context)?.pinnedShortcuts.orEmpty().any { it.id == ID } }
-            .onFailure { Log.w(Constants.TAG, "actions: pinned shortcut query failed", it) }
+            .onFailure { logW("actions: pinned shortcut query failed", it) }
             .getOrDefault(false)
 
     /**
@@ -92,7 +92,7 @@ object LaunchShortcut {
         return runCatching {
                 manager(context)?.requestPinShortcut(shortcut, callback(context, onPinned)) == true
             }
-            .onFailure { Log.e(Constants.TAG, "actions: pin shortcut request failed", it) }
+            .onFailure { logE("actions: pin shortcut request failed", it) }
             .getOrDefault(false)
     }
 
@@ -107,7 +107,7 @@ object LaunchShortcut {
         if (!isParasitic(context) || !isPinned(context)) return
         val shortcut = build(context) ?: return
         runCatching { manager(context)?.updateShortcuts(listOf(shortcut)) }
-            .onFailure { Log.w(Constants.TAG, "actions: pinned shortcut update failed", it) }
+            .onFailure { logW("actions: pinned shortcut update failed", it) }
     }
 
     private fun manager(context: Context): ShortcutManager? =
@@ -154,7 +154,7 @@ object LaunchShortcut {
                                     .setComponent(ComponentName(pkg, it.name))
                             }
                     }
-                    .onFailure { Log.e(Constants.TAG, "actions: no host activity to point at", it) }
+                    .onFailure { logE("actions: no host activity to point at", it) }
                     .getOrNull()
                 ?: return null
 
@@ -199,7 +199,7 @@ object LaunchShortcut {
                 flat.draw(canvas)
                 Icon.createWithAdaptiveBitmap(bitmap)
             }
-            .onFailure { Log.w(Constants.TAG, "actions: shortcut icon could not be rendered", it) }
+            .onFailure { logW("actions: shortcut icon could not be rendered", it) }
             .getOrNull()
 
     /**
@@ -237,7 +237,7 @@ object LaunchShortcut {
                     )
                     .intentSender
             }
-            .onFailure { Log.w(Constants.TAG, "actions: pin confirmation receiver failed", it) }
+            .onFailure { logW("actions: pin confirmation receiver failed", it) }
             .getOrNull()
 }
 

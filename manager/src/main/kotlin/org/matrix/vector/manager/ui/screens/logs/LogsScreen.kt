@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.ui.screens.logs
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -112,6 +110,7 @@ import org.matrix.vector.manager.data.log.LogLevel
 import org.matrix.vector.manager.ui.components.PanelHeader
 import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.ui.components.SearchField
+import org.matrix.vector.manager.ui.components.copyToClipboard
 import org.matrix.vector.manager.ui.theme.VectorMono
 
 /**
@@ -986,11 +985,6 @@ LocalizedOverlay {
 }
 
 private val FILE_STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-
-private fun copyToClipboard(context: Context, text: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-    clipboard?.setPrimaryClip(ClipData.newPlainText(BuildConfig.MANAGER_PACKAGE_NAME, text))
-}
 
 private fun shareZip(context: Context, uri: Uri) {
     val intent =

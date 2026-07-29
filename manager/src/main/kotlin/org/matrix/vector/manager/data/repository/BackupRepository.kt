@@ -1,18 +1,17 @@
 package org.matrix.vector.manager.data.repository
-import android.util.Log
-import org.matrix.vector.manager.Constants
-import kotlinx.coroutines.CancellationException
-
 import android.content.Context
 import android.net.Uri
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.lsposed.lspd.models.Application
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /**
  * Backup and restore of which modules are on and what each may hook.
@@ -67,8 +66,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
                             daemon
                                 .getModuleScope(packageName)
                                 .onFailure { e ->
-                                    Log.w(
-                                        Constants.TAG,
+                                    logW(
                                         "backup: scope of $packageName unreadable, saved as empty",
                                         e,
                                     )
@@ -93,8 +91,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
             }
                 .onFailure { e ->
                     if (e is CancellationException) throw e
-                    Log.e(
-                        Constants.TAG,
+                    logE(
                         "backup: writing a backup of " +
                             (if (only.isEmpty()) "all enabled" else "${only.size} selected") +
                             " modules failed",
@@ -124,11 +121,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
                         daemon
                             .setModuleEnabled(module.packageName, module.enabled)
                             .onFailure { e ->
-                                Log.w(
-                                    Constants.TAG,
-                                    "restore: enabling ${module.packageName} failed, skipping",
-                                    e,
-                                )
+                                logW("restore: enabling ${module.packageName} failed, skipping", e)
                             }
                             .getOrDefault(false)
                     if (!enabledOk) {
@@ -145,8 +138,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
                             }
                         val scopeResult = daemon.setModuleScope(module.packageName, scope)
                         if (!scopeResult.getOrDefault(false)) {
-                            Log.e(
-                                Constants.TAG,
+                            logE(
                                 "restore: scope of ${module.packageName} not applied " +
                                     "(${scope.size} targets)",
                                 scopeResult.exceptionOrNull(),
@@ -159,8 +151,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
             }
                 .onFailure { e ->
                     if (e is CancellationException) throw e
-                    Log.e(
-                        Constants.TAG,
+                    logE(
                         "restore: reading or parsing the backup file from ${uri.authority} failed",
                         e,
                     )

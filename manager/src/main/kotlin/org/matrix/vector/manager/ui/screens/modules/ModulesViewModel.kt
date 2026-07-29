@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.ui.screens.modules
-import org.matrix.vector.manager.Constants
 
-import android.util.Log
 import android.os.SystemClock
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
@@ -30,6 +28,9 @@ import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.model.XposedApi
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logI
+import org.matrix.vector.manager.logW
 
 /** One tab: a user, and the modules installed for them. */
 data class UserModulesState(val user: UserInfo, val modules: List<InstalledModule>)
@@ -362,8 +363,7 @@ class ModulesViewModel(
                 if (ok) removed++
                 else {
                     failed++
-                    Log.e(
-                        Constants.TAG,
+                    logE(
                         "modules: uninstall of ${key.packageName} for user ${key.userId} failed",
                         result.exceptionOrNull(),
                     )
@@ -487,11 +487,7 @@ class ModulesViewModel(
     private suspend fun discover(): List<UserModulesState> {
         val usersResult = daemonClient.getUsers()
         usersResult.onFailure { e ->
-            Log.w(
-                Constants.TAG,
-                "modules: user list unavailable, treating the daemon as unreachable",
-                e,
-            )
+            logW("modules: user list unavailable, treating the daemon as unreachable", e)
         }
         _daemonAvailable.value = usersResult.isSuccess
         val users = usersResult.getOrNull() ?: emptyList()
@@ -505,11 +501,7 @@ class ModulesViewModel(
             daemonClient
                 .getInstalledPackagesFromAllUsers(flags, filterNoProcess = false)
                 .getOrElse { e ->
-                    Log.e(
-                        Constants.TAG,
-                        "modules: installed package list unavailable, showing no modules",
-                        e,
-                    )
+                    logE("modules: installed package list unavailable, showing no modules", e)
                     emptyList()
                 }
 
@@ -552,8 +544,7 @@ class ModulesViewModel(
         // The one number that explains a slow Modules panel: how many APKs this scan had to open.
         // Everything else is a map lookup, so a large figure here on a second run means the cache
         // key is wrong rather than that the device is slow.
-        Log.i(
-            Constants.TAG,
+        logI(
             "modules: scanned ${packages.size} packages in " +
                 "${SystemClock.elapsedRealtime() - startedAt}ms, " +
                 "opened ${detection.inspectedThisRun}",

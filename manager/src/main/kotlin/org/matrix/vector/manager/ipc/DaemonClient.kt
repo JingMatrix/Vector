@@ -6,9 +6,9 @@ import kotlinx.coroutines.withContext
 import org.lsposed.lspd.IFrameworkInstallCallback
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.util.Log
 import org.lsposed.lspd.ILSPManagerService
-import org.matrix.vector.manager.Constants
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /**
  * Every call the manager makes to the daemon, as coroutines.
@@ -45,7 +45,7 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
                 // RuntimeException thrown while unparcelling a large ParcelableListSlice are all
                 // reachable here, and any of them escaping fails the calling coroutine — which for
                 // an unhandled failure in a viewModelScope means the process goes down.
-                Log.w(Constants.TAG, "ipc: daemon transaction failed", e)
+                logW("ipc: daemon transaction failed", e)
                 Result.failure(e)
             }
         }
@@ -116,8 +116,7 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         val resolved = findAppUi(packageName, userId, companionFirst)
         val target = resolved.getOrNull()
         if (target == null) {
-            Log.e(
-                Constants.TAG,
+            logE(
                 "ipc: open resolved no activity for $packageName in user $userId " +
                     "(companionFirst=$companionFirst)",
                 resolved.exceptionOrNull(),
@@ -147,8 +146,7 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
             // START_ABORTED (102) — where nothing came up either.
             val started = code in 0..99
             if (!started) {
-                Log.e(
-                    Constants.TAG,
+                logE(
                     "ipc: ${target.packageName}/${target.name} refused by the activity manager " +
                         "in user $userId (code $code)",
                 )

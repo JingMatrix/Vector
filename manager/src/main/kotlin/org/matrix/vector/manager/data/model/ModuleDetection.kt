@@ -1,11 +1,10 @@
 package org.matrix.vector.manager.data.model
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import java.util.Properties
 import java.util.zip.ZipFile
+import org.matrix.vector.manager.logW
 
 /**
  * Everything the manager can learn about a package by looking at it.
@@ -93,8 +92,7 @@ object ModuleDetection {
                                         static = props.getProperty("staticScope") == "true"
                                     }
                                     .onFailure { e ->
-                                        Log.w(
-                                            Constants.TAG,
+                                        logW(
                                             "modules: ${info.packageName} module.prop unparsable, " +
                                                 "api version and static scope unknown",
                                             e,
@@ -122,10 +120,9 @@ object ModuleDetection {
                             // declaration, so the two sides agree on what such a module is allowed
                             // to hook.
                             if (static && scope.isEmpty()) {
-                                Log.w(
-                                    Constants.TAG,
+                                logW(
                                     "modules: ${info.packageName} fixes its scope but names " +
-                                        "nothing; ignoring staticScope and leaving the scope open",
+                                        "nothing; ignoring staticScope and leaving the scope open"
                                 )
                                 static = false
                             }
@@ -143,8 +140,7 @@ object ModuleDetection {
                         }
                     }
                     .onFailure { e ->
-                        Log.w(
-                            Constants.TAG,
+                        logW(
                             "modules: reading ${info.packageName} " +
                                 "${apk.substringAfterLast('/')} failed",
                             e,
@@ -214,11 +210,7 @@ object ModuleDetection {
                     }
                 }
                 .onFailure { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "modules: ${info.packageName} legacy xposedscope unreadable",
-                        e,
-                    )
+                    logW("modules: ${info.packageName} legacy xposedscope unreadable", e)
                 }
                 .getOrNull()
                 ?.filter { it.isNotEmpty() } ?: return emptyList()

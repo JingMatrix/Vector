@@ -1,11 +1,10 @@
 package org.matrix.vector.manager.data.github
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.matrix.vector.manager.logW
 
 /**
  * Every commit the app has ever seen, kept on disk.
@@ -140,7 +139,7 @@ class CommitArchive(private val file: File, private val stateFile: File, private
         // Exactly one bad line is the truncated tail above and is not worth saying anything about;
         // more than one is systematic — a renamed field would make the whole archive read as empty.
         if (skipped > 1) {
-            Log.w(Constants.TAG, "feed: skipped $skipped of $total archive lines", firstFailure)
+            logW("feed: skipped $skipped of $total archive lines", firstFailure)
             // Repaired here, where it is found, rather than left to [compactIfWasteful]: that runs
             // only during a backfill, which happens only if someone scrolls to the foot of
             // history, so damage would otherwise be re-skipped on every launch instead of being
@@ -173,11 +172,7 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                     )
                 }
                 .onFailure { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "feed: appending ${commits.size} commits to the archive failed",
-                        e,
-                    )
+                    logW("feed: appending ${commits.size} commits to the archive failed", e)
                 }
         }
     }
@@ -219,7 +214,7 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                     lineCount = unique.size
                 }
                 .onFailure { e ->
-                    Log.w(Constants.TAG, "feed: rewriting the archive failed", e)
+                    logW("feed: rewriting the archive failed", e)
                 }
         }
     }

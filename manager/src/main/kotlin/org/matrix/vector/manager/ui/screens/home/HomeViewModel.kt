@@ -1,8 +1,5 @@
 package org.matrix.vector.manager.ui.screens.home
-import android.util.Log
-import org.matrix.vector.manager.Constants
 import kotlinx.coroutines.CancellationException
-
 import org.matrix.vector.manager.data.repository.FrameworkUpdateState
 import org.matrix.vector.manager.data.repository.LaunchShortcut
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
@@ -28,6 +25,8 @@ import org.matrix.vector.manager.data.github.GitHubAuth
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.ui.components.FrameworkState
 
 /** A specific reason the framework is degraded, so the UI never has to say merely "something". */
@@ -324,11 +323,7 @@ class HomeViewModel(
             daemon
                 .getXposedVersionCode()
                 .onFailure { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "status: framework version code unavailable, update check skipped",
-                        e,
-                    )
+                    logW("status: framework version code unavailable, update check skipped", e)
                 }
                 .getOrDefault(0L)
         val api = daemon.getXposedApiVersion().getOrNull()
@@ -339,8 +334,7 @@ class HomeViewModel(
         val systemServerResult = daemon.systemServerRequested()
         val healthFailure = sepolicyResult.exceptionOrNull() ?: systemServerResult.exceptionOrNull()
         if (healthFailure != null && healthFailure !is CancellationException) {
-            Log.w(
-                Constants.TAG,
+            logW(
                 "status: framework health read failed, defaulting to sepolicy/system_server " +
                     "not loaded",
                 healthFailure,
@@ -477,13 +471,13 @@ class HomeViewModel(
                     it.copy(notificationEnabled = enabled, notificationKnown = true)
                 }
             }
-            .onFailure { e -> Log.w(Constants.TAG, "status: notification toggle unread", e) }
+            .onFailure { e -> logW("status: notification toggle unread", e) }
         // Read rather than assumed: this one is a global system setting, so anything on the device
         // can have moved it since the manager last wrote it.
         daemon
             .forcedLauncherIcons()
             .onSuccess { _hiddenIcon.value = it }
-            .onFailure { e -> Log.w(Constants.TAG, "status: launcher-icon toggle unread", e) }
+            .onFailure { e -> logW("status: launcher-icon toggle unread", e) }
     }
 
     fun setStatusNotification(enabled: Boolean) {
@@ -501,11 +495,7 @@ class HomeViewModel(
                     }
                 }
                 .onFailure { e ->
-                    Log.e(
-                        Constants.TAG,
-                        "framework: setting the status notification to $enabled failed",
-                        e,
-                    )
+                    logE("framework: setting the status notification to $enabled failed", e)
                 }
         }
     }

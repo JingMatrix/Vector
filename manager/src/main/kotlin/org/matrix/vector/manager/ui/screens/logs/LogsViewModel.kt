@@ -1,6 +1,4 @@
 package org.matrix.vector.manager.ui.screens.logs
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -27,6 +25,8 @@ import org.matrix.vector.manager.data.log.LogRow
 import org.matrix.vector.manager.data.repository.SettingsRepository
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /** The two log streams the daemon keeps. They are read independently and never both at once. */
 enum class LogTab {
@@ -263,8 +263,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
                         else daemon.getLogPart(verbose, chosen)
                     val pfd =
                         result.getOrElse {
-                            Log.w(
-                                Constants.TAG,
+                            logW(
                                 "logs: ${tab.name.lowercase()} log (${chosen ?: "live"}) unavailable",
                                 it,
                             )
@@ -553,7 +552,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
         viewModelScope.launch {
             val result = daemon.clearLogs(tab == LogTab.VERBOSE)
             result.onFailure {
-                Log.e(Constants.TAG, "logs: rotating the ${tab.name.lowercase()} log failed", it)
+                logE("logs: rotating the ${tab.name.lowercase()} log failed", it)
             }
             val ok = result.getOrDefault(false)
             if (ok) reload(tab, Jump.NEWEST)
@@ -606,7 +605,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     fun setVerbose(enabled: Boolean) {
         viewModelScope.launch {
             daemon.setVerboseLogEnabled(enabled).onFailure {
-                Log.e(Constants.TAG, "logs: setting verbose logging to $enabled failed", it)
+                logE("logs: setting verbose logging to $enabled failed", it)
             }
             val actual = daemon.isVerboseLogEnabled().getOrDefault(enabled)
             _verboseEnabled.value = actual

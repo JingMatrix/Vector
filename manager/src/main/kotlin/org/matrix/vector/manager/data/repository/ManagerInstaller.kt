@@ -2,7 +2,6 @@ package org.matrix.vector.manager.data.repository
 
 import android.content.Context
 import android.content.pm.PackageInstaller
-import android.util.Log
 import java.io.FileInputStream
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.vector.manager.BuildConfig
-import org.matrix.vector.manager.Constants
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.ipc.commitForResult
 import org.matrix.vector.manager.ipc.requestReplaceExisting
@@ -81,7 +81,7 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
         val removed =
             daemon.uninstallPackage(BuildConfig.MANAGER_PACKAGE_NAME, ALL_USERS).getOrDefault(false)
         if (removed) _state.value = ManagerInstallStep.Idle
-        else Log.w(Constants.TAG, "actions: could not remove the conflicting manager")
+        else logW("actions: could not remove the conflicting manager")
         return removed
     }
 
@@ -109,7 +109,7 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
             if (apk == null) {
                 // Either the daemon is gone, or it refused: the APK is missing from the module
                 // directory or its signature is not the one this framework was built to accept.
-                Log.e(Constants.TAG, "actions: the daemon served no manager APK to install")
+                logE("actions: the daemon served no manager APK to install")
                 _state.value = ManagerInstallStep.Failed(null)
                 return@withContext false
             }
@@ -141,10 +141,7 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
                     val (status, message) = commit(session, sessionId)
                     succeeded = status == PackageInstaller.STATUS_SUCCESS
                     if (!succeeded) {
-                        Log.w(
-                            Constants.TAG,
-                            "actions: manager install failed, status $status: $message",
-                        )
+                        logW("actions: manager install failed, status $status: $message")
                     }
                     _state.value =
                         if (succeeded) ManagerInstallStep.Done
@@ -161,7 +158,7 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Log.e(Constants.TAG, "actions: manager install failed", e)
+                logE("actions: manager install failed", e)
                 _state.value = ManagerInstallStep.Failed(e.message)
             } finally {
                 runCatching { apk.close() }

@@ -1,15 +1,13 @@
 package org.matrix.vector.manager.data.repository
-import android.util.Log
-import org.matrix.vector.manager.Constants
-import kotlinx.coroutines.CancellationException
-
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.vector.manager.data.model.AppInfo
 import org.matrix.vector.manager.data.model.ModuleDetectionCache
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logW
 
 /** Fetches and caches the list of installed applications from the daemon. */
 class AppRepository(
@@ -44,11 +42,7 @@ class AppRepository(
             val failure = result.exceptionOrNull()
             if (failure != null) {
                 if (failure !is CancellationException) {
-                    Log.w(
-                        Constants.TAG,
-                        "apps: installed package list unavailable from daemon",
-                        failure,
-                    )
+                    logW("apps: installed package list unavailable from daemon", failure)
                 }
                 return@withContext emptyList()
             }

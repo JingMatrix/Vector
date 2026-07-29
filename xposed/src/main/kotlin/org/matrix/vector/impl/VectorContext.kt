@@ -165,13 +165,21 @@ class VectorContext(
         log(priority, tag, msg, null)
     }
 
+    /**
+     * A module's own logging, which is the only channel it has for saying what went wrong.
+     *
+     * The trace comes from [Log.getStackTraceString], our own, not `android.util.Log`'s — that one
+     * discards the trace outright for any [java.net.UnknownHostException] cause chain, so a module
+     * reporting a failed request got its message and a blank line after it, with nothing to say
+     * whose code the request was made from.
+     */
     override fun log(priority: Int, tag: String?, msg: String, tr: Throwable?) {
         val finalTag = tag ?: "VectorContext"
         val prefix = if (packageName.isNotEmpty()) "$packageName: " else ""
         val fullMsg = buildString {
             append(prefix).append(msg)
             if (tr != null) {
-                append("\n").append(android.util.Log.getStackTraceString(tr))
+                append("\n").append(Log.getStackTraceString(tr))
             }
         }
         Log.println(priority, finalTag, fullMsg)

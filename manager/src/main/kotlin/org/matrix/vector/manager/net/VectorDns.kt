@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.net
-import org.matrix.vector.manager.Constants
 
-import android.util.Log
 import java.net.InetAddress
 import java.net.Proxy
 import java.net.ProxySelector
@@ -14,6 +12,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import org.matrix.vector.manager.data.repository.SettingsRepository
+import org.matrix.vector.manager.logW
 
 /**
  * What the last name lookup of this session actually did.
@@ -160,8 +159,7 @@ class VectorDns(private val settings: SettingsRepository, bootstrapClient: OkHtt
                 // OkHttp dispatcher thread, with no coroutine in the stack.
                 dohUnavailable = true
                 _status.value = DohStatus.FellBack(e.describe(hostname))
-                Log.w(
-                    Constants.TAG,
+                logW(
                     "dns: DoH lookup of $hostname failed, using the system resolver for this session",
                     e,
                 )

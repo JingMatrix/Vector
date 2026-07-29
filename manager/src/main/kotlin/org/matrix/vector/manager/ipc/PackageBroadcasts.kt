@@ -4,14 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.matrix.vector.manager.BuildConfig
-import org.matrix.vector.manager.Constants
+import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.data.model.PER_USER_RANGE
 
 sealed class PackageEvent {
@@ -106,7 +105,7 @@ fun Context.daemonPackageEventsFlow(): Flow<PackageEvent> = callbackFlow {
                 val event =
                     runCatching { intent.daemonPackageEvent() }
                         .onFailure {
-                            Log.w(Constants.TAG, "ipc: unreadable package notification", it)
+                            logW("ipc: unreadable package notification", it)
                         }
                         .getOrNull()
                 if (event != null) trySend(event)
@@ -133,7 +132,7 @@ fun Context.daemonPackageEventsFlow(): Flow<PackageEvent> = callbackFlow {
             // Throwing here would fail this flow, and the merge it is collected in would take the
             // platform source down with it — losing every user's package events, on a scope whose
             // failure ends the process, to save the one this flow adds.
-            .onFailure { Log.w(Constants.TAG, "ipc: daemon package notifications unavailable", it) }
+            .onFailure { logW("ipc: daemon package notifications unavailable", it) }
             .isSuccess
 
     awaitClose { if (registered) unregisterReceiver(receiver) }

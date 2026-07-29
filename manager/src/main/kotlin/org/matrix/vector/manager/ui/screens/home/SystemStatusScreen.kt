@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.ui.screens.home
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -68,10 +66,12 @@ import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.model.XposedApi
+import org.matrix.vector.manager.data.log.CrashReport
 import org.matrix.vector.manager.data.model.buildStamp
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
 import org.matrix.vector.manager.ui.components.SnackbarTone
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
+import org.matrix.vector.manager.ui.components.copyToClipboard
 import org.matrix.vector.manager.ui.components.show
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.ui.theme.VectorMono
@@ -87,6 +87,7 @@ import org.matrix.vector.manager.ui.theme.VectorMono
 @Composable
 fun SystemStatusScreen(
     onNavigateBack: () -> Unit,
+    onOpenCrash: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -122,7 +123,7 @@ fun SystemStatusScreen(
         }
     // Read once per visit rather than watched: a crash cannot be recorded while this screen is on
     // screen, because the process that would record it is the one drawing it.
-    var crashes by remember { mutableStateOf(CrashRecorder.read(context)) }
+    var crash by remember { mutableStateOf(CrashRecorder.newest(context)) }
     // The two switches below belong to the framework, so they are only live while it is.
     val daemonAlive = status.state != FrameworkState.Inactive
     val snackbars = remember { SnackbarHostState() }
@@ -149,7 +150,7 @@ fun SystemStatusScreen(
                         onClick = {
                             // Copied as it reads, headings and all — this text ends up pasted
                             // into an issue, where the grouping is as useful as it is on screen.
-                            copy(
+                            copyToClipboard(
                                 context,
                                 englishSections.joinToString("\n\n") { (heading, items) ->
                                     heading +
@@ -182,17 +183,14 @@ fun SystemStatusScreen(
                 items(status.issues, key = { it.name }) { issue -> IssueCard(issue) }
                 item { Spacer(Modifier.height(4.dp)) }
             }
-            if (crashes != null) {
+            crash?.let { report ->
                 item(key = "crashes") {
                     CrashCard(
-                        report = crashes!!,
-                        onCopy = {
-                            copy(context, crashes!!)
-                            scope.launch { snackbars.show(copied, SnackbarTone.Success) }
-                        },
+                        report = report,
+                        onOpenTrace = onOpenCrash,
                         onClear = {
                             CrashRecorder.clear(context)
-                            crashes = null
+                            crash = null
                         },
                     )
                     Spacer(Modifier.height(4.dp))
@@ -519,17 +517,23 @@ private fun IssueCard(issue: HealthIssue) {
  * The manager's own crashes, which nothing else on the device keeps.
  *
  * On this page rather than under Logs, because every log there is the daemon's and because this is
- * the page someone opens when they are about to report something. It previews the newest trace only
- * — the older ones are on file and travel with the copy — since the question being asked is "what
- * just happened", not "what has ever happened".
+ * the page someone opens when they are about to report something. It summarises the newest crash
+ * only — the older ones are on file and travel with the log export — since the question being asked
+ * is "what just happened", not "what has ever happened".
+ *
+ * Four facts, not a trace. This card sits among rows that each state one thing, and a block of
+ * monospace here would be the only thing on the page a reader has to decode rather than read; the
+ * trace has its own screen, one tap away, where it can be a list instead of a paragraph. The four
+ * are chosen as the answers to what a maintainer asks first: what threw, what it said, the nearest
+ * frame that is ours, and when. "Where" is the one worth having on the card at all — it is the
+ * fact that decides who picks the report up, and it is buried in the middle of the printed trace.
  *
  * The card is absent when there have been no crashes, which is the normal state and deserves no
  * row of its own.
  */
 @Composable
-private fun CrashCard(report: String, onCopy: () -> Unit, onClear: () -> Unit) {
+private fun CrashCard(report: CrashReport, onOpenTrace: () -> Unit, onClear: () -> Unit) {
     val colors = MaterialTheme.colorScheme
-    val newest = remember(report) { report.trim().lines().take(CRASH_PREVIEW_LINES) }
     OutlinedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
@@ -546,20 +550,54 @@ private fun CrashCard(report: String, onCopy: () -> Unit, onClear: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.onSurfaceVariant,
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                newest.joinToString("\n"),
-                style = VectorMono.copy(fontSize = 12.sp),
-                color = colors.onSurfaceVariant,
-                maxLines = CRASH_PREVIEW_LINES,
-                overflow = TextOverflow.Ellipsis,
+            Spacer(Modifier.height(12.dp))
+            // The root cause rather than what reached the handler: "RuntimeException: Unable to
+            // start activity" is the platform saying where it noticed, and the end of the chain is
+            // the sentence that names what actually failed.
+            report.root?.let { cause ->
+                CrashFact(stringResource(R.string.crash_what), cause.simpleType, error = true)
+                cause.message?.let { CrashFact(stringResource(R.string.crash_message), it) }
+            }
+            CrashFact(
+                stringResource(R.string.crash_where),
+                report.ours?.shortMethod ?: stringResource(R.string.crash_where_unknown),
+                monospace = report.ours != null,
             )
+            CrashFact(stringResource(R.string.crash_when), crashWhen(report))
             Spacer(Modifier.height(8.dp))
             Row {
-                TextButton(onClick = onCopy) { Text(stringResource(R.string.action_copy_all)) }
+                TextButton(onClick = onOpenTrace) {
+                    Text(stringResource(R.string.crash_open_trace))
+                }
                 TextButton(onClick = onClear) { Text(stringResource(R.string.crash_recorded_clear)) }
             }
         }
+    }
+}
+
+/**
+ * One line of the summary, laid out as the rows below it are: label above, fact underneath.
+ *
+ * Tighter than [InfoRow] because four of these sit inside a card rather than on the page, and
+ * because none of them is a status anyone needs to spot from across the room.
+ */
+@Composable
+private fun CrashFact(
+    label: String,
+    value: String,
+    monospace: Boolean = false,
+    error: Boolean = false,
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(Modifier.padding(bottom = 8.dp)) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
+        Text(
+            value,
+            style =
+                if (monospace) VectorMono.copy(fontSize = 14.sp)
+                else MaterialTheme.typography.bodyMedium,
+            color = if (error) colors.error else colors.onSurface,
+        )
     }
 }
 
@@ -778,11 +816,6 @@ private fun dex2oatLabel(context: Context, compatibility: Int): String =
         }
     )
 
-private fun copy(context: Context, text: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-    clipboard?.setPrimaryClip(ClipData.newPlainText(BuildConfig.MANAGER_PACKAGE_NAME, text))
-}
-
 @Composable
 private fun FrameworkToggle(
     title: String,
@@ -828,5 +861,3 @@ private fun FrameworkToggle(
     }
 }
 
-/** Enough of the newest trace to recognise it; the rest travels in the copy. */
-private const val CRASH_PREVIEW_LINES = 6

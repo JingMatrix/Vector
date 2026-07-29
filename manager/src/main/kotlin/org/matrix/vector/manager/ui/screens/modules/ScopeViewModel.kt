@@ -1,10 +1,7 @@
 package org.matrix.vector.manager.ui.screens.modules
-import android.util.Log
-import org.matrix.vector.manager.Constants
-import kotlinx.coroutines.CancellationException
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +21,8 @@ import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.data.repository.SettingsRepository
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /** A package/user pair, as a value type so set arithmetic is correct. */
 data class ScopeTarget(val packageName: String, val userId: Int)
@@ -469,8 +468,7 @@ class ScopeViewModel(
                             )
                         }
                         .onFailure { e ->
-                            Log.w(
-                                Constants.TAG,
+                            logW(
                                 "scope: package info for $modulePackageName (user $userId) " +
                                     "unavailable, no recommended scope",
                                 e,
@@ -517,7 +515,7 @@ class ScopeViewModel(
     private suspend fun readSavedScope(): Set<ScopeTarget>? {
         val result = daemonClient.getModuleScope(modulePackageName)
         result.exceptionOrNull()?.let { e ->
-            Log.e(Constants.TAG, "scope: reading the saved scope of $modulePackageName failed", e)
+            logE("scope: reading the saved scope of $modulePackageName failed", e)
         }
         val rows = result.getOrNull() ?: return null
         return rows.map { ScopeTarget(it.packageName, it.userId) }.toSet().asStored()
@@ -676,8 +674,7 @@ class ScopeViewModel(
                     if (stored) {
                         _uiState.value = _uiState.value.copy(includeNewApps = enabled)
                     } else {
-                        Log.e(
-                            Constants.TAG,
+                        logE(
                             "scope: daemon refused include-new-apps=$enabled for " +
                                 modulePackageName,
                         )
@@ -685,8 +682,7 @@ class ScopeViewModel(
                     }
                 }
                 .onFailure { e ->
-                    Log.e(
-                        Constants.TAG,
+                    logE(
                         "scope: setting include-new-apps=$enabled for $modulePackageName failed",
                         e,
                     )
@@ -720,7 +716,7 @@ class ScopeViewModel(
         _frameworkRestartNeeded.value = false
         viewModelScope.launch {
             daemonClient.softReboot().onFailure { e ->
-                Log.e(Constants.TAG, "scope: soft reboot after a framework scope change failed", e)
+                logE("scope: soft reboot after a framework scope change failed", e)
             }
         }
     }
@@ -732,8 +728,7 @@ class ScopeViewModel(
                 daemonClient
                     .findAppUi(modulePackageName, userId, companionFirst = true)
                     .onFailure { e ->
-                        Log.w(
-                            Constants.TAG,
+                        logW(
                             "scope: companion lookup for $modulePackageName user $userId failed",
                             e,
                         )
@@ -759,8 +754,7 @@ class ScopeViewModel(
                 daemonClient
                     .openAppUi(modulePackageName, userId, companionFirst = true)
                     .onFailure { e ->
-                        Log.e(
-                            Constants.TAG,
+                        logE(
                             "scope: companion open of $modulePackageName for user $userId failed",
                             e,
                         )
@@ -812,10 +806,9 @@ class ScopeViewModel(
             val draft = draftScope.value.asStored()
             val current = readSavedScope()
             if (current == null) {
-                Log.w(
-                    Constants.TAG,
+                logW(
                     "scope: could not re-read the scope of $modulePackageName before writing; " +
-                        "applying the draft as it stands",
+                        "applying the draft as it stands"
                 )
             }
             val before = current ?: baseline
@@ -834,10 +827,7 @@ class ScopeViewModel(
                     // that reaches beyond a scope the module fixes for itself, and moving the saved
                     // set on a refusal would show a scope the framework never took.
                     if (!stored) {
-                        Log.e(
-                            Constants.TAG,
-                            "scope: daemon refused ${merged.size} targets for $modulePackageName",
-                        )
+                        logE("scope: daemon refused ${merged.size} targets for $modulePackageName")
                         _message.value = ScopeMessage.ApplyFailed
                     } else {
                         // Whether the framework itself just joined or left this scope. Compared
@@ -876,11 +866,7 @@ class ScopeViewModel(
                     }
                 }
                 .onFailure { e ->
-                    Log.e(
-                        Constants.TAG,
-                        "scope: apply of ${merged.size} targets to $modulePackageName failed",
-                        e,
-                    )
+                    logE("scope: apply of ${merged.size} targets to $modulePackageName failed", e)
                     _message.value = ScopeMessage.ApplyFailed
                 }
             _applying.value = false
@@ -916,7 +902,7 @@ class ScopeViewModel(
                             } ?: error("could not open the file")
                         }
                         .onFailure { e ->
-                            Log.e(Constants.TAG, "scope: backup of $modulePackageName failed", e)
+                            logE("scope: backup of $modulePackageName failed", e)
                         }
                         .isSuccess
                 }
@@ -940,7 +926,7 @@ class ScopeViewModel(
                         }
                         .onFailure { e ->
                             if (e is CancellationException) throw e
-                            Log.e(Constants.TAG, "scope: restore for $modulePackageName failed", e)
+                            logE("scope: restore for $modulePackageName failed", e)
                         }
                         .getOrNull()
                 }

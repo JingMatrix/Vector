@@ -7,11 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.os.Build
-import android.util.Log
 import androidx.core.content.IntentCompat
 import java.util.UUID
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.matrix.vector.manager.Constants
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /**
  * Asks for an install that replaces whatever copy of the package is already on the device.
@@ -38,7 +38,7 @@ fun PackageInstaller.SessionParams.requestReplaceExisting() {
             val flags = PackageInstaller.SessionParams::class.java.getDeclaredField("installFlags")
             flags.setInt(this, flags.getInt(this) or INSTALL_REPLACE_EXISTING)
         }
-        .onFailure { Log.w(Constants.TAG, "ipc: install session could not request a replace", it) }
+        .onFailure { logW("ipc: install session could not request a replace", it) }
 }
 
 /**
@@ -89,7 +89,7 @@ suspend fun Context.commitForResult(
                             runCatching {
                                     startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                                 }
-                                .onFailure { Log.e(Constants.TAG, promptFailure, it) }
+                                .onFailure { logE(promptFailure, it) }
                         }
                     return
                 }

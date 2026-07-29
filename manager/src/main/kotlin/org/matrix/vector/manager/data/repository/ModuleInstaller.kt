@@ -2,7 +2,6 @@ package org.matrix.vector.manager.data.repository
 
 import android.content.Context
 import android.content.pm.PackageInstaller
-import android.util.Log
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -14,10 +13,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.ipc.commitForResult
 import org.matrix.vector.manager.ipc.requestReplaceExisting
+import org.matrix.vector.manager.logW
 
 /** Where an install has got to. One at a time, because a user installs one module at a time. */
 sealed interface InstallStep {
@@ -111,10 +110,9 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
                     val result = commit(session, sessionId, packageName)
                     succeeded = result.first == PackageInstaller.STATUS_SUCCESS
                     if (!succeeded) {
-                        Log.w(
-                            Constants.TAG,
+                        logW(
                             "store: install of $packageName failed, status ${result.first}: " +
-                                "${result.second}",
+                                "${result.second}"
                         )
                     }
                     _state.value =
@@ -126,7 +124,7 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
                 // failed install: reporting it as one would put an error on a screen the reader
                 // has already left, and would race the acknowledge() that cancelled it.
                 if (e is CancellationException) throw e
-                Log.w(Constants.TAG, "store: install of $packageName failed", e)
+                logW("store: install of $packageName failed", e)
                 _state.value = InstallStep.Failed(packageName, e.message)
             } finally {
                 // Without this, a cancelled download leaves a staged session behind — and staged

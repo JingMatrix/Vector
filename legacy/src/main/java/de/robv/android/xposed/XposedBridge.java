@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.util.Log;
 
+import org.lsposed.lspd.util.Utils;
 import org.matrix.vector.impl.hooks.VectorNativeHooker;
 import org.matrix.vector.impl.hooks.VectorLegacyCallback;
 import org.matrix.vector.nativebridge.HookBridge;
@@ -137,7 +138,10 @@ public final class XposedBridge {
      * @param t The Throwable object for the stack trace.
      */
     public synchronized static void log(Throwable t) {
-        String logStr = Log.getStackTraceString(t);
+        // Utils.Log's, not android.util.Log's: the latter returns an empty string for any
+        // UnknownHostException cause chain, so a module logging a failed request landed an empty
+        // line in the modules log.
+        String logStr = Utils.Log.getStackTraceString(t);
         Log.e(TAG, logStr);
     }
 

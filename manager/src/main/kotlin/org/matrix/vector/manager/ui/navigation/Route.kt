@@ -37,6 +37,15 @@ sealed interface TopLevelRoute : Route {
 
 @Serializable data object SystemStatus : Route
 
+/**
+ * The newest recorded crash, frame by frame.
+ *
+ * Carries no argument: there is only ever one crash worth opening — the newest — and the screen
+ * reads it from disk itself, so the route survives the process death that following a crash report
+ * is unusually likely to involve.
+ */
+@Serializable data object CrashTrace : Route
+
 /** CI builds, as prereleases anyone can download. */
 @Serializable data object Canary : Route
 

@@ -1,6 +1,4 @@
 package org.matrix.vector.manager.ui.screens.splash
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,6 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.di.ServiceLocator
 import kotlinx.coroutines.flow.first
+import org.matrix.vector.manager.logW
 
 /** How long the animation itself needs, so the statue is never cut off mid-fade. */
 private const val ANIMATION_MS = 800L
@@ -56,10 +55,7 @@ fun SplashGate(content: @Composable () -> Unit) {
         val bound =
             withTimeoutOrNull(DAEMON_TIMEOUT_MS) { ServiceLocator.service.first { it != null } }
         if (bound == null) {
-            Log.w(
-                Constants.TAG,
-                "splash: no daemon binder after ${DAEMON_TIMEOUT_MS}ms, continuing unactivated",
-            )
+            logW("splash: no daemon binder after ${DAEMON_TIMEOUT_MS}ms, continuing unactivated")
         }
         delay(ANIMATION_MS)
         ready = true

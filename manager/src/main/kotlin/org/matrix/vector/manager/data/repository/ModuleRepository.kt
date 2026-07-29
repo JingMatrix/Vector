@@ -1,6 +1,4 @@
 package org.matrix.vector.manager.data.repository
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,6 +8,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.logE
+import org.matrix.vector.manager.logW
 
 /**
  * The single source of truth for which modules are enabled.
@@ -75,11 +75,7 @@ class ModuleRepository(
                 .getEnabledModules()
                 .onSuccess { enabled -> _enabledModulesState.update { enabled.toSet() } }
                 .onFailure { e ->
-                    Log.w(
-                        Constants.TAG,
-                        "modules: enabled list unavailable, showing none enabled",
-                        e,
-                    )
+                    logW("modules: enabled list unavailable, showing none enabled", e)
                 }
         }
     }
@@ -98,9 +94,9 @@ class ModuleRepository(
         if (!accepted) {
             val cause = result.exceptionOrNull()
             if (cause != null) {
-                Log.e(Constants.TAG, "modules: $verb of $packageName failed", cause)
+                logE("modules: $verb of $packageName failed", cause)
             } else {
-                Log.e(Constants.TAG, "modules: daemon refused to $verb $packageName")
+                logE("modules: daemon refused to $verb $packageName")
             }
             return false
         }

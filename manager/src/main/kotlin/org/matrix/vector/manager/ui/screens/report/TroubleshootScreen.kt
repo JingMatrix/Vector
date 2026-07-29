@@ -1,8 +1,4 @@
 package org.matrix.vector.manager.ui.screens.report
-import android.util.Log
-import org.matrix.vector.manager.Constants
-import kotlinx.coroutines.CancellationException
-
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,12 +45,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.ui.components.SnackbarTone
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.show
@@ -108,7 +106,7 @@ fun TroubleshootScreen(
                             }
                             .onFailure { e ->
                                 if (e is CancellationException) throw e
-                                Log.e(Constants.TAG, "report: saving the log archive failed", e)
+                                logE("report: saving the log archive failed", e)
                             }
                             .isSuccess
                     }

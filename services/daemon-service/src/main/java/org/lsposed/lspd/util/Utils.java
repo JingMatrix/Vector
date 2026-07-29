@@ -23,6 +23,8 @@ package org.lsposed.lspd.util;
 import android.os.SystemProperties;
 import android.text.TextUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.zone.ZoneRulesException;
@@ -49,8 +51,19 @@ public class Utils {
             android.util.Log.println(priority, tag, msg);
         }
 
+        /**
+         * A throwable as text, without the platform's filtering.
+         *
+         * {@code android.util.Log.getStackTraceString} returns an empty string when anything in
+         * the cause chain is an {@link java.net.UnknownHostException} — deliberately upstream, to
+         * cut log spew when the network is down, but here it silently turns a module's report of a
+         * failed request into a message with nothing under it.
+         */
         public static String getStackTraceString(Throwable tr) {
-            return android.util.Log.getStackTraceString(tr);
+            if (tr == null) return "";
+            StringWriter sw = new StringWriter();
+            tr.printStackTrace(new PrintWriter(sw));
+            return sw.toString().stripTrailing();
         }
 
         public static void d(String tag, String msg) {

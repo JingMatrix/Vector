@@ -1,12 +1,11 @@
 package org.matrix.vector.manager.data.model
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Base64
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import org.matrix.vector.manager.logW
 
 /**
  * Remembers which installed packages are modules, so the answer is computed once per APK.
@@ -114,7 +113,7 @@ class ModuleDetectionCache(private val file: File) {
                 }
             )
         }
-            .onFailure { e -> Log.w(Constants.TAG, "modules: detection cache write failed", e) }
+            .onFailure { e -> logW("modules: detection cache write failed", e) }
         dirty = false
     }
 
