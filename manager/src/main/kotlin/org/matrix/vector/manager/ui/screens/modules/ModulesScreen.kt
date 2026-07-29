@@ -27,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Block
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.DeleteOutline
@@ -37,9 +36,6 @@ import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.SaveAlt
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.WarningAmber
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,7 +45,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,12 +72,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -111,7 +103,6 @@ import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.ui.components.SheetHeading
 import org.matrix.vector.manager.ui.screens.repo.StoreChannel
 import org.matrix.vector.manager.ui.screens.repo.releasesOn
-import androidx.compose.foundation.layout.widthIn
 import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.model.InstalledModule

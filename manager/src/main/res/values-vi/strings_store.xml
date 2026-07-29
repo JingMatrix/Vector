@@ -69,14 +69,11 @@
     <string name="store_info_updated">Phát hành gần nhất</string>
     <string name="store_info_created">Lần công bố đầu tiên</string>
 
-    <string name="store_doh">Phân giải máy chủ gương qua HTTPS</string>
     <string name="store_release_notes_hide">Ẩn ghi chú</string>
     <string name="store_installed_first">Đã cài trước</string>
 
     <string name="store_group_sort">Sắp xếp</string>
     <string name="store_group_priority">Ưu tiên</string>
     <string name="store_group_channel">Kênh</string>
-    <string name="store_group_network">Mạng</string>
-    <string name="store_doh_summary">Dành cho mạng không phân giải được máy chủ gương của mô-đun.</string>
     <string name="store_info_scope_installed">Hook, theo bản đã cài</string>
 </resources>

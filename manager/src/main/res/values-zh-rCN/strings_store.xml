@@ -69,14 +69,11 @@
     <string name="store_info_updated">最近发布</string>
     <string name="store_info_created">首次发布</string>
 
-    <string name="store_doh">通过 HTTPS 解析镜像域名</string>
     <string name="store_release_notes_hide">收起更新说明</string>
     <string name="store_installed_first">已安装的优先</string>
 
     <string name="store_group_sort">排序</string>
     <string name="store_group_priority">优先</string>
     <string name="store_group_channel">通道</string>
-    <string name="store_group_network">网络</string>
-    <string name="store_doh_summary">适用于无法解析模块镜像域名的网络。</string>
     <string name="store_info_scope_installed">挂钩目标（据已安装的副本）</string>
 </resources>

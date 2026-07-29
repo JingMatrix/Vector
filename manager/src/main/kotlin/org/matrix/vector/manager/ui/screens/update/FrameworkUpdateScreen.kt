@@ -28,7 +28,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -582,7 +581,7 @@ private fun VersionsSheet(
                     val sameNumber = release.versionCode == update.installedVersionCode
                     // A build that carries this number but was not made from this release: another
                     // branch, or a working tree with changes in it.
-                    val diverged = sameNumber && update.divergesFrom(release)
+                    val diverged = update.divergesFrom(release)
                     val installed = sameNumber && !diverged
                     val older = release.versionCode < update.installedVersionCode
                     ListItem(

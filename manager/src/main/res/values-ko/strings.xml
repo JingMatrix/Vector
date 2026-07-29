@@ -174,7 +174,6 @@
     <string name="scope_recommended">이 모듈이 요청함</string>
     <string name="scope_static">이 모듈은 적용 범위를 고정해 두어 다른 앱으로 향하게 할 수 없습니다.</string>
     <string name="scope_pending">추가 %1$d개, 제거 %2$d개</string>
-    <string name="scope_apply_warning">적용하면 해당 앱이 다시 시작됩니다.</string>
     <string name="scope_apply">적용</string>
     <string name="scope_discard">취소</string>
     <string name="scope_applied">적용 범위를 반영했습니다.</string>
@@ -375,4 +374,9 @@
     <string name="modules_load_unsupported_api">사용 중이지만 libxposed API 100용으로 빌드되어 이 프레임워크가 더 이상 불러오지 않습니다.</string>
     <string name="update_root_unknown">이 프레임워크 빌드는 어떤 root 구현이 설치되어 있는지 알려주지 않습니다.</string>
     <string name="scope_no_match">그 검색어나 필터와 일치하는 앱이 없습니다.</string>
+    <string name="scope_apply_effect">각 앱은 다음에 시작할 때 이를 적용합니다.</string>
+    <string name="info_dex2oat_crashed">비정상 종료됨</string>
+    <string name="info_dex2oat_mount_failed">마운트 실패</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux가 permissive 상태입니다</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux 정책이 올바르지 않습니다</string>
 </resources>

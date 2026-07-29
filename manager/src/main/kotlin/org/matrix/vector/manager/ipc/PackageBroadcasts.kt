@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.matrix.vector.manager.data.model.PER_USER_RANGE
 
 sealed class PackageEvent {
     data class Added(val packageName: String, val userId: Int) : PackageEvent()
@@ -28,7 +29,13 @@ fun Context.packageEventsFlow(): Flow<PackageEvent> = callbackFlow {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val packageName = intent.data?.schemeSpecificPart ?: return
-                val userId = intent.getIntExtra(Intent.EXTRA_USER, 0)
+                // The uid these broadcasts carry names the same user, so it stands in for a
+                // sender that leaves the id out.
+                val userId =
+                    intent.getIntExtra(
+                        EXTRA_USER_HANDLE,
+                        intent.getIntExtra(Intent.EXTRA_UID, 0) / PER_USER_RANGE,
+                    )
 
                 when (intent.action) {
                     // An update to an existing package produces a REMOVED for the old copy, an
@@ -63,3 +70,11 @@ fun Context.packageEventsFlow(): Flow<PackageEvent> = callbackFlow {
 
     awaitClose { unregisterReceiver(receiver) }
 }
+
+/**
+ * `Intent.EXTRA_USER_HANDLE`, which is hidden.
+ *
+ * The public `EXTRA_USER` is a `UserHandle` parcelable, so reading it as an int always answers the
+ * default. The id these broadcasts actually carry is under this name.
+ */
+private const val EXTRA_USER_HANDLE = "android.intent.extra.user_handle"

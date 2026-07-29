@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -96,6 +97,9 @@ class MazeRenderer : AmbienceRenderer {
     private val trail = ArrayDeque<Pair<Int, Int>>()
 
     override val isAnimating: Boolean
+        // Between one wanderer leaving and the next setting out there is nothing to draw, but the
+        // pause is counted down in update() — and a parked frame loop stops calling it, so a maze
+        // that admitted to resting would never send anything through itself again.
         get() = true
 
     /** A finer or coarser grid is a different maze, so the grids are replaced and re-carved. */
@@ -354,7 +358,9 @@ class MazeRenderer : AmbienceRenderer {
         if (sized.width <= 0f) return
         val w = size.width / cols
         val h = size.height / rows
-        val stroke = Stroke(width = 1.6f)
+        // Given in dp and converted here — a DrawScope is a Density — because a wall counted in
+        // raw pixels is a different weight on every screen, and thins away on a dense one.
+        val stroke = Stroke(width = 1.6.dp.toPx())
 
         // Walls first, faint: they are the setting, not the subject.
         val wallColor = tint.copy(alpha = 0.16f)

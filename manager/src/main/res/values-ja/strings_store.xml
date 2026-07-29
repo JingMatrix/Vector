@@ -69,14 +69,11 @@
     <string name="store_info_updated">最新のリリース</string>
     <string name="store_info_created">最初の公開</string>
 
-    <string name="store_doh">ミラーの名前解決に HTTPS を使う</string>
     <string name="store_release_notes_hide">ノートを閉じる</string>
     <string name="store_installed_first">インストール済みを先に</string>
 
     <string name="store_group_sort">並べ替え</string>
     <string name="store_group_priority">優先</string>
     <string name="store_group_channel">チャンネル</string>
-    <string name="store_group_network">ネットワーク</string>
-    <string name="store_doh_summary">モジュールのミラーを名前解決できないネットワーク向けです。</string>
     <string name="store_info_scope_installed">フック対象（インストール済みの版による）</string>
 </resources>

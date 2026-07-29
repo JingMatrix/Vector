@@ -75,6 +75,8 @@ class SnowRenderer : AmbienceRenderer {
     private val growMs = 1500f
 
     override val isAnimating: Boolean
+        // Snowfall has no rest to park on: the floor under [speed] is above zero precisely so that
+        // it never stops, and there is always a crystal somewhere between the top and the bottom.
         get() = true
 
     /**

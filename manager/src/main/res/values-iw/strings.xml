@@ -205,7 +205,6 @@
     <string name="scope_recommended">מבוקשת על ידי המודול הזה</string>
     <string name="scope_static">המודול הזה מגדיר תחום קבוע ואי אפשר להפנות אותו לאפליקציות אחרות.</string>
     <string name="scope_pending">%1$d להוספה, %2$d להסרה</string>
-    <string name="scope_apply_warning">החלה מפעילה מחדש את האפליקציות המושפעות.</string>
     <string name="scope_apply">החלה</string>
     <string name="scope_discard">ביטול</string>
     <string name="scope_applied">התחום הוחל.</string>
@@ -412,4 +411,9 @@
     <string name="modules_load_unsupported_api">מופעל, אבל נבנה עבור libxposed API 100, שהמסגרת הזו כבר לא טוענת.</string>
     <string name="update_root_unknown">גרסת המסגרת הזו לא מדווחת איזה מימוש root מותקן.</string>
     <string name="scope_no_match">אין אפליקציה שתואמת לחיפוש הזה או לסינון הזה.</string>
+    <string name="scope_apply_effect">כל אפליקציה תחיל את זה בהפעלה הבאה שלה.</string>
+    <string name="info_dex2oat_crashed">קרס</string>
+    <string name="info_dex2oat_mount_failed">העגינה נכשלה</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux במצב מתירני</string>
+    <string name="info_dex2oat_sepolicy_incorrect">מדיניות SELinux שגויה</string>
 </resources>

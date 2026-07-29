@@ -616,6 +616,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     }
 
     override fun onCleared() {
+        super.onCleared()
         panes.values.forEach { pane ->
             pane.loadJob?.cancel()
             pane.scanJob?.cancel()

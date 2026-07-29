@@ -122,8 +122,15 @@ class GitHubRepository(
             val windowStart =
                 if (months == 0) 0L
                 else System.currentTimeMillis() / 1000 - months * DAYS_PER_MONTH * 24L * 60 * 60
+            // One read, however this call ends. The same text answers two questions — which fields
+            // a successful fetch could not supply, and what to render when there was no fetch at
+            // all — and re-reading it for the second would be a second pass over the file for an
+            // answer already in hand.
+            val snapshotText = runCatching { snapshotFile.readText() }.getOrNull()
             val previous =
-                runCatching { json.decodeFromString<Snapshot>(snapshotFile.readText()) }.getOrNull()
+                snapshotText?.let {
+                    runCatching { json.decodeFromString<Snapshot>(it) }.getOrNull()
+                }
             val fetched = runCatching { fetch(windowStart, freshness) }
             val fresh = fetched.getOrNull()
             // Not on the Cached path: a cold OkHttp cache answers FORCE_CACHE with an
@@ -163,21 +170,23 @@ class GitHubRepository(
                 )
             }
             val cached =
-                runCatching { json.decodeFromString<Snapshot>(snapshotFile.readText()) }
+                previous
                     // A file written before the total was stored still parses as a bare list, and
                     // is worth reading — it only costs the "you are here" line until the next fetch.
-                    .recoverCatching {
-                        Snapshot(
-                            commits = json.decodeFromString<List<GhCommit>>(snapshotFile.readText())
-                        )
-                    }
+                    ?: runCatching {
+                            Snapshot(
+                                commits =
+                                    json.decodeFromString<List<GhCommit>>(snapshotText.orEmpty())
+                            )
+                        }
+                        .getOrNull()
                     // An empty snapshot rather than an early return with an empty *feed*. The
                     // snapshot is one window's worth of commits; the archive is every commit ever
                     // walked, and it lives in a different file — so giving up here because this
                     // file is missing or unreadable would throw away thousands of commits that are
                     // still on disk. Falling through costs nothing when there really is nothing:
                     // the merge below simply has no fallback to merge.
-                    .getOrNull() ?: Snapshot()
+                    ?: Snapshot()
             build(
                 timeline(cached.commits, windowStart),
                 // Its own file first; the feed snapshot's copy is the fallback behind it.
@@ -209,6 +218,12 @@ class GitHubRepository(
         val merged = LinkedHashMap<String, GhCommit>()
         fallback.forEach { merged[it.sha] = it }
         archive.read().forEach { merged[it.sha] = it }
+        // The author date — when the commit was written — because that is the date printed beside
+        // every row, and a list ordered by one date and labelled with another reads as broken. That
+        // it is not the committer date [backfill] walks on is not an inconsistency: the cursor is a
+        // minimum over a whole page, taken commit by commit through [cursorDateOf], and never the
+        // first or last entry of a sorted list. Ordering here and the cursor there are answers to
+        // different questions and neither is derived from the other.
         val all = merged.values.sortedByDescending { it.commit.author.date }
         // Learned from the whole archive, not from the window, so a co-author trailer in a recent
         // commit can be resolved by an attribution GitHub made three years ago.
@@ -561,6 +576,15 @@ class GitHubRepository(
                 .sortedByDescending { it.epochSeconds }
                 // Newest-first, so the head of the list is the newest commit and its distance
                 // from the repository root is the total count.
+                //
+                // Counting down by position is only right while the list is one unbroken run from
+                // HEAD, and what keeps it unbroken is overlap: every fetch is anchored at HEAD and
+                // brings back the newest hundred, while the backfill only ever extends the oldest
+                // end, so the two meet unless a hundred commits land between two fetches. Nothing
+                // stronger is available — GitHub publishes no per-commit number, and the payload
+                // carries no ancestry to check a run against — so a page lost after it was written
+                // leaves the numbers below the seam reading high. That slides the "you are here"
+                // marker further down the feed; it cannot place a commit where none was.
                 .mapIndexed { index, commit -> commit.copy(globalIndex = totalCommits - index) }
 
         // Credit follows people, not commits: a co-author is a contributor. Bots are excluded —
@@ -938,12 +962,15 @@ class GitHubRepository(
         /**
          * A name shaped like a handle rather than a display name.
          *
-         * A digit, a hyphen or an underscore somewhere in it, no spaces, no accented letters, and
-         * within GitHub's 39-character limit. See [resolvePerson] for why the bar is deliberately
-         * this high.
+         * A digit or a hyphen somewhere in it, no spaces, no accented letters, and within GitHub's
+         * 39-character limit. See [resolvePerson] for why the bar is deliberately this high.
+         *
+         * An underscore is not a handle character — a login is alphanumerics and single hyphens,
+         * nothing else — so `foo_bar` is a display name that no account can be under, and asking
+         * about it spends a request to be told what the shape already said.
          */
         private val HANDLE_SHAPED =
-            Regex("^(?=.*[0-9_-])[A-Za-z0-9](?:[A-Za-z0-9_]|-(?=[A-Za-z0-9_])){0,38}$")
+            Regex("^(?=.*[0-9-])[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$")
 
         /**
          * Six months: long enough that a quiet stretch does not read as a dead project, short

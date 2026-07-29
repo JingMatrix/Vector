@@ -183,7 +183,6 @@
     <string name="scope_recommended">درخواست این ماژول</string>
     <string name="scope_static">این ماژول دامنه‌ای ثابت اعلام می‌کند و نمی‌توان آن را به برنامه‌های دیگر نشانه رفت.</string>
     <string name="scope_pending">%1$d افزوده، %2$d برداشته</string>
-    <string name="scope_apply_warning">اعمال، برنامه‌های دربرگرفته را از نو راه‌اندازی می‌کند.</string>
     <string name="scope_apply">اعمال</string>
     <string name="scope_discard">دور انداختن</string>
     <string name="scope_applied">دامنه اعمال شد.</string>
@@ -386,4 +385,9 @@
     <string name="modules_load_unsupported_api">فعال است، اما برای libxposed API 100 ساخته شده که این چارچوب دیگر آن را بارگذاری نمی‌کند.</string>
     <string name="update_root_unknown">این ساخت چارچوب اعلام نمی‌کند که کدام پیاده‌سازی روت نصب است.</string>
     <string name="scope_no_match">برنامه‌ای با این جستجو یا پالایه هم‌خوان نیست.</string>
+    <string name="scope_apply_effect">هر برنامه این را در اجرای بعدی خود اعمال می‌کند.</string>
+    <string name="info_dex2oat_crashed">از کار افتاد</string>
+    <string name="info_dex2oat_mount_failed">سوارسازی ناموفق بود</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux در حالت آسان‌گیر است</string>
+    <string name="info_dex2oat_sepolicy_incorrect">سیاست SELinux نادرست است</string>
 </resources>

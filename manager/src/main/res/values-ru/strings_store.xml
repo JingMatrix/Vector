@@ -67,14 +67,11 @@
     <string name="store_info_stars">Звёзды</string>
     <string name="store_info_updated">Последний выпуск</string>
     <string name="store_info_created">Первый выпуск</string>
-    <string name="store_doh">Разрешать адреса зеркал через HTTPS</string>
     <string name="store_release_notes_hide">Скрыть описание</string>
     <string name="store_installed_first">Сначала установленные</string>
 
     <string name="store_group_sort">Сортировка</string>
     <string name="store_group_priority">Приоритет</string>
     <string name="store_group_channel">Канал</string>
-    <string name="store_group_network">Сеть</string>
-    <string name="store_doh_summary">Для сетей, которые не разрешают адреса зеркал модулей.</string>
     <string name="store_info_scope_installed">Перехваты, по данным установленной копии</string>
 </resources>

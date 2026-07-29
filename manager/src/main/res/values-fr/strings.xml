@@ -183,7 +183,6 @@
     <string name="scope_recommended">Demandée par ce module</string>
     <string name="scope_static">Ce module déclare une portée fixe et ne peut pas être dirigé vers d\'autres applications.</string>
     <string name="scope_pending">%1$d à ajouter, %2$d à retirer</string>
-    <string name="scope_apply_warning">Appliquer redémarre les applications concernées.</string>
     <string name="scope_apply">Appliquer</string>
     <string name="scope_discard">Abandonner</string>
     <string name="scope_applied">Portée appliquée.</string>
@@ -386,4 +385,9 @@
     <string name="modules_load_unsupported_api">Activé, mais conçu pour l\'API libxposed 100, que ce framework ne charge plus.</string>
     <string name="update_root_unknown">Ce build du framework n\'indique pas quelle implémentation root est installée.</string>
     <string name="scope_no_match">Aucune appli ne correspond à cette recherche ou à ce filtre.</string>
+    <string name="scope_apply_effect">Chaque application le prendra en compte à son prochain démarrage.</string>
+    <string name="info_dex2oat_crashed">A planté</string>
+    <string name="info_dex2oat_mount_failed">Échec du montage</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux est permissif</string>
+    <string name="info_dex2oat_sepolicy_incorrect">Stratégie SELinux incorrecte</string>
 </resources>

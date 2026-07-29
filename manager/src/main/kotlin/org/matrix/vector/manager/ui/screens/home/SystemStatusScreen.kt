@@ -456,14 +456,18 @@ private fun buildSections(
 }
 
 private fun dex2oatLabel(context: Context, compatibility: Int): String =
-    when (compatibility) {
-        ILSPManagerService.DEX2OAT_OK -> context.getString(R.string.info_supported)
-        ILSPManagerService.DEX2OAT_CRASHED -> "crashed"
-        ILSPManagerService.DEX2OAT_MOUNT_FAILED -> "mount failed"
-        ILSPManagerService.DEX2OAT_SELINUX_PERMISSIVE -> "SELinux permissive"
-        ILSPManagerService.DEX2OAT_SEPOLICY_INCORRECT -> "SEPolicy incorrect"
-        else -> context.getString(R.string.info_unsupported)
-    }
+    context.getString(
+        when (compatibility) {
+            ILSPManagerService.DEX2OAT_OK -> R.string.info_supported
+            ILSPManagerService.DEX2OAT_CRASHED -> R.string.info_dex2oat_crashed
+            ILSPManagerService.DEX2OAT_MOUNT_FAILED -> R.string.info_dex2oat_mount_failed
+            ILSPManagerService.DEX2OAT_SELINUX_PERMISSIVE ->
+                R.string.info_dex2oat_selinux_permissive
+            ILSPManagerService.DEX2OAT_SEPOLICY_INCORRECT ->
+                R.string.info_dex2oat_sepolicy_incorrect
+            else -> R.string.info_unsupported
+        }
+    )
 
 private fun copy(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager

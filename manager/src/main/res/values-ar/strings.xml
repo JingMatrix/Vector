@@ -219,7 +219,6 @@
     <string name="scope_recommended">تطلبها هذه الوحدة</string>
     <string name="scope_static">تعلن هذه الوحدة نطاقًا ثابتًا، ولا يمكن توجيهها إلى تطبيقات أخرى.</string>
     <string name="scope_pending">%1$d للإضافة، %2$d للإزالة</string>
-    <string name="scope_apply_warning">التطبيق يعيد تشغيل التطبيقات المعنية.</string>
     <string name="scope_apply">تطبيق</string>
     <string name="scope_discard">تجاهل</string>
     <string name="scope_applied">طُبِّق النطاق.</string>
@@ -430,4 +429,9 @@
     <string name="modules_load_unsupported_api">مفعّلة، لكنها بُنيت على libxposed API 100، ولم يعد هذا الإطار يحمّل هذه الواجهة.</string>
     <string name="update_root_unknown">لا يذكر هذا الإصدار من الإطار تطبيق الروت المثبَّت.</string>
     <string name="scope_no_match">لا تطبيق يطابق هذا البحث أو هذه التصفية.</string>
+    <string name="scope_apply_effect">يسري هذا على كل تطبيق عند تشغيله في المرة القادمة.</string>
+    <string name="info_dex2oat_crashed">تعطّل</string>
+    <string name="info_dex2oat_mount_failed">فشل التركيب</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux في الوضع المتساهل</string>
+    <string name="info_dex2oat_sepolicy_incorrect">سياسة SELinux غير صحيحة</string>
 </resources>

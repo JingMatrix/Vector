@@ -178,7 +178,6 @@
     <string name="scope_recommended">Diminta oleh modul ini</string>
     <string name="scope_static">Modul ini menetapkan cakupan yang tetap dan tidak bisa diarahkan ke aplikasi lain.</string>
     <string name="scope_pending">%1$d ditambah, %2$d dihapus</string>
-    <string name="scope_apply_warning">Menerapkan akan memulai ulang aplikasi yang terpengaruh.</string>
     <string name="scope_apply">Terapkan</string>
     <string name="scope_discard">Buang</string>
     <string name="scope_applied">Cakupan diterapkan.</string>
@@ -379,4 +378,9 @@
     <string name="modules_load_unsupported_api">Aktif, tetapi dibuat untuk libxposed API 100, yang tidak lagi dimuat framework ini.</string>
     <string name="update_root_unknown">Build framework ini tidak melaporkan implementasi root mana yang terpasang.</string>
     <string name="scope_no_match">Tidak ada aplikasi yang cocok dengan pencarian atau saringan itu.</string>
+    <string name="scope_apply_effect">Setiap aplikasi menerapkannya saat berikutnya dijalankan.</string>
+    <string name="info_dex2oat_crashed">Mengalami crash</string>
+    <string name="info_dex2oat_mount_failed">Gagal memasang</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux dalam mode permissive</string>
+    <string name="info_dex2oat_sepolicy_incorrect">Kebijakan SELinux salah</string>
 </resources>

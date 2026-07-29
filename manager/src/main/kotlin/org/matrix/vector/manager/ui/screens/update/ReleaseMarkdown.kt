@@ -100,8 +100,16 @@ internal fun releaseMarkdownToHtml(markdown: String): String {
         if (trimmed.startsWith("> ")) {
             closeParagraph()
             closeList()
-            out.append("<blockquote>").append(inline(trimmed.removePrefix("> "))).append("</blockquote>")
-            index++
+            // Consecutive quoted lines are one quote, the way markdown reads them. A blockquote
+            // each would stack a rule and a margin between every line of a note its author wrote
+            // as a single paragraph.
+            val quote = StringBuilder()
+            while (index < lines.size && lines[index].trim().startsWith("> ")) {
+                if (quote.isNotEmpty()) quote.append(' ')
+                quote.append(lines[index].trim().removePrefix("> "))
+                index++
+            }
+            out.append("<blockquote>").append(inline(quote.toString())).append("</blockquote>")
             continue
         }
 
@@ -174,8 +182,8 @@ internal fun releaseMarkdownToHtml(markdown: String): String {
 private fun isAlignmentRow(line: String): Boolean {
     val trimmed = line.trim()
     if (!trimmed.startsWith("|")) return false
-    return splitRow(trimmed).isNotEmpty() &&
-        splitRow(trimmed).all { Regex("^:?-{1,}:?$").matches(it.trim()) }
+    val cells = splitRow(trimmed)
+    return cells.isNotEmpty() && cells.all { Regex("^:?-{1,}:?$").matches(it.trim()) }
 }
 
 /** Cells of one row, without the outer pipes. Escaped pipes inside cells are not supported. */

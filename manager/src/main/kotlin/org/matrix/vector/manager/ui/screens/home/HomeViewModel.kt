@@ -201,12 +201,7 @@ class HomeViewModel(
             )
 
         if (versionCode > 0) {
-            viewModelScope.launch {
-                ServiceLocator.frameworkUpdates.refresh(
-                    versionCode,
-                    daemon.getFrameworkCommit().getOrNull(),
-                )
-            }
+            viewModelScope.launch { ServiceLocator.frameworkUpdates.refresh(versionCode, commit) }
         }
     }
 
@@ -326,19 +321,28 @@ class HomeViewModel(
     }
 
     fun refreshFeed(freshness: GitHubRepository.Freshness) {
+        // Claimed before the coroutine starts rather than inside it. A pull-to-refresh that lands
+        // while init's own load is still running would otherwise fetch the same window twice, and
+        // the second answer would overwrite the first for no gain.
+        if (_refreshing.value) return
+        _refreshing.value = true
         viewModelScope.launch {
-            _refreshing.value = true
-            // Loaded first, assigned second, rather than through `MutableStateFlow.update`. That
-            // is a compare-and-set spin loop — it re-invokes its lambda whenever another writer
-            // wins the race — and the lambda here would be a network fetch, an archive append, a
-            // snapshot rewrite and a several-thousand-commit re-parse. Three writers touch this
-            // flow: the window collector, pull-to-refresh and the backfill.
-            val loaded = github.load(freshness)
-            _feed.value = loaded
-            _refreshing.value = false
-            // Any load that asked the network for something settles the debt below, whether or not
-            // the answer came from there in the end.
-            if (freshness != GitHubRepository.Freshness.Cached) _windowChanged.value = false
+            try {
+                // Loaded first, assigned second, rather than through `MutableStateFlow.update`.
+                // That is a compare-and-set spin loop — it re-invokes its lambda whenever another
+                // writer wins the race — and the lambda here would be a network fetch, an archive
+                // append, a snapshot rewrite and a several-thousand-commit re-parse. Three writers
+                // touch this flow: the window collector, pull-to-refresh and the backfill.
+                val loaded = github.load(freshness)
+                _feed.value = loaded
+                // Any load that asked the network for something settles the debt below, whether or
+                // not the answer came from there in the end.
+                if (freshness != GitHubRepository.Freshness.Cached) _windowChanged.value = false
+            } finally {
+                // Given back even when the load threw. A flag left set spins the indicator for the
+                // life of the process and turns every later pull into a no-op.
+                _refreshing.value = false
+            }
         }
     }
 
@@ -375,18 +379,23 @@ class HomeViewModel(
         if (_loadingHistory.value || !_feed.value.hasMoreHistory) return
         _loadingHistory.value = true
         viewModelScope.launch {
-            val added = runCatching { github.backfill() }.getOrDefault(0)
-            // Reads from disk: the pages just walked are already in the archive, and going back to
-            // GitHub here would spend a request to be told what we have just been told. The reload
-            // happens even when nothing was added, so that a walk which ended by finding no new
-            // commits can clear the invitation to keep scrolling.
-            _feed.value = github.load(GitHubRepository.Freshness.Cached)
-            // Assigned rather than latched. A walk that came back with commits is proof the
-            // network and the rate limit are fine, so it has to be able to clear this as well as
-            // to set it; otherwise one refused walk would leave the rail insisting history had run
-            // out for the rest of the process.
-            _exhausted.value = added == 0
-            _loadingHistory.value = false
+            try {
+                val added = runCatching { github.backfill() }.getOrDefault(0)
+                // Reads from disk: the pages just walked are already in the archive, and going
+                // back to GitHub here would spend a request to be told what we have just been
+                // told. The reload happens even when nothing was added, so that a walk which ended
+                // by finding no new commits can clear the invitation to keep scrolling.
+                _feed.value = github.load(GitHubRepository.Freshness.Cached)
+                // Assigned rather than latched. A walk that came back with commits is proof the
+                // network and the rate limit are fine, so it has to be able to clear this as well
+                // as to set it; otherwise one refused walk would leave the rail insisting history
+                // had run out for the rest of the process.
+                _exhausted.value = added == 0
+            } finally {
+                // Given back even when the reload threw, since the guard above reads this flag —
+                // leaving it set would end the rail's history for the life of the process.
+                _loadingHistory.value = false
+            }
         }
     }
 

@@ -87,7 +87,7 @@ sealed interface LogRow {
         val message: String,
         /** Continuation lines of a multi-line message — in practice, stack frames. */
         val trace: List<String> = emptyList(),
-        /** Set when the line exceeded [MAX_LINE_CHARS] and was cut. */
+        /** Set when the line exceeded [MAX_LINE_BYTES] and was cut. */
         val truncated: Boolean = false,
     ) : LogRow
 
@@ -102,13 +102,14 @@ sealed interface LogRow {
 }
 
 /**
- * Cut point for a single line, applied to the raw bytes as the line is read.
+ * Cut point for a single line, counted in bytes because that is what the reader has: the line is
+ * cut before it is decoded, from the byte offsets the index recorded.
  *
  * The longest line observed in either log on a real device is 816 characters (an attestation
  * dump), so this only ever bites on pathological output — but without it one runaway line sets
  * the horizontal extent for the entire list and makes panning useless.
  */
-const val MAX_LINE_CHARS = 4096
+const val MAX_LINE_BYTES = 4096
 
 /** The three-character delimiter that ends the prefix. See [parseLogLine]. */
 private const val DELIMITER = " ] "

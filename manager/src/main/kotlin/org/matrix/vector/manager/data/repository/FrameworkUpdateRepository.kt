@@ -50,8 +50,6 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
 
         _state.value =
             FrameworkUpdateState(
-                loaded = true,
-                onCanaryChannel = onCanary,
                 installedVersionCode = installedVersionCode,
                 installedCommit = installedCommit,
                 available = newest?.takeIf { it.versionCode > installedVersionCode },
@@ -66,13 +64,11 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
 /**
  * What is known about framework updates right now.
  *
- * [available] is null both when nothing newer exists and before anything has been fetched, which a
- * screen must not confuse: [loaded] is what separates "there is nothing newer" from "nobody has
- * asked yet".
+ * [available] is null both when nothing newer exists and before anything has been fetched. Nothing
+ * asks the two apart: the screens that read this show an update when there is one and say nothing
+ * when there is not, which is the same answer either way.
  */
 data class FrameworkUpdateState(
-    val loaded: Boolean = false,
-    val onCanaryChannel: Boolean = false,
     val installedVersionCode: Long = 0,
     /** The commit the running daemon was built from, when it recorded one. */
     val installedCommit: String? = null,

@@ -72,14 +72,11 @@
     <string name="store_info_updated">Dernière version</string>
     <string name="store_info_created">Première publication</string>
 
-    <string name="store_doh">Résoudre les miroirs via HTTPS</string>
     <string name="store_release_notes_hide">Masquer les notes</string>
     <string name="store_installed_first">Installés d\'abord</string>
 
     <string name="store_group_sort">Tri</string>
     <string name="store_group_priority">Priorité</string>
     <string name="store_group_channel">Canal</string>
-    <string name="store_group_network">Réseau</string>
-    <string name="store_doh_summary">Pour les réseaux qui ne résolvent pas les miroirs de modules.</string>
     <string name="store_info_scope_installed">Cibles, d’après la copie installée</string>
 </resources>

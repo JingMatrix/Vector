@@ -78,14 +78,11 @@
     <string name="store_info_updated">הגרסה האחרונה</string>
     <string name="store_info_created">פרסום ראשון</string>
 
-    <string name="store_doh">פענוח כתובות המראות דרך HTTPS</string>
     <string name="store_release_notes_hide">הסתרת ההערות</string>
     <string name="store_installed_first">המותקנים קודם</string>
 
     <string name="store_group_sort">מיון</string>
     <string name="store_group_priority">עדיפות</string>
     <string name="store_group_channel">ערוץ</string>
-    <string name="store_group_network">רשת</string>
-    <string name="store_doh_summary">לרשתות שלא מצליחות לפענח את כתובות מראות המודולים.</string>
     <string name="store_info_scope_installed">ווים, לפי העותק המותקן</string>
 </resources>

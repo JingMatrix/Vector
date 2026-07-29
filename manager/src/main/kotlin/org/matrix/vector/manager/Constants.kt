@@ -1,7 +1,7 @@
 package org.matrix.vector.manager
-import android.util.Log
 
 import android.os.IBinder
+import android.util.Log
 import kotlin.system.exitProcess
 import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.di.ServiceLocator

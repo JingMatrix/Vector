@@ -10,7 +10,6 @@ import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.MoreVert
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.text.format.Formatter
 import androidx.compose.foundation.background
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -62,7 +60,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -91,7 +88,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.currentLocale
@@ -549,16 +545,15 @@ private fun ReleasesTab(
     ) {
         itemsIndexed(state.releases, key = { index, release -> release.key(index) }) { index, release
             ->
+            val key = release.key(index)
             ReleaseCard(
                 release = release,
                 // Compared on the version code, which is what the platform compares. Two
                 // releases can carry the same name and be different builds.
                 installed =
                     release.version != null && state.installed?.versionCode == release.version?.versionCode,
-                notesOpen = expanded == release.key(index),
-                onToggleNotes = {
-                    expanded = if (expanded == release.key(index)) null else release.key(index)
-                },
+                notesOpen = expanded == key,
+                onToggleNotes = { expanded = if (expanded == key) null else key },
                 onOpenUrl = onOpenUrl,
                 onInstall = { onInstall(release) },
             )

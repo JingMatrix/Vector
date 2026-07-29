@@ -22,7 +22,6 @@ import org.lsposed.lspd.models.Application
 import org.lsposed.lspd.models.UserInfo
 import org.matrix.vector.manager.data.model.InstalledModule
 import org.matrix.vector.manager.data.model.MATCH_ANY_USER
-import org.matrix.vector.manager.data.model.ModuleDetection
 import org.matrix.vector.manager.data.model.PER_USER_RANGE
 import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.manager.data.model.StoreEntry
@@ -160,8 +159,6 @@ class ModulesViewModel(
         ServiceLocator.moduleUpdates.start(items)
 
     fun acknowledgeUpdates() = ServiceLocator.moduleUpdates.acknowledge()
-
-    private val _frameworkApi = MutableStateFlow(0)
 
     /** "8 of 14 active", without needing the filtered list. */
     val counts: StateFlow<Pair<Int, Int>> =
@@ -408,7 +405,6 @@ class ModulesViewModel(
     private fun loadFacts(tabs: List<UserModulesState>) {
         viewModelScope.launch(Dispatchers.IO) {
             val api = daemonClient.getXposedApiVersion().getOrDefault(0)
-            _frameworkApi.value = api
             // One call for the whole list. Asking per module would be one binder round trip per
             // row for an answer that is empty on almost every device.
             val unloadable =
@@ -480,8 +476,11 @@ class ModulesViewModel(
                                 .take(SCOPE_PREVIEW_LIMIT)
                                 .toList(),
                     )
-                _facts.value = collected.toMap()
             }
+            // Published once, when every row's answer is in. Handing out a map per module copies
+            // the whole thing again for each one, and every copy is a new map to the list, so the
+            // rows all recompose for one row's worth of news.
+            _facts.value = collected.toMap()
         }
     }
 

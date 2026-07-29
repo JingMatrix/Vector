@@ -1,7 +1,6 @@
 package org.matrix.vector.manager.ui.screens.web
 
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -45,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -272,7 +272,9 @@ fun WebScreen(url: String, onNavigateBack: () -> Unit) {
                 label = "webProgressAlpha",
             )
             if (shown > 0f) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(2.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().height(2.dp).alpha(shown)
+                )
             }
             Box(Modifier.fillMaxSize()) {
                 AndroidView(

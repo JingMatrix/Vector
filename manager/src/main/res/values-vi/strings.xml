@@ -174,7 +174,6 @@
     <string name="scope_recommended">Mô-đun này yêu cầu</string>
     <string name="scope_static">Mô-đun này khai báo phạm vi cố định và không thể hướng sang ứng dụng khác.</string>
     <string name="scope_pending">Thêm %1$d, bỏ %2$d</string>
-    <string name="scope_apply_warning">Áp dụng sẽ khởi động lại các ứng dụng liên quan.</string>
     <string name="scope_apply">Áp dụng</string>
     <string name="scope_discard">Bỏ</string>
     <string name="scope_applied">Đã áp dụng phạm vi.</string>
@@ -375,4 +374,9 @@
     <string name="modules_load_unsupported_api">Đã bật, nhưng được dựng cho libxposed API 100, mà framework này không còn nạp nữa.</string>
     <string name="update_root_unknown">Bản dựng framework này không cho biết đang có bản cài root nào.</string>
     <string name="scope_no_match">Không có ứng dụng nào khớp với tìm kiếm hoặc bộ lọc đó.</string>
+    <string name="scope_apply_effect">Mỗi ứng dụng sẽ áp dụng điều này trong lần khởi động tiếp theo.</string>
+    <string name="info_dex2oat_crashed">Đã gặp sự cố</string>
+    <string name="info_dex2oat_mount_failed">Gắn kết thất bại</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux đang ở chế độ permissive</string>
+    <string name="info_dex2oat_sepolicy_incorrect">Chính sách SELinux không đúng</string>
 </resources>

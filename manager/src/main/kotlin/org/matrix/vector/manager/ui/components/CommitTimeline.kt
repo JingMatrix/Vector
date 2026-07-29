@@ -96,14 +96,18 @@ fun CommitRow(
             val prLabel = commit.pullRequest?.let { "#$it" }
 
             val badgeSize =
-                remember(commit.shortSha, prLabel) {
+                remember(commit.shortSha, prLabel, density) {
                     val sha = measurer.measure(commit.shortSha, VectorMono).size
                     val pr = prLabel?.let { measurer.measure(it, VectorMono).size }
                     // Slack over the measured text: one chip's horizontal padding and border,
                     // per chip, plus the gap between them.
-                    val width =
-                        sha.width + CHIP_PAD_PX + (pr?.let { it.width + CHIP_PAD_PX + GAP_PX } ?: 0)
-                    val height = maxOf(sha.height, pr?.height ?: 0) + CHIP_PAD_PX
+                    val pad = with(density) { CHIP_PADDING.roundToPx() }
+                    val chip = (pad + with(density) { CHIP_BORDER.roundToPx() }) * 2
+                    val gap = with(density) { CHIP_GAP.roundToPx() }
+                    val width = sha.width + chip + (pr?.let { it.width + chip + gap } ?: 0)
+                    // The chips fill the placeholder's height, so the same padding again is what
+                    // keeps their background off the text above and below it.
+                    val height = maxOf(sha.height, pr?.height ?: 0) + pad * 2
                     width to height
                 }
 
@@ -124,7 +128,7 @@ fun CommitRow(
                             )
                         ) {
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(CHIP_GAP),
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxSize(),
                             ) {
@@ -133,7 +137,7 @@ fun CommitRow(
                                         Modifier.fillMaxHeight()
                                             .clip(RoundedCornerShape(4.dp))
                                             .background(colors.surfaceContainerHigh)
-                                            .padding(horizontal = 5.dp),
+                                            .padding(horizontal = CHIP_PADDING),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
@@ -150,14 +154,14 @@ fun CommitRow(
                                             Modifier.fillMaxHeight()
                                                 .clip(RoundedCornerShape(4.dp))
                                                 .border(
-                                                    1.dp,
+                                                    CHIP_BORDER,
                                                     colors.primary.copy(alpha = 0.4f),
                                                     RoundedCornerShape(4.dp),
                                                 )
                                                 .clickable {
                                                     onOpenPullRequest(commit.pullRequest)
                                                 }
-                                                .padding(horizontal = 5.dp),
+                                                .padding(horizontal = CHIP_PADDING),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Text(prLabel, style = VectorMono, color = colors.primary)
@@ -442,13 +446,16 @@ fun MonthMarkerRow(month: Int, year: Int?, commits: Int, people: Int, modifier: 
 private const val BADGE_SLOT = "badges"
 
 /**
- * Horizontal padding inside a chip, and the gap between the two, in raw pixels.
+ * The chips' own metrics, which the placeholder standing in for them has to leave room for.
  *
- * Raw rather than converted from the 5 dp and 4 dp the chips are laid out with, so the placeholder
- * they size is a little tight or a little loose away from the density they were taken at.
+ * The chips are laid out from these same values rather than from their own literals, so the
+ * placeholder cannot drift from the thing it is sizing. Held as dp and converted at the reader's
+ * density rather than written down as the pixels they came to on one screen, where the placeholder
+ * ends up a little tight or a little loose everywhere else — and a tight one clips the chip.
  */
-private const val CHIP_PAD_PX = 26
-private const val GAP_PX = 12
+private val CHIP_PADDING = 5.dp
+private val CHIP_BORDER = 1.dp
+private val CHIP_GAP = 4.dp
 
 /**
  * The foot of the rail: where the history runs out, or where it is still being fetched.

@@ -183,7 +183,6 @@
     <string name="scope_recommended">Bu modülün istediği</string>
     <string name="scope_static">Bu modül sabit bir kapsam bildiriyor ve başka uygulamalara yöneltilemez.</string>
     <string name="scope_pending">%1$d eklenecek, %2$d çıkarılacak</string>
-    <string name="scope_apply_warning">Uygulamak, etkilenen uygulamaları yeniden başlatır.</string>
     <string name="scope_apply">Uygula</string>
     <string name="scope_discard">Vazgeç</string>
     <string name="scope_applied">Kapsam uygulandı.</string>
@@ -386,4 +385,9 @@
     <string name="modules_load_unsupported_api">Etkin, ancak libxposed API 100 için derlendi; bu çerçeve artık onu yüklemiyor.</string>
     <string name="update_root_unknown">Bu çatı derlemesi hangi root uygulamasının kurulu olduğunu bildirmiyor.</string>
     <string name="scope_no_match">Bu arama veya süzgeçle eşleşen uygulama yok.</string>
+    <string name="scope_apply_effect">Her uygulama bunu bir sonraki başlatılışında uygular.</string>
+    <string name="info_dex2oat_crashed">Çöktü</string>
+    <string name="info_dex2oat_mount_failed">Bağlama başarısız</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux izin verici durumda</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux ilkesi hatalı</string>
 </resources>

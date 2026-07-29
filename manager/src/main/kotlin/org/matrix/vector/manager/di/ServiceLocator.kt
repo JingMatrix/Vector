@@ -75,10 +75,6 @@ object ServiceLocator {
             appContext
                 ?: error("ServiceLocator.attach() must run before the UI touches the context")
 
-    /** True once the activity has handed us a context. */
-    val isAttached: Boolean
-        get() = appContext != null
-
     val daemon: DaemonClient by lazy { DaemonClient(service) }
 
     val http: OkHttpClient by lazy { HttpClientFactory.create(context, settings) }

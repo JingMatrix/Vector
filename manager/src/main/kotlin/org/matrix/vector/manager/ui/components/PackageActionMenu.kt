@@ -1,11 +1,10 @@
 package org.matrix.vector.manager.ui.components
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import android.text.format.Formatter
@@ -57,7 +57,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.matrix.vector.manager.data.model.ReleaseAsset
-import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.ui.screens.repo.StoreChannel
 import org.matrix.vector.manager.ui.screens.repo.releasesOn

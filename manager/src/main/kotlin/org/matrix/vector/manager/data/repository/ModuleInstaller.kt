@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -121,6 +122,10 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
                         else InstallStep.Failed(packageName, result.second)
                 }
             } catch (e: Exception) {
+                // The check in stream() cancels by throwing, and a cancelled transfer is not a
+                // failed install: reporting it as one would put an error on a screen the reader
+                // has already left, and would race the acknowledge() that cancelled it.
+                if (e is CancellationException) throw e
                 Log.w(Constants.TAG, "store: install of $packageName failed", e)
                 _state.value = InstallStep.Failed(packageName, e.message)
             } finally {

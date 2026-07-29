@@ -93,13 +93,10 @@
     <string name="store_info_updated">Last release</string>
     <string name="store_info_created">First published</string>
 
-    <string name="store_doh">Resolve mirrors over HTTPS</string>
     <string name="store_release_notes_hide">Hide the notes</string>
     <string name="store_installed_first">Installed first</string>
 
     <string name="store_group_sort">Sort</string>
     <string name="store_group_priority">Priority</string>
     <string name="store_group_channel">Channel</string>
-    <string name="store_group_network">Network</string>
-    <string name="store_doh_summary">For networks that will not resolve the module mirrors.</string>
 </resources>

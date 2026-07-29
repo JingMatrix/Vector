@@ -69,14 +69,11 @@
     <string name="store_info_updated">최근 릴리스</string>
     <string name="store_info_created">처음 공개</string>
 
-    <string name="store_doh">미러 주소를 HTTPS로 해석</string>
     <string name="store_release_notes_hide">노트 접기</string>
     <string name="store_installed_first">설치된 것부터</string>
 
     <string name="store_group_sort">정렬</string>
     <string name="store_group_priority">우선순위</string>
     <string name="store_group_channel">채널</string>
-    <string name="store_group_network">네트워크</string>
-    <string name="store_doh_summary">모듈 미러 주소를 해석하지 못하는 네트워크를 위한 설정입니다.</string>
     <string name="store_info_scope_installed">후킹 대상, 설치된 사본 기준</string>
 </resources>

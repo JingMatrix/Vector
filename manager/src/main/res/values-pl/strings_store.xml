@@ -78,14 +78,11 @@
     <string name="store_info_updated">Ostatnie wydanie</string>
     <string name="store_info_created">Pierwsza publikacja</string>
 
-    <string name="store_doh">Rozwiązuj adresy serwerów lustrzanych przez HTTPS</string>
     <string name="store_release_notes_hide">Ukryj informacje</string>
     <string name="store_installed_first">Najpierw zainstalowane</string>
 
     <string name="store_group_sort">Sortowanie</string>
     <string name="store_group_priority">Priorytet</string>
     <string name="store_group_channel">Kanał</string>
-    <string name="store_group_network">Sieć</string>
-    <string name="store_doh_summary">Dla sieci, które nie rozwiązują adresów serwerów lustrzanych modułów.</string>
     <string name="store_info_scope_installed">Podpięcia, według zainstalowanej kopii</string>
 </resources>

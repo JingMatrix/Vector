@@ -132,8 +132,10 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                     ?.let { byShaLatestWins[it.sha] = it }
             }
         }
-        corruptLines = skipped
         lineCount = total
+        // Ordered by the author date, which is the date the feed prints beside every row. It is
+        // deliberately not the committer date the backfill walks on: that cursor is a minimum over
+        // a whole page, never the end of this list, so the two orders never have to agree.
         val unique = byShaLatestWins.values.sortedByDescending { it.commit.author.date }
         // Exactly one bad line is the truncated tail above and is not worth saying anything about;
         // more than one is systematic — a renamed field would make the whole archive read as empty.
@@ -214,7 +216,6 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                     )
                     tmp.renameTo(file)
                     parsed = unique
-                    corruptLines = 0
                     lineCount = unique.size
                 }
                 .onFailure { e ->
@@ -222,14 +223,6 @@ class CommitArchive(private val file: File, private val stateFile: File, private
                 }
         }
     }
-
-    /**
-     * Lines the last parse could not read.
-     *
-     * Counted rather than flagged because one is the tail a process killed mid-append leaves
-     * behind, costing that commit and nothing else, and more than one means something tore.
-     */
-    @Volatile private var corruptLines = 0
 
     /** Lines the last parse walked, so compaction need not read the file again to count them. */
     @Volatile private var lineCount = 0

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import java.io.File
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -79,6 +80,13 @@ class FrameworkInstaller(
             try {
                 download(url, declaredSize, fileName)
             } catch (e: Exception) {
+                if (e is CancellationException) {
+                    // Leaving the screen cancels the download, and a cancellation is not a missing
+                    // file. It has to travel on — but the bar goes back to resting first, because
+                    // the progress line has no button on it and nothing else would ever move it.
+                    _state.value = FlashStep.Idle
+                    throw e
+                }
                 Log.w(Constants.TAG, "update: download failed", e)
                 append("Download failed: ${e.message}")
                 _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
@@ -86,12 +94,17 @@ class FrameworkInstaller(
             }
 
         _state.value = FlashStep.Flashing
+        var cancelled = false
         try {
             awaitInstall(zip.absolutePath)
+        } catch (e: CancellationException) {
+            cancelled = true
+            throw e
         } finally {
-            // Deleted once this is no longer waiting on the install: a release zip left in the
-            // cache costs tens of megabytes that nothing else will ever clean up.
-            runCatching { zip.delete() }
+            // Deleted once the installer has exited: a release zip left in the cache costs tens of
+            // megabytes that nothing else will ever clean up. A cancelled wait is not an exited
+            // installer — the daemon flashes on regardless, out of this very file.
+            if (!cancelled) runCatching { zip.delete() }
         }
     }
 

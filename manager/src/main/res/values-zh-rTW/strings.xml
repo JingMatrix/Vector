@@ -174,7 +174,6 @@
     <string name="scope_recommended">此模組要求的應用程式</string>
     <string name="scope_static">此模組宣告了固定範圍，無法指向其他應用程式。</string>
     <string name="scope_pending">將新增 %1$d 項、移除 %2$d 項</string>
-    <string name="scope_apply_warning">套用變更會重新啟動受影響的應用程式。</string>
     <string name="scope_apply">套用</string>
     <string name="scope_discard">捨棄</string>
     <string name="scope_applied">範圍已套用。</string>
@@ -376,4 +375,9 @@
     <string name="modules_load_unsupported_api">已啟用，但針對 libxposed API 100 建置，此框架已不再載入該版本。</string>
     <string name="update_root_unknown">此框架建置不會回報已安裝的是哪一種 root 實作。</string>
     <string name="scope_no_match">沒有符合該搜尋或篩選條件的應用程式。</string>
+    <string name="scope_apply_effect">每個應用程式會在下次啟動時生效。</string>
+    <string name="info_dex2oat_crashed">已當機</string>
+    <string name="info_dex2oat_mount_failed">掛載失敗</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux 處於寬容模式</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux 政策不正確</string>
 </resources>

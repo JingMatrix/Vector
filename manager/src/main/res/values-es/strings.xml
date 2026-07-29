@@ -183,7 +183,6 @@
     <string name="scope_recommended">Pedida por este módulo</string>
     <string name="scope_static">Este módulo declara un ámbito fijo y no se puede apuntar a otras apps.</string>
     <string name="scope_pending">%1$d por añadir, %2$d por quitar</string>
-    <string name="scope_apply_warning">Aplicar reinicia las apps afectadas.</string>
     <string name="scope_apply">Aplicar</string>
     <string name="scope_discard">Descartar</string>
     <string name="scope_applied">Ámbito aplicado.</string>
@@ -386,4 +385,9 @@
     <string name="modules_load_unsupported_api">Activado, pero compilado para la API 100 de libxposed, que este framework ya no carga.</string>
     <string name="update_root_unknown">Esta compilación del framework no indica qué implementación de root está instalada.</string>
     <string name="scope_no_match">Ninguna app coincide con esa búsqueda o ese filtro.</string>
+    <string name="scope_apply_effect">Cada app lo aplica la próxima vez que se inicia.</string>
+    <string name="info_dex2oat_crashed">Falló</string>
+    <string name="info_dex2oat_mount_failed">Error al montar</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux es permisivo</string>
+    <string name="info_dex2oat_sepolicy_incorrect">Política de SELinux incorrecta</string>
 </resources>

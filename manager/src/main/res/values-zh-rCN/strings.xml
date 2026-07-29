@@ -174,7 +174,6 @@
     <string name="scope_recommended">此模块请求的应用</string>
     <string name="scope_static">此模块声明了固定作用域，无法指向其他应用。</string>
     <string name="scope_pending">将新增 %1$d 项，移除 %2$d 项</string>
-    <string name="scope_apply_warning">应用更改会重启受影响的应用。</string>
     <string name="scope_apply">应用</string>
     <string name="scope_discard">放弃</string>
     <string name="scope_applied">作用域已应用。</string>
@@ -376,4 +375,9 @@
     <string name="modules_load_unsupported_api">已启用，但针对 libxposed API 100 构建，此框架已不再加载该版本。</string>
     <string name="update_root_unknown">此框架构建不会报告已安装的是哪一种 root 实现。</string>
     <string name="scope_no_match">没有符合该搜索或筛选条件的应用。</string>
+    <string name="scope_apply_effect">每个应用会在下次启动时生效。</string>
+    <string name="info_dex2oat_crashed">已崩溃</string>
+    <string name="info_dex2oat_mount_failed">挂载失败</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux 处于宽容模式</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux 策略不正确</string>
 </resources>

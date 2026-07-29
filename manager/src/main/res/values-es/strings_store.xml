@@ -72,14 +72,11 @@
     <string name="store_info_updated">Última versión</string>
     <string name="store_info_created">Primera publicación</string>
 
-    <string name="store_doh">Resolver los espejos por HTTPS</string>
     <string name="store_release_notes_hide">Ocultar las notas</string>
     <string name="store_installed_first">Instalados primero</string>
 
     <string name="store_group_sort">Orden</string>
     <string name="store_group_priority">Prioridad</string>
     <string name="store_group_channel">Canal</string>
-    <string name="store_group_network">Red</string>
-    <string name="store_doh_summary">Para redes que no resuelven los espejos de módulos.</string>
     <string name="store_info_scope_installed">Hooks, según la copia instalada</string>
 </resources>

@@ -84,14 +84,11 @@
     <string name="store_info_updated">آخر إصدار</string>
     <string name="store_info_created">أول نشر</string>
 
-    <string name="store_doh">تحليل المرايا عبر HTTPS</string>
     <string name="store_release_notes_hide">إخفاء الملاحظات</string>
     <string name="store_installed_first">المثبَّتة أولًا</string>
 
     <string name="store_group_sort">الترتيب</string>
     <string name="store_group_priority">الأولوية</string>
     <string name="store_group_channel">القناة</string>
-    <string name="store_group_network">الشبكة</string>
-    <string name="store_doh_summary">للشبكات التي لا تحلّ عناوين مرايا الوحدات.</string>
     <string name="store_info_scope_installed">العناصر المُعترضة، بحسب النسخة المثبَّتة</string>
 </resources>

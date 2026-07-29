@@ -9,7 +9,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.ambience.AmbienceKind
 import org.matrix.vector.manager.ui.components.ambience.AmbientSurface
-import org.matrix.vector.manager.ui.theme.VectorMono
 
 /** The three states the framework can be in, plus the moment before we know. */
 enum class FrameworkState {

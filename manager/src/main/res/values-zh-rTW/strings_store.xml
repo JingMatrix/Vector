@@ -69,14 +69,11 @@
     <string name="store_info_updated">最近發行</string>
     <string name="store_info_created">首次發行</string>
 
-    <string name="store_doh">透過 HTTPS 解析鏡像網域</string>
     <string name="store_release_notes_hide">收合版本說明</string>
     <string name="store_installed_first">已安裝的優先</string>
 
     <string name="store_group_sort">排序</string>
     <string name="store_group_priority">優先</string>
     <string name="store_group_channel">通道</string>
-    <string name="store_group_network">網路</string>
-    <string name="store_doh_summary">適用於無法解析模組鏡像網域的網路。</string>
     <string name="store_info_scope_installed">掛鉤目標（依已安裝的副本）</string>
 </resources>

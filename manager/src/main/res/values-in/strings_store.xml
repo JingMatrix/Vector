@@ -69,14 +69,11 @@
     <string name="store_info_updated">Rilis terakhir</string>
     <string name="store_info_created">Pertama diterbitkan</string>
 
-    <string name="store_doh">Resolusi cermin lewat HTTPS</string>
     <string name="store_release_notes_hide">Sembunyikan catatan</string>
     <string name="store_installed_first">Yang terpasang dulu</string>
 
     <string name="store_group_sort">Urutan</string>
     <string name="store_group_priority">Prioritas</string>
     <string name="store_group_channel">Kanal</string>
-    <string name="store_group_network">Jaringan</string>
-    <string name="store_doh_summary">Untuk jaringan yang tidak bisa me-resolve cermin modul.</string>
     <string name="store_info_scope_installed">Hook, menurut salinan terpasang</string>
 </resources>

@@ -51,6 +51,10 @@
     <string name="info_abi">Architecture</string>
     <string name="info_supported">Supported</string>
     <string name="info_unsupported">Unsupported</string>
+    <string name="info_dex2oat_crashed">Crashed</string>
+    <string name="info_dex2oat_mount_failed">Mount failed</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux is permissive</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux policy incorrect</string>
     <string name="info_loaded">Loaded</string>
     <string name="info_not_loaded">Not loaded</string>
     <string name="info_injected">Injected</string>
@@ -253,7 +257,7 @@
     <string name="scope_static">This module declares a fixed scope and cannot be pointed at other apps.</string>
     <!-- e.g. "3 to add, 1 to remove" -->
     <string name="scope_pending">%1$d to add, %2$d to remove</string>
-    <string name="scope_apply_warning">Applying restarts the affected apps.</string>
+    <string name="scope_apply_effect">Each app picks this up the next time it starts.</string>
     <string name="scope_apply">Apply</string>
     <string name="scope_discard">Discard</string>
     <string name="scope_applied">Scope applied.</string>

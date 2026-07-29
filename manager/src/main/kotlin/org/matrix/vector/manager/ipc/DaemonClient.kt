@@ -1,6 +1,4 @@
 package org.matrix.vector.manager.ipc
-import android.util.Log
-import org.matrix.vector.manager.Constants
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -8,7 +6,9 @@ import kotlinx.coroutines.withContext
 import org.lsposed.lspd.IFrameworkInstallCallback
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.util.Log
 import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.manager.Constants
 
 /**
  * Every call the manager makes to the daemon, as coroutines.
@@ -139,11 +139,13 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
             // The daemon hands back the activity manager's own start code, so a refusal reaches the
             // caller rather than a flat `true`: a refused user switch (-1), a disabled or
             // unexported activity, an activity that has gone since it was resolved. Reporting any
-            // of those as "opened" leaves the screen silent with nothing in front of it.
-            // `ActivityManager.START_SUCCESS` is 0 and @hide, so the comparison is written out —
-            // fatal refusals occupy -100 to -1 and successes 0 to 99, while the non-fatal band from
-            // 100 up (app switches cancelled, lock-task violation) passes this test as well.
-            val started = code >= 0
+            // of those as "opened" leaves the screen silent with nothing in front of it. A start
+            // succeeded when the code is 0 to 99, which is what `ActivityManager` tests itself in
+            // `isStartResultSuccessful`; those codes are @hide, so the band is written out. Fatal
+            // refusals occupy -100 to -1, and 100 to 199 is the non-fatal error band —
+            // START_SWITCHES_CANCELED (100), START_RETURN_LOCK_TASK_MODE_VIOLATION (101),
+            // START_ABORTED (102) — where nothing came up either.
+            val started = code in 0..99
             if (!started) {
                 Log.e(
                     Constants.TAG,

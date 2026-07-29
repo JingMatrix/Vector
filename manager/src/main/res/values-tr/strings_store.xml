@@ -72,14 +72,11 @@
     <string name="store_info_updated">Son sürüm</string>
     <string name="store_info_created">İlk yayım</string>
 
-    <string name="store_doh">Yansıları HTTPS üzerinden çöz</string>
     <string name="store_release_notes_hide">Notları gizle</string>
     <string name="store_installed_first">Önce kurulu olanlar</string>
 
     <string name="store_group_sort">Sıralama</string>
     <string name="store_group_priority">Öncelik</string>
     <string name="store_group_channel">Kanal</string>
-    <string name="store_group_network">Ağ</string>
-    <string name="store_doh_summary">Modül yansılarını çözemeyen ağlar için.</string>
     <string name="store_info_scope_installed">Kancalar, kurulu kopyaya göre</string>
 </resources>

@@ -203,7 +203,7 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
      *
      * Blocks end on a line boundary, so no line ever straddles two reads and the caller never has
      * to stitch. A single line longer than [READ_BLOCK] is the one exception and is cut short —
-     * [MAX_LINE_CHARS] cuts it far sooner in any case.
+     * [MAX_LINE_BYTES] cuts it far sooner in any case.
      */
     private suspend fun forEachLine(
         index: LogIndex,
@@ -238,8 +238,14 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
                 // The stored bound includes the newline that ended the line.
                 if (length > 0 && block[from + length - 1] == NEWLINE) length--
                 if (length > 0 && block[from + length - 1] == RETURN) length--
-                val cut = length > MAX_LINE_CHARS
-                if (cut) length = MAX_LINE_CHARS
+                val cut = length > MAX_LINE_BYTES
+                if (cut) {
+                    // The limit is a byte count, so it can land in the middle of a UTF-8 sequence.
+                    // Backing up over the continuation bytes cuts between characters instead of
+                    // handing the decoder half of one, which it would show as a replacement mark.
+                    length = MAX_LINE_BYTES
+                    while (length > 0 && (block[from + length].toInt() and 0xC0) == 0x80) length--
+                }
                 action(line, String(block, from, length, Charsets.UTF_8), cut)
                 k++
             }

@@ -7,8 +7,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animate
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -29,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -40,7 +37,6 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
-import androidx.compose.material.icons.rounded.Notes
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Tune
@@ -73,15 +69,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -96,9 +89,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -112,7 +102,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.math.abs
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
@@ -250,12 +239,7 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
                     }
                 },
             )
-            LogPane(
-                tab = currentTab,
-                viewModel = viewModel,
-                wordWrap = wordWrap,
-                onSelectTab = { currentTab = it },
-            )
+            LogPane(tab = currentTab, viewModel = viewModel, wordWrap = wordWrap)
         }
     }
 
@@ -310,12 +294,7 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LogPane(
-    tab: LogTab,
-    viewModel: LogsViewModel,
-    wordWrap: Boolean,
-    onSelectTab: (LogTab) -> Unit,
-) {
+private fun LogPane(tab: LogTab, viewModel: LogsViewModel, wordWrap: Boolean) {
     val state by viewModel.state(tab).collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val pan = rememberLogPan()

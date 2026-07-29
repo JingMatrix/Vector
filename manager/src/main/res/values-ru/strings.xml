@@ -186,7 +186,6 @@
     <string name="scope_recommended">Запрошено этим модулем</string>
     <string name="scope_static">Модуль объявил фиксированную область действия, её нельзя направить на другие приложения.</string>
     <string name="scope_pending">добавить: %1$d, убрать: %2$d</string>
-    <string name="scope_apply_warning">Применение перезапустит затронутые приложения.</string>
     <string name="scope_apply">Применить</string>
     <string name="scope_discard">Отменить</string>
     <string name="scope_applied">Область действия применена.</string>
@@ -389,4 +388,9 @@
     <string name="modules_load_unsupported_api">Включён, но собран под libxposed API 100, который этот фреймворк больше не загружает.</string>
     <string name="update_root_unknown">Эта сборка фреймворка не сообщает, какая реализация root установлена.</string>
     <string name="scope_no_match">Ни одно приложение не подходит под этот запрос или фильтр.</string>
+    <string name="scope_apply_effect">Каждое приложение применит это при следующем запуске.</string>
+    <string name="info_dex2oat_crashed">Аварийно завершился</string>
+    <string name="info_dex2oat_mount_failed">Не удалось смонтировать</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux в разрешающем режиме</string>
+    <string name="info_dex2oat_sepolicy_incorrect">Неверная политика SELinux</string>
 </resources>

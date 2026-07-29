@@ -29,7 +29,8 @@ import org.matrix.vector.manager.BuildConfig
  * Those are this process's `cacheDir/crash` in each of the two ways the manager can run —
  * parasitically inside `com.android.shell`, or standalone. Writing here means a crash travels in
  * the export with no new binder call, no daemon change, and no second place for anyone to look.
- * One file per crash, named for its epoch second.
+ * One file per crash, named for the epoch millisecond it happened at: a crash loop produces several
+ * within the same second, and a name coarser than that would have each one overwrite the last.
  *
  * Two properties matter more than anything this class does:
  *
@@ -106,7 +107,7 @@ object CrashRecorder {
             append(android.util.Log.getStackTraceString(throwable))
             append('\n')
         }
-        runCatching { File(dir, "${now / 1000}$SUFFIX").writeText(text) }
+        runCatching { File(dir, "$now$SUFFIX").writeText(text) }
         // After writing, so a failure to prune never costs us the record we just made.
         runCatching { files(context).drop(MAX_FILES).forEach { it.delete() } }
     }

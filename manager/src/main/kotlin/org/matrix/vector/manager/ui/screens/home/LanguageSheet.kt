@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -262,6 +261,3 @@ private fun LanguageRow(
         }
     }
 }
-
-/** The glyph that stands for this sheet. */
-val LanguageIcon = Icons.Rounded.Language

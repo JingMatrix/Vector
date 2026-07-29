@@ -174,7 +174,6 @@
     <string name="scope_recommended">このモジュールが要求</string>
     <string name="scope_static">このモジュールは適用範囲を固定しており、ほかのアプリに向けることはできません。</string>
     <string name="scope_pending">追加 %1$d、削除 %2$d</string>
-    <string name="scope_apply_warning">適用すると対象のアプリが再起動します。</string>
     <string name="scope_apply">適用</string>
     <string name="scope_discard">破棄</string>
     <string name="scope_applied">適用範囲を反映しました。</string>
@@ -375,4 +374,9 @@
     <string name="modules_load_unsupported_api">有効ですが、libxposed API 100 向けにビルドされており、このフレームワークはもう読み込みません。</string>
     <string name="update_root_unknown">このフレームワークのビルドは、どの root 実装がインストールされているかを伝えません。</string>
     <string name="scope_no_match">その検索や絞り込みに一致するアプリはありません。</string>
+    <string name="scope_apply_effect">各アプリは次回の起動時にこれを反映します。</string>
+    <string name="info_dex2oat_crashed">クラッシュしました</string>
+    <string name="info_dex2oat_mount_failed">マウントに失敗しました</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux が permissive です</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux ポリシーが正しくありません</string>
 </resources>

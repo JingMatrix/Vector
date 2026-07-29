@@ -29,7 +29,6 @@ import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -353,14 +352,8 @@ private fun exportWithRoot(): Result<String> = runCatching {
 }
 
 /** Root said no, or there is none. Carries whatever `su` had to say, which is often nothing. */
-private class RootRefused(val output: String) : Exception(output)
+private class RootRefused(output: String) : Exception(output)
 
 private const val NEO_ZYGISK = "https://github.com/JingMatrix/NeoZygisk"
 private const val GUIDE_ISSUE = 123
 private const val GUIDE_ISSUE_URL = "https://github.com/JingMatrix/Vector/issues/$GUIDE_ISSUE"
-
-/** Straight from the maintainer's own troubleshooting reply, so the two cannot drift apart. */
-private const val PULL_LOGS_COMMAND =
-    "adb shell \"su -c 'cat /data/adb/lspd/log/verbose_* > /data/local/tmp/vector_verbose.log " +
-        "&& chown shell:shell /data/local/tmp/vector_verbose.log'\" && adb pull " +
-        "/data/local/tmp/vector_verbose.log"

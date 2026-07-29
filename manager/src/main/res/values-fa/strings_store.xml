@@ -72,14 +72,11 @@
     <string name="store_info_updated">آخرین انتشار</string>
     <string name="store_info_created">نخستین انتشار</string>
 
-    <string name="store_doh">تحلیل نشانی آینه‌ها روی HTTPS</string>
     <string name="store_release_notes_hide">پنهان کردن یادداشت‌ها</string>
     <string name="store_installed_first">نخست نصب‌شده‌ها</string>
 
     <string name="store_group_sort">چینش</string>
     <string name="store_group_priority">اولویت</string>
     <string name="store_group_channel">کانال</string>
-    <string name="store_group_network">شبکه</string>
-    <string name="store_doh_summary">برای شبکه‌هایی که نشانی آینه‌های ماژول را تحلیل نمی‌کنند.</string>
     <string name="store_info_scope_installed">قلاب‌ها، بنا بر نسخهٔ نصب‌شده</string>
 </resources>

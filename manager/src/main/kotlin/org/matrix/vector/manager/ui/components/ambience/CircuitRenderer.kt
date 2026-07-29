@@ -4,7 +4,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -79,6 +78,14 @@ class CircuitRenderer : AmbienceRenderer {
     private val pulses = mutableListOf<Pulse>()
     private var sized = Size.Zero
 
+    /**
+     * The die the board rolls for itself, kept rather than made on the frame path.
+     *
+     * [route] seeds its own from [layoutSeed], because a board has to come out the same way twice;
+     * an unprompted pulse only has to be unpredictable.
+     */
+    private val random = Random(0xC1AC17)
+
     /** Rises to 1 while a freshly routed board fades in after a swipe. */
     private var reveal = 1f
 
@@ -93,7 +100,8 @@ class CircuitRenderer : AmbienceRenderer {
 
     override val isAnimating: Boolean
         // The board runs itself rather than only reacting: a status header is mostly looked at
-        // rather than played with, and one that waits to be touched reads as dead.
+        // rather than played with, and one that waits to be touched reads as dead. The wait for
+        // the next pulse is counted down in update(), which a parked frame loop stops calling.
         get() = true
 
     private fun seed(size: Size) {
@@ -138,8 +146,8 @@ class CircuitRenderer : AmbienceRenderer {
         // living circuit rather than a wallpaper that happens to respond to taps.
         nextPulseMs -= dt
         if (nextPulseMs <= 0f && traces.isNotEmpty()) {
-            nextPulseMs = PULSE_INTERVAL_MS * (0.65f + Random(layoutSeed * 31 + pulses.size).nextFloat() * 0.7f)
-            fire(traces.random(Random(System.nanoTime())), 0f, size)
+            nextPulseMs = PULSE_INTERVAL_MS * (0.65f + random.nextFloat() * 0.7f)
+            fire(traces.random(random), 0f, size)
         }
 
         // And re-routes itself now and then, so the picture is never the same for long.
