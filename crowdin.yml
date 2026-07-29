@@ -4,13 +4,43 @@ base_path: .
 base_url: 'https://api.crowdin.com'
 pull_request_title: '[translation] Update translation from Crowdin'
 preserve_hierarchy: 1
+
+# Every source file is named individually. Within a path node the CLI compiles `*` to `.+`, not
+# `.*`, and applies it as an anchored match, so a `*` has to consume at least one character: a
+# pattern of the form `strings*.xml` cannot select `strings.xml`. A file that no pattern selects
+# never becomes a candidate, and the CLI says nothing about a file it never considered.
+#
+# %two_letters_code% rather than %android_code%: %android_code% is region-qualified for every
+# language, while a resource folder carries a region only where one is needed to disambiguate.
+# Using it would mean one mapping entry per language to strip the region back off, in perpetuity,
+# and a language enabled later without such an entry resolves to a folder that does not exist.
+# The two-letter code already agrees with the unqualified folders, so only the exceptions need an
+# entry here.
+#
+# These overrides must also exist in the project's language settings: `translation` is uploaded
+# verbatim as the file's export pattern and expanded server-side, where this mapping has no say.
+# Keep the two in step.
 files:
-  # %android_code% rather than %two_letters_code%: it is the only placeholder that produces the
-  # region-qualified resource folders Android actually uses — values-zh-rCN, values-pt-rBR — and
-  # with the two-letter form Crowdin cannot even find the existing ones to upload them.
-  - source: /manager/src/main/res/values/strings*.xml
-    translation: /manager/src/main/res/values-%android_code%/%original_file_name%
+  - source: /manager/src/main/res/values/strings.xml
+    translation: /manager/src/main/res/values-%two_letters_code%/%original_file_name%
     type: android
+    languages_mapping: &resource_folders
+      two_letters_code:
+        'id': 'in'          # Android kept the superseded ISO code
+        'he': 'iw'          # likewise
+        'pt-BR': 'pt-rBR'   # the unqualified code denotes the European variant
+        'zh-CN': 'zh-rCN'
+        'zh-HK': 'zh-rHK'
+        'zh-TW': 'zh-rTW'
+  - source: /manager/src/main/res/values/strings_logs.xml
+    translation: /manager/src/main/res/values-%two_letters_code%/%original_file_name%
+    type: android
+    languages_mapping: *resource_folders
+  - source: /manager/src/main/res/values/strings_store.xml
+    translation: /manager/src/main/res/values-%two_letters_code%/%original_file_name%
+    type: android
+    languages_mapping: *resource_folders
   - source: /daemon/src/main/res/values/strings.xml
-    translation: /daemon/src/main/res/values-%android_code%/%original_file_name%
+    translation: /daemon/src/main/res/values-%two_letters_code%/%original_file_name%
     type: android
+    languages_mapping: *resource_folders

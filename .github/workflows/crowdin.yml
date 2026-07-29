@@ -5,7 +5,12 @@ on:
   push:
     branches: [ master ]
     paths:
-      - manager/src/main/res/values/strings*.xml
+      # Named rather than globbed, to match crowdin.yml. The trigger's matching rules and the
+      # CLI's are defined independently — notably on whether `*` may match nothing — and a
+      # trigger that quietly never fires is the worse failure.
+      - manager/src/main/res/values/strings.xml
+      - manager/src/main/res/values/strings_logs.xml
+      - manager/src/main/res/values/strings_store.xml
       - daemon/src/main/res/values/strings.xml
 
 jobs:
