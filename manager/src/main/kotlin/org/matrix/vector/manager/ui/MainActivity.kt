@@ -5,10 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.SingletonImageLoader
-import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.screens.splash.SplashGate
 import org.matrix.vector.manager.ui.theme.LocalizedContent
@@ -33,18 +29,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Idempotent, and safe whether or not the daemon already called Constants.setBinder.
+        // Configures Coil, among the rest: it used to be done here, which left the debug demo host
+        // without it.
         ServiceLocator.attach(this)
-
-        // Coil is configured explicitly rather than through its manifest hooks: parasitically this
-        // app's manifest is never installed, so nothing that self-registers there ever runs.
-        // It shares the one OkHttp client, which carries the DoH configuration and the disk cache.
-        SingletonImageLoader.setSafe { platformContext: PlatformContext ->
-            ImageLoader.Builder(platformContext)
-                .components {
-                    add(OkHttpNetworkFetcherFactory(callFactory = { ServiceLocator.http }))
-                }
-                .build()
-        }
 
         // Started here rather than from the panels that need it: the splash is dead time the app
         // is spending anyway, and these reads are what makes a panel's first visit slower than its
