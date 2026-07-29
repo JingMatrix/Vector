@@ -16,12 +16,14 @@ package org.matrix.vector.manager.data.log
  *    future pid can exceed six, so the prefix has to be *scanned*. Slicing at constant offsets
  *    works right up until the day it silently does not.
  * 2. **A message containing newlines is still one `writev`.** Its continuation lines therefore
- *    carry no prefix at all — a Java stack trace arrives as one entry followed by N raw lines each
- *    beginning with a tab. Those frames belong to the entry above them, not to nothing.
+ *    carry no prefix at all, and *nothing* marks them as continuations — a stack trace's frames
+ *    happen to be indented, but a `Caused by:` and `zygisk-core64`'s mount-argument report are
+ *    flush left. They belong to the entry above them, not to nothing. See [isContinuationLine].
  * 3. **Not every line is an entry.** `----part N start----` / `-----part N end----` mark the
  *    daemon rotating to a fresh file, and the watchdog writes its own banners. Those are real
  *    information about the log rather than noise, so they survive as [LogRow.Marker] instead of
- *    being dropped.
+ *    being dropped. They are also the *only* unprefixed lines that are not continuations, which
+ *    is what makes rule 2 decidable.
  *
  * Anything the scanner cannot make sense of degrades to a marker carrying the raw text. A log
  * viewer that hides a line it failed to understand is worse than useless during a diagnosis.
@@ -85,8 +87,12 @@ sealed interface LogRow {
         val level: LogLevel,
         val tag: String,
         val message: String,
-        /** Continuation lines of a multi-line message — in practice, stack frames. */
-        val trace: List<String> = emptyList(),
+        /**
+         * The rest of a multi-line message: every line of it after the first, which the writer
+         * emitted in the same `writev` and so left without a prefix. Often a stack trace, often
+         * not — `zygisk-core64` reports a parsed mount argument this way.
+         */
+        val continuation: List<String> = emptyList(),
         /** Set when the line exceeded [MAX_LINE_BYTES] and was cut. */
         val truncated: Boolean = false,
     ) : LogRow
@@ -120,24 +126,59 @@ private const val MIN_PREFIX = 26
 /**
  * Whether a line belongs to the entry above it rather than standing on its own.
  *
- * Indentation is the ordinary signal: a multi-line message reaches the file as one write, so only
- * its first line carries a prefix and the rest arrive indented.
+ * The answer follows from the writer, not from the look of the line. `logcat.cpp` emits an entry as
+ * a single `writev` whose first `iovec` is the prefix, so **every** line of a multi-line message
+ * after the first arrives without one. An unprefixed line under an entry is therefore a
+ * continuation by construction, whatever it looks like.
  *
- * A stack trace breaks that rule twice, and both times on the line that matters most.
- * `Throwable.printStackTrace` writes the throwable's own header — `java.lang.IllegalStateException:
- * store: refreshing the module list failed` — flush left, and every `Caused by:` after it flush
- * left too. Treating those as new rows ends the run, which sent the whole cause chain and all of
- * its frames to [LogRow.Marker] one line at a time: the half of the trace that names what actually
- * failed was the half that fell out of the entry that owned it.
+ * Testing the look instead is what this used to do, and it was wrong in both directions of the same
+ * failure. Indented lines passed; anything else was cut loose into [LogRow.Marker], one row per
+ * line. `Throwable.printStackTrace` writes its header and every `Caused by:` flush left, so a cause
+ * chain shredded. `zygisk-core64` prints a mount-argument block flush left, so a twenty-line report
+ * of what it had parsed shredded too — a divider drawn between every line of it, and the whole
+ * thing visually detached from the entry that produced it.
  *
- * So a header is admitted as a continuation as well — but only when [ownedByEntry], meaning the
- * caller has an entry above this line for it to belong to. That is what keeps `----part 7 start----`
- * and the daemon's own unprefixed banners the standalone markers they are, and it is why the flag
- * is not defaulted to true: a caller has to have decided.
+ * So the rule is inverted: a line is a continuation unless it is one of the four things the daemon
+ * writes raw, which [isRawBanner] names.
+ *
+ * **Two things the caller must have established first**, neither of which this can see:
+ * 1. That [text] is not itself an entry. This answers only "does this *unprefixed* line belong to
+ *    the entry above", and a prefixed line is not unprefixed — asked without that check it says yes
+ *    to every line in the file, and the log collapses into its first entry with a hundred
+ *    continuations hanging off it. [parseLogLine] is the check.
+ * 2. That there is an entry above at all. Before the first one of a file, and after a banner, there
+ *    is nothing to continue.
+ *
+ * Both guards are the caller's because both are facts about position in the file rather than about
+ * the line, and a reader that got either wrong would disagree with the other pass over the same
+ * bytes — which is how a filtered view comes to drop the half of a trace the unfiltered one keeps.
  */
-fun isContinuationLine(text: String, ownedByEntry: Boolean = false): Boolean =
-    text.isNotEmpty() &&
-        (text[0] == ' ' || text[0] == '\t' || (ownedByEntry && isThrowableHeader(text)))
+fun isContinuationLine(text: String): Boolean = !isRawBanner(text)
+
+/**
+ * The lines the daemon writes to the file itself, outside any entry.
+ *
+ * `Logcat::LogRaw` has exactly two callers and the rotation code exactly two more, so this list is
+ * closed and can be enumerated rather than guessed at:
+ * ```
+ * "----part %zu start----\n"                                     // OpenFd
+ * "-----part %zu end----\n"                                      // CloseFd
+ * "\nLogd crashed too many times, trying manually start...\n"    // OnCrash
+ * "\nLogd maybe crashed (err=%s), retrying in 1s...\n"           // OnCrash
+ * ```
+ * Both crash banners are written with a leading newline, so a blank line is one of their parts and
+ * not a line of its own.
+ *
+ * Anything added to that file has to be added here too, or it will be swallowed into whichever
+ * entry precedes it. The alternative — guessing from shape — is what shredded the traces.
+ */
+private fun isRawBanner(text: String): Boolean =
+    text.isEmpty() ||
+        PART_BANNER.matches(text) ||
+        text.startsWith("Logd crashed too many times") ||
+        text.startsWith("Logd maybe crashed (err=")
+
+private val PART_BANNER = Regex("""-{4,}part \d+ (start|end)-{4,}""")
 
 /** Parses one raw line, degrading to [LogRow.Marker] rather than failing. */
 fun parseLogLine(index: Int, text: String, truncated: Boolean = false): LogRow =

@@ -207,8 +207,16 @@ private fun EntryRow(
     val railWidth = with(LocalDensity.current) { 4.5.dp.toPx() }
 
     val muted = MaterialTheme.colorScheme.outline
-    val tagBackground = MaterialTheme.colorScheme.secondaryContainer
-    val tagForeground = MaterialTheme.colorScheme.onSecondaryContainer
+    // The badge is washed with the level's own colour rather than one fixed container pair, so the
+    // level reads from the widest thing on the row and not only from the rail at its edge and the
+    // single letter at its start. A scan down a page now separates on a band of colour.
+    //
+    // A wash, not a fill, and the tag itself stays `onSurface`. The level palette runs from `error`
+    // to `outlineVariant` — deliberately, since debug and verbose are noise and are meant to recede
+    // — and tag text in those colours on a tint of themselves would be a badge nobody can read at
+    // the two levels the log is mostly made of. The colour identifies; the text stays legible.
+    val tagBackground = accent.copy(alpha = TAG_TINT)
+    val tagForeground = MaterialTheme.colorScheme.onSurface
     val hit = MaterialTheme.colorScheme.primaryContainer
     val onHit = MaterialTheme.colorScheme.onPrimaryContainer
     val line =
@@ -267,7 +275,7 @@ private fun EntryRow(
             )
         }
 
-        if (entry.trace.isNotEmpty()) {
+        if (entry.continuation.isNotEmpty()) {
             // Parsed once per row, not per recomposition: the expander is tapped rarely and the
             // count on it has to be right whether or not anyone ever taps.
             //
@@ -283,25 +291,40 @@ private fun EntryRow(
             // is right above, already saying it in full. Passing the whole header printed the same
             // sentence twice, once in the log's face and once in the trace's.
             val sections =
-                remember(entry.message, entry.trace) {
+                remember(entry.message, entry.continuation) {
                     val type = throwableTypeOf(entry.message)
-                    parseStackTrace(if (type == null) entry.trace else listOf(type) + entry.trace)
+                    val lines =
+                        if (type == null) entry.continuation else listOf(type) + entry.continuation
+                    parseStackTrace(lines)
                 }
             val frameCount = remember(sections) { sections.sumOf { it.frames.size } }
+            // Only a trace gets the trace treatment. Now that any unprefixed line is attached to
+            // its entry, most of these blocks are not traces at all — zygisk's mount-argument
+            // report is a page of plain text — and calling it "20 frames" would be a lie told by
+            // an expander that then rendered nothing under it.
+            val isTrace = frameCount > 0
             Text(
-                pluralStringResource(R.plurals.logs_frames, frameCount, frameCount),
+                if (isTrace) pluralStringResource(R.plurals.logs_frames, frameCount, frameCount)
+                else
+                    pluralStringResource(
+                        R.plurals.logs_more_lines,
+                        entry.continuation.size,
+                        entry.continuation.size,
+                    ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier =
                     Modifier.padding(start = 18.dp, top = 2.dp)
                         .combinedClickable(
                             onClick = {
-                                if (inlineTraces) framesOpen = !framesOpen
+                                // The screen is a *stack trace* screen; sending a mount-argument
+                                // dump to it would be sending it somewhere that cannot read it.
+                                if (inlineTraces || !isTrace) framesOpen = !framesOpen
                                 else onOpenTrace(traceText(entry))
                             }
                         ),
             )
-            if (inlineTraces && framesOpen) {
+            if (framesOpen && isTrace && inlineTraces) {
                 // The full renderer, not a run of monospace lines. A trace in the log is the same
                 // text as a trace on the crash screen and is read for the same reason, so the one
                 // that reads better wins in both places. Indented to sit under the expander that
@@ -312,6 +335,23 @@ private fun EntryRow(
                     sections = sections,
                     onCopyFrame = { onCopy(it.line) },
                     modifier = Modifier.padding(start = 26.dp, top = 4.dp, bottom = 4.dp),
+                )
+            } else if (framesOpen) {
+                // Plain text, kept as the writer set it out — the alignment in a mount-argument
+                // report or a table of properties is the whole of its legibility. So it pans
+                // sideways with the log lines above it rather than wrapping, under the same
+                // switch, and joins the shared pan extent so the columns stay lined up with them.
+                Text(
+                    entry.continuation.joinToString("\n"),
+                    style = VectorLogLine,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    softWrap = wordWrap,
+                    modifier =
+                        Modifier.padding(start = 26.dp, top = 2.dp, bottom = 2.dp)
+                            .then(
+                                if (wordWrap) Modifier.fillMaxWidth()
+                                else Modifier.panContent(pan)
+                            ),
                 )
             }
         }
@@ -422,6 +462,14 @@ private fun tagRangeOf(entry: LogRow.Entry): IntRange {
 }
 
 /**
+ * How much of the level's colour the tag badge carries.
+ *
+ * Enough to name the level at a glance across a scrolling page, little enough that the tag on top
+ * of it is read as text rather than as decoration.
+ */
+private const val TAG_TINT = 0.22f
+
+/**
  * Colour is reinforcement here, never the signal: the level letter carries the meaning, because
  * under Material You the hues come from the wallpaper.
  */
@@ -470,8 +518,9 @@ private fun throwableTypeOf(message: String): String? =
  * no log line above it, so the sentence naming what failed has nowhere else to come from.
  */
 private fun traceText(entry: LogRow.Entry): String =
-    if (isThrowableHeader(entry.message)) (listOf(entry.message) + entry.trace).joinToString("\n")
-    else entry.trace.joinToString("\n")
+    if (isThrowableHeader(entry.message))
+        (listOf(entry.message) + entry.continuation).joinToString("\n")
+    else entry.continuation.joinToString("\n")
 
 /** Rebuilds the line exactly as the daemon wrote it, for the clipboard. */
 private fun rawText(entry: LogRow.Entry): String = buildString {
@@ -491,7 +540,7 @@ private fun rawText(entry: LogRow.Entry): String = buildString {
     append(entry.tag)
     append(" ] ")
     append(entry.message)
-    entry.trace.forEach {
+    entry.continuation.forEach {
         append('\n')
         append(it)
     }

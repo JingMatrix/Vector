@@ -45,6 +45,11 @@
         <item quantity="one">%1$d frame</item>
         <item quantity="other">%1$d frames</item>
     </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d more line</item>
+        <item quantity="other">%1$d more lines</item>
+    </plurals>
 
     <!-- The four distinct nothing-to-show states -->
     <string name="logs_state_daemon_title">The daemon is not reachable</string>
