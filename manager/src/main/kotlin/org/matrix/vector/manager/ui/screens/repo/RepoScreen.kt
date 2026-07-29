@@ -10,7 +10,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import org.matrix.vector.manager.ui.components.ChoiceRow
 import org.matrix.vector.manager.ui.components.SheetHeading
-import org.matrix.vector.manager.ui.components.ToggleRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.SearchOff

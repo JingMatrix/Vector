@@ -5,7 +5,6 @@ import androidx.compose.ui.semantics.contentDescription
 import org.matrix.vector.manager.ui.theme.translatorsFor
 import org.matrix.vector.manager.ui.theme.Translator
 import org.matrix.vector.manager.ui.theme.CROWDIN_URL
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.AssistChip
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.animation.animateColorAsState
