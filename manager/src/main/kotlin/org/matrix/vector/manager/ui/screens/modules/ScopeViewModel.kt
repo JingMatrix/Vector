@@ -200,6 +200,9 @@ class ScopeViewModel(
                 Filters(apps, draft, query, showSys, showGame, false)
             }
             .combine(showRecommendedOnly) { filters, only -> filters.copy(recommendedOnly = only) }
+            // The saved set as well as the draft: the difference between them is what "newly
+            // ticked" means, and the order below leads with it.
+            .combine(savedScope) { filters, saved -> filters.copy(saved = saved) }
             // Two typed halves rather than one list of Any. The inputs outnumber the arities
             // `combine` provides, and carrying them positionally through a `List<Any>` and casting
             // each one back out lets a rename or a reorder compile and then fail at runtime.
@@ -283,11 +286,20 @@ class ScopeViewModel(
                     //
                     // After the reverse, so reversing cannot bury any of it at the bottom.
                     .let { list ->
+                        fun frameworkFirst(group: List<AppInfo>): List<AppInfo> {
+                            val (framework, others) =
+                                group.partition { it.packageName == SYSTEM_FRAMEWORK_PACKAGE }
+                            return framework + others
+                        }
                         val (chosen, rest) = list.partition { it.isSelectedInScope }
-                        val framework = rest.filter { it.packageName == SYSTEM_FRAMEWORK_PACKAGE }
-                        chosen +
-                            framework +
-                            rest.filterNot { it.packageName == SYSTEM_FRAMEWORK_PACKAGE }
+                        // What is in force, then what is about to be, then everything else. The
+                        // framework leads the last two but not the first: it is the one row that
+                        // cannot be found by scrolling, so it has to lead the group it is being
+                        // picked from — and once it is in the scope it is a member like any other,
+                        // with no claim to sit above targets that are already in force.
+                        val (inForce, newlyTicked) =
+                            chosen.partition { ScopeTarget(it.packageName, it.userId) in filters.saved }
+                        inForce + frameworkFirst(newlyTicked) + frameworkFirst(rest)
                     }
             }
             // Filtering and sorting the full installed-app list is real work — often thousands of
@@ -312,6 +324,7 @@ class ScopeViewModel(
         val showSystem: Boolean,
         val showGames: Boolean,
         val recommendedOnly: Boolean,
+        val saved: Set<ScopeTarget> = emptySet(),
     )
 
     private fun comparatorFor(order: ScopeSort): Comparator<AppInfo> =

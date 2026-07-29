@@ -1,6 +1,7 @@
 package org.matrix.vector.manager.ui.screens.modules
 
 import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel.Companion.SYSTEM_FRAMEWORK_PACKAGE
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -380,9 +381,13 @@ fun ScopeScreen(
             // Every installed package, with its label and its icon, read through the package
             // manager: on a phone with a few hundred of them that is a visible wait, and without
             // this there is no way to tell a slow load from a filter that has matched nothing.
-            // Only while there is nothing to show — a spinner over a list already on screen would
-            // be the worse lie.
-            if (state.loading && apps.isEmpty()) {
+            //
+            // Held until the load *finishes*, not merely until there is something to draw. The app
+            // list is published early and the saved scope arrives after it, so a list drawn in
+            // between is in the wrong order, and the re-sort that follows inserts the scope's own
+            // rows above whatever LazyColumn had anchored — the screen opens part-way down, with
+            // the module's targets scrolled off the top, which reads as though they are not there.
+            if (state.loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
@@ -394,18 +399,26 @@ fun ScopeScreen(
                 return@Column
             }
 
-            // Opens at the top, and has to be told to.
+            // Pinned to the top until the reader scrolls, rather than scrolled to the top once.
             //
-            // The saved scope arrives after the app list does, and applying it re-sorts the list so
-            // that what is in the scope leads. `items` is keyed, so LazyColumn holds whatever row
-            // was under the viewport and lets the promoted ones appear *above* it, leaving the
-            // screen part-way down a list of several hundred with the module's own targets
-            // scrolled off the top — which reads exactly like they are not there.
+            // The list is computed on a background dispatcher and lags the loading flag, so the
+            // first thing drawn is the previous emission — the one built before the saved scope
+            // arrived, without the scope's own rows at its head. When the real list lands it
+            // prepends them, and `items` being keyed means LazyColumn holds the row it had
+            // anchored and lets the new ones appear above it: the screen opens exactly one
+            // scope's-worth of rows down. Scrolling once on arrival cannot fix that, because on
+            // arrival there is nothing yet to scroll past.
             //
-            // Keyed on the module, not on the list: re-running this whenever the order changes
-            // would yank the view back every time a row is ticked, since ticking is what moves a
-            // row to the top.
-            LaunchedEffect(packageName, userId, state.loading) { listState.scrollToItem(0) }
+            // So every change to the head of the list re-pins, until a drag says the reader has
+            // taken over. A drag rather than any scroll, because the pin itself is a scroll.
+            var readerHasScrolled by remember(packageName, userId) { mutableStateOf(false) }
+            LaunchedEffect(listState) {
+                listState.interactionSource.interactions.collect { interaction ->
+                    if (interaction is DragInteraction.Start) readerHasScrolled = true
+                }
+            }
+            val headKey = apps.firstOrNull()?.let { "${it.packageName}:${it.userId}" }
+            LaunchedEffect(headKey) { if (!readerHasScrolled) listState.scrollToItem(0) }
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
