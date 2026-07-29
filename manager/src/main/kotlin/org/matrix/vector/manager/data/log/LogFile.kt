@@ -105,7 +105,7 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         }
 
         forEachLine(index, lines, null) { lineIndex, text, truncated ->
-            if (traceOwner >= 0 && isContinuationLine(text)) {
+            if (traceOwner >= 0 && isContinuationLine(text, ownedByEntry = true)) {
                 // A multi-line message reaches the file as one writev, so its continuation lines
                 // carry no prefix. They are frames of the entry above, not entries of their own.
                 (trace ?: ArrayList<String>(8).also { trace = it }).add(text)
@@ -132,8 +132,14 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
      * Walks back from [line] to the entry that owns it.
      *
      * Without this a window boundary landing between an entry and its stack trace opens the page
-     * on orphan frames with nothing to attach them to. Only the first byte of each candidate line
-     * is read — up to [TRACE_LOOKBACK] single-byte positional reads, all of them page-cache hits.
+     * on orphan frames with nothing to attach them to. The first byte of each candidate line
+     * decides it — up to [TRACE_LOOKBACK] single-byte positional reads, all of them page-cache hits.
+     *
+     * A line beginning with a letter costs one more read, because it may be the `Caused by:` or
+     * bare throwable header that [isContinuationLine] also treats as part of the trace. Walking
+     * past one is what the extra read buys: stopping there would open the page on the very line the
+     * rest of this change exists to keep attached, and would do it precisely when someone has
+     * jumped into the middle of a long trace.
      */
     fun entryStart(index: LogIndex, line: Int): Int {
         if (line >= index.lineCount) return line
@@ -141,7 +147,13 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         var steps = 0
         while (at > 0 && steps < TRACE_LOOKBACK) {
             val first = firstByte(index, at)
-            if (first != SPACE && first != TAB) break
+            val continues =
+                first == SPACE ||
+                    first == TAB ||
+                    (first > 0 &&
+                        first.toChar().isLetter() &&
+                        isContinuationLine(lineText(index, at), ownedByEntry = true))
+            if (!continues) break
             at--
             steps++
         }
@@ -165,9 +177,13 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         val tags = HashMap<String, Int>()
         val levels = HashMap<LogLevel, Int>()
         var previousMatched = false
+        // Whether the last row was an entry, which is what lets an unindented `Caused by:` be read
+        // as part of the trace here exactly as [readRows] reads it. Without it the two passes
+        // disagree, and a filtered view drops the half of the trace the unfiltered one keeps.
+        var inEntry = false
 
         forEachLine(index, null, onProgress) { lineIndex, text, truncated ->
-            if (isContinuationLine(text)) {
+            if (isContinuationLine(text, ownedByEntry = inEntry)) {
                 // Frames follow their entry into the filtered view; a stack trace whose header
                 // matched and whose body vanished is a filter actively hiding the answer.
                 if (previousMatched) matches?.add(lineIndex)
@@ -178,6 +194,7 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
                 tags[row.tag] = (tags[row.tag] ?: 0) + 1
                 levels[row.level] = (levels[row.level] ?: 0) + 1
             }
+            inEntry = row is LogRow.Entry
             previousMatched = query.matches(row)
             if (previousMatched) matches?.add(lineIndex)
         }
@@ -267,6 +284,22 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         return total
     }
 
+    /**
+     * The head of a line, decoded — enough of it to recognise a throwable header.
+     *
+     * A type name and the `": "` after it are all [isContinuationLine] inspects, so the read is
+     * capped rather than following a line of unbounded length. It borrows [block], which is safe
+     * only because the one caller, [entryStart], runs between block iterations and never during
+     * one.
+     */
+    private fun lineText(index: LogIndex, line: Int): String {
+        val from = index.bounds[line]
+        val length = min(index.bounds[line + 1] - from, HEADER_PROBE.toLong()).toInt()
+        if (length <= 0) return ""
+        val read = readAt(from, length)
+        return if (read <= 0) "" else String(block, 0, read, Charsets.UTF_8).trimEnd('\n', '\r')
+    }
+
     private fun firstByte(index: LogIndex, line: Int): Int {
         if (index.bounds[line + 1] <= index.bounds[line]) return -1
         oneByte.clear()
@@ -288,6 +321,9 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
 
         /** How far back a window start may walk to find the entry that owns a stack frame. */
         private const val TRACE_LOOKBACK = 64
+
+        /** Comfortably past the longest throwable type name anyone has written. */
+        private const val HEADER_PROBE = 512
 
         private const val NEWLINE = '\n'.code.toByte()
         private const val RETURN = '\r'.code.toByte()

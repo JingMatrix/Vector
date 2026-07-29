@@ -340,6 +340,23 @@ class SettingsRepository(context: Context) {
         _logWordWrap.value = enabled
     }
 
+    /**
+     * Whether a stack trace in the log opens where it sits, or on a screen of its own.
+     *
+     * Inline by default. The log is read with a filter applied and a scroll position worth keeping,
+     * and pushing a route for one entry costs both — which matters most when the reason you are
+     * reading the log is to compare one trace against another. The screen is the better answer for
+     * a trace long enough that having it inside the list is the thing in the way, so which one is
+     * right depends on the reader, and that is what makes it a setting rather than a decision.
+     */
+    private val _logTracesInline = MutableStateFlow(prefs.getBoolean("log_traces_inline", true))
+    val logTracesInline: StateFlow<Boolean> = _logTracesInline.asStateFlow()
+
+    fun setLogTracesInline(inline: Boolean) {
+        prefs.edit().putBoolean("log_traces_inline", inline).apply()
+        _logTracesInline.value = inline
+    }
+
     fun setThemeMode(mode: String) {
         prefs.edit().putString("theme_mode", mode).apply()
         _themeMode.value = mode

@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import org.matrix.vector.manager.R
+import org.matrix.vector.manager.data.log.isThrowableHeader
+import org.matrix.vector.manager.data.log.parseStackTrace
+import org.matrix.vector.manager.ui.components.StackTrace
 import org.matrix.vector.manager.data.log.LogLevel
 import org.matrix.vector.manager.data.log.LogRow
 import org.matrix.vector.manager.ui.theme.VectorLogLine
@@ -159,13 +162,26 @@ fun LogRowItem(
     showTag: Boolean,
     pan: LogPan,
     query: String,
+    inlineTraces: Boolean,
     onTagClick: (String) -> Unit,
     onCopy: (String) -> Unit,
+    onOpenTrace: (String) -> Unit,
 ) {
     when (row) {
         is LogRow.DayBreak -> DayBreakRow(row)
         is LogRow.Marker -> MarkerRow(row, query)
-        is LogRow.Entry -> EntryRow(row, wordWrap, showTag, pan, query, onTagClick, onCopy)
+        is LogRow.Entry ->
+            EntryRow(
+                row,
+                wordWrap,
+                showTag,
+                pan,
+                query,
+                inlineTraces,
+                onTagClick,
+                onCopy,
+                onOpenTrace,
+            )
     }
 }
 
@@ -176,8 +192,11 @@ private fun EntryRow(
     showTag: Boolean,
     pan: LogPan,
     query: String,
+    /** Whether a trace opens under the row or on a screen. See `SettingsRepository`. */
+    inlineTraces: Boolean,
     onTagClick: (String) -> Unit,
     onCopy: (String) -> Unit,
+    onOpenTrace: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var framesOpen by remember { mutableStateOf(false) }
@@ -249,23 +268,51 @@ private fun EntryRow(
         }
 
         if (entry.trace.isNotEmpty()) {
+            // Parsed once per row, not per recomposition: the expander is tapped rarely and the
+            // count on it has to be right whether or not anyone ever taps.
+            //
+            // The message is offered to the parser because it is often the trace's first line.
+            // `XposedBridge.log(Throwable)` writes the whole trace as one message, so the header —
+            // `java.lang.ClassNotFoundException: Didn't find class …` — is the entry's own text and
+            // only the frames are continuations. Passing the frames alone left the trace headless
+            // and the reader without the one line naming what was thrown. It is offered rather
+            // than prepended: when the entry says something of its own, as `logE(msg, tr)` does,
+            // the header is the first continuation line and the message is not part of the trace.
+            //
+            // Only the *type* is taken from it, not the message after the colon: the entry's line
+            // is right above, already saying it in full. Passing the whole header printed the same
+            // sentence twice, once in the log's face and once in the trace's.
+            val sections =
+                remember(entry.message, entry.trace) {
+                    val type = throwableTypeOf(entry.message)
+                    parseStackTrace(if (type == null) entry.trace else listOf(type) + entry.trace)
+                }
+            val frameCount = remember(sections) { sections.sumOf { it.frames.size } }
             Text(
-                pluralStringResource(R.plurals.logs_frames, entry.trace.size, entry.trace.size),
+                pluralStringResource(R.plurals.logs_frames, frameCount, frameCount),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier =
                     Modifier.padding(start = 18.dp, top = 2.dp)
-                        .combinedClickable(onClick = { framesOpen = !framesOpen }),
+                        .combinedClickable(
+                            onClick = {
+                                if (inlineTraces) framesOpen = !framesOpen
+                                else onOpenTrace(traceText(entry))
+                            }
+                        ),
             )
-            if (framesOpen) {
-                entry.trace.forEach { frame ->
-                    Text(
-                        frame.trim(),
-                        style = VectorLogLine,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 26.dp),
-                    )
-                }
+            if (inlineTraces && framesOpen) {
+                // The full renderer, not a run of monospace lines. A trace in the log is the same
+                // text as a trace on the crash screen and is read for the same reason, so the one
+                // that reads better wins in both places. Indented to sit under the expander that
+                // opened it, and given the row's own width rather than the panned one — a trace is
+                // read as rows, and rows that slide sideways with the log lines above them would
+                // be read a column at a time.
+                StackTrace(
+                    sections = sections,
+                    onCopyFrame = { onCopy(it.line) },
+                    modifier = Modifier.padding(start = 26.dp, top = 4.dp, bottom = 4.dp),
+                )
             }
         }
     }
@@ -402,6 +449,29 @@ fun levelLabel(level: LogLevel): String =
             else -> R.string.logs_level_other
         }
     )
+
+/**
+ * The throwable type an entry's message names, or null if it does not name one.
+ *
+ * `XposedBridge.log(Throwable)` writes a whole trace as one message, so the header is the entry's
+ * own line and only the frames arrive as continuations. This recovers the type from it so the trace
+ * below can be headed by the thing that was thrown. A `Caused by:` line is refused: it is never the
+ * first line of a trace, so a message shaped like one is not the header this is looking for.
+ */
+private fun throwableTypeOf(message: String): String? =
+    message
+        .takeIf { isThrowableHeader(it) && !it.startsWith("Caused by: ") }
+        ?.substringBefore(": ")
+
+/**
+ * The entry's trace as `printStackTrace` would have written it.
+ *
+ * The whole header, message and all, unlike the inline expander's — a screen shows the trace with
+ * no log line above it, so the sentence naming what failed has nowhere else to come from.
+ */
+private fun traceText(entry: LogRow.Entry): String =
+    if (isThrowableHeader(entry.message)) (listOf(entry.message) + entry.trace).joinToString("\n")
+    else entry.trace.joinToString("\n")
 
 /** Rebuilds the line exactly as the daemon wrote it, for the clipboard. */
 private fun rawText(entry: LogRow.Entry): String = buildString {

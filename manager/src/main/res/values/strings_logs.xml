@@ -91,6 +91,9 @@
     <string name="logs_source_more">Include the framework\'s own lines</string>
     <string name="logs_source_less">Show module lines only</string>
     <string name="logs_verbose_summary">Turn this on before reporting a bug. Apps can read their own logs, so leaving it on is one way an app can spot Vector.</string>
+    <string name="logs_trace_title">Stack trace</string>
+    <string name="logs_traces_inline">Open traces in place</string>
+    <string name="logs_traces_inline_summary">A stack trace unfolds under its line. Turn this off to open it on its own screen instead.</string>
     <string name="logs_save_summary">Writes both logs to a zip you choose</string>
     <string name="logs_rotate_summary">Closes the current part and starts a fresh one</string>
     <string name="logs_part">part %1$d/%2$d</string>

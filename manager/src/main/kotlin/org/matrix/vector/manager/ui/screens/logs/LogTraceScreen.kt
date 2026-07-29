@@ -1,8 +1,6 @@
-package org.matrix.vector.manager.ui.screens.home
+package org.matrix.vector.manager.ui.screens.logs
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -25,29 +23,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.R
-import org.matrix.vector.manager.data.log.CrashRecorder
-import org.matrix.vector.manager.data.log.CrashReport
+import org.matrix.vector.manager.data.log.parseStackTrace
 import org.matrix.vector.manager.ui.components.SnackbarTone
-import org.matrix.vector.manager.ui.components.StackTrace
-import org.matrix.vector.manager.ui.components.stackTraceItems
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.copyToClipboard
 import org.matrix.vector.manager.ui.components.show
+import org.matrix.vector.manager.ui.components.stackTraceItems
 
 /**
- * The newest crash, read as a list rather than as a wall of text.
+ * A trace from the log, given the room the log itself does not have.
  *
- * The trace itself is [StackTrace]'s doing, and the reasoning about how it is laid out lives
- * there; this screen is the header above it and the copy action beside it.
+ * The same rows as the crash screen, from the same parser — a trace written by the daemon, by a
+ * module, or by the manager is the same `printStackTrace` output whichever of them wrote it, so
+ * there is one way to read it. Reached only when the reader has said they prefer a screen to the
+ * inline expander; see `SettingsRepository.logTracesInline`.
  *
- * The record is read here rather than passed through the route, because the process is quite likely
- * to have died since the card was drawn — that is, after all, the subject.
+ * Copy takes the raw text, exactly as the log holds it, because that is what goes into an issue.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CrashTraceScreen(onNavigateBack: () -> Unit) {
+fun LogTraceScreen(text: String, onNavigateBack: () -> Unit) {
     val context = LocalContext.current
-    val report = remember { CrashRecorder.newest(context) }
+    val sections = remember(text) { parseStackTrace(text) }
     val snackbars = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copied = stringResource(R.string.copied)
@@ -57,7 +54,7 @@ fun CrashTraceScreen(onNavigateBack: () -> Unit) {
         snackbarHost = { VectorSnackbarHost(snackbars) },
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.crash_trace)) },
+                title = { Text(stringResource(R.string.logs_trace_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -67,14 +64,9 @@ fun CrashTraceScreen(onNavigateBack: () -> Unit) {
                     }
                 },
                 actions = {
-                    // Every record, not the one on screen. The screen shows the newest because
-                    // that is the one being asked about, but a crash loop writes several and a
-                    // maintainer wants all of them; and this stays enabled when the newest could
-                    // not be parsed, since a record we failed to read is exactly the one worth
-                    // getting off the device by hand.
                     IconButton(
                         onClick = {
-                            copyToClipboard(context, CrashRecorder.read(context).orEmpty())
+                            copyToClipboard(context, text)
                             scope.launch { snackbars.show(copied, SnackbarTone.Success) }
                         }
                     ) {
@@ -87,49 +79,23 @@ fun CrashTraceScreen(onNavigateBack: () -> Unit) {
             )
         },
     ) { padding ->
-        if (report == null || report.sections.isEmpty()) {
+        if (sections.isEmpty()) {
             Text(
-                stringResource(R.string.crash_unreadable),
+                text,
                 modifier = Modifier.padding(padding).padding(20.dp),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             return@Scaffold
         }
-
         LazyColumn(
             modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 24.dp),
         ) {
-            item(key = "when") {
-                Text(
-                    crashWhen(report),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    report.build,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(12.dp))
-            }
-            stackTraceItems(report.sections) { frame ->
+            stackTraceItems(sections) { frame ->
                 copyToClipboard(context, frame.line)
                 scope.launch { snackbars.show(frameCopied, SnackbarTone.Success) }
             }
         }
     }
 }
-
-/**
- * When it happened, and on which thread — shared with the card on the status screen.
- *
- * The thread is dropped rather than left blank when the record does not name one. Only a record
- * written before the header carried a thread is in that state, and it outlives the update that
- * changed the format, since the crashes are kept in the cache directory.
- */
-@Composable
-internal fun crashWhen(report: CrashReport): String =
-    if (report.thread.isEmpty()) report.at
-    else stringResource(R.string.crash_when_value, report.at, report.thread)

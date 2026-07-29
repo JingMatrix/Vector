@@ -117,9 +117,27 @@ private const val DELIMITER = " ] "
 /** `"[ "` plus the 23-character timestamp; below this the fixed-position checks run off the end. */
 private const val MIN_PREFIX = 26
 
-/** A line is a continuation of the entry above it when it starts with whitespace. */
-fun isContinuationLine(text: String): Boolean =
-    text.isNotEmpty() && (text[0] == ' ' || text[0] == '\t')
+/**
+ * Whether a line belongs to the entry above it rather than standing on its own.
+ *
+ * Indentation is the ordinary signal: a multi-line message reaches the file as one write, so only
+ * its first line carries a prefix and the rest arrive indented.
+ *
+ * A stack trace breaks that rule twice, and both times on the line that matters most.
+ * `Throwable.printStackTrace` writes the throwable's own header — `java.lang.IllegalStateException:
+ * store: refreshing the module list failed` — flush left, and every `Caused by:` after it flush
+ * left too. Treating those as new rows ends the run, which sent the whole cause chain and all of
+ * its frames to [LogRow.Marker] one line at a time: the half of the trace that names what actually
+ * failed was the half that fell out of the entry that owned it.
+ *
+ * So a header is admitted as a continuation as well — but only when [ownedByEntry], meaning the
+ * caller has an entry above this line for it to belong to. That is what keeps `----part 7 start----`
+ * and the daemon's own unprefixed banners the standalone markers they are, and it is why the flag
+ * is not defaulted to true: a caller has to have decided.
+ */
+fun isContinuationLine(text: String, ownedByEntry: Boolean = false): Boolean =
+    text.isNotEmpty() &&
+        (text[0] == ' ' || text[0] == '\t' || (ownedByEntry && isThrowableHeader(text)))
 
 /** Parses one raw line, degrading to [LogRow.Marker] rather than failing. */
 fun parseLogLine(index: Int, text: String, truncated: Boolean = false): LogRow =

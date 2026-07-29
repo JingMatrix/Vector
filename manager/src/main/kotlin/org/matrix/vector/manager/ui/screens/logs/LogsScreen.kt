@@ -36,6 +36,7 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Visibility
@@ -103,13 +104,13 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
-import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.VectorLogLine
 import org.matrix.vector.manager.data.log.LogLevel
 import org.matrix.vector.manager.ui.components.PanelHeader
 import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.ui.components.SearchField
+import org.matrix.vector.manager.ui.components.ToggleRow
 import org.matrix.vector.manager.ui.components.copyToClipboard
 import org.matrix.vector.manager.ui.theme.VectorMono
 
@@ -128,7 +129,10 @@ import org.matrix.vector.manager.ui.theme.VectorMono
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFactory())) {
+fun LogsScreen(
+    onOpenTrace: (String) -> Unit,
+    viewModel: LogsViewModel = viewModel(factory = LogsViewModelFactory()),
+) {
     // One pane, one search field, and the source is a control inside it. Two tabs would mean two
     // search boxes, two filter states and two scroll positions for what is one question — "what
     // does the log say" — whose answer often has to be looked for in both streams.
@@ -239,7 +243,12 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
                     }
                 },
             )
-            LogPane(tab = currentTab, viewModel = viewModel, wordWrap = wordWrap)
+            LogPane(
+                tab = currentTab,
+                viewModel = viewModel,
+                wordWrap = wordWrap,
+                onOpenTrace = onOpenTrace,
+            )
         }
     }
 
@@ -294,7 +303,13 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel(factory = LogsViewModelFacto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LogPane(tab: LogTab, viewModel: LogsViewModel, wordWrap: Boolean) {
+private fun LogPane(
+    tab: LogTab,
+    viewModel: LogsViewModel,
+    wordWrap: Boolean,
+    onOpenTrace: (String) -> Unit,
+) {
+    val inlineTraces by viewModel.tracesInline.collectAsStateWithLifecycle()
     val state by viewModel.state(tab).collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val pan = rememberLogPan()
@@ -416,6 +431,8 @@ private fun LogPane(tab: LogTab, viewModel: LogsViewModel, wordWrap: Boolean) {
                         jumpInset = jumpInset,
                         onJumpInset = { jumpInset = it },
                         onCopy = { copyToClipboard(context, it) },
+                        inlineTraces = inlineTraces,
+                        onOpenTrace = onOpenTrace,
                     )
             }
         }
@@ -436,6 +453,8 @@ private fun LogList(
     jumpInset: Int,
     onJumpInset: (Int) -> Unit,
     onCopy: (String) -> Unit,
+    inlineTraces: Boolean,
+    onOpenTrace: (String) -> Unit,
 ) {
     // The horizontal gesture goes on the container, not on the list and not on the rows: the list
     // then owns vertical extent exclusively and each row's sideways extent depends only on its own
@@ -472,8 +491,10 @@ private fun LogList(
                         showTag = state.query.tag == null,
                         pan = pan,
                         query = state.query.text,
+                        inlineTraces = inlineTraces,
                         onTagClick = { viewModel.setTag(tab, it) },
                         onCopy = onCopy,
+                        onOpenTrace = onOpenTrace,
                     )
                 }
             }
@@ -672,6 +693,7 @@ private fun LogSettingsSheet(
 ) {
     val enabled by viewModel.verboseEnabled.collectAsStateWithLifecycle()
     val enforced by viewModel.verboseEnforced.collectAsStateWithLifecycle()
+    val inlineTraces by viewModel.tracesInline.collectAsStateWithLifecycle()
     // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
     // stop — the only thing a drag on a sheet can do other than dismiss it. Material adds that stop
     // only when the content is taller than half the screen, so short sheets still open at their own
@@ -722,6 +744,14 @@ LocalizedOverlay {
                     Switch(checked = enabled, onCheckedChange = { viewModel.setVerbose(it) })
                 },
                 colors = sheetRowColors,
+            )
+
+            ToggleRow(
+                title = stringResource(R.string.logs_traces_inline),
+                icon = Icons.AutoMirrored.Rounded.Notes,
+                checked = inlineTraces,
+                onCheckedChange = { viewModel.setTracesInline(it) },
+                subtitle = stringResource(R.string.logs_traces_inline_summary),
             )
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))

@@ -46,6 +46,15 @@ sealed interface TopLevelRoute : Route {
  */
 @Serializable data object CrashTrace : Route
 
+/**
+ * A stack trace found in the log, on a screen of its own.
+ *
+ * Carries the text rather than a line number, because the log window it came from is paged and
+ * filtered and may have moved on by the time this is opened — and because the text is the whole of
+ * what the screen needs. A trace is a few kilobytes at worst, which the back stack can hold.
+ */
+@Serializable data class LogTrace(val text: String) : Route
+
 /** CI builds, as prereleases anyone can download. */
 @Serializable data object Canary : Route
 

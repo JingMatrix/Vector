@@ -174,6 +174,8 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
 
     val wordWrap: StateFlow<Boolean> = settings.logWordWrap
 
+    val tracesInline: StateFlow<Boolean> = settings.logTracesInline
+
     init {
         viewModelScope.launch { _verboseEnabled.value = daemon.isVerboseLogEnabled().getOrDefault(false) }
     }
@@ -181,6 +183,8 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     fun state(tab: LogTab): StateFlow<LogPaneState> = panes.getValue(tab).state
 
     fun setWordWrap(enabled: Boolean) = settings.setLogWordWrap(enabled)
+
+    fun setTracesInline(inline: Boolean) = settings.setLogTracesInline(inline)
 
     /** Called when a stream comes on screen. Only the stream on screen is ever read. */
     fun open(tab: LogTab) {
