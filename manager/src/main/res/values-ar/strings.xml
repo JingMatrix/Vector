@@ -76,15 +76,6 @@
     <string name="home_discussions">النقاشات</string>
     <string name="home_review_prs">راجِع تغييرًا</string>
 
-    <string name="github_sign_in">تسجيل الدخول إلى GitHub</string>
-    <string name="github_sign_in_why">اختياري. يرفع الحد الساعي لتحديثات النشاط، ويتيح لـ Vector أن يعرض ما ينتظرك. للقراءة فقط — لا يُطلب أي إذن.</string>
-    <string name="github_sign_in_code">أدخل هذا الرمز في %1$s</string>
-    <string name="github_open_browser">فتح المتصفح</string>
-    <string name="github_copy_code">نسخ الرمز</string>
-    <string name="github_signed_in_as">سجّلت الدخول باسم %1$s</string>
-    <string name="github_sign_out">تسجيل الخروج</string>
-    <string name="github_cancel">إلغاء</string>
-    <string name="github_unreachable">تعذّر الوصول إلى GitHub. وكل ما عداه يعمل كالمعتاد.</string>
     <string name="home_with_coauthor">%1$s و%2$s</string>
     <string name="home_with_coauthors">%1$s و%2$d آخرين</string>
 
@@ -316,7 +307,6 @@
     <string name="report_see_guide">الدليل الكامل في المشكلة</string>
     <string name="report_root_refused">رُفض الروت. اسمح لـ Vector في مدير الروت لديك ثم أعد المحاولة%1$s</string>
     <string name="home_custom_build">إصدار خاص — أحدث من master</string>
-    <string name="github_device_code">رمز جهاز GitHub</string>
     <string name="language_title">اللغة</string>
     <string name="language_system">لغة النظام</string>
     <string name="language_system_summary">اتّباع اللغة المضبوطة على الهاتف</string>

@@ -68,15 +68,6 @@
     <string name="home_discussions">گفتگوها</string>
     <string name="home_review_prs">بازبینی یک تغییر</string>
 
-    <string name="github_sign_in">ورود به GitHub</string>
-    <string name="github_sign_in_why">اختیاری. سقف ساعتی به‌روزرسانی فعالیت را بالا می‌برد و به Vector اجازه می‌دهد آنچه چشم‌به‌راه شماست را نشان دهد. فقط‌خواندنی — هیچ اجازه‌ای درخواست نمی‌شود.</string>
-    <string name="github_sign_in_code">این کد را در %1$s وارد کنید</string>
-    <string name="github_open_browser">باز کردن مرورگر</string>
-    <string name="github_copy_code">رونوشت کد</string>
-    <string name="github_signed_in_as">واردشده با نام %1$s</string>
-    <string name="github_sign_out">خروج</string>
-    <string name="github_cancel">انصراف</string>
-    <string name="github_unreachable">دسترسی به GitHub ممکن نشد. باقی چیزها همچنان کار می‌کنند.</string>
     <string name="home_with_coauthor">%1$s و %2$s</string>
     <string name="home_with_coauthors">%1$s و %2$d نفر دیگر</string>
 
@@ -272,7 +263,6 @@
     <string name="report_see_guide">راهنمای کامل در همان مسئله</string>
     <string name="report_root_refused">روت رد شد. در مدیر روت خود به Vector اجازه دهید و دوباره تلاش کنید%1$s</string>
     <string name="home_custom_build">ساخت شخصی — جلوتر از master</string>
-    <string name="github_device_code">کد دستگاه GitHub</string>
     <string name="language_title">زبان</string>
     <string name="language_system">پیش‌فرض سامانه</string>
     <string name="language_system_summary">هماهنگ با زبانی که روی گوشی تنظیم شده است</string>

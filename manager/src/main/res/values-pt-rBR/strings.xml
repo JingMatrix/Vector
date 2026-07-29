@@ -68,15 +68,6 @@
     <string name="home_discussions">Discussões</string>
     <string name="home_review_prs">Revisar uma alteração</string>
 
-    <string name="github_sign_in">Entrar no GitHub</string>
-    <string name="github_sign_in_why">Opcional. Aumenta o limite por hora das atualizações de atividade e deixa o Vector mostrar o que está esperando por você. Somente leitura — nenhuma permissão é solicitada.</string>
-    <string name="github_sign_in_code">Digite este código em %1$s</string>
-    <string name="github_open_browser">Abrir o navegador</string>
-    <string name="github_copy_code">Copiar o código</string>
-    <string name="github_signed_in_as">Conectado como %1$s</string>
-    <string name="github_sign_out">Sair</string>
-    <string name="github_cancel">Cancelar</string>
-    <string name="github_unreachable">Não foi possível acessar o GitHub. Todo o resto continua funcionando.</string>
     <string name="home_with_coauthor">%1$s e %2$s</string>
     <string name="home_with_coauthors">%1$s e mais %2$d</string>
 
@@ -272,7 +263,6 @@
     <string name="report_see_guide">Guia completo na issue</string>
     <string name="report_root_refused">Root recusado. Autorize o Vector no seu gerenciador de root e tente de novo%1$s</string>
     <string name="home_custom_build">Versão própria — à frente da master</string>
-    <string name="github_device_code">Código de dispositivo do GitHub</string>
     <string name="language_title">Idioma</string>
     <string name="language_system">Padrão do sistema</string>
     <string name="language_system_summary">Seguir o idioma configurado no telefone</string>

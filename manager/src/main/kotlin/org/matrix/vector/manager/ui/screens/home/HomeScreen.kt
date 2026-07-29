@@ -106,7 +106,6 @@ import org.matrix.vector.manager.ui.components.MonthMarkerRow
 import org.matrix.vector.manager.ui.components.GapRow
 import org.matrix.vector.manager.ui.components.HistoryFootRow
 import org.matrix.vector.manager.ui.components.ContributorAvatar
-import org.matrix.vector.manager.ui.components.GitHubSignInCard
 import org.matrix.vector.manager.ui.components.TakePartSection
 import org.matrix.vector.manager.ui.components.StatusHeader
 import org.matrix.vector.manager.ui.components.ambience.AmbienceKind
@@ -138,7 +137,6 @@ fun HomeScreen(
     val status by viewModel.status.collectAsStateWithLifecycle()
     val feed by viewModel.feed.collectAsStateWithLifecycle()
     val refreshing by viewModel.refreshing.collectAsStateWithLifecycle()
-    val signIn by viewModel.signInState.collectAsStateWithLifecycle()
     val openExternally by viewModel.openLinksExternally.collectAsStateWithLifecycle()
     val feedItems by viewModel.feedItems.collectAsStateWithLifecycle()
     val loadingHistory by viewModel.loadingHistory.collectAsStateWithLifecycle()
@@ -272,15 +270,6 @@ fun HomeScreen(
                             onOpen = ::open,
                             onCanary = onOpenCanary,
                             onReport = onOpenReport,
-                        )
-                        Spacer(Modifier.height(14.dp))
-                        GitHubSignInCard(
-                            state = signIn,
-                            isConfigured = viewModel.isSignInConfigured,
-                            onSignIn = viewModel::signIn,
-                            onSignOut = viewModel::signOut,
-                            onCancel = viewModel::cancelSignIn,
-                            onOpen = ::open,
                         )
                         Spacer(Modifier.height(14.dp))
                         ProjectFooter(feed = feed, onClick = { open(GitHubRepository.REPO_URL) })

@@ -68,15 +68,6 @@
     <string name="home_discussions">Discussioni</string>
     <string name="home_review_prs">Rivedi una modifica</string>
 
-    <string name="github_sign_in">Accedi a GitHub</string>
-    <string name="github_sign_in_why">Facoltativo. Alza il limite orario degli aggiornamenti di attività e permette a Vector di mostrare cosa ti sta aspettando. Sola lettura — non viene chiesto alcun permesso.</string>
-    <string name="github_sign_in_code">Inserisci questo codice su %1$s</string>
-    <string name="github_open_browser">Apri il browser</string>
-    <string name="github_copy_code">Copia il codice</string>
-    <string name="github_signed_in_as">Connesso come %1$s</string>
-    <string name="github_sign_out">Disconnetti</string>
-    <string name="github_cancel">Annulla</string>
-    <string name="github_unreachable">GitHub non era raggiungibile. Tutto il resto funziona lo stesso.</string>
     <string name="home_with_coauthor">%1$s e %2$s</string>
     <string name="home_with_coauthors">%1$s e altri %2$d</string>
 
@@ -272,7 +263,6 @@
     <string name="report_see_guide">Guida completa nella issue</string>
     <string name="report_root_refused">Root negato. Autorizza Vector nel tuo gestore root, poi riprova%1$s</string>
     <string name="home_custom_build">Build personalizzata — avanti rispetto a master</string>
-    <string name="github_device_code">Codice dispositivo GitHub</string>
     <string name="language_title">Lingua</string>
     <string name="language_system">Predefinita di sistema</string>
     <string name="language_system_summary">Segui la lingua impostata sul telefono</string>

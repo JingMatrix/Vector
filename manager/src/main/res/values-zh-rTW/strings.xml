@@ -66,15 +66,6 @@
     <string name="home_discussions">討論區</string>
     <string name="home_review_prs">審閱變更</string>
 
-    <string name="github_sign_in">登入 GitHub</string>
-    <string name="github_sign_in_why">選用。可提高動態更新的每小時上限，並讓 Vector 顯示等待你處理的項目。唯讀——不要求任何權限。</string>
-    <string name="github_sign_in_code">在 %1$s 輸入此代碼</string>
-    <string name="github_open_browser">開啟瀏覽器</string>
-    <string name="github_copy_code">複製代碼</string>
-    <string name="github_signed_in_as">已以 %1$s 登入</string>
-    <string name="github_sign_out">登出</string>
-    <string name="github_cancel">取消</string>
-    <string name="github_unreachable">無法連線 GitHub。其餘功能仍可正常使用。</string>
     <string name="home_with_coauthor">%1$s 與 %2$s</string>
     <string name="home_with_coauthors">%1$s 等 %2$d 人</string>
 
@@ -261,7 +252,6 @@
     <string name="report_see_guide">完整指南見 issue</string>
     <string name="report_root_refused">Root 要求遭拒。請在你的 Root 管理器中允許 Vector，然後重試%1$s</string>
     <string name="home_custom_build">自訂建置——領先於 master</string>
-    <string name="github_device_code">GitHub 裝置代碼</string>
 
     <string name="language_title">語言</string>
     <string name="language_system">跟隨系統</string>

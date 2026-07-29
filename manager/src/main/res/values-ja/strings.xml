@@ -66,15 +66,6 @@
     <string name="home_discussions">ディスカッション</string>
     <string name="home_review_prs">変更をレビュー</string>
 
-    <string name="github_sign_in">GitHub にログイン</string>
-    <string name="github_sign_in_why">任意です。動きの更新にかかる 1 時間あたりの上限が上がり、あなたを待っているものを Vector が表示できるようになります。読み取り専用で、権限は一切要求しません。</string>
-    <string name="github_sign_in_code">%1$s でこのコードを入力してください</string>
-    <string name="github_open_browser">ブラウザーを開く</string>
-    <string name="github_copy_code">コードをコピー</string>
-    <string name="github_signed_in_as">%1$s としてログイン中</string>
-    <string name="github_sign_out">ログアウト</string>
-    <string name="github_cancel">キャンセル</string>
-    <string name="github_unreachable">GitHub に接続できませんでした。それ以外は問題なく使えます。</string>
     <string name="home_with_coauthor">%1$s と %2$s</string>
     <string name="home_with_coauthors">%1$s ほか %2$d 名</string>
 
@@ -261,7 +252,6 @@
     <string name="report_see_guide">詳しい手引きは課題に</string>
     <string name="report_root_refused">root が拒否されました。お使いの root マネージャーで Vector を許可してから、もう一度お試しください%1$s</string>
     <string name="home_custom_build">独自ビルド — master より先行</string>
-    <string name="github_device_code">GitHub デバイスコード</string>
     <string name="language_title">言語</string>
     <string name="language_system">システムに合わせる</string>
     <string name="language_system_summary">端末で設定されている言語に従います</string>

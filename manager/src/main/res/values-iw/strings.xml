@@ -76,15 +76,6 @@
     <string name="home_discussions">דיונים</string>
     <string name="home_review_prs">סקירת שינוי</string>
 
-    <string name="github_sign_in">התחברות ל-GitHub</string>
-    <string name="github_sign_in_why">רשות. מעלה את המגבלה השעתית על עדכוני פעילות, ומאפשר ל-Vector להראות מה מחכה לכם. קריאה בלבד — לא מתבקשות שום הרשאות.</string>
-    <string name="github_sign_in_code">הזינו את הקוד הזה ב-%1$s</string>
-    <string name="github_open_browser">פתיחת דפדפן</string>
-    <string name="github_copy_code">העתקת הקוד</string>
-    <string name="github_signed_in_as">מחוברים בתור %1$s</string>
-    <string name="github_sign_out">התנתקות</string>
-    <string name="github_cancel">ביטול</string>
-    <string name="github_unreachable">לא הייתה גישה ל-GitHub. כל השאר עדיין עובד.</string>
     <string name="home_with_coauthor">%1$s ו-%2$s</string>
     <string name="home_with_coauthors">%1$s ועוד %2$d</string>
 
@@ -298,7 +289,6 @@
     <string name="report_see_guide">המדריך המלא בתקלה</string>
     <string name="report_root_refused">‏root נדחה. אשרו את Vector במנהל ה-root שלכם ונסו שוב%1$s</string>
     <string name="home_custom_build">גרסה עצמאית — מקדימה את master</string>
-    <string name="github_device_code">קוד מכשיר של GitHub</string>
     <string name="language_title">שפה</string>
     <string name="language_system">ברירת המחדל של המערכת</string>
     <string name="language_system_summary">לפי השפה שמוגדרת בטלפון</string>

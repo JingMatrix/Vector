@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import org.lsposed.lspd.ILSPManagerService
-import org.matrix.vector.manager.data.github.GitHubAuth
 import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.data.repository.AppRepository
@@ -199,13 +198,10 @@ object ServiceLocator {
 
     val backup: BackupRepository by lazy { BackupRepository(context, daemon) }
 
-    val githubAuth: GitHubAuth by lazy { GitHubAuth(context, http) }
-
     val github: GitHubRepository by lazy {
         GitHubRepository(
             client = http,
             cacheDir = context.cacheDir,
-            tokenProvider = { githubAuth.token },
             windowMonthsProvider = { settings.activityWindowMonths.value },
         )
     }

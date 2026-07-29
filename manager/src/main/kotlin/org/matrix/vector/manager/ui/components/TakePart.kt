@@ -1,8 +1,5 @@
 package org.matrix.vector.manager.ui.components
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -17,29 +14,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Forum
-import androidx.compose.material.icons.rounded.MergeType
 import androidx.compose.material.icons.rounded.RateReview
 import androidx.compose.material.icons.rounded.Science
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.github.GitHubRepository
-import org.matrix.vector.manager.data.github.SignInState
-import org.matrix.vector.manager.ui.theme.VectorMono
 
 /**
  * Where the page turns a reader into a participant.
@@ -144,124 +132,4 @@ private fun Door(
             Text(text = label, style = MaterialTheme.typography.labelLarge)
         }
     }
-}
-
-/**
- * Optional sign-in, rendered only when it can actually do something.
- *
- * The card is hidden entirely when no OAuth client id was compiled in, and when GitHub turns out
- * to be unreachable it collapses to a single quiet line rather than an error. A large share of this
- * project's users cannot reach github.com at all, and for them the rest of Home must still be a
- * complete, working screen — so sign-in is never a gate, only an upgrade.
- */
-@Composable
-fun GitHubSignInCard(
-    state: SignInState,
-    isConfigured: Boolean,
-    onSignIn: () -> Unit,
-    onSignOut: () -> Unit,
-    onCancel: () -> Unit,
-    onOpen: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (!isConfigured) return
-    val context = LocalContext.current
-
-    when (state) {
-        is SignInState.SignedOut ->
-            OutlinedCard(modifier = modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        stringResource(R.string.github_sign_in),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        stringResource(R.string.github_sign_in_why),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    FilledTonalButton(onClick = onSignIn) {
-                        Text(stringResource(R.string.github_sign_in))
-                    }
-                }
-            }
-
-        is SignInState.AwaitingUser ->
-            Card(
-                modifier = modifier.fillMaxWidth(),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    ),
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        stringResource(R.string.github_sign_in_code, state.verificationUri),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    // The code is the whole point of this state, so it is set large and
-                    // monospaced — it is meant to be read off a screen and typed on another.
-                    Text(
-                        text = state.userCode,
-                        style = VectorMono.copy(fontSize = MaterialTheme.typography.headlineSmall.fontSize),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(10.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledTonalButton(onClick = { onOpen(state.verificationUri) }) {
-                            Text(stringResource(R.string.github_open_browser))
-                        }
-                        TextButton(onClick = { copyCode(context, state.userCode) }) {
-                            Text(stringResource(R.string.github_copy_code))
-                        }
-                        TextButton(onClick = onCancel) {
-                            Text(stringResource(R.string.github_cancel))
-                        }
-                    }
-                }
-            }
-
-        is SignInState.SignedIn ->
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.Rounded.MergeType,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.github_signed_in_as, state.login ?: "GitHub"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = onSignOut) {
-                    Text(stringResource(R.string.github_sign_out))
-                }
-            }
-
-        is SignInState.Unavailable ->
-            Text(
-                text = stringResource(R.string.github_unreachable),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = modifier.fillMaxWidth(),
-            )
-    }
-}
-
-private fun copyCode(context: Context, code: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-    clipboard?.setPrimaryClip(
-        // Android 13 and later show this label in the clipboard preview, so it is user-visible.
-        ClipData.newPlainText(context.getString(R.string.github_device_code), code)
-    )
 }

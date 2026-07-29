@@ -66,15 +66,6 @@
     <string name="home_open_issue">Сообщить о проблеме</string>
     <string name="home_discussions">Обсуждения</string>
     <string name="home_review_prs">Просмотреть изменения</string>
-    <string name="github_sign_in">Войти в GitHub</string>
-    <string name="github_sign_in_why">Необязательно. Повышает часовой лимит на обновления ленты и позволяет Vector показать, что ждёт вас. Только чтение — никакие права не запрашиваются.</string>
-    <string name="github_sign_in_code">Введите этот код на %1$s</string>
-    <string name="github_open_browser">Открыть браузер</string>
-    <string name="github_copy_code">Скопировать код</string>
-    <string name="github_signed_in_as">Вы вошли как %1$s</string>
-    <string name="github_sign_out">Выйти</string>
-    <string name="github_cancel">Отмена</string>
-    <string name="github_unreachable">GitHub недоступен. Всё остальное продолжает работать.</string>
     <string name="home_with_coauthor">%1$s и %2$s</string>
     <string name="home_with_coauthors">%1$s и ещё %2$d</string>
     <string name="home_month_stats">%1$s · %2$s</string>
@@ -274,7 +265,6 @@
     <string name="report_see_guide">Полное руководство в issue</string>
     <string name="report_root_refused">В root отказано. Разрешите Vector в вашем root-менеджере и повторите%1$s</string>
     <string name="home_custom_build">Своя сборка — новее master</string>
-    <string name="github_device_code">Код устройства GitHub</string>
 
     <string name="language_title">Язык</string>
     <string name="language_system">Как в системе</string>

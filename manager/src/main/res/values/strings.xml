@@ -127,15 +127,6 @@
     <string name="home_review_prs">Review a change</string>
 
     <!-- Optional GitHub sign-in. Never required; everything renders signed out. -->
-    <string name="github_sign_in">Sign in to GitHub</string>
-    <string name="github_sign_in_why">Optional. Raises the hourly limit on activity updates, and lets Vector show what is waiting on you. Read-only — no permissions are requested.</string>
-    <string name="github_sign_in_code">Enter this code at %1$s</string>
-    <string name="github_open_browser">Open browser</string>
-    <string name="github_copy_code">Copy code</string>
-    <string name="github_signed_in_as">Signed in as %1$s</string>
-    <string name="github_sign_out">Sign out</string>
-    <string name="github_cancel">Cancel</string>
-    <string name="github_unreachable">GitHub could not be reached. Everything else still works.</string>
     <!-- Joins a commit's author with its co-authors, e.g. "Leaf-lsgtky &amp; Qing" -->
     <string name="home_with_coauthor">%1$s &amp; %2$s</string>
     <string name="home_with_coauthors">%1$s &amp; %2$d others</string>
@@ -417,7 +408,6 @@
     <string name="report_see_guide">Full guide in issue</string>
     <string name="report_root_refused">Root refused. Allow Vector in your root manager, then try again%1$s</string>
     <string name="home_custom_build">Custom build — ahead of master</string>
-    <string name="github_device_code">GitHub device code</string>
     <string name="language_title">Language</string>
     <string name="language_system">System default</string>
     <string name="language_system_summary">Follow the language your phone is set to</string>

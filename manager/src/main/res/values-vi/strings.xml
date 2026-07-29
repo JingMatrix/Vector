@@ -66,15 +66,6 @@
     <string name="home_discussions">Thảo luận</string>
     <string name="home_review_prs">Xem lại một thay đổi</string>
 
-    <string name="github_sign_in">Đăng nhập GitHub</string>
-    <string name="github_sign_in_why">Không bắt buộc. Nâng giới hạn theo giờ cho việc cập nhật hoạt động, và cho phép Vector hiện những gì đang chờ bạn. Chỉ đọc — không yêu cầu quyền nào.</string>
-    <string name="github_sign_in_code">Nhập mã này tại %1$s</string>
-    <string name="github_open_browser">Mở trình duyệt</string>
-    <string name="github_copy_code">Sao chép mã</string>
-    <string name="github_signed_in_as">Đã đăng nhập với %1$s</string>
-    <string name="github_sign_out">Đăng xuất</string>
-    <string name="github_cancel">Huỷ</string>
-    <string name="github_unreachable">Không kết nối được GitHub. Mọi thứ khác vẫn chạy.</string>
     <string name="home_with_coauthor">%1$s và %2$s</string>
     <string name="home_with_coauthors">%1$s và %2$d người khác</string>
 
@@ -261,7 +252,6 @@
     <string name="report_see_guide">Hướng dẫn đầy đủ ở issue</string>
     <string name="report_root_refused">Root bị từ chối. Hãy cho phép Vector trong trình quản lý root rồi thử lại%1$s</string>
     <string name="home_custom_build">Bản dựng riêng — mới hơn master</string>
-    <string name="github_device_code">Mã thiết bị GitHub</string>
     <string name="language_title">Ngôn ngữ</string>
     <string name="language_system">Theo hệ thống</string>
     <string name="language_system_summary">Dùng ngôn ngữ đã đặt trên điện thoại</string>

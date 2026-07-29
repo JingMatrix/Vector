@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.github.CanaryBuild
 import org.matrix.vector.manager.data.github.GitHubRepository
-import org.matrix.vector.manager.data.github.SignInState
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.theme.VectorMono
 

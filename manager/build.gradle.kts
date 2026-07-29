@@ -61,14 +61,6 @@ android {
         buildConfigField("String", "MANAGER_PACKAGE_NAME", "\"$defaultManagerPackageName\"")
         buildConfigField("String", "INJECTED_PACKAGE_NAME", "\"$injectedPackageName\"")
 
-        // OAuth client id for the optional GitHub device-flow sign-in on Home. It is a Gradle
-        // property, so set `githubClientId` in ~/.gradle/gradle.properties or pass
-        // -PgithubClientId=... — local.properties is read by AGP for the SDK location and never
-        // reaches `providers.gradleProperty`. Left empty the app hides sign-in entirely rather
-        // than offering something broken.
-        val githubClientId = providers.gradleProperty("githubClientId").getOrElse("")
-        buildConfigField("String", "GITHUB_CLIENT_ID", "\"$githubClientId\"")
-
         // The languages this module is actually translated into, listed from the resource folders
         // that carry our own strings.xml. AssetManager.getLocales() cannot answer this: it reports
         // every locale any dependency ships a resource for — AndroidX alone drags in dozens — plus

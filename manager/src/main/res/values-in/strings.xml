@@ -70,15 +70,6 @@
     <string name="home_discussions">Diskusi</string>
     <string name="home_review_prs">Tinjau sebuah perubahan</string>
 
-    <string name="github_sign_in">Masuk ke GitHub</string>
-    <string name="github_sign_in_why">Opsional. Menaikkan batas per jam untuk pembaruan aktivitas, dan membuat Vector bisa menampilkan apa yang menunggu Anda. Hanya baca — tidak ada izin yang diminta.</string>
-    <string name="github_sign_in_code">Masukkan kode ini di %1$s</string>
-    <string name="github_open_browser">Buka peramban</string>
-    <string name="github_copy_code">Salin kode</string>
-    <string name="github_signed_in_as">Masuk sebagai %1$s</string>
-    <string name="github_sign_out">Keluar</string>
-    <string name="github_cancel">Batal</string>
-    <string name="github_unreachable">GitHub tidak dapat dihubungi. Selebihnya tetap berjalan.</string>
     <string name="home_with_coauthor">%1$s &amp; %2$s</string>
     <string name="home_with_coauthors">%1$s &amp; %2$d lainnya</string>
 
@@ -265,7 +256,6 @@
     <string name="report_see_guide">Panduan lengkap ada di isu</string>
     <string name="report_root_refused">Root ditolak. Izinkan Vector di pengelola root Anda, lalu coba lagi%1$s</string>
     <string name="home_custom_build">Build sendiri — lebih maju dari master</string>
-    <string name="github_device_code">Kode perangkat GitHub</string>
     <string name="language_title">Bahasa</string>
     <string name="language_system">Bawaan sistem</string>
     <string name="language_system_summary">Ikuti bahasa yang disetel di ponsel</string>

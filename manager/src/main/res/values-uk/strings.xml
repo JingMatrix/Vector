@@ -72,15 +72,6 @@
     <string name="home_discussions">Обговорення</string>
     <string name="home_review_prs">Переглянути зміну</string>
 
-    <string name="github_sign_in">Увійти в GitHub</string>
-    <string name="github_sign_in_why">Необов\'язково. Підвищує погодинний ліміт на оновлення активності й дає Vector змогу показувати те, що чекає на вас. Лише читання — жодних дозволів не запитується.</string>
-    <string name="github_sign_in_code">Введіть цей код на %1$s</string>
-    <string name="github_open_browser">Відкрити браузер</string>
-    <string name="github_copy_code">Копіювати код</string>
-    <string name="github_signed_in_as">Ви ввійшли як %1$s</string>
-    <string name="github_sign_out">Вийти</string>
-    <string name="github_cancel">Скасувати</string>
-    <string name="github_unreachable">GitHub недоступний. Решта працює як звичайно.</string>
     <string name="home_with_coauthor">%1$s і %2$s</string>
     <string name="home_with_coauthors">%1$s і ще %2$d</string>
 
@@ -294,7 +285,6 @@
     <string name="report_see_guide">Повний посібник у задачі</string>
     <string name="report_root_refused">Root відхилено. Дозвольте Vector у своєму root-менеджері й спробуйте ще раз%1$s</string>
     <string name="home_custom_build">Власна збірка — попереду master</string>
-    <string name="github_device_code">Код пристрою GitHub</string>
     <string name="language_title">Мова</string>
     <string name="language_system">Як у системі</string>
     <string name="language_system_summary">Використовувати мову, налаштовану на телефоні</string>

@@ -21,7 +21,6 @@ import kotlin.random.Random
 import kotlinx.coroutines.launch
 import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.github.CommunityFeed
-import org.matrix.vector.manager.data.github.GitHubAuth
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
@@ -138,29 +137,11 @@ data class DeviceInfo(
 class HomeViewModel(
     private val daemon: DaemonClient,
     private val github: GitHubRepository,
-    private val auth: GitHubAuth,
 ) : ViewModel() {
-
-    val signInState: StateFlow<org.matrix.vector.manager.data.github.SignInState> = auth.state
 
     val openLinksExternally: StateFlow<Boolean> = ServiceLocator.settings.openLinksExternally
 
     val headerAmbience: StateFlow<String> = ServiceLocator.settings.headerAmbience
-
-    val isSignInConfigured: Boolean
-        get() = auth.isConfigured
-
-    fun signIn() {
-        viewModelScope.launch { auth.signIn() }
-    }
-
-    fun signOut() {
-        auth.signOut()
-        // The rate limit changes with the token, so the feed is worth re-reading.
-        refreshFeed(GitHubRepository.Freshness.Force)
-    }
-
-    fun cancelSignIn() = auth.cancel()
 
     private val _status = MutableStateFlow(FrameworkStatus())
     val status: StateFlow<FrameworkStatus> = _status.asStateFlow()
@@ -613,7 +594,6 @@ class HomeViewModel(
                     HomeViewModel(
                         ServiceLocator.daemon,
                         ServiceLocator.github,
-                        ServiceLocator.githubAuth,
                     )
                         as T
             }

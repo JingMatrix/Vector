@@ -66,15 +66,6 @@
     <string name="home_discussions">토론</string>
     <string name="home_review_prs">변경 사항 검토</string>
 
-    <string name="github_sign_in">GitHub에 로그인</string>
-    <string name="github_sign_in_why">선택 사항입니다. 활동 갱신의 시간당 한도가 올라가고, 나를 기다리는 항목을 Vector가 보여줄 수 있습니다. 읽기 전용이며 어떤 권한도 요청하지 않습니다.</string>
-    <string name="github_sign_in_code">%1$s 에서 이 코드를 입력하세요</string>
-    <string name="github_open_browser">브라우저 열기</string>
-    <string name="github_copy_code">코드 복사</string>
-    <string name="github_signed_in_as">%1$s(으)로 로그인함</string>
-    <string name="github_sign_out">로그아웃</string>
-    <string name="github_cancel">취소</string>
-    <string name="github_unreachable">GitHub에 연결하지 못했습니다. 나머지는 그대로 동작합니다.</string>
     <string name="home_with_coauthor">%1$s 및 %2$s</string>
     <string name="home_with_coauthors">%1$s 외 %2$d명</string>
 
@@ -261,7 +252,6 @@
     <string name="report_see_guide">전체 안내는 이슈에</string>
     <string name="report_root_refused">루트가 거부되었습니다. 루트 관리자에서 Vector를 허용한 뒤 다시 시도하세요%1$s</string>
     <string name="home_custom_build">직접 만든 빌드 — master보다 앞섬</string>
-    <string name="github_device_code">GitHub 기기 코드</string>
     <string name="language_title">언어</string>
     <string name="language_system">시스템 기본값</string>
     <string name="language_system_summary">휴대전화에 설정된 언어를 따릅니다</string>

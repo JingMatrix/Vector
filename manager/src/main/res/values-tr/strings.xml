@@ -68,15 +68,6 @@
     <string name="home_discussions">Tartışmalar</string>
     <string name="home_review_prs">Bir değişikliği incele</string>
 
-    <string name="github_sign_in">GitHub\'a giriş yap</string>
-    <string name="github_sign_in_why">İsteğe bağlı. Hareket güncellemelerinin saatlik sınırını yükseltir ve Vector\'ün sizi bekleyenleri göstermesini sağlar. Yalnızca okuma — hiçbir izin istenmez.</string>
-    <string name="github_sign_in_code">Bu kodu %1$s adresine girin</string>
-    <string name="github_open_browser">Tarayıcıyı aç</string>
-    <string name="github_copy_code">Kodu kopyala</string>
-    <string name="github_signed_in_as">%1$s olarak giriş yapıldı</string>
-    <string name="github_sign_out">Çıkış yap</string>
-    <string name="github_cancel">Vazgeç</string>
-    <string name="github_unreachable">GitHub\'a ulaşılamadı. Diğer her şey çalışmaya devam ediyor.</string>
     <string name="home_with_coauthor">%1$s ve %2$s</string>
     <string name="home_with_coauthors">%1$s ve %2$d kişi daha</string>
 
@@ -272,7 +263,6 @@
     <string name="report_see_guide">Tam kılavuz sorunda</string>
     <string name="report_root_refused">Root reddedildi. Root yöneticinizde Vector\'e izin verip yeniden deneyin%1$s</string>
     <string name="home_custom_build">Özel derleme — master\'ın ilerisinde</string>
-    <string name="github_device_code">GitHub cihaz kodu</string>
     <string name="language_title">Dil</string>
     <string name="language_system">Sistem varsayılanı</string>
     <string name="language_system_summary">Telefonda ayarlı dili izle</string>
