@@ -53,7 +53,7 @@ object CrashRecorder {
     @Volatile private var installed = false
 
     /**
-     * Takes over the default handler, once per process.
+     * Takes over the default handler, once per process, and discards what another build left.
      *
      * Called from [org.matrix.vector.manager.di.ServiceLocator.attach], early in the activity's
      * `onCreate` and before anything that could fail, so the handler is in place before any screen
@@ -64,6 +64,7 @@ object CrashRecorder {
         if (installed) return
         installed = true
         val application = context.applicationContext ?: context
+        runCatching { discardOtherBuilds(application) }
         val previous = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             runCatching { record(application, thread, throwable) }
@@ -88,6 +89,29 @@ object CrashRecorder {
 
     fun clear(context: Context) {
         runCatching { files(context).forEach { it.delete() } }
+    }
+
+    /**
+     * Drops the records that some other build of the manager wrote.
+     *
+     * A record outlives the build that made it — the directory is this process's cache, which an
+     * update does not clear — so the status card goes on showing a crash that the running build
+     * has already fixed, until somebody thinks to press clear. That is not a stale line on a
+     * screen. It is what a reporter copies into the issue to show the fix did not work: #799 was
+     * answered with five traces from the build before the one that fixed them.
+     *
+     * Only at [install], never at [record]: this is about what a *new* build inherits, and a crash
+     * loop within one build must keep every record it makes.
+     *
+     * A file whose second line cannot be read is kept. Losing a trace is the worse of the two
+     * failures, and a record this class cannot parse is exactly the one worth still having.
+     */
+    private fun discardOtherBuilds(context: Context) {
+        val current = BUILD
+        files(context).forEach { file ->
+            val theirs = runCatching { file.useLines { it.drop(1).firstOrNull() } }.getOrNull()
+            if (theirs != null && !theirs.startsWith(current)) runCatching { file.delete() }
+        }
     }
 
     /** Newest first, which is the order both the card and the clipboard want. */
@@ -124,10 +148,21 @@ object CrashRecorder {
         val parasitic = context.packageName == BuildConfig.INJECTED_PACKAGE_NAME
         val host = if (parasitic) "parasitic in ${context.packageName}" else "standalone"
         return "${TIMESTAMP.format(Date(at))}\n" +
-            "manager ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) " +
-            "${BuildConfig.VERSION_HASH} · $host · thread ${thread.name} · " +
+            "$BUILD · $host · thread ${thread.name} · " +
             "android ${android.os.Build.VERSION.RELEASE} (sdk ${android.os.Build.VERSION.SDK_INT})"
     }
+
+    /**
+     * How a record says which build wrote it, and so what [discardOtherBuilds] matches on.
+     *
+     * The whole line rather than the hash alone: a build from a dirty tree carries the hash of the
+     * commit it was built from, so two of them can share it while differing by everything that was
+     * uncommitted at the time.
+     */
+    private val BUILD: String
+        get() =
+            "manager ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) " +
+                BuildConfig.VERSION_HASH
 
     private const val SUFFIX = ".log"
 
