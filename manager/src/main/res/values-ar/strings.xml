@@ -437,4 +437,7 @@
     <string name="scope_framework_restart_title">لم يطبّق إطار النظام هذا بعد</string>
     <string name="scope_framework_restart_body">يُحمَّل إطار النظام مرة واحدة، عند بدء تشغيل أندرويد. لن يصل هذا التغيير إليه إلا بعد إعادة تشغيل الإطار — تُغلق كل التطبيقات العاملة، ويبقى الهاتف نفسه قيد التشغيل.</string>
     <string name="scope_framework_restart_later">لاحقًا</string>
+    <string name="settings_network">الشبكة</string>
+    <string name="settings_doh">تحليل الأسماء عبر HTTPS</string>
+    <string name="settings_doh_summary">يحلّل الأسماء عبر Cloudflare بدلاً من محلّل الشبكة. للشبكات التي تحجب الـ DNS أو تعبث به.</string>
 </resources>

@@ -393,4 +393,7 @@
     <string name="scope_framework_restart_title">چارچوب سامانه هنوز این را اعمال نکرده است</string>
     <string name="scope_framework_restart_body">چارچوب سامانه تنها یک بار، هنگام راه‌اندازی اندروید، بارگذاری می‌شود. این تغییر تنها پس از راه‌اندازی دوبارهٔ چارچوب به آن می‌رسد — همهٔ برنامه‌های در حال اجرا بسته می‌شوند و خود گوشی روشن می‌ماند.</string>
     <string name="scope_framework_restart_later">بعداً</string>
+    <string name="settings_network">شبکه</string>
+    <string name="settings_doh">تحلیل نام‌ها از راه HTTPS</string>
+    <string name="settings_doh_summary">نام‌ها را به‌جای تحلیل‌گر شبکه از راه Cloudflare پیدا می‌کند. برای شبکه‌هایی که DNS را مسدود یا دستکاری می‌کنند.</string>
 </resources>

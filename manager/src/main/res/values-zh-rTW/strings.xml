@@ -383,4 +383,7 @@
     <string name="scope_framework_restart_title">系統框架尚未套用此變更</string>
     <string name="scope_framework_restart_body">系統框架只在 Android 啟動時載入一次。此變更要等到框架重新啟動後才會生效——所有正在執行的應用程式都會關閉，手機本身保持開機。</string>
     <string name="scope_framework_restart_later">稍後</string>
+    <string name="settings_network">網路</string>
+    <string name="settings_doh">透過 HTTPS 解析網域</string>
+    <string name="settings_doh_summary">透過 Cloudflare 而非網路自帶的解析器查詢網域。適用於封鎖或竄改 DNS 的網路。</string>
 </resources>

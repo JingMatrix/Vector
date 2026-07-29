@@ -55,7 +55,16 @@ class SettingsRepository(context: Context) {
         MutableStateFlow(prefs.getString("update_channel", "stable") ?: "stable")
     val updateChannel: StateFlow<String> = _updateChannel.asStateFlow()
 
-    private val _dohEnabled = MutableStateFlow(prefs.getBoolean("doh_enabled", false))
+    /**
+     * Resolve through Cloudflare rather than the network's own resolver.
+     *
+     * On by default. The mirrors this app depends on are the ones a network is most likely to
+     * resolve wrongly or not at all, and someone whose Store is empty because of it has no reason
+     * to suspect DNS. VectorDns only uses it when nothing is proxying the connection, and falls
+     * back to the system resolver for the rest of the session the first time a lookup fails, so
+     * the default costs nothing on a network where ordinary DNS already works.
+     */
+    private val _dohEnabled = MutableStateFlow(prefs.getBoolean("doh_enabled", true))
     val dohEnabled: StateFlow<Boolean> = _dohEnabled.asStateFlow()
 
     // --- Home activity feed ---

@@ -393,4 +393,7 @@
     <string name="scope_framework_restart_title">Il framework non ha ancora recepito la modifica</string>
     <string name="scope_framework_restart_body">Il framework di sistema viene caricato una sola volta, all\'avvio di Android. Questa modifica lo raggiunge solo quando il framework viene riavviato: tutte le app in esecuzione si chiudono e il telefono resta acceso.</string>
     <string name="scope_framework_restart_later">Più tardi</string>
+    <string name="settings_network">Rete</string>
+    <string name="settings_doh">Risolvere i nomi via HTTPS</string>
+    <string name="settings_doh_summary">Risolve i nomi tramite Cloudflare invece che con il resolver della rete. Per reti che bloccano o alterano il DNS.</string>
 </resources>

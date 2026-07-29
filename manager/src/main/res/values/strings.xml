@@ -427,4 +427,7 @@
     <string name="scope_framework_restart_title">The framework has not picked this up yet</string>
     <string name="scope_framework_restart_body">System Framework is loaded once, when Android starts it. This change reaches it only when the framework restarts — every running app closes, and the phone itself stays on.</string>
     <string name="scope_framework_restart_later">Later</string>
+    <string name="settings_network">Network</string>
+    <string name="settings_doh">Resolve names over HTTPS</string>
+    <string name="settings_doh_summary">Looks names up through Cloudflare instead of the network\'s resolver. For networks that block or tamper with DNS.</string>
 </resources>

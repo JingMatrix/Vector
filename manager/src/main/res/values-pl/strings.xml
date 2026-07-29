@@ -415,4 +415,7 @@
     <string name="scope_framework_restart_title">Szkielet jeszcze tego nie uwzględnił</string>
     <string name="scope_framework_restart_body">Szkielet systemu wczytywany jest raz, przy starcie Androida. Ta zmiana dotrze do niego dopiero po restarcie szkieletu — wszystkie działające aplikacje zostaną zamknięte, a telefon pozostanie włączony.</string>
     <string name="scope_framework_restart_later">Później</string>
+    <string name="settings_network">Sieć</string>
+    <string name="settings_doh">Rozwiązuj nazwy przez HTTPS</string>
+    <string name="settings_doh_summary">Rozwiązuje nazwy przez Cloudflare zamiast przez resolver sieci. Dla sieci, które blokują lub zmieniają DNS.</string>
 </resources>

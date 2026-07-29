@@ -36,8 +36,6 @@ import androidx.compose.material.icons.rounded.Upgrade
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -58,7 +56,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -102,14 +99,13 @@ fun RepoScreen(
     val sort by viewModel.sort.collectAsState()
     val priorities by viewModel.priorities.collectAsState()
     val channel by viewModel.channel.collectAsState()
-    val doh by viewModel.doh.collectAsState()
 
     Scaffold { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             StoreHeader(
                 catalog = catalog,
                 updates = updates,
-                search = { StoreSearch(query, viewModel, sort, priorities, channel, doh) },
+                search = { StoreSearch(query, viewModel, sort, priorities, channel) },
             )
 
             Spacer(Modifier.height(4.dp))
@@ -193,7 +189,6 @@ private fun StoreSearch(
     sort: StoreSort,
     priorities: List<StorePriority>,
     channel: StoreChannel,
-    doh: Boolean,
 ) {
     SearchField(
         query = query,
@@ -207,8 +202,6 @@ private fun StoreSearch(
             onTogglePriority = viewModel::togglePriority,
             channel = channel,
             onChannelChange = viewModel::setChannel,
-            doh = doh,
-            onDohChange = viewModel::setDoh,
         )
     }
 }
@@ -238,14 +231,11 @@ private fun StoreFilterButton(
     onTogglePriority: (StorePriority) -> Unit,
     channel: StoreChannel,
     onChannelChange: (StoreChannel) -> Unit,
-    doh: Boolean,
-    onDohChange: (Boolean) -> Unit,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     val narrowed =
         sort != StoreSort.RecentlyUpdated ||
             channel != StoreChannel.Stable ||
-            doh ||
             priorities != listOf(StorePriority.Updates)
 
     IconButton(onClick = { sheetOpen = true }) {
@@ -268,8 +258,6 @@ private fun StoreFilterButton(
             onTogglePriority = onTogglePriority,
             channel = channel,
             onChannelChange = onChannelChange,
-            doh = doh,
-            onDohChange = onDohChange,
             onDismiss = { sheetOpen = false },
         )
     }
@@ -284,8 +272,6 @@ private fun StoreFilterSheet(
     onTogglePriority: (StorePriority) -> Unit,
     channel: StoreChannel,
     onChannelChange: (StoreChannel) -> Unit,
-    doh: Boolean,
-    onDohChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
@@ -353,16 +339,6 @@ private fun StoreFilterSheet(
                     }
                 }
 
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-
-                SheetHeading(stringResource(R.string.store_group_network), Icons.Rounded.Dns)
-                ToggleRow(
-                    title = stringResource(R.string.store_doh),
-                    icon = Icons.Rounded.Dns,
-                    subtitle = stringResource(R.string.store_doh_summary),
-                    checked = doh,
-                    onCheckedChange = onDohChange,
-                )
             }
         }
     }

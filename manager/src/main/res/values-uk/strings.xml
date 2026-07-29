@@ -415,4 +415,7 @@
     <string name="scope_framework_restart_title">Фреймворк ще не застосував це</string>
     <string name="scope_framework_restart_body">Системний фреймворк завантажується один раз, коли запускається Android. Ця зміна дійде до нього лише після перезапуску фреймворка — усі запущені застосунки закриються, а телефон залишиться увімкненим.</string>
     <string name="scope_framework_restart_later">Пізніше</string>
+    <string name="settings_network">Мережа</string>
+    <string name="settings_doh">Розвʼязувати імена через HTTPS</string>
+    <string name="settings_doh_summary">Розвʼязує імена через Cloudflare, а не через резолвер мережі. Для мереж, які блокують або підміняють DNS.</string>
 </resources>

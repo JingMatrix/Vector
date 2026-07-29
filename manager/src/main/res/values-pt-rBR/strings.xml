@@ -393,4 +393,7 @@
     <string name="scope_framework_restart_title">O framework ainda não aplicou isso</string>
     <string name="scope_framework_restart_body">O framework do sistema é carregado uma única vez, quando o Android inicia. Esta alteração só chega a ele quando o framework reinicia — todos os apps em execução fecham e o telefone continua ligado.</string>
     <string name="scope_framework_restart_later">Mais tarde</string>
+    <string name="settings_network">Rede</string>
+    <string name="settings_doh">Resolver nomes por HTTPS</string>
+    <string name="settings_doh_summary">Resolve nomes pela Cloudflare em vez do resolvedor da rede. Para redes que bloqueiam ou adulteram o DNS.</string>
 </resources>

@@ -203,9 +203,7 @@ class RepoViewModel(
      * Changing it takes effect on the next lookup: `VectorDns` reads the flag per lookup rather
      * than at client construction, so there is nothing to rebuild and no restart to ask for.
      */
-    val doh: StateFlow<Boolean> = settings.dohEnabled
 
-    fun setDoh(enabled: Boolean) = settings.setDohEnabled(enabled)
 
     /** Persisted: the channel decides what counts as an update everywhere, not just in this list. */
     fun setChannel(value: StoreChannel) {

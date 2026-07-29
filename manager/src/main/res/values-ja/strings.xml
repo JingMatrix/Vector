@@ -382,4 +382,7 @@
     <string name="scope_framework_restart_title">フレームワークはまだ反映していません</string>
     <string name="scope_framework_restart_body">システムフレームワークは Android の起動時に一度だけ読み込まれます。この変更が届くのは、フレームワークが再起動したときだけです。実行中のアプリはすべて終了しますが、端末自体は起動したままです。</string>
     <string name="scope_framework_restart_later">後で</string>
+    <string name="settings_network">ネットワーク</string>
+    <string name="settings_doh">名前を HTTPS で解決する</string>
+    <string name="settings_doh_summary">名前をネットワークのリゾルバではなく Cloudflare 経由で解決します。DNS を遮断または改変するネットワーク向けです。</string>
 </resources>

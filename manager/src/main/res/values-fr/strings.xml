@@ -393,4 +393,7 @@
     <string name="scope_framework_restart_title">Le framework n\'a pas encore pris en compte ce changement</string>
     <string name="scope_framework_restart_body">Le framework système n\'est chargé qu\'une fois, au démarrage d\'Android. Ce changement ne l\'atteindra qu\'au redémarrage du framework — toutes les applications en cours se ferment, et le téléphone reste allumé.</string>
     <string name="scope_framework_restart_later">Plus tard</string>
+    <string name="settings_network">Réseau</string>
+    <string name="settings_doh">Résoudre les noms via HTTPS</string>
+    <string name="settings_doh_summary">Résout les noms via Cloudflare plutôt que par le résolveur du réseau. Pour les réseaux qui bloquent ou altèrent le DNS.</string>
 </resources>

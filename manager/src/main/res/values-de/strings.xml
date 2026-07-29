@@ -393,4 +393,7 @@
     <string name="scope_framework_restart_title">Das Framework hat das noch nicht übernommen</string>
     <string name="scope_framework_restart_body">Das System-Framework wird einmal geladen, wenn Android startet. Diese Änderung erreicht es erst, wenn das Framework neu startet — alle laufenden Apps werden beendet, das Telefon selbst bleibt an.</string>
     <string name="scope_framework_restart_later">Später</string>
+    <string name="settings_network">Netzwerk</string>
+    <string name="settings_doh">Namen über HTTPS auflösen</string>
+    <string name="settings_doh_summary">Löst Namen über Cloudflare auf statt über den Resolver des Netzwerks. Für Netzwerke, die DNS blockieren oder verfälschen.</string>
 </resources>

@@ -386,4 +386,7 @@
     <string name="scope_framework_restart_title">Framework belum menerapkan perubahan ini</string>
     <string name="scope_framework_restart_body">Framework sistem hanya dimuat sekali, saat Android dijalankan. Perubahan ini baru menjangkaunya setelah framework dimulai ulang — semua aplikasi yang berjalan akan ditutup, dan ponsel sendiri tetap menyala.</string>
     <string name="scope_framework_restart_later">Nanti</string>
+    <string name="settings_network">Jaringan</string>
+    <string name="settings_doh">Selesaikan nama lewat HTTPS</string>
+    <string name="settings_doh_summary">Menyelesaikan nama lewat Cloudflare alih-alih resolver jaringan. Untuk jaringan yang memblokir atau mengubah DNS.</string>
 </resources>

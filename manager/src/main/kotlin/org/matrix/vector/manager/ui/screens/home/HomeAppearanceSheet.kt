@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.BrightnessAuto
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.OpenInBrowser
@@ -105,6 +106,7 @@ fun HomeAppearanceSheet(onDismiss: () -> Unit) {
         }
     val windowMonths by settings.activityWindowMonths.collectAsStateWithLifecycle()
     val openExternally by settings.openLinksExternally.collectAsStateWithLifecycle()
+    val doh by settings.dohEnabled.collectAsStateWithLifecycle()
 
     // The default state, deliberately. `skipPartiallyExpanded` removes the half-height stop, which
     // is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than
@@ -193,6 +195,21 @@ LocalizedOverlay {
                     )
                 }
             }
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            // Here rather than under the Store's filters, where it used to sit. It was never a
+            // filter on that list: VectorDns applies it to the one OkHttp client, so it governs
+            // the activity feed and the framework update check as much as the module mirrors —
+            // and a reader whose network breaks GitHub has no reason to look for it under Store.
+            SheetHeading(stringResource(R.string.settings_network), Icons.Rounded.Dns)
+            ToggleRow(
+                title = stringResource(R.string.settings_doh),
+                icon = Icons.Rounded.Dns,
+                subtitle = stringResource(R.string.settings_doh_summary),
+                checked = doh,
+                onCheckedChange = settings::setDohEnabled,
+            )
+
             ToggleRow(
                 title = stringResource(R.string.settings_open_externally),
                 icon = Icons.Rounded.OpenInBrowser,

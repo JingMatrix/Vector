@@ -382,4 +382,7 @@
     <string name="scope_framework_restart_title">Framework chưa tiếp nhận thay đổi này</string>
     <string name="scope_framework_restart_body">Framework hệ thống chỉ được nạp một lần, khi Android khởi động. Thay đổi này chỉ tới được nó khi framework khởi động lại — mọi ứng dụng đang chạy sẽ đóng, còn điện thoại vẫn bật.</string>
     <string name="scope_framework_restart_later">Để sau</string>
+    <string name="settings_network">Mạng</string>
+    <string name="settings_doh">Phân giải tên qua HTTPS</string>
+    <string name="settings_doh_summary">Phân giải tên qua Cloudflare thay vì trình phân giải của mạng. Dành cho mạng chặn hoặc can thiệp DNS.</string>
 </resources>

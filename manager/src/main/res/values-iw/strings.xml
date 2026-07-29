@@ -419,4 +419,7 @@
     <string name="scope_framework_restart_title">מסגרת המערכת עדיין לא החילה את זה</string>
     <string name="scope_framework_restart_body">מסגרת המערכת נטענת פעם אחת בלבד, כשאנדרואיד עולה. השינוי הזה יגיע אליה רק כשהמסגרת תופעל מחדש — כל האפליקציות הפועלות נסגרות, והטלפון עצמו נשאר דלוק.</string>
     <string name="scope_framework_restart_later">מאוחר יותר</string>
+    <string name="settings_network">רשת</string>
+    <string name="settings_doh">פענוח שמות דרך HTTPS</string>
+    <string name="settings_doh_summary">מפענח שמות דרך Cloudflare במקום דרך המפענח של הרשת. לרשתות שחוסמות או משבשות DNS.</string>
 </resources>
