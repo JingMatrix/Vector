@@ -423,4 +423,21 @@
     <string name="settings_doh_working">Працює — %1$s розвʼязано через Cloudflare.</string>
     <string name="settings_doh_fell_back">Cloudflare недоступний (%1$s), тому до кінця цього сеансу використовується резолвер мережі.</string>
     <string name="settings_doh_retry">Повторити</string>
+
+    <string name="launcher_section">Як відкрити Vector</string>
+    <string name="launcher_shortcut">Ярлик на головному екрані</string>
+    <string name="launcher_shortcut_summary">Vector не встановлено як застосунок, тож лаунчеру нема чого показувати. Закріплений ярлик дає йому значок.</string>
+    <string name="launcher_shortcut_create">Створити</string>
+    <string name="launcher_shortcut_pinned">Уже на вашому головному екрані</string>
+    <string name="launcher_shortcut_unsupported">Цей лаунчер не приймає закріплені ярлики. Натомість підійде встановлення Vector як застосунку.</string>
+    <string name="launcher_shortcut_refused">Лаунчер відхилив ярлик.</string>
+    <string name="launcher_install">Встановити Vector як застосунок</string>
+    <string name="launcher_install_summary">Дає Vector звичайний значок у лаунчері та рядок у переліку застосунків. Після цього встановлення модуля проходить через системний запит, а не відбувається мовчки.</string>
+    <string name="launcher_install_action">Встановити</string>
+    <string name="launcher_installed">Встановлено</string>
+    <string name="launcher_install_done">Vector встановлено. Відкрийте його з лаунчера.</string>
+    <string name="launcher_install_failed">Не вдалося встановити Vector.</string>
+    <string name="launcher_prompt_title">У Vector ще немає значка</string>
+    <string name="launcher_prompt_body">Vector працює всередині чужого процесу, а не встановлений, тому в лаунчері нічого не з\'являється і очевидного шляху назад немає. Додайте ярлик на головний екран або встановіть Vector як звичайний застосунок.</string>
+    <string name="launcher_prompt_never">Більше не питати</string>
 </resources>

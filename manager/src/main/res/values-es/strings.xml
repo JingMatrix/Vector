@@ -401,4 +401,21 @@
     <string name="settings_doh_working">Funciona: %1$s se resolvió a través de Cloudflare.</string>
     <string name="settings_doh_fell_back">No se pudo contactar con Cloudflare (%1$s), así que se usará el resolutor de la red durante el resto de esta sesión.</string>
     <string name="settings_doh_retry">Reintentar</string>
+
+    <string name="launcher_section">Abrir Vector</string>
+    <string name="launcher_shortcut">Acceso directo en la pantalla de inicio</string>
+    <string name="launcher_shortcut_summary">Vector no está instalado como app, así que tu launcher no tiene nada que mostrar. Un acceso directo anclado le da un icono.</string>
+    <string name="launcher_shortcut_create">Crear</string>
+    <string name="launcher_shortcut_pinned">Ya está en tu pantalla de inicio</string>
+    <string name="launcher_shortcut_unsupported">Este launcher no acepta accesos directos anclados. Instalar Vector como app sirve igual.</string>
+    <string name="launcher_shortcut_refused">Tu launcher rechazó el acceso directo.</string>
+    <string name="launcher_install">Instalar Vector como app</string>
+    <string name="launcher_install_summary">Le da a Vector un icono normal en el launcher y una entrada en tu lista de apps. A partir de entonces, instalar un módulo pasa por el diálogo de instalación del sistema en vez de hacerse en silencio.</string>
+    <string name="launcher_install_action">Instalar</string>
+    <string name="launcher_installed">Instalado</string>
+    <string name="launcher_install_done">Vector está instalado. Ábrelo desde tu launcher.</string>
+    <string name="launcher_install_failed">No se pudo instalar Vector.</string>
+    <string name="launcher_prompt_title">Vector todavía no tiene icono</string>
+    <string name="launcher_prompt_body">Vector se ejecuta dentro de otro proceso en lugar de estar instalado, así que no aparece nada en tu launcher y no hay una forma evidente de volver. Dale un acceso directo en la pantalla de inicio, o instálalo como una app normal.</string>
+    <string name="launcher_prompt_never">No volver a preguntar</string>
 </resources>

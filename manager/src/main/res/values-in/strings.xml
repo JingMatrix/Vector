@@ -394,4 +394,21 @@
     <string name="settings_doh_working">Berfungsi — %1$s diselesaikan lewat Cloudflare.</string>
     <string name="settings_doh_fell_back">Cloudflare tidak dapat dihubungi (%1$s), jadi resolver jaringan dipakai untuk sisa sesi ini.</string>
     <string name="settings_doh_retry">Coba lagi</string>
+
+    <string name="launcher_section">Membuka Vector</string>
+    <string name="launcher_shortcut">Pintasan di layar utama</string>
+    <string name="launcher_shortcut_summary">Vector tidak dipasang sebagai aplikasi, jadi launcher Anda tidak punya apa pun untuk ditampilkan. Pintasan yang disematkan memberinya sebuah ikon.</string>
+    <string name="launcher_shortcut_create">Buat</string>
+    <string name="launcher_shortcut_pinned">Sudah ada di layar utama Anda</string>
+    <string name="launcher_shortcut_unsupported">Launcher ini tidak menerima pintasan yang disematkan. Sebagai gantinya, memasang Vector sebagai aplikasi tetap bisa.</string>
+    <string name="launcher_shortcut_refused">Launcher Anda menolak pintasan tersebut.</string>
+    <string name="launcher_install">Pasang Vector sebagai aplikasi</string>
+    <string name="launcher_install_summary">Memberi Vector ikon launcher biasa dan satu entri di daftar aplikasi Anda. Setelah itu, pemasangan modul melewati dialog pemasangan sistem, tidak lagi berjalan diam-diam.</string>
+    <string name="launcher_install_action">Pasang</string>
+    <string name="launcher_installed">Terpasang</string>
+    <string name="launcher_install_done">Vector sudah terpasang. Buka dari launcher Anda.</string>
+    <string name="launcher_install_failed">Vector tidak bisa dipasang.</string>
+    <string name="launcher_prompt_title">Vector belum punya ikon</string>
+    <string name="launcher_prompt_body">Vector berjalan di dalam proses lain alih-alih dipasang, jadi tidak ada yang muncul di launcher Anda dan tidak ada jalan kembali yang jelas. Beri dia pintasan di layar utama, atau pasang sebagai aplikasi biasa.</string>
+    <string name="launcher_prompt_never">Jangan tanya lagi</string>
 </resources>

@@ -390,4 +390,21 @@
     <string name="settings_doh_working">작동 중 — %1$s을(를) Cloudflare로 확인했습니다.</string>
     <string name="settings_doh_fell_back">Cloudflare에 연결할 수 없어(%1$s) 이 세션의 나머지 동안 네트워크의 확인자를 사용합니다.</string>
     <string name="settings_doh_retry">다시 시도</string>
+
+    <string name="launcher_section">Vector 열기</string>
+    <string name="launcher_shortcut">홈 화면 바로가기</string>
+    <string name="launcher_shortcut_summary">Vector는 앱으로 설치되지 않으므로 런처에 보여줄 것이 없습니다. 바로가기를 고정하면 아이콘이 생깁니다.</string>
+    <string name="launcher_shortcut_create">만들기</string>
+    <string name="launcher_shortcut_pinned">이미 홈 화면에 있습니다</string>
+    <string name="launcher_shortcut_unsupported">이 런처는 바로가기 고정을 받아들이지 않습니다. 대신 Vector를 앱으로 설치하면 됩니다.</string>
+    <string name="launcher_shortcut_refused">런처가 바로가기를 거부했습니다.</string>
+    <string name="launcher_install">Vector를 앱으로 설치</string>
+    <string name="launcher_install_summary">Vector에 일반 런처 아이콘과 앱 목록 항목을 만들어 줍니다. 그 뒤로는 모듈 설치가 조용히 진행되지 않고 시스템의 설치 창을 거칩니다.</string>
+    <string name="launcher_install_action">설치</string>
+    <string name="launcher_installed">설치됨</string>
+    <string name="launcher_install_done">Vector가 설치되었습니다. 런처에서 열 수 있습니다.</string>
+    <string name="launcher_install_failed">Vector를 설치할 수 없습니다.</string>
+    <string name="launcher_prompt_title">Vector에 아직 아이콘이 없습니다</string>
+    <string name="launcher_prompt_body">Vector는 설치되는 대신 다른 프로세스 안에서 실행되므로 런처에 아무것도 나타나지 않고 다시 들어올 뚜렷한 방법도 없습니다. 홈 화면 바로가기를 만들거나, 일반 앱으로 설치하세요.</string>
+    <string name="launcher_prompt_never">다시 묻지 않기</string>
 </resources>

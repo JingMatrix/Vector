@@ -401,4 +401,21 @@
     <string name="settings_doh_working">کار می‌کند — %1$s از راه Cloudflare تحلیل شد.</string>
     <string name="settings_doh_fell_back">دسترسی به Cloudflare ممکن نشد (%1$s)، بنابراین تا پایان این نشست از تحلیل‌گر شبکه استفاده می‌شود.</string>
     <string name="settings_doh_retry">تلاش دوباره</string>
+
+    <string name="launcher_section">باز کردن Vector</string>
+    <string name="launcher_shortcut">میان‌بر در صفحهٔ اصلی</string>
+    <string name="launcher_shortcut_summary">Vector به‌عنوان برنامه نصب نشده است، پس لانچر چیزی برای نشان دادن ندارد. یک میان‌بر سنجاق‌شده به آن نماد می‌دهد.</string>
+    <string name="launcher_shortcut_create">ساختن</string>
+    <string name="launcher_shortcut_pinned">از پیش روی صفحهٔ اصلی شماست</string>
+    <string name="launcher_shortcut_unsupported">این لانچر میان‌بر سنجاق‌شده نمی‌پذیرد. در عوض می‌توانید Vector را به‌عنوان برنامه نصب کنید.</string>
+    <string name="launcher_shortcut_refused">لانچر شما میان‌بر را نپذیرفت.</string>
+    <string name="launcher_install">نصب Vector به‌عنوان برنامه</string>
+    <string name="launcher_install_summary">به Vector نمادی معمولی در لانچر و جایی در فهرست برنامه‌های شما می‌دهد. پس از آن، نصب هر ماژول از پنجرهٔ نصب سیستم می‌گذرد و دیگر بی‌صدا انجام نمی‌شود.</string>
+    <string name="launcher_install_action">نصب</string>
+    <string name="launcher_installed">نصب‌شده</string>
+    <string name="launcher_install_done">Vector نصب شد. آن را از لانچر باز کنید.</string>
+    <string name="launcher_install_failed">نصب Vector ممکن نشد.</string>
+    <string name="launcher_prompt_title">Vector هنوز نمادی ندارد</string>
+    <string name="launcher_prompt_body">Vector به‌جای آنکه نصب شده باشد درون فرایندی دیگر اجرا می‌شود، پس چیزی در لانچر پیدا نمی‌شود و راه روشنی برای بازگشت به آن نیست. به آن میان‌بری در صفحهٔ اصلی بدهید، یا آن را مانند برنامه‌ای معمولی نصب کنید.</string>
+    <string name="launcher_prompt_never">دیگر پرسیده نشود</string>
 </resources>

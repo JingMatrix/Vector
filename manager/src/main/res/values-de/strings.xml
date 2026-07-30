@@ -401,4 +401,21 @@
     <string name="settings_doh_working">Funktioniert — %1$s wurde über Cloudflare aufgelöst.</string>
     <string name="settings_doh_fell_back">Cloudflare ist nicht erreichbar (%1$s); für den Rest dieser Sitzung wird der Resolver des Netzwerks verwendet.</string>
     <string name="settings_doh_retry">Erneut versuchen</string>
+
+    <string name="launcher_section">Vector öffnen</string>
+    <string name="launcher_shortcut">Verknüpfung auf dem Startbildschirm</string>
+    <string name="launcher_shortcut_summary">Vector ist nicht als App installiert, dein Launcher hat also nichts anzuzeigen. Eine angeheftete Verknüpfung gibt ihm ein Symbol.</string>
+    <string name="launcher_shortcut_create">Erstellen</string>
+    <string name="launcher_shortcut_pinned">Schon auf deinem Startbildschirm</string>
+    <string name="launcher_shortcut_unsupported">Dieser Launcher nimmt keine angehefteten Verknüpfungen an. Vector als App zu installieren funktioniert stattdessen.</string>
+    <string name="launcher_shortcut_refused">Dein Launcher hat die Verknüpfung abgelehnt.</string>
+    <string name="launcher_install">Vector als App installieren</string>
+    <string name="launcher_install_summary">Gibt Vector ein gewöhnliches Launcher-Symbol und einen Eintrag in deiner App-Liste. Ein Modul zu installieren läuft dann über die Installationsabfrage des Systems, statt still zu geschehen.</string>
+    <string name="launcher_install_action">Installieren</string>
+    <string name="launcher_installed">Installiert</string>
+    <string name="launcher_install_done">Vector ist installiert. Öffne es über deinen Launcher.</string>
+    <string name="launcher_install_failed">Vector konnte nicht installiert werden.</string>
+    <string name="launcher_prompt_title">Vector hat noch kein Symbol</string>
+    <string name="launcher_prompt_body">Vector läuft in einem fremden Prozess, statt installiert zu sein — im Launcher erscheint also nichts, und es gibt keinen offensichtlichen Weg zurück. Gib ihm eine Verknüpfung auf dem Startbildschirm, oder installiere es als gewöhnliche App.</string>
+    <string name="launcher_prompt_never">Nicht mehr fragen</string>
 </resources>

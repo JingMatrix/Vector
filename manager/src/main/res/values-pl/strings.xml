@@ -423,4 +423,21 @@
     <string name="settings_doh_working">Działa — %1$s rozwiązano przez Cloudflare.</string>
     <string name="settings_doh_fell_back">Nie udało się połączyć z Cloudflare (%1$s), więc przez resztę tej sesji używany jest resolver sieci.</string>
     <string name="settings_doh_retry">Spróbuj ponownie</string>
+
+    <string name="launcher_section">Otwieranie Vectora</string>
+    <string name="launcher_shortcut">Skrót na ekranie głównym</string>
+    <string name="launcher_shortcut_summary">Vector nie jest zainstalowany jako aplikacja, więc launcher nie ma czego pokazać. Przypięty skrót daje mu ikonę.</string>
+    <string name="launcher_shortcut_create">Utwórz</string>
+    <string name="launcher_shortcut_pinned">Już jest na Twoim ekranie głównym</string>
+    <string name="launcher_shortcut_unsupported">Ten launcher nie przyjmuje przypiętych skrótów. Zamiast tego można zainstalować Vectora jako aplikację.</string>
+    <string name="launcher_shortcut_refused">Twój launcher odrzucił skrót.</string>
+    <string name="launcher_install">Zainstaluj Vectora jako aplikację</string>
+    <string name="launcher_install_summary">Daje Vectorowi zwykłą ikonę w launcherze i wpis na liście aplikacji. Od tej pory instalacja modułu przechodzi przez systemowe okno instalacji, zamiast odbywać się po cichu.</string>
+    <string name="launcher_install_action">Zainstaluj</string>
+    <string name="launcher_installed">Zainstalowany</string>
+    <string name="launcher_install_done">Vector jest zainstalowany. Otwórz go z launchera.</string>
+    <string name="launcher_install_failed">Nie udało się zainstalować Vectora.</string>
+    <string name="launcher_prompt_title">Vector nie ma jeszcze ikony</string>
+    <string name="launcher_prompt_body">Vector działa wewnątrz innego procesu, zamiast być zainstalowany, więc nic nie pojawia się w launcherze i nie ma oczywistej drogi powrotnej. Dodaj mu skrót na ekranie głównym albo zainstaluj go jako zwykłą aplikację.</string>
+    <string name="launcher_prompt_never">Nie pytaj ponownie</string>
 </resources>

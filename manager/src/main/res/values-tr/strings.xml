@@ -401,4 +401,21 @@
     <string name="settings_doh_working">Çalışıyor — %1$s Cloudflare üzerinden çözümlendi.</string>
     <string name="settings_doh_fell_back">Cloudflare\'a ulaşılamadı (%1$s), bu oturumun kalanında ağın çözümleyicisi kullanılacak.</string>
     <string name="settings_doh_retry">Yeniden dene</string>
+
+    <string name="launcher_section">Vector\'ü açmak</string>
+    <string name="launcher_shortcut">Ana ekran kısayolu</string>
+    <string name="launcher_shortcut_summary">Vector uygulama olarak kurulu değil, bu yüzden başlatıcınızın gösterecek bir şeyi yok. Sabitlenmiş bir kısayol ona bir simge kazandırır.</string>
+    <string name="launcher_shortcut_create">Oluştur</string>
+    <string name="launcher_shortcut_pinned">Zaten ana ekranınızda</string>
+    <string name="launcher_shortcut_unsupported">Bu başlatıcı sabitlenmiş kısayolları kabul etmiyor. Onun yerine Vector\'ü uygulama olarak kurmak işe yarar.</string>
+    <string name="launcher_shortcut_refused">Başlatıcınız kısayolu reddetti.</string>
+    <string name="launcher_install">Vector\'ü uygulama olarak kur</string>
+    <string name="launcher_install_summary">Vector\'e sıradan bir başlatıcı simgesi ve uygulama listenizde bir giriş verir. Bundan sonra bir modülün kurulumu sessizce olmak yerine sistemin kurulum penceresinden geçer.</string>
+    <string name="launcher_install_action">Kur</string>
+    <string name="launcher_installed">Kurulu</string>
+    <string name="launcher_install_done">Vector kuruldu. Başlatıcınızdan açabilirsiniz.</string>
+    <string name="launcher_install_failed">Vector kurulamadı.</string>
+    <string name="launcher_prompt_title">Vector\'ün henüz bir simgesi yok</string>
+    <string name="launcher_prompt_body">Vector kurulmak yerine başka bir sürecin içinde çalışır; bu yüzden başlatıcınızda hiçbir şey görünmez ve geri dönmenin bariz bir yolu yoktur. Ona ana ekranda bir kısayol verin ya da sıradan bir uygulama olarak kurun.</string>
+    <string name="launcher_prompt_never">Bir daha sorma</string>
 </resources>

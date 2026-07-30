@@ -401,4 +401,21 @@
     <string name="settings_doh_working">Fonctionne — %1$s a été résolu via Cloudflare.</string>
     <string name="settings_doh_fell_back">Cloudflare est injoignable (%1$s) ; le résolveur du réseau est utilisé pour le reste de cette session.</string>
     <string name="settings_doh_retry">Réessayer</string>
+
+    <string name="launcher_section">Ouvrir Vector</string>
+    <string name="launcher_shortcut">Raccourci sur l\'écran d\'accueil</string>
+    <string name="launcher_shortcut_summary">Vector n\'est pas installé comme application, votre lanceur n\'a donc rien à afficher. Un raccourci épinglé lui donne une icône.</string>
+    <string name="launcher_shortcut_create">Créer</string>
+    <string name="launcher_shortcut_pinned">Déjà sur votre écran d\'accueil</string>
+    <string name="launcher_shortcut_unsupported">Ce lanceur n\'accepte pas les raccourcis épinglés. Installer Vector comme application fonctionne à la place.</string>
+    <string name="launcher_shortcut_refused">Votre lanceur a refusé le raccourci.</string>
+    <string name="launcher_install">Installer Vector comme application</string>
+    <string name="launcher_install_summary">Donne à Vector une icône de lancement ordinaire et une entrée dans votre liste d\'applications. Installer un module passe alors par la demande d\'installation du système au lieu de se faire en silence.</string>
+    <string name="launcher_install_action">Installer</string>
+    <string name="launcher_installed">Installé</string>
+    <string name="launcher_install_done">Vector est installé. Ouvrez-le depuis votre lanceur.</string>
+    <string name="launcher_install_failed">Vector n\'a pas pu être installé.</string>
+    <string name="launcher_prompt_title">Vector n\'a pas encore d\'icône</string>
+    <string name="launcher_prompt_body">Vector s\'exécute dans un autre processus au lieu d\'être installé : rien n\'apparaît dans votre lanceur et il n\'y a pas de moyen évident d\'y revenir. Donnez-lui un raccourci sur l\'écran d\'accueil, ou installez-le comme une application ordinaire.</string>
+    <string name="launcher_prompt_never">Ne plus demander</string>
 </resources>

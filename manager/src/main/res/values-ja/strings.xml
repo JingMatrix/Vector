@@ -390,4 +390,21 @@
     <string name="settings_doh_working">動作中 — %1$s を Cloudflare 経由で解決しました。</string>
     <string name="settings_doh_fell_back">Cloudflare に接続できませんでした (%1$s)。このセッションの残りはネットワークのリゾルバを使用します。</string>
     <string name="settings_doh_retry">再試行</string>
+
+    <string name="launcher_section">Vector を開く</string>
+    <string name="launcher_shortcut">ホーム画面のショートカット</string>
+    <string name="launcher_shortcut_summary">Vector はアプリとしてインストールされていないため、ランチャーには表示するものがありません。ショートカットを固定すればアイコンができます。</string>
+    <string name="launcher_shortcut_create">作成</string>
+    <string name="launcher_shortcut_pinned">すでにホーム画面にあります</string>
+    <string name="launcher_shortcut_unsupported">このランチャーはショートカットの固定を受け付けません。代わりに Vector をアプリとしてインストールすれば使えます。</string>
+    <string name="launcher_shortcut_refused">ランチャーがショートカットを拒否しました。</string>
+    <string name="launcher_install">Vector をアプリとしてインストール</string>
+    <string name="launcher_install_summary">Vector に通常のランチャーアイコンとアプリ一覧の項目を与えます。以後、モジュールのインストールは黙って行われず、システムのインストール画面を通ります。</string>
+    <string name="launcher_install_action">インストール</string>
+    <string name="launcher_installed">インストール済み</string>
+    <string name="launcher_install_done">Vector をインストールしました。ランチャーから開けます。</string>
+    <string name="launcher_install_failed">Vector をインストールできませんでした。</string>
+    <string name="launcher_prompt_title">Vector にはまだアイコンがありません</string>
+    <string name="launcher_prompt_body">Vector はインストールされるのではなく別のプロセスの中で動くため、ランチャーには何も現れず、戻ってくる分かりやすい手段がありません。ホーム画面にショートカットを作るか、通常のアプリとしてインストールしてください。</string>
+    <string name="launcher_prompt_never">今後表示しない</string>
 </resources>

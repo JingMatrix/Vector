@@ -427,4 +427,21 @@
     <string name="settings_doh_working">עובד — %1$s פוענח דרך Cloudflare.</string>
     <string name="settings_doh_fell_back">לא ניתן היה להגיע ל-Cloudflare (%1$s), ולכן ייעשה שימוש במפענח של הרשת בהמשך ההפעלה הזו.</string>
     <string name="settings_doh_retry">ניסיון נוסף</string>
+
+    <string name="launcher_section">פתיחת Vector</string>
+    <string name="launcher_shortcut">קיצור דרך במסך הבית</string>
+    <string name="launcher_shortcut_summary">Vector אינו מותקן כאפליקציה, ולכן אין למסך הבית מה להציג. קיצור דרך מוצמד נותן לו סמל.</string>
+    <string name="launcher_shortcut_create">יצירה</string>
+    <string name="launcher_shortcut_pinned">כבר במסך הבית שלכם</string>
+    <string name="launcher_shortcut_unsupported">אפליקציית מסך הבית הזאת אינה מקבלת קיצורי דרך מוצמדים. במקום זאת אפשר להתקין את Vector כאפליקציה.</string>
+    <string name="launcher_shortcut_refused">אפליקציית מסך הבית דחתה את קיצור הדרך.</string>
+    <string name="launcher_install">התקנת Vector כאפליקציה</string>
+    <string name="launcher_install_summary">נותנת ל-Vector סמל רגיל במסך הבית וערך ברשימת האפליקציות שלכם. מאותו רגע התקנה של מודול עוברת דרך חלון ההתקנה של המערכת במקום להתבצע בשקט.</string>
+    <string name="launcher_install_action">התקנה</string>
+    <string name="launcher_installed">מותקן</string>
+    <string name="launcher_install_done">Vector הותקן. אפשר לפתוח אותו ממסך הבית.</string>
+    <string name="launcher_install_failed">לא ניתן היה להתקין את Vector.</string>
+    <string name="launcher_prompt_title">ל-Vector עדיין אין סמל</string>
+    <string name="launcher_prompt_body">Vector פועל בתוך תהליך אחר במקום להיות מותקן, ולכן שום דבר לא מופיע במסך הבית ואין דרך ברורה לחזור אליו. תנו לו קיצור דרך במסך הבית, או התקינו אותו כאפליקציה רגילה.</string>
+    <string name="launcher_prompt_never">לא לשאול שוב</string>
 </resources>

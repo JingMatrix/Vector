@@ -401,4 +401,21 @@
     <string name="settings_doh_working">Funcionando — %1$s foi resolvido pela Cloudflare.</string>
     <string name="settings_doh_fell_back">Não foi possível alcançar a Cloudflare (%1$s), então o resolvedor da rede será usado no resto desta sessão.</string>
     <string name="settings_doh_retry">Tentar de novo</string>
+
+    <string name="launcher_section">Abrir o Vector</string>
+    <string name="launcher_shortcut">Atalho na tela inicial</string>
+    <string name="launcher_shortcut_summary">O Vector não está instalado como app, então seu launcher não tem o que mostrar. Um atalho fixado dá um ícone a ele.</string>
+    <string name="launcher_shortcut_create">Criar</string>
+    <string name="launcher_shortcut_pinned">Já está na sua tela inicial</string>
+    <string name="launcher_shortcut_unsupported">Este launcher não aceita atalhos fixados. Em vez disso, instalar o Vector como app funciona.</string>
+    <string name="launcher_shortcut_refused">Seu launcher recusou o atalho.</string>
+    <string name="launcher_install">Instalar o Vector como app</string>
+    <string name="launcher_install_summary">Dá ao Vector um ícone comum no launcher e uma entrada na sua lista de apps. A partir daí, instalar um módulo passa pela caixa de instalação do sistema em vez de acontecer em silêncio.</string>
+    <string name="launcher_install_action">Instalar</string>
+    <string name="launcher_installed">Instalado</string>
+    <string name="launcher_install_done">O Vector está instalado. Abra-o pelo seu launcher.</string>
+    <string name="launcher_install_failed">Não foi possível instalar o Vector.</string>
+    <string name="launcher_prompt_title">O Vector ainda não tem ícone</string>
+    <string name="launcher_prompt_body">O Vector roda dentro de outro processo em vez de estar instalado, então nada aparece no seu launcher e não há um caminho óbvio de volta. Dê a ele um atalho na tela inicial, ou instale-o como um app comum.</string>
+    <string name="launcher_prompt_never">Não perguntar de novo</string>
 </resources>

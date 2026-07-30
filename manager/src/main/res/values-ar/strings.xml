@@ -445,4 +445,21 @@
     <string name="settings_doh_working">يعمل — حُلّل %1$s عبر Cloudflare.</string>
     <string name="settings_doh_fell_back">تعذّر الوصول إلى Cloudflare (%1$s)، لذا سيُستخدَم محلّل الشبكة لبقية هذه الجلسة.</string>
     <string name="settings_doh_retry">إعادة المحاولة</string>
+
+    <string name="launcher_section">فتح Vector</string>
+    <string name="launcher_shortcut">اختصار على الشاشة الرئيسية</string>
+    <string name="launcher_shortcut_summary">لا يُثبَّت Vector كتطبيق، لذا لا يجد المشغّل ما يعرضه. اختصار مثبَّت يمنحه أيقونة.</string>
+    <string name="launcher_shortcut_create">إنشاء</string>
+    <string name="launcher_shortcut_pinned">موجود على شاشتك الرئيسية</string>
+    <string name="launcher_shortcut_unsupported">هذا المشغّل لا يقبل الاختصارات المثبَّتة. تثبيت Vector كتطبيق يفي بالغرض بدلًا من ذلك.</string>
+    <string name="launcher_shortcut_refused">رفض المشغّل الاختصار.</string>
+    <string name="launcher_install">تثبيت Vector كتطبيق</string>
+    <string name="launcher_install_summary">يمنح Vector أيقونة عادية في المشغّل ومدخلًا في قائمة تطبيقاتك. عندئذٍ يمرّ تثبيت أي وحدة عبر نافذة التثبيت في النظام بدلًا من أن يتم بصمت.</string>
+    <string name="launcher_install_action">تثبيت</string>
+    <string name="launcher_installed">مثبَّت</string>
+    <string name="launcher_install_done">تم تثبيت Vector. افتحه من المشغّل.</string>
+    <string name="launcher_install_failed">تعذّر تثبيت Vector.</string>
+    <string name="launcher_prompt_title">ليس لـ Vector أيقونة بعد</string>
+    <string name="launcher_prompt_body">يعمل Vector داخل عملية أخرى بدل أن يكون مثبَّتًا، فلا يظهر شيء في المشغّل ولا توجد طريقة واضحة للعودة إليه. امنحه اختصارًا على الشاشة الرئيسية، أو ثبِّته كتطبيق عادي.</string>
+    <string name="launcher_prompt_never">عدم السؤال مجددًا</string>
 </resources>
