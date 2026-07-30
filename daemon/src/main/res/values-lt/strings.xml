@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Xposed modulis dar nėra aktyvuotas</string>
+    <string name="module_is_not_activated_yet">Modulis dar nėra aktyvuotas</string>
     <string name="module_is_not_activated_yet_main_user_detailed">\"%1$s\" buvo įdiegta, tačiau liko dar nesuaktyvuota</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">\"%1$s\" buvo įdiegta vartotojui \"%2$s\", tačiau liko dar nesuaktyvuota</string>
-    <string name="xposed_module_updated_notification_title">Atnaujintas Xposed modulis</string>
+    <string name="xposed_module_updated_notification_title">Atnaujintas modulis</string>
     <string name="xposed_module_updated_notification_content">%s buvo atnaujintas, priverstinai sustabdykite ir iš naujo paleiskite jo taikymo srityje esančias programas</string>
-    <string name="xposed_module_updated_notification_title_system">Atnaujintas \"Xposed\" modulis, reikalingas sistemos perkrovimas</string>
+    <string name="xposed_module_updated_notification_title_system">Atnaujintas modulis, reikalingas sistemos perkrovimas</string>
     <string name="xposed_module_updated_notification_content_system">%s buvo atnaujintas, nes srityje yra System Framework, reikalingas perkrovimas, kad būtų galima taikyti pakeitimus</string>
     <string name="module_updated_channel_name">Modulio atnaujinimas baigtas</string>
-    <string name="status_channel_name">LSPatvirtintas statusas</string>
-    <string name="vector_running_notification_title">LSPpateiktas pakrautas</string>
+    <string name="status_channel_name">Vector statusas</string>
+    <string name="vector_running_notification_title">Vector įkeltas</string>
     <string name="vector_running_notification_content">Bakstelėkite pranešimą, kad atidarytumėte tvarkytuvę</string>
     <string name="xposed_module_request_scope_title">Apimties prašymas</string>
     <string name="xposed_module_request_scope_content">%1$s pagal naudotojo %2$s užklausas įtraukti %3$s į jo taikymo sritį.</string>

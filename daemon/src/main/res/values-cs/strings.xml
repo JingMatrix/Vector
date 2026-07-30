@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Xposed modul ještě není aktivován</string>
+    <string name="module_is_not_activated_yet">Modul ještě není aktivován</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s byl nainstalován, ale ještě není aktivován</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s byl nainstalován uživateli %2$s, ale ještě není aktivován</string>
-    <string name="xposed_module_updated_notification_title">Xposed modul byl aktualizován</string>
+    <string name="xposed_module_updated_notification_title">Modul byl aktualizován</string>
     <string name="xposed_module_updated_notification_content">%s byl aktualizován, prosím, násilně zastavte aplikace a restartujte je</string>
-    <string name="xposed_module_updated_notification_title_system">Xposed modul aktualizován, je vyžadován restart systému</string>
+    <string name="xposed_module_updated_notification_title_system">Modul aktualizován, je vyžadován restart systému</string>
     <string name="xposed_module_updated_notification_content_system">%s byl aktualizován, a protože se provedly změny v souvislosti se Systémovým Frameworkem, je vyžadován restart pro aplikaci změn</string>
     <string name="module_updated_channel_name">Aktualizace modulu dokončena</string>
     <string name="status_channel_name">Stav Vector</string>
-    <string name="vector_running_notification_title">LPosed načten</string>
+    <string name="vector_running_notification_title">Vector načten</string>
     <string name="vector_running_notification_content">Klepnutím na oznámení otevřete správce</string>
     <string name="xposed_module_request_scope_title">Žádost o rozsah</string>
     <string name="xposed_module_request_scope_content">%1$s pro uživatele %2$s požaduje přidání %3$s do jeho rozsahu.</string>

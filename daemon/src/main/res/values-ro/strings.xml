@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Modulul Xposed nu este încă activat</string>
+    <string name="module_is_not_activated_yet">Modulul nu este încă activat</string>
     <string name="module_is_not_activated_yet_main_user_detailed">Modulul %1$s este instalat, dar nu este încă activat</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">Modulul %1$s a fost instalat pentru utilizatorul %2$s, dar nu este încă activat</string>
-    <string name="xposed_module_updated_notification_title">Modulul Xposed a fost actualizat</string>
+    <string name="xposed_module_updated_notification_title">Modulul a fost actualizat</string>
     <string name="xposed_module_updated_notification_content">Modulul %s a fost actualizat, vă rugăm să reporniți aplicațiile din cadrul configurației sale</string>
-    <string name="xposed_module_updated_notification_title_system">Modulul Xposed a fost actualizat, este necesară repornirea sistemului</string>
+    <string name="xposed_module_updated_notification_title_system">Modulul a fost actualizat, este necesară repornirea sistemului</string>
     <string name="xposed_module_updated_notification_content_system">Modulul %s a fost actualizat. Este necesară repornirea dispozitivului, deoarece Sistemul Android face parte din configurația modulului.</string>
     <string name="module_updated_channel_name">Actualizarea modulelor este completă</string>
     <string name="status_channel_name">Stare Vector</string>

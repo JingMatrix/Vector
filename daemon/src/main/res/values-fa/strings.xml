@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">ماژول Xposed هنوز فعال نشده است</string>
+    <string name="module_is_not_activated_yet">ماژول هنوز فعال نشده است</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s نصب شده اما هنوز فعال نشده است</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s برای کاربر %2$s نصب شده اما هنوز فعال نشده است</string>
-    <string name="xposed_module_updated_notification_title">ماژول Xposed به‌روزرسانی شد</string>
+    <string name="xposed_module_updated_notification_title">ماژول به‌روزرسانی شد</string>
     <string name="xposed_module_updated_notification_content">%s به‌روزرسانی شده است، لطفاً برنامه‌های مربوطه را به‌زور متوقف و مجدداً راه‌اندازی کنید</string>
-    <string name="xposed_module_updated_notification_title_system">ماژول Xposed به‌روزرسانی شد، نیاز به راه‌اندازی مجدد سیستم</string>
+    <string name="xposed_module_updated_notification_title_system">ماژول به‌روزرسانی شد، نیاز به راه‌اندازی مجدد سیستم</string>
     <string name="xposed_module_updated_notification_content_system">%s به‌روزرسانی شده است؛ از آنجا که محدوده شامل چارچوب سیستم است، برای اعمال تغییرات نیاز به راه‌اندازی مجدد سیستم است</string>
     <string name="module_updated_channel_name">به‌روزرسانی ماژول کامل شد</string>
     <string name="status_channel_name">وضعیت Vector</string>

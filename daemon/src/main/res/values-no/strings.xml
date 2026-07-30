@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Xposed modul er ikke aktivert enda</string>
+    <string name="module_is_not_activated_yet">Modulen er ikke aktivert enda</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s er installert, men er ikke aktivert ennå</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s har blitt installert til bruker %2$s, men er ikke aktivert ennå</string>
-    <string name="xposed_module_updated_notification_title">Xposed modul er oppdatert</string>
+    <string name="xposed_module_updated_notification_title">Modulen er oppdatert</string>
     <string name="xposed_module_updated_notification_content">%s har blitt oppdatert, vennligst tvang-stopp og start apper på nytt i virkeområdet</string>
-    <string name="xposed_module_updated_notification_title_system">Xposed modul oppdatert, system-omstart kreves</string>
+    <string name="xposed_module_updated_notification_title_system">Modul oppdatert, system-omstart kreves</string>
     <string name="xposed_module_updated_notification_content_system">%s er blitt oppdatert, siden omfanget inneholder systemramme, nødvendig for omstart av endringene</string>
     <string name="module_updated_channel_name">Moduloppdatering fullført</string>
-    <string name="status_channel_name">LSPosert status</string>
-    <string name="vector_running_notification_title">LSPosert lastet</string>
+    <string name="status_channel_name">Vector-status</string>
+    <string name="vector_running_notification_title">Vector lastet</string>
     <string name="vector_running_notification_content">Trykk på varselet for å åpne administrator</string>
     <string name="xposed_module_request_scope_title">Forespørsel om omfang</string>
     <string name="xposed_module_request_scope_content">%1$s på bruker %2$s ber om å legge til %3$s i omfanget.</string>

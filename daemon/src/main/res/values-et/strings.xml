@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Xposed moodul ei ole aktiveeritud</string>
+    <string name="module_is_not_activated_yet">Moodul ei ole aktiveeritud</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s on paigaldatud, kuid ei ole aktiveeritud</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s on paigaldatud kasutajale %2$s, kuid ei ole aktiveeritud</string>
-    <string name="xposed_module_updated_notification_title">Xposed moodul uuendatud</string>
+    <string name="xposed_module_updated_notification_title">Moodul uuendatud</string>
     <string name="xposed_module_updated_notification_content">%s on uuendatud, siis peatage ja taaskäivitage rakendused, mis kuuluvad selle kohaldamisalasse.</string>
-    <string name="xposed_module_updated_notification_title_system">Xposed moodul uuendatud, süsteemi taaskäivitamine vajalik</string>
+    <string name="xposed_module_updated_notification_title_system">Moodul uuendatud, süsteemi taaskäivitamine vajalik</string>
     <string name="xposed_module_updated_notification_content_system">%s on uuendatud, kuna reguleerimisala sisaldab System Framework, vajalik taaskäivitamine, et rakendada muudatusi</string>
     <string name="module_updated_channel_name">Mooduli uuendamine lõpetatud</string>
     <string name="status_channel_name">Vectori staatus</string>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Xposed モジュールが有効化されていません</string>
+    <string name="module_is_not_activated_yet">モジュールが有効化されていません</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s はインストールされましたが､ 有効化されていません</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s はユーザー %2$s にインストールされましたが､ 有効化されていません</string>
-    <string name="xposed_module_updated_notification_title">Xposed モジュールが更新されました</string>
+    <string name="xposed_module_updated_notification_title">モジュールが更新されました</string>
     <string name="xposed_module_updated_notification_content">%s が更新されました。スコープ内のアプリを強制停止してから再起動してください</string>
-    <string name="xposed_module_updated_notification_title_system">Xposed モジュールが更新されました。システムの再起動が必要です</string>
+    <string name="xposed_module_updated_notification_title_system">モジュールが更新されました。システムの再起動が必要です</string>
     <string name="xposed_module_updated_notification_content_system">%s が更新されました。スコープにシステムフレームワークが含まれているため、変更を適用するには再起動が必要です</string>
     <string name="module_updated_channel_name">モジュールの更新完了通知</string>
     <string name="status_channel_name">Vector のステータス通知</string>

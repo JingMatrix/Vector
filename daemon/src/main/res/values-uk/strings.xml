@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">Модуль Xposed ще не активований</string>
+    <string name="module_is_not_activated_yet">Модуль ще не активований</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s було встановлено, але ще не активовано</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">%1$s було встановлено до користувача %2$s, але ще не активовано</string>
-    <string name="xposed_module_updated_notification_title">Модуль Xposed оновлено</string>
+    <string name="xposed_module_updated_notification_title">Модуль оновлено</string>
     <string name="xposed_module_updated_notification_content">%s було оновлено, будь ласка, примусово перезапустіть програми з області модуля</string>
-    <string name="xposed_module_updated_notification_title_system">Модуль Xposed оновлено, потрібно перезавантаження системи</string>
+    <string name="xposed_module_updated_notification_title_system">Модуль оновлено, потрібно перезавантаження системи</string>
     <string name="xposed_module_updated_notification_content_system">%s було оновлено, оскільки область містить System Framework, необхідне перезавантаження для застосування змін</string>
     <string name="module_updated_channel_name">Оновлення модуля завершено</string>
     <string name="status_channel_name">Статус Vector</string>
     <string name="vector_running_notification_title">Vector завантажено</string>
     <string name="vector_running_notification_content">Натисніть на повідомлення, щоб відкрити менеджер</string>
     <string name="xposed_module_request_scope_title">Запит на визначення обсягу робіт</string>
-    <string name="xposed_module_request_scope_content">%1$s на запит користувача %2$s з проханням додати %3$s до своєї області видимості.</string>
-    <string name="scope_channel_name">Запит обсягу робіт</string>
+    <string name="xposed_module_request_scope_content">%1$s у користувача %2$s просить додати %3$s до своєї області видимості.</string>
+    <string name="scope_channel_name">Запит області видимості</string>
     <string name="scope_approve">Затвердити</string>
     <string name="scope_deny">Відхилити</string>
     <string name="never_ask_again">Ніколи не питай</string>

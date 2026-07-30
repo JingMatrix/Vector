@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Notification -->
-    <string name="module_is_not_activated_yet">โมดูล Xposed ยังไม่ได้เปิดใช้งาน</string>
+    <string name="module_is_not_activated_yet">โมดูลยังไม่ได้เปิดใช้งาน</string>
     <string name="module_is_not_activated_yet_main_user_detailed">%1$s ถูกติดตั้งแล้ว แต่ยังไม่ได้เปิดใช้งาน</string>
     <string name="module_is_not_activated_yet_multi_user_detailed">ติดตั้ง %1$s ให้กับผู้ใช้แล้ว %2$s แต่ยังไม่ได้เปิดใช้งาน</string>
-    <string name="xposed_module_updated_notification_title">โมดูล Xposed อัปเดตแล้ว</string>
+    <string name="xposed_module_updated_notification_title">โมดูลอัปเดตแล้ว</string>
     <string name="xposed_module_updated_notification_content">%s ได้รับการอัปเดตแล้ว โปรดบังคับหยุดและรีสตาร์ทแอปที่อยู่ใน Scope.</string>
-    <string name="xposed_module_updated_notification_title_system">อัปเดตโมดูล Xposed จำเป็นต้องรีสตาร์ทเครื่อง</string>
+    <string name="xposed_module_updated_notification_title_system">อัปเดตโมดูล จำเป็นต้องรีสตาร์ทเครื่อง</string>
     <string name="xposed_module_updated_notification_content_system">%s ได้รับการอัปเดตแล้ว เนื่องจาก Scope มี System Framework จึงจำเป็นต้องรีสตาร์ทเครื่องเพื่อใช้การเปลี่ยนแปลง</string>
     <string name="module_updated_channel_name">การอัปเดตโมดูลเสร็จสมบูรณ์</string>
     <string name="status_channel_name">สถานะ Vector</string>
