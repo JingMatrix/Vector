@@ -149,8 +149,8 @@ object ParasiticManagerHooker {
     /**
      * Drops any [LoadedApk] the process already holds for [packageName].
      *
-     * Some OEM ROMs, reported on HarmonyOS, pre-warm the host process, so a `LoadedApk`
-     * built from the stock host APK can already be cached when `bindApplication` arrives.
+     * Some OEM ROMs, reported on HarmonyOS, pre-warm the host process, so a `LoadedApk` built from
+     * the stock host APK can already be cached when `bindApplication` arrives.
      * `ActivityThread#getPackageInfo` would then return that instance and keep its original
      * `ApplicationInfo`: its only repair path is guarded by `isLoadedApkResourceDirsUpToDate`,
      * which compares nothing but the resource and overlay directories, and those we copy from the
