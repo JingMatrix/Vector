@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import org.apache.commons.lang3.ClassUtilsX;
 import org.apache.commons.lang3.reflect.MemberUtilsX;
+import org.matrix.vector.nativebridge.HookBridge;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -1149,12 +1150,11 @@ public final class XposedHelpers {
      * Sets the value of a static object field in the given class. See also {@link #findField}.
      */
     public static void setStaticObjectField(Class<?> clazz, String fieldName, Object value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).set(null, value);
+            field.set(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1164,12 +1164,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code boolean} field in the given class. See also {@link #findField}.
      */
     public static void setStaticBooleanField(Class<?> clazz, String fieldName, boolean value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setBoolean(null, value);
+            field.setBoolean(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1179,12 +1178,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code byte} field in the given class. See also {@link #findField}.
      */
     public static void setStaticByteField(Class<?> clazz, String fieldName, byte value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setByte(null, value);
+            field.setByte(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1194,12 +1192,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code char} field in the given class. See also {@link #findField}.
      */
     public static void setStaticCharField(Class<?> clazz, String fieldName, char value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setChar(null, value);
+            field.setChar(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1209,12 +1206,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code double} field in the given class. See also {@link #findField}.
      */
     public static void setStaticDoubleField(Class<?> clazz, String fieldName, double value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setDouble(null, value);
+            field.setDouble(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1224,12 +1220,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code float} field in the given class. See also {@link #findField}.
      */
     public static void setStaticFloatField(Class<?> clazz, String fieldName, float value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setFloat(null, value);
+            field.setFloat(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1239,12 +1234,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code int} field in the given class. See also {@link #findField}.
      */
     public static void setStaticIntField(Class<?> clazz, String fieldName, int value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setInt(null, value);
+            field.setInt(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1254,12 +1248,11 @@ public final class XposedHelpers {
      * Sets the value of a static {@code long} field in the given class. See also {@link #findField}.
      */
     public static void setStaticLongField(Class<?> clazz, String fieldName, long value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setLong(null, value);
+            field.setLong(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
@@ -1269,15 +1262,45 @@ public final class XposedHelpers {
      * Sets the value of a static {@code short} field in the given class. See also {@link #findField}.
      */
     public static void setStaticShortField(Class<?> clazz, String fieldName, short value) {
+        Field field = findField(clazz, fieldName);
         try {
-            findField(clazz, fieldName).setShort(null, value);
+            field.setShort(null, value);
         } catch (IllegalAccessException e) {
-            // should not happen
-            XposedBridge.log(e);
-            throw new IllegalAccessError(e.getMessage());
+            setStaticFinalField(field, value, e);
         } catch (IllegalArgumentException e) {
             throw e;
         }
+    }
+
+    //#################################################################################################
+
+    /**
+     * Writes a static field reflection has just refused to write.
+     *
+     * Android 17 rejects every reflective write to a static final field, whatever the Field's
+     * accessible flag says, so on that release the nine setters above would do nothing but throw
+     * for a module doing what modules have always done -- spoofing android.os.Build being the
+     * common one. The framework drops the field's final flag and lets reflection write it after
+     * all, which is the whole of the difference: the value, the conversions and the type checking
+     * are still reflection's.
+     *
+     * Only reached once reflection has thrown, so nothing changes on the releases that allow the
+     * write, and a genuine access failure -- or a runtime this cannot read -- still ends in the
+     * IllegalAccessError it always did.
+     */
+    private static void setStaticFinalField(Field field, Object value, IllegalAccessException cause) {
+        if (HookBridge.makeFieldWritable(field, field.getModifiers())) {
+            try {
+                // Boxed, whatever the field's type: Field.set unboxes for a primitive field and
+                // widens like the typed setter that has just failed would have.
+                field.set(null, value);
+                return;
+            } catch (IllegalAccessException retried) {
+                cause = retried;
+            }
+        }
+        XposedBridge.log(cause);
+        throw new IllegalAccessError(cause.getMessage());
     }
 
     //#################################################################################################

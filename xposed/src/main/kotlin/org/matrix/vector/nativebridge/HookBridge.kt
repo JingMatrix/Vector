@@ -2,6 +2,7 @@ package org.matrix.vector.nativebridge
 
 import dalvik.annotation.optimization.FastNative
 import java.lang.reflect.Executable
+import java.lang.reflect.Field
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -53,6 +54,22 @@ object HookBridge {
     @JvmStatic @FastNative external fun instanceOf(obj: Any?, clazz: Class<*>): Boolean
 
     @JvmStatic @FastNative external fun setTrusted(cookie: Any?): Boolean
+
+    /**
+     * Clears the final flag ART reads, so that reflection will write [field] again.
+     *
+     * Android 17 refuses every reflective write to a static final field however accessible the
+     * [Field] is, and clearing the reflective copy's flag does not help because the check reads
+     * the ArtField. The write itself stays with reflection, which keeps its conversions and its
+     * exceptions; this only stops it being refused.
+     *
+     * [modifiers] must be `field.modifiers`. It is checked against the flags about to be written,
+     * so a runtime that lays an ArtField out differently is left alone rather than corrupted.
+     *
+     * Returns false when the field is still final, which is the caller's cue to report the
+     * failure it already had. The field stays writable afterwards.
+     */
+    @JvmStatic external fun makeFieldWritable(field: Field, modifiers: Int): Boolean
 
     /** Returns null when [method] carries no hooks at all. */
     @JvmStatic
