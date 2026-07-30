@@ -7,6 +7,7 @@
 #include <lsplant.hpp>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <vector>
 
@@ -89,6 +90,183 @@ SharedHashMap<jmethodID, std::unique_ptr<HookItem>> hooked_methods;
 
 // Cached JNI method and field IDs for performance.
 jmethodID invoke = nullptr;
+
+/**
+ * Depth of the framework's own hook dispatch on this thread.
+ *
+ * Non-zero means a hooked method was entered from inside the dispatch itself, which must run the
+ * original rather than start a second dispatch. The dispatch cannot promise to avoid hookable
+ * methods, because it does not get to choose which ones it calls: AGP 9's R8 compiles Kotlin's
+ * parameter null checks into Object.getClass(), and one of those lands as the first instruction of
+ * the callback. A module hooking such a method would otherwise make the dispatch re-enter itself
+ * until the stack is gone, before any hooker runs. See #798.
+ *
+ * The counter is read before any Java frame exists, which is why the trampoline entry point is a
+ * native method: nothing a compiler emits can run ahead of it.
+ */
+thread_local uint32_t dispatch_depth = 0;
+
+/**
+ * How deep hook dispatch is nested on this thread, counting only dispatches that actually entered
+ * Java. Unlike dispatch_depth this is never suspended, because it exists to bound the one thing the
+ * guard cannot reach: a hooker that calls the method it hooks, directly or through a call the
+ * compiler generated for it. That recursion lives entirely in module code, runs with the guard
+ * down by design, and would otherwise take the process out with it.
+ *
+ * Thirty-two is deep enough that no chain of one hook calling into another will reach it, and
+ * shallow enough that a runaway costs a small constant instead of thousands of frames. A method
+ * whose hooks genuinely nest deeper than this - a hooked recursive method, say - stops being hooked
+ * past the limit, which is why hitting it is reported.
+ */
+thread_local uint32_t dispatch_nesting = 0;
+constexpr uint32_t kMaxDispatchNesting = 32;
+
+/**
+ * Set when the cap is reached, cleared when the thread unwinds back out of dispatch entirely.
+ *
+ * Without it the cap bounds depth but not work. A hooker that re-enters more than once per frame -
+ * two calls, or one call the compiler wrote twice - branches at every level, so re-arming the cap on
+ * the way back down turns one call into a tree of that many dispatches. Latching instead means the
+ * thread serves originals from the moment it is in trouble until it is out of it.
+ */
+thread_local bool dispatch_degraded = false;
+
+// Bounded so a runaway cannot itself flood the log. Eight is enough to name several distinct
+// offenders in one boot.
+std::atomic<int> runaway_reports{0};
+constexpr int kMaxRunawayReports = 8;
+
+// Resolved from the hooker class the first time a hook is installed. That call is the only place
+// the class is available: the framework dex is repackaged per build, so its name cannot be
+// looked up, and it is also the earliest moment anything can reach the trampoline.
+std::once_flag hooker_init;
+bool hooker_ready = false;
+jmethodID hooker_dispatch = nullptr;
+jfieldID hooker_method = nullptr;
+jfieldID hooker_is_static = nullptr;
+jclass object_class = nullptr;
+jmethodID to_string = nullptr;
+jclass invocation_target_exception = nullptr;
+jmethodID get_cause = nullptr;
+
+/**
+ * @brief Invokes a hooked method's original implementation, or the method itself if unhooked.
+ */
+jobject InvokeBackup(JNIEnv *env, jobject executable, jobject thiz, jobjectArray args) {
+    auto target = env->FromReflectedMethod(executable);
+    HookItem *hook_item = nullptr;
+    hooked_methods.if_contains(target,
+                               [&hook_item](const auto &it) { hook_item = it.second.get(); });
+
+    // If a hook item exists, invoke its backup. Otherwise, invoke the method directly
+    // (though this case should be rare if called from a hook callback).
+    jobject method_to_invoke = hook_item ? hook_item->GetBackup() : executable;
+    if (!method_to_invoke) {
+        // Hooking might have failed or is not complete.
+        return nullptr;
+    }
+    return env->CallObjectMethod(method_to_invoke, invoke, thiz, args);
+}
+
+/**
+ * @brief Serves a trampoline hit that arrived from inside the dispatch, without entering Java.
+ *
+ * Runs the original and hands its exception back unwrapped, the way the call site that the
+ * compiler generated would have seen it. Nothing here may call back into the framework: this path
+ * exists precisely because the framework is already on the stack below it.
+ */
+jobject InvokeOriginalReentrant(JNIEnv *env, jobject hooker, jobjectArray args) {
+    jobject executable = env->GetObjectField(hooker, hooker_method);
+    jobject receiver = nullptr;
+    jobjectArray actual = args;
+
+    if (!env->GetBooleanField(hooker, hooker_is_static)) {
+        receiver = env->GetObjectArrayElement(args, 0);
+        const jsize count = env->GetArrayLength(args) - 1;
+        actual = env->NewObjectArray(count, object_class, nullptr);
+        for (jsize i = 0; i < count; ++i) {
+            jobject arg = env->GetObjectArrayElement(args, i + 1);
+            env->SetObjectArrayElement(actual, i, arg);
+            env->DeleteLocalRef(arg);
+        }
+    }
+
+    jobject result = InvokeBackup(env, executable, receiver, actual);
+
+    // Method.invoke reports whatever the target threw wrapped; the caller here is ordinary code
+    // that never went through reflection, so hand it the cause instead.
+    if (jthrowable thrown = env->ExceptionOccurred(); thrown) {
+        env->ExceptionClear();
+        jthrowable to_throw = thrown;
+        if (env->IsInstanceOf(thrown, invocation_target_exception)) {
+            if (auto cause = env->CallObjectMethod(thrown, get_cause); cause) {
+                to_throw = static_cast<jthrowable>(cause);
+            }
+        }
+        env->Throw(to_throw);
+        return nullptr;
+    }
+    return result;
+}
+
+/**
+ * @brief Names the method whose hooks stopped nesting, at most a few times per process.
+ *
+ * Reads the executable and asks it for its name only here, on the rare path, so the dispatch does
+ * not pay for a diagnostic it almost never emits. The guard is raised for the duration because
+ * Executable.toString() is ordinary Java and may itself touch whatever the module hooked.
+ */
+void ReportRunaway(JNIEnv *env, jobject hooker) {
+    if (runaway_reports.fetch_add(1, std::memory_order_relaxed) >= kMaxRunawayReports) return;
+
+    ++dispatch_depth;
+    jobject executable = env->GetObjectField(hooker, hooker_method);
+    auto name = static_cast<jstring>(env->CallObjectMethod(executable, to_string));
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    } else if (name) {
+        if (const char *chars = env->GetStringUTFChars(name, nullptr); chars) {
+            LOGE(
+                "Hook dispatch nested past {} for {}; running the original instead. A hooker that "
+                "calls the method it hooks recurses into itself, and the compiler emits such calls "
+                "on its behalf - a null check becomes Object.getClass(), for one.",
+                kMaxDispatchNesting, chars);
+            env->ReleaseStringUTFChars(name, chars);
+        }
+    }
+    if (name) env->DeleteLocalRef(name);
+    env->DeleteLocalRef(executable);
+    --dispatch_depth;
+}
+
+/**
+ * @brief The trampoline entry point, registered onto VectorNativeHooker.callback.
+ *
+ * Native so that the re-entrancy check is genuinely first: a Kotlin body would let the compiler
+ * put its own prologue ahead of it, which is the whole of #798.
+ */
+jobject HookerCallback(JNIEnv *env, jobject hooker, jobjectArray args) {
+    if (dispatch_depth != 0) {
+        return InvokeOriginalReentrant(env, hooker, args);
+    }
+
+    if (dispatch_degraded || dispatch_nesting >= kMaxDispatchNesting) {
+        if (!dispatch_degraded) {
+            dispatch_degraded = true;
+            ReportRunaway(env, hooker);
+        }
+        return InvokeOriginalReentrant(env, hooker, args);
+    }
+
+    ++dispatch_nesting;
+    ++dispatch_depth;
+    jobject result = env->CallObjectMethod(hooker, hooker_dispatch, args);
+    // Restored on the exception path too: CallObjectMethod returns with the exception pending, and
+    // leaving either counter raised would silently disable every hook on this thread from here on.
+    --dispatch_depth;
+    if (--dispatch_nesting == 0) dispatch_degraded = false;
+    return result;
+}
 }  // namespace
 
 namespace vector::native::jni {
@@ -120,6 +298,45 @@ VECTOR_DEF_NATIVE_METHOD(jboolean, HookBridge, hookMethod, jboolean useModernApi
         }
     } finally{.newHook = newHook};
 #endif
+
+    // The hooker class arrives only here, and this call is also the earliest moment anything can
+    // reach its trampoline, so bind the native entry point and the members it reads now.
+    std::call_once(hooker_init, [env, hooker] {
+        static const JNINativeMethod entry[] = {
+            {"callback", "([Ljava/lang/Object;)Ljava/lang/Object;",
+             VECTOR_JNI_CAST(void *)(HookerCallback)},
+        };
+        if (env->RegisterNatives(hooker, entry, 1) != JNI_OK) {
+            LOGF("Cannot register the hook trampoline entry point");
+            return;
+        }
+        hooker_dispatch =
+            env->GetMethodID(hooker, "dispatch", "([Ljava/lang/Object;)Ljava/lang/Object;");
+        hooker_method = env->GetFieldID(hooker, "method", "Ljava/lang/reflect/Executable;");
+        hooker_is_static = env->GetFieldID(hooker, "isStatic", "Z");
+
+        auto object = env->FindClass("java/lang/Object");
+        object_class = static_cast<jclass>(env->NewGlobalRef(object));
+        to_string = env->GetMethodID(object, "toString", "()Ljava/lang/String;");
+        env->DeleteLocalRef(object);
+
+        auto ite = env->FindClass("java/lang/reflect/InvocationTargetException");
+        invocation_target_exception = static_cast<jclass>(env->NewGlobalRef(ite));
+        env->DeleteLocalRef(ite);
+
+        auto throwable = env->FindClass("java/lang/Throwable");
+        get_cause = env->GetMethodID(throwable, "getCause", "()Ljava/lang/Throwable;");
+        env->DeleteLocalRef(throwable);
+
+        hooker_ready = hooker_dispatch && hooker_method && hooker_is_static && object_class &&
+                       to_string && invocation_target_exception && get_cause;
+        if (!hooker_ready) LOGF("Cannot resolve the hook trampoline members");
+    });
+
+    // Refusing the hook is the only honest outcome: the trampoline would land on an unregistered
+    // native method and throw UnsatisfiedLinkError out of whatever the app was calling, which is
+    // a great deal harder to trace back than a module being told its hook did not take.
+    if (!hooker_ready) return JNI_FALSE;
 
     auto target = env->FromReflectedMethod(hookMethod);
     HookItem *hook_item = nullptr;
@@ -215,19 +432,39 @@ VECTOR_DEF_NATIVE_METHOD(jboolean, HookBridge, deoptimizeMethod, jobject hookMet
  */
 VECTOR_DEF_NATIVE_METHOD(jobject, HookBridge, invokeOriginalMethod, jobject hookMethod,
                          jobject thiz, jobjectArray args) {
-    auto target = env->FromReflectedMethod(hookMethod);
-    HookItem *hook_item = nullptr;
-    hooked_methods.if_contains(target,
-                               [&hook_item](const auto &it) { hook_item = it.second.get(); });
+    return InvokeBackup(env, hookMethod, thiz, args);
+}
 
-    // If a hook item exists, invoke its backup. Otherwise, invoke the method directly
-    // (though this case should be rare if called from a hook callback).
-    jobject method_to_invoke = hook_item ? hook_item->GetBackup() : hookMethod;
-    if (!method_to_invoke) {
-        // Hooking might have failed or is not complete.
-        return nullptr;
-    }
-    return env->CallObjectMethod(method_to_invoke, invoke, thiz, args);
+/**
+ * @brief Lowers the dispatch guard for the duration of a call into module code.
+ *
+ * A hooker, and the original method the chain ends in, are entitled to a full dispatch of whatever
+ * they call; only the framework's own bookkeeping must not re-enter. The previous depth is
+ * returned rather than assumed to be one, so nesting restores exactly what it found.
+ */
+VECTOR_DEF_NATIVE_METHOD(jint, HookBridge, suspendDispatch) {
+    const auto saved = dispatch_depth;
+    dispatch_depth = 0;
+    return static_cast<jint>(saved);
+}
+
+/** @brief Restores the depth returned by suspendDispatch. */
+VECTOR_DEF_NATIVE_METHOD(void, HookBridge, resumeDispatch, jint depth) {
+    dispatch_depth = static_cast<uint32_t>(depth);
+}
+
+/**
+ * @brief Raises the guard over a stretch of framework code, returning the depth to restore.
+ *
+ * The chain is re-entered from module code, with the guard already down, so it has to raise the
+ * guard for its own bookkeeping rather than assume it holds. Allocating one chain node calls
+ * getClass twice - R8's null checks on the constructor's parameters - and without this each of
+ * those would dispatch, allocate another node, and call getClass again.
+ */
+VECTOR_DEF_NATIVE_METHOD(jint, HookBridge, raiseDispatch) {
+    const auto saved = dispatch_depth;
+    dispatch_depth = 1;
+    return static_cast<jint>(saved);
 }
 
 /**
@@ -691,6 +928,9 @@ static JNINativeMethod gMethods[] = {
                          "Executable;)[[Ljava/lang/Object;"),
     VECTOR_NATIVE_METHOD(HookBridge, findStaticInitializer,
                          "(Ljava/lang/Class;[JJ)Ljava/lang/reflect/Executable;"),
+    VECTOR_NATIVE_METHOD(HookBridge, suspendDispatch, "()I"),
+    VECTOR_NATIVE_METHOD(HookBridge, resumeDispatch, "(I)V"),
+    VECTOR_NATIVE_METHOD(HookBridge, raiseDispatch, "()I"),
 };
 
 /**

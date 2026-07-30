@@ -8,6 +8,7 @@ import org.matrix.vector.impl.di.LegacyFrameworkDelegate;
 import org.matrix.vector.impl.di.LegacyPackageInfo;
 import org.matrix.vector.impl.di.OriginalInvoker;
 import org.matrix.vector.impl.hooks.VectorLegacyCallback;
+import org.matrix.vector.impl.hooks.DispatchGuard;
 import org.matrix.vector.impl.utils.VectorMetaDataReader;
 
 import java.io.File;
@@ -64,26 +65,40 @@ public class LegacyDelegateImpl implements LegacyFrameworkDelegate {
 
     @Override
     public Object processLegacyHook(Executable executable, Object thisObject, Object[] args, Object[] legacyHooks, OriginalInvoker invokeOriginal) {
-        VectorLegacyCallback<Executable> callback = new VectorLegacyCallback<>(executable, thisObject, args);
-        XposedBridge.LegacyApiSupport<Executable> legacy = new XposedBridge.LegacyApiSupport<>(callback, legacyHooks);
+        // The bookkeeping here is framework code reached from a hooker, so the guard has to go back
+        // up; it comes down only for the three calls that leave again — the two module callbacks and
+        // the original. Left unguarded, a module hooking anything this path touches makes it call
+        // itself. See #798.
+        return DispatchGuard.intoFramework(() -> {
+            VectorLegacyCallback<Executable> callback = new VectorLegacyCallback<>(executable, thisObject, args);
+            XposedBridge.LegacyApiSupport<Executable> legacy = new XposedBridge.LegacyApiSupport<>(callback, legacyHooks);
 
-        legacy.handleBefore();
+            DispatchGuard.intoModule(() -> {
+                legacy.handleBefore();
+                return null;
+            });
 
-        if (!callback.isSkipped()) {
-            try {
-                Object result = invokeOriginal.invoke();
-                callback.setResult(result);
-            } catch (Throwable t) {
-                callback.setThrowable(t);
+            if (!callback.isSkipped()) {
+                DispatchGuard.intoModule(() -> {
+                    try {
+                        callback.setResult(invokeOriginal.invoke());
+                    } catch (Throwable t) {
+                        callback.setThrowable(t);
+                    }
+                    return null;
+                });
             }
-        }
 
-        legacy.handleAfter();
+            DispatchGuard.intoModule(() -> {
+                legacy.handleAfter();
+                return null;
+            });
 
-        if (callback.getThrowable() != null) {
-            sneakyThrow(callback.getThrowable());
-        }
-        return callback.getResult();
+            if (callback.getThrowable() != null) {
+                sneakyThrow(callback.getThrowable());
+            }
+            return callback.getResult();
+        });
     }
 
     @Override

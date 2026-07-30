@@ -47,14 +47,16 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
                 val filteredHooks =
                     allModernHooks.filter { it.priority <= currentType.maxPriority }.toTypedArray()
 
-                val terminal: (Any?, Array<Any?>) -> Any? = { tObj, tArgs ->
+                // No guard of its own; see VectorNativeHooker.
+                val terminal = VectorTerminal { tObj, tArgs ->
+                    val actual = tArgs ?: emptyArray()
                     val delegate = VectorBootstrap.delegate
                     if (legacyHooks.isNotEmpty() && delegate != null) {
-                        delegate.processLegacyHook(executable, tObj, tArgs, legacyHooks) {
-                            invokeOriginal(tObj, tArgs)
+                        delegate.processLegacyHook(executable, tObj, actual, legacyHooks) {
+                            invokeOriginal(tObj, actual)
                         }
                     } else {
-                        invokeOriginal(tObj, tArgs)
+                        invokeOriginal(tObj, actual)
                     }
                 }
 
@@ -75,8 +77,15 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
         }
     }
 
-    /** Invokes the original executable, reporting a target exception as Method#invoke does. */
-    private fun dispatchOriginal(thisObject: Any?, args: Array<out Any?>): Any? {
+    /**
+     * Invokes the original executable, reporting a target exception as Method#invoke does.
+     *
+     * Lowered here rather than at the call sites: proceedInvocation raises the guard for its own
+     * bookkeeping, and two of its paths reach this directly. Running the original with the guard up
+     * would hand it a whole call tree in which no module's hooks fire, silently and with a plausible
+     * return value. Type.Origin skips the hooks on *this* executable, not on everything it calls.
+     */
+    private fun dispatchOriginal(thisObject: Any?, args: Array<out Any?>): Any? = callIntoModule {
         // invokeOriginalMethod dispatches through a cached Method.invoke id. For a hooked
         // executable that is applied to lsplant's backup Method, which is correct. For an
         // executable with no hook item at all it is applied to the reflected object we passed in
@@ -89,15 +98,15 @@ internal abstract class BaseInvoker<T : Invoker<T, U>, U : Executable>(
             requireNotNull(thisObject) {
                 "A constructor invoked as a method needs a receiver: $executable"
             }
-            return HookBridge.invokeSpecialMethod(
+            return@callIntoModule HookBridge.invokeSpecialMethod(
                 executable,
                 getExecutableShorty(),
                 executable.declaringClass,
                 thisObject,
-                *args,
+                args,
             )
         }
-        return HookBridge.invokeOriginalMethod(executable, thisObject, *args)
+        HookBridge.invokeOriginalMethod(executable, thisObject, args)
     }
 
     /**
@@ -151,7 +160,7 @@ internal class VectorMethodInvoker(method: Method) :
             getExecutableShorty(),
             executable.declaringClass,
             thisObject,
-            *args,
+            args,
         )
     }
 }
@@ -175,7 +184,7 @@ internal class VectorCtorInvoker<T : Any>(constructor: Constructor<T>) :
             getExecutableShorty(),
             executable.declaringClass,
             thisObject,
-            *args,
+            args,
         )
         return null
     }
@@ -202,7 +211,7 @@ internal class VectorCtorInvoker<T : Any>(constructor: Constructor<T>) :
             getExecutableShorty(),
             executable.declaringClass,
             obj,
-            *args,
+            args,
         )
         return obj
     }

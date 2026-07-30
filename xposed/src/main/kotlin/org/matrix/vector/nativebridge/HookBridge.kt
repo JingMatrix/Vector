@@ -34,7 +34,14 @@ object HookBridge {
         IllegalArgumentException::class,
         InvocationTargetException::class,
     )
-    external fun invokeOriginalMethod(method: Executable, thisObject: Any?, vararg args: Any?): Any?
+    // Takes the array rather than a vararg: a Kotlin spread copies it through Arrays.copyOf, and
+    // this runs on every dispatch of every hooked method. The JVM descriptor is unchanged, so the
+    // native registration still matches.
+    external fun invokeOriginalMethod(
+        method: Executable,
+        thisObject: Any?,
+        args: Array<out Any?>,
+    ): Any?
 
     @JvmStatic
     @Throws(
@@ -47,8 +54,34 @@ object HookBridge {
         shorty: CharArray,
         clazz: Class<T>,
         thisObject: Any?,
-        vararg args: Any?,
+        args: Array<out Any?>,
     ): Any?
+
+    /**
+     * Lowers the dispatch guard for the duration of a call into module code, and returns the depth
+     * to hand back to [resumeDispatch].
+     *
+     * While the guard is raised, a hooked method entered from the framework's own frames runs its
+     * original instead of dispatching again. That is what keeps the dispatch from re-entering
+     * itself when a module hooks something the dispatch happens to call — including calls no one
+     * wrote, such as the Object.getClass() that R8 compiles Kotlin's null checks into. Hookers and
+     * the original method are entitled to a full dispatch, so the guard comes down around them.
+     */
+    @JvmStatic @FastNative external fun suspendDispatch(): Int
+
+    /** Restores the depth returned by [suspendDispatch] or [raiseDispatch]. */
+    @JvmStatic @FastNative external fun resumeDispatch(depth: Int)
+
+    /**
+     * Raises the guard over a stretch of framework code, returning the depth to hand back to
+     * [resumeDispatch].
+     *
+     * The chain is re-entered from module code with the guard already down, so it cannot assume it
+     * holds. Building one chain node calls getClass twice — R8's null checks on the constructor's
+     * parameters — and each of those would otherwise dispatch, build another node, and call
+     * getClass again.
+     */
+    @JvmStatic @FastNative external fun raiseDispatch(): Int
 
     @JvmStatic @FastNative external fun instanceOf(obj: Any?, clazz: Class<*>): Boolean
 

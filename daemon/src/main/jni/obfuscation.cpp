@@ -22,11 +22,17 @@ namespace {
 
 std::once_flag init_flag;
 
+// The trampoline's callback is a native method, so R8 keeps its class under its real name the way
+// it already keeps the nativebridge classes - a stable string in every injected process for anyone
+// looking for one. Renaming the package here restores what R8 used to do for it. Nothing resolves
+// this package by name: hook_bridge.cpp receives the hooker class as a jclass and reads its members
+// off that, and every other reference is a type descriptor in the same dex, rewritten with it.
 std::map<std::string, std::string> signatures = {
     {"Lde/robv/android/xposed/", ""},         {"Landroid/app/AndroidApp", ""},
     {"Landroid/content/res/XRes", ""},        {"Landroid/content/res/XModule", ""},
     {"Lio/github/libxposed/api/Xposed", ""},  {"Lorg/matrix/vector/core/", ""},
-    {"Lorg/matrix/vector/nativebridge/", ""}, {"Lorg/matrix/vector/service/", ""},
+    {"Lorg/matrix/vector/impl/hooks/", ""},   {"Lorg/matrix/vector/nativebridge/", ""},
+    {"Lorg/matrix/vector/service/", ""},
 };
 
 jclass class_file_descriptor = nullptr;

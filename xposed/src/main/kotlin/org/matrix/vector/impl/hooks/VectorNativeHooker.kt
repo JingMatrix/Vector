@@ -81,43 +81,65 @@ class VectorHookBuilder(
  * The native callback entrypoint. Instantiated natively by [HookBridge] when a hooked method is
  * hit.
  */
-class VectorNativeHooker<T : Executable>(private val method: T) {
+class VectorNativeHooker<T : Executable>(@JvmField val method: T) {
 
-    private val isStatic = Modifier.isStatic(method.modifiers)
+    // Read from C++ on the re-entrant path, which cannot afford to call Java to ask.
+    @JvmField val isStatic = Modifier.isStatic(method.modifiers)
+
     private val returnType = if (method is Method) method.returnType else null
 
-    /** Invoked by C++ via JNI. */
-    fun callback(args: Array<Any?>): Any? {
+    /**
+     * The trampoline entry point, called by the generated hook method.
+     *
+     * Native, and implemented in hook_bridge.cpp, so that the re-entrancy check is genuinely the
+     * first thing that runs. A Kotlin body cannot promise that: R8 puts the parameter null check
+     * ahead of it, and since AGP 9 that check is a call to Object.getClass(), which a module is
+     * allowed to hook. See #798.
+     */
+    external fun callback(args: Array<Any?>): Any?
+
+    /** The dispatch proper, called by [callback] with the guard raised. */
+    fun dispatch(args: Array<Any?>): Any? {
         val thisObject = if (isStatic) null else args[0]
-        val actualArgs = if (isStatic) args else args.sliceArray(1 until args.size)
+        // Not sliceArray: it copies through Arrays.copyOfRange, and this runs on every dispatch of
+        // every hooked method. The element type is known here, so build the array directly.
+        val actualArgs =
+            if (isStatic) args
+            else arrayOfNulls<Any?>(args.size - 1).also { System.arraycopy(args, 1, it, 0, it.size) }
 
         // Retrieve the hook snapshots. Null means every hook was removed after this trampoline was
         // entered, which is indistinguishable from having none.
         val snapshots =
             HookBridge.callbackSnapshot(VectorHookRecord::class.java, method)
-                ?: return invokeOriginalSafely(thisObject, actualArgs)
+                ?: return callIntoModule { invokeOriginalSafely(thisObject, actualArgs) }
 
         @Suppress("UNCHECKED_CAST") val modernHooks = snapshots[0] as Array<VectorHookRecord>
         val legacyHooks = snapshots[1]
 
         // Fast path: No hooks active
         if (modernHooks.isEmpty() && legacyHooks.isEmpty()) {
-            return invokeOriginalSafely(thisObject, actualArgs)
+            return callIntoModule { invokeOriginalSafely(thisObject, actualArgs) }
         }
 
-        val terminal: (Any?, Array<Any?>) -> Any? = { tObj, tArgs ->
+        // No guard of its own: the chain lowers it before calling here, and VectorTerminal takes a
+        // nullable array so this lambda has no null check ahead of its first statement.
+        val terminal = VectorTerminal { tObj, tArgs ->
+            val actual = tArgs ?: emptyArray()
             val delegate = VectorBootstrap.delegate
             if (legacyHooks.isNotEmpty() && delegate != null) {
-                delegate.processLegacyHook(method, tObj, tArgs, legacyHooks) {
-                    invokeOriginalSafely(tObj, tArgs)
+                delegate.processLegacyHook(method, tObj, actual, legacyHooks) {
+                    invokeOriginalSafely(tObj, actual)
                 }
             } else {
-                invokeOriginalSafely(tObj, tArgs)
+                invokeOriginalSafely(tObj, actual)
             }
         }
 
         val rootChain = VectorChain(method, thisObject, actualArgs, modernHooks, 0, terminal)
 
+        // The chain lowers the guard itself, around the hooker and around the terminal. It cannot
+        // be lowered here: the chain's own bookkeeping has to stay guarded, or it dispatches on
+        // every node it builds.
         val result = rootChain.proceed()
 
         // Type safety validation before returning to C++
@@ -163,7 +185,7 @@ class VectorNativeHooker<T : Executable>(private val method: T) {
     /** Safely invokes the original method, unwrapping InvocationTargetExceptions. */
     private fun invokeOriginalSafely(tObj: Any?, tArgs: Array<Any?>): Any? {
         return try {
-            HookBridge.invokeOriginalMethod(method, tObj, *tArgs)
+            HookBridge.invokeOriginalMethod(method, tObj, tArgs)
         } catch (ite: InvocationTargetException) {
             throw ite.cause ?: ite
         }
