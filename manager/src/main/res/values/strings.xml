@@ -252,6 +252,8 @@
 
     <!-- Settings: where the panels live. Nothing on Android teaches a long press on a bar. -->
     <string name="settings_navigation">Navigation</string>
+    <string name="settings_floating_nav">Floating navigation</string>
+    <string name="settings_floating_nav_summary">Replaces the bar with a small ball you can drag anywhere. Hold it to fan the panels out, or tap it to keep them open.</string>
     <string name="settings_rearrange_panels">Rearrange panels</string>
     <string name="settings_rearrange_panels_summary">Change their order, or hide the ones you never open.</string>
 

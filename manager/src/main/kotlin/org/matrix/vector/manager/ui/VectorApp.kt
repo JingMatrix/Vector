@@ -1,14 +1,18 @@
 package org.matrix.vector.manager.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
@@ -16,6 +20,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.navigation.FrameworkUpdate
 import org.matrix.vector.manager.ui.screens.update.FrameworkUpdateScreen
 import org.matrix.vector.manager.ui.navigation.Canary
@@ -23,6 +28,7 @@ import org.matrix.vector.manager.ui.screens.canary.CanaryScreen
 import org.matrix.vector.manager.ui.navigation.Troubleshoot
 import org.matrix.vector.manager.ui.screens.report.TroubleshootScreen
 import org.matrix.vector.manager.ui.navigation.DeepLink
+import org.matrix.vector.manager.ui.navigation.FloatingPanelNav
 import org.matrix.vector.manager.ui.navigation.LocalNavigator
 import org.matrix.vector.manager.ui.navigation.Navigator
 import org.matrix.vector.manager.ui.navigation.PanelBar
@@ -55,7 +61,10 @@ import org.matrix.vector.manager.ui.screens.web.WebScreen
  * has to work unfolded and in landscape regardless. The scaffold also owns where that container
  * sits, so the destinations below it are laid out beside or above it rather than under it.
  *
- * Which panels that container holds, in which order, is the reader's — see NavPanels.
+ * Which panels that container holds, in which order, is the reader's — see NavPanels — and there is
+ * a third arrangement it can take, a ball floating over the content with no container at all. The
+ * two are not independent: rearranging the panels needs something to rearrange, so edit mode always
+ * puts the container back for as long as it lasts.
  */
 @Composable
 fun VectorApp() {
@@ -85,6 +94,8 @@ fun VectorApp() {
     }
 
     CompositionLocalProvider(LocalNavigator provides navigator) {
+        val settings = ServiceLocator.settings
+        val floating by settings.floatingNav.collectAsStateWithLifecycle()
         val editing = navigator.editingPanels
         // The container shows only at the root of a panel. On a detail screen none of the items is
         // the current destination, and a navigation bar highlighting nothing is worse than none.
@@ -96,23 +107,31 @@ fun VectorApp() {
         val suiteState = rememberNavigationSuiteScaffoldState()
         LaunchedEffect(atRoot) { if (atRoot) suiteState.show() else suiteState.hide() }
 
-        // Computed rather than left to the scaffold's default because PanelBar has to be told which
-        // axis it is laying items along, and the scaffold keeps that decision to itself otherwise.
+        // Computed rather than left to the scaffold's default, for two reasons: the floating style
+        // forces None, which is what actually removes the container instead of hiding it, and
+        // PanelBar has to be told which axis it is laying items along. Entering edit mode overrules
+        // the floating setting for as long as it lasts — there is nothing to rearrange otherwise.
         val suiteType =
-            NavigationSuiteScaffoldDefaults.navigationSuiteType(currentWindowAdaptiveInfo())
+            if (floating && !editing) NavigationSuiteType.None
+            else NavigationSuiteScaffoldDefaults.navigationSuiteType(currentWindowAdaptiveInfo())
 
         NavigationSuiteScaffold(
             navigationItems = {
-                PanelBar(
-                    panels = navigator.panels,
-                    current = navigator.currentTopLevel,
-                    editing = editing,
-                    suiteType = suiteType,
-                    onSelect = { route -> navigator.switchTo(route) },
-                    onEdit = { navigator.editingPanels = true },
-                    onToggleHidden = { key, hidden -> navigator.setPanelHidden(key, hidden) },
-                    onMove = { from, to -> navigator.movePanel(from, to) },
-                )
+                // NavigationSuite's `when` over the type has no None branch and no else, so under
+                // None this slot is silently dropped along with the container. Skipping it here
+                // says so out loud rather than leaving a composable that never runs.
+                if (suiteType != NavigationSuiteType.None) {
+                    PanelBar(
+                        panels = navigator.panels,
+                        current = navigator.currentTopLevel,
+                        editing = editing,
+                        suiteType = suiteType,
+                        onSelect = { route -> navigator.switchTo(route) },
+                        onEdit = { navigator.editingPanels = true },
+                        onToggleHidden = { key, hidden -> navigator.setPanelHidden(key, hidden) },
+                        onMove = { from, to -> navigator.movePanel(from, to) },
+                    )
+                }
             },
             navigationSuiteType = suiteType,
             state = suiteState,
@@ -120,22 +139,37 @@ fun VectorApp() {
                 if (editing) PanelEditDone(onDone = { navigator.editingPanels = false })
             },
         ) {
-            NavDisplay(
-                backStack = navigator.backStack,
-                onBack = { navigator.back() },
-                // Naming any decorator replaces NavDisplay's default, which is the saveable-state
-                // one alone, so it is repeated here; the scene-setup decorator NavDisplay applies
-                // internally is untouched. The ViewModel one is what this list is for: it scopes a
-                // ViewModelStore per entry, so opening the scope editor for a second module builds
-                // a second ViewModel instead of reusing the first (they would otherwise share one
-                // default key under the activity's store).
-                entryDecorators =
-                    listOf(
-                        rememberSaveableStateHolderNavEntryDecorator(),
-                        rememberViewModelStoreNavEntryDecorator(),
-                    ),
-                entryProvider = entryProvider { registerRoutes(navigator) },
-            )
+            Box(Modifier.fillMaxSize()) {
+                NavDisplay(
+                    backStack = navigator.backStack,
+                    onBack = { navigator.back() },
+                    // Naming any decorator replaces NavDisplay's default, which is the
+                    // saveable-state one alone, so it is repeated here; the scene-setup decorator
+                    // NavDisplay applies internally is untouched. The ViewModel one is what this
+                    // list is for: it scopes a ViewModelStore per entry, so opening the scope
+                    // editor for a second module builds a second ViewModel instead of reusing the
+                    // first (they would otherwise share one default key under the activity's
+                    // store).
+                    entryDecorators =
+                        listOf(
+                            rememberSaveableStateHolderNavEntryDecorator(),
+                            rememberViewModelStoreNavEntryDecorator(),
+                        ),
+                    entryProvider = entryProvider { registerRoutes(navigator) },
+                )
+                // Last child of the Box so it draws over the destination, and inside the app window
+                // rather than in one of its own: parasitically this app is com.android.shell, which
+                // must never ask for SYSTEM_ALERT_WINDOW. It follows the same rule the container
+                // does — present at the root of a panel, gone on a detail screen that has its own
+                // back affordance.
+                if (floating && !editing && atRoot) {
+                    FloatingPanelNav(
+                        panels = navigator.panels,
+                        current = navigator.currentTopLevel,
+                        onSelect = { route -> navigator.switchTo(route) },
+                    )
+                }
+            }
         }
 
         // After the scaffold on purpose. Back callbacks are dispatched last-registered-first and

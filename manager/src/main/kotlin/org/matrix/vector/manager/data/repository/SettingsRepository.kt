@@ -377,6 +377,49 @@ class SettingsRepository(context: Context) {
         _navPanels.value = encoded
     }
 
+    /**
+     * Whether the panels live on a draggable ball over the content instead of in a bar or a rail.
+     *
+     * Off by default: the bar is what every other app on the device puts there, and a reader who
+     * has not asked for anything else should not have to work out where their panels went. It is
+     * offered at all because the bar costs a strip of every screen for four items that are rarely
+     * touched, and on a small phone reading a log that strip is the expensive part.
+     */
+    private val _floatingNav = MutableStateFlow(prefs.getBoolean("floating_nav", false))
+    val floatingNav: StateFlow<Boolean> = _floatingNav.asStateFlow()
+
+    fun setFloatingNav(enabled: Boolean) {
+        prefs.edit().putBoolean("floating_nav", enabled).apply()
+        _floatingNav.value = enabled
+    }
+
+    /**
+     * Where the floating ball was left: which side it snapped to, and how far down it sits as a
+     * fraction of the window height.
+     *
+     * No flow, for the same reason the ambience adjustments have none: written straight through
+     * from a gesture and read once when the ball is composed, so a StateFlow would recompose the
+     * very thing being dragged on every frame of the drag. Persisted rather than remembered because
+     * somebody who moved the ball out of the way of what they were reading has made a decision
+     * about their thumb, and the host process is killed often enough that anything held in memory
+     * would put the ball back over the content within the hour.
+     *
+     * The side is stored, not the x position: the ball always snaps to an edge, so a coordinate
+     * would be a lie the moment the window is a different width — which, unfoldable and in
+     * landscape, it routinely is.
+     */
+    fun floatingNavAtEnd(): Boolean = prefs.getBoolean("floating_nav_at_end", true)
+
+    fun setFloatingNavAtEnd(atEnd: Boolean) {
+        prefs.edit().putBoolean("floating_nav_at_end", atEnd).apply()
+    }
+
+    fun floatingNavY(): Float = prefs.getFloat("floating_nav_y", 0.72f)
+
+    fun setFloatingNavY(fraction: Float) {
+        prefs.edit().putFloat("floating_nav_y", fraction).apply()
+    }
+
     fun setThemeMode(mode: String) {
         prefs.edit().putString("theme_mode", mode).apply()
         _themeMode.value = mode

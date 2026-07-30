@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.BrightnessAuto
+import androidx.compose.material.icons.rounded.BubbleChart
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.DarkMode
@@ -92,7 +93,8 @@ import org.matrix.vector.manager.ui.theme.ThemeMode
  * panels are reordered on the navigation container, by long-pressing one, because a drag only means
  * something where you can watch the others move aside. The row below is a way in rather than a
  * second place to do it, and it has to exist because nothing on Android teaches that a navigation
- * bar can be long-pressed at all.
+ * bar can be long-pressed at all — and with the floating style on, there is no bar left to try it
+ * on.
  *
  * Everything here takes effect immediately behind the sheet, which is the point of a sheet rather
  * than a screen: change the surface or the theme and you can watch it happen without losing your
@@ -111,6 +113,7 @@ fun HomeAppearanceSheet(onDismiss: () -> Unit) {
     val amoled by settings.amoledBlack.collectAsStateWithLifecycle()
     val seed by settings.seedColor.collectAsStateWithLifecycle()
     val ambience by settings.headerAmbience.collectAsStateWithLifecycle()
+    val floating by settings.floatingNav.collectAsStateWithLifecycle()
     val contributorOrder by settings.contributorOrder.collectAsStateWithLifecycle()
     val resolvedDark =
         when (ThemeMode.from(themeMode)) {
@@ -213,6 +216,13 @@ LocalizedOverlay {
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
             SheetHeading(stringResource(R.string.settings_navigation), Icons.Rounded.Dashboard)
+            ToggleRow(
+                title = stringResource(R.string.settings_floating_nav),
+                icon = Icons.Rounded.BubbleChart,
+                subtitle = stringResource(R.string.settings_floating_nav_summary),
+                checked = floating,
+                onCheckedChange = settings::setFloatingNav,
+            )
             SheetAction(
                 title = stringResource(R.string.settings_rearrange_panels),
                 icon = Icons.Rounded.Reorder,

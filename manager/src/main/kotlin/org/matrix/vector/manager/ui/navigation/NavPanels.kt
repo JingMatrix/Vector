@@ -6,7 +6,7 @@ import androidx.compose.runtime.Immutable
  * Which panels the navigation container shows, in which order, and which of them are hidden.
  *
  * Every rule the arrangement has to obey lives here rather than at the surfaces that display it, so
- * that the navigation container and the appearance sheet cannot each remember a different half of
+ * that the bar, the floating ball and the appearance sheet cannot each remember a different half of
  * it: [visible] is never empty, [start] is the first visible panel rather than Home, and
  * [withHidden] refuses to hide the last one standing. A surface that asks the right question here
  * cannot produce a state the rest of the app has no answer for.
