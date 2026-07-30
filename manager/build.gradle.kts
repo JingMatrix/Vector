@@ -51,7 +51,8 @@ android {
 
     defaultConfig {
         applicationId = defaultManagerPackageName
-        // The commit this manager was built from, short, with a marker when the tree was dirty.
+        // Which build this manager is: the repository on CI, the machine when built locally from
+        // a modified tree, and the short commit either way. See GitCommitHashValueSource.
         // The version code is `git rev-list --count origin/master`, so a branch build and the
         // official build of the same depth are indistinguishable by number — and the manager and
         // the daemon are flashed separately, so they can be different builds of the same number.

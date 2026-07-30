@@ -15,6 +15,12 @@ jobs:
     permissions:
       contents: write
     env:
+      # Which repository this build's code came from, for the version string the manager and
+      # module.prop show. Not GITHUB_REPOSITORY: a pull request from a fork is built here, in the
+      # base repository, so GITHUB_REPOSITORY would stamp JingMatrix/Vector onto a branch that has
+      # never been in it — and telling forks apart is the whole point of putting a repository in
+      # the name. head.repo.full_name is null outside a pull request, where the two agree anyway.
+      VECTOR_BUILD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
       CCACHE_HARDLINK: "true"
