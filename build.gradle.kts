@@ -74,12 +74,22 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
  * commit. Forks build the same code from the same commits, so the hash alone identifies a
  * *revision* and not a *build*, and a fork's artifact was indistinguishable from ours.
  *
- * The repository is the *head* one, which is why the workflow passes it in rather than this reading
- * `GITHUB_REPOSITORY` directly: on a pull request from a fork the workflow runs in the base
- * repository, so `GITHUB_REPOSITORY` says `JingMatrix/Vector` for a branch that has never been near
- * it — which is exactly the artifact the name most needs to distinguish. `VECTOR_BUILD_REPOSITORY`
- * carries `github.event.pull_request.head.repo.full_name` when there is one and falls back to
- * `GITHUB_REPOSITORY` otherwise; the fallback here covers a workflow too old to set it.
+ * Both halves are the *head* ones, and neither is read from the environment GitHub sets by default,
+ * because on a pull request both defaults name something other than the code that was built:
+ *
+ * `GITHUB_REPOSITORY` is the repository that *ran* the workflow. A pull request from a fork is built
+ * here, so it would stamp `JingMatrix/Vector` onto a branch that has never been near it — which is
+ * exactly the artifact the name most needs to distinguish.
+ *
+ * `HEAD` is worse. For a pull request the runner checks out an ephemeral merge of the branch into
+ * the base, so `git rev-parse HEAD` names a commit that exists in no repository, cannot be looked up
+ * by anyone who reads it off a device, and is gone once the run is. The commit that was pushed is
+ * the one that identifies the build.
+ *
+ * So the workflow passes both in: `VECTOR_BUILD_REPOSITORY` and `VECTOR_BUILD_COMMIT`, each taken
+ * from `github.event.pull_request.head.*` when there is a pull request and from the ordinary default
+ * when there is not — outside a pull request the two agree anyway. Absent either, this falls back to
+ * what the environment says and to `HEAD`, which covers a workflow too old to set them.
  *
  * *Locally*, the bare `93d66473`, or `93d66473-thinkpad` when the tree has uncommitted changes.
  * That build corresponds to no commit at all, so naming the commit alone would name something the
@@ -100,10 +110,13 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
         /**
          * `owner/repo` when GitHub Actions is building this, empty otherwise.
          *
-         * Threaded in as a parameter rather than read with `System.getenv` inside [obtain], which
-         * the configuration cache does not see and therefore does not invalidate on.
+         * Threaded in as parameters rather than read with `System.getenv` inside [obtain], which the
+         * configuration cache does not see and therefore does not invalidate on.
          */
-        val githubRepository: Property<String>
+        val buildRepository: Property<String>
+
+        /** The full SHA that was pushed, when CI knows one and it is not what is checked out. */
+        val buildCommit: Property<String>
     }
 
     @get:Inject abstract val execOperations: ExecOperations
@@ -145,13 +158,23 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
     }
 
     override fun obtain(): String {
-        val short = capture("git", "rev-parse", "--short", "HEAD") ?: return "unknown"
+        // Abbreviated by git rather than by hand, so a CI build and a local build of the same commit
+        // read identically however long this repository's abbreviation happens to be.
+        val head = capture("git", "rev-parse", "--short", "HEAD") ?: return "unknown"
 
-        val repository = parameters.githubRepository.getOrElse("")
-        if (repository.isNotBlank()) return repository.replace('/', '-') + "-" + short
+        val repository = parameters.buildRepository.getOrElse("")
+        if (repository.isBlank()) {
+            val dirty = capture("git", "status", "--porcelain", "--untracked-files=no") != null
+            return if (dirty) "$head-${hostname()}" else head
+        }
 
-        val dirty = capture("git", "status", "--porcelain", "--untracked-files=no") != null
-        return if (dirty) "$short-${hostname()}" else short
+        // The pushed commit is an ancestor of the merge that was checked out, so it is in the
+        // repository and git will abbreviate it. The truncation is only reached if it somehow is
+        // not, and a slightly odd length beats reporting the merge commit or nothing at all.
+        val pushed = parameters.buildCommit.getOrElse("").takeIf { it.isNotBlank() }
+        val short =
+            pushed?.let { capture("git", "rev-parse", "--short", it) ?: it.take(head.length) } ?: head
+        return repository.replace('/', '-') + "-" + short
     }
 }
 
@@ -161,13 +184,16 @@ val versionHashProvider by
     extra(
         providers.of(GitCommitHashValueSource::class.java) {
             // Set on every GitHub Actions runner and on nothing else, so the presence of either is
-            // the test for "this is a CI build". The workflow's own variable wins because it names
-            // the repository the branch came from; GITHUB_REPOSITORY names the one that ran.
-            parameters.githubRepository.set(
+            // the test for "this is a CI build". The workflow's own variables win because they name
+            // the branch that was pushed; GitHub's defaults name the run that built it.
+            parameters.buildRepository.set(
                 providers
                     .environmentVariable("VECTOR_BUILD_REPOSITORY")
                     .orElse(providers.environmentVariable("GITHUB_REPOSITORY"))
                     .orElse("")
+            )
+            parameters.buildCommit.set(
+                providers.environmentVariable("VECTOR_BUILD_COMMIT").orElse("")
             )
         }
     )
