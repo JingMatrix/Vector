@@ -357,6 +357,26 @@ class SettingsRepository(context: Context) {
         _logTracesInline.value = inline
     }
 
+    // --- Navigation panels ---
+
+    /**
+     * Which panels the navigation container shows, in which order, and which are hidden.
+     *
+     * One delimited string rather than a set: `putStringSet` does not preserve order — the same
+     * fact `muted_updates` above relies on being harmless — and here the order is the whole point.
+     * Route keys rather than ordinals or class names, because R8 rewrites class names in a release
+     * build and an ordinal would silently mean a different panel the day a fifth one is added.
+     * Empty means "the catalogue as declared", which is what a fresh install has and what anyone
+     * who has never opened edit mode keeps. See NavPanels for the format.
+     */
+    private val _navPanels = MutableStateFlow(prefs.getString("nav_panels", "") ?: "")
+    val navPanels: StateFlow<String> = _navPanels.asStateFlow()
+
+    fun setNavPanels(encoded: String) {
+        prefs.edit().putString("nav_panels", encoded).apply()
+        _navPanels.value = encoded
+    }
+
     fun setThemeMode(mode: String) {
         prefs.edit().putString("theme_mode", mode).apply()
         _themeMode.value = mode

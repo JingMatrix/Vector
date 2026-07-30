@@ -1,14 +1,14 @@
 package org.matrix.vector.manager.ui
 
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
@@ -25,13 +25,14 @@ import org.matrix.vector.manager.ui.screens.report.TroubleshootScreen
 import org.matrix.vector.manager.ui.navigation.DeepLink
 import org.matrix.vector.manager.ui.navigation.LocalNavigator
 import org.matrix.vector.manager.ui.navigation.Navigator
+import org.matrix.vector.manager.ui.navigation.PanelBar
+import org.matrix.vector.manager.ui.navigation.PanelEditDone
 import org.matrix.vector.manager.ui.navigation.Scope
 import org.matrix.vector.manager.ui.navigation.StoreDetail
 import org.matrix.vector.manager.ui.navigation.CrashTrace
 import org.matrix.vector.manager.ui.navigation.LogTrace
 import org.matrix.vector.manager.ui.navigation.SystemStatus
 import org.matrix.vector.manager.ui.navigation.Web
-import org.matrix.vector.manager.ui.navigation.TOP_LEVEL_DESTINATIONS
 import org.matrix.vector.manager.ui.navigation.TopLevelRoute
 import org.matrix.vector.manager.ui.navigation.rememberNavigator
 import org.matrix.vector.manager.ui.screens.home.HomeScreen
@@ -53,6 +54,8 @@ import org.matrix.vector.manager.ui.screens.web.WebScreen
  * no longer lock itself to portrait or declare itself non-resizable on large screens, so the shell
  * has to work unfolded and in landscape regardless. The scaffold also owns where that container
  * sits, so the destinations below it are laid out beside or above it rather than under it.
+ *
+ * Which panels that container holds, in which order, is the reader's — see NavPanels.
  */
 @Composable
 fun VectorApp() {
@@ -82,7 +85,8 @@ fun VectorApp() {
     }
 
     CompositionLocalProvider(LocalNavigator provides navigator) {
-        // The bar shows only at the root of a tab. On a detail screen none of the four items is
+        val editing = navigator.editingPanels
+        // The container shows only at the root of a panel. On a detail screen none of the items is
         // the current destination, and a navigation bar highlighting nothing is worse than none.
         val atRoot = !navigator.canGoBack
 
@@ -92,22 +96,30 @@ fun VectorApp() {
         val suiteState = rememberNavigationSuiteScaffoldState()
         LaunchedEffect(atRoot) { if (atRoot) suiteState.show() else suiteState.hide() }
 
+        // Computed rather than left to the scaffold's default because PanelBar has to be told which
+        // axis it is laying items along, and the scaffold keeps that decision to itself otherwise.
+        val suiteType =
+            NavigationSuiteScaffoldDefaults.navigationSuiteType(currentWindowAdaptiveInfo())
+
         NavigationSuiteScaffold(
-            state = suiteState,
-            navigationSuiteItems = {
-                TOP_LEVEL_DESTINATIONS.forEach { destination ->
-                item(
-                    selected = navigator.currentTopLevel == destination.route,
-                    onClick = { navigator.switchTo(destination.route) },
-                    icon = { Icon(destination.icon, contentDescription = null) },
-                    // The label doubles as the item's accessibility name, so the icon above
-                    // carries no contentDescription of its own — otherwise TalkBack announces
-                    // every selected tab twice.
-                    label = { Text(stringResource(destination.labelRes)) },
+            navigationItems = {
+                PanelBar(
+                    panels = navigator.panels,
+                    current = navigator.currentTopLevel,
+                    editing = editing,
+                    suiteType = suiteType,
+                    onSelect = { route -> navigator.switchTo(route) },
+                    onEdit = { navigator.editingPanels = true },
+                    onToggleHidden = { key, hidden -> navigator.setPanelHidden(key, hidden) },
+                    onMove = { from, to -> navigator.movePanel(from, to) },
                 )
-            }
-        },
-    ) {
+            },
+            navigationSuiteType = suiteType,
+            state = suiteState,
+            primaryActionContent = {
+                if (editing) PanelEditDone(onDone = { navigator.editingPanels = false })
+            },
+        ) {
             NavDisplay(
                 backStack = navigator.backStack,
                 onBack = { navigator.back() },
@@ -125,9 +137,21 @@ fun VectorApp() {
                 entryProvider = entryProvider { registerRoutes(navigator) },
             )
         }
+
+        // After the scaffold on purpose. Back callbacks are dispatched last-registered-first and
+        // BackHandler registers from an effect, which run in composition order, so this one
+        // outranks the handler NavDisplay installs and edit mode ends before the stack is touched.
+        BackHandler(enabled = editing) { navigator.editingPanels = false }
     }
 }
 
+/**
+ * Every destination, registered.
+ *
+ * All four panels keep their entry whether or not the reader has hidden them. A saved stack names
+ * its keys by class, and entryProvider throws for one it was never given, so dropping the
+ * registration of a hidden panel would turn a stale saved stack into a crash.
+ */
 private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
     entry<TopLevelRoute.Home> {
         HomeScreen(

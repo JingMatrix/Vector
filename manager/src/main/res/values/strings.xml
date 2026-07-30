@@ -15,6 +15,17 @@
     <string name="nav_store">Store</string>
     <string name="nav_logs">Logs</string>
 
+    <!-- Rearranging the panels, and the ball that can stand in for the bar -->
+    <string name="panels_done">Done</string>
+    <!-- Example: "Hide Store". The name is one of the four panels above. -->
+    <string name="panels_hide">Hide %1$s</string>
+    <string name="panels_show">Show %1$s</string>
+    <!-- Spoken actions while rearranging: a drag cannot be made with touch exploration on -->
+    <string name="panels_move_earlier">Move earlier</string>
+    <string name="panels_move_later">Move later</string>
+    <string name="panels_ball_open">Open navigation</string>
+    <string name="panels_ball_close">Close navigation</string>
+
     <!-- Framework status -->
     <string name="status_active">Active</string>
     <string name="status_degraded">Needs attention</string>
@@ -238,6 +249,11 @@
     <string name="ambience_circuit">Circuit</string>
     <string name="ambience_matrix">Code rain</string>
     <string name="ambience_none">Still</string>
+
+    <!-- Settings: where the panels live. Nothing on Android teaches a long press on a bar. -->
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_rearrange_panels">Rearrange panels</string>
+    <string name="settings_rearrange_panels_summary">Change their order, or hide the ones you never open.</string>
 
     <!-- Settings: activity feed -->
     <string name="settings_activity">Activity feed</string>

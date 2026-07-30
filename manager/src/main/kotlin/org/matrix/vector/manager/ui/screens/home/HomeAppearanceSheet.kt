@@ -27,11 +27,13 @@ import androidx.compose.material.icons.rounded.BrightnessAuto
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Colorize
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.OpenInBrowser
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Reorder
 import androidx.compose.material.icons.rounded.Waves
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -63,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.ChoiceRow
+import org.matrix.vector.manager.ui.components.SheetAction
 import org.matrix.vector.manager.ui.components.SheetHeading
 import org.matrix.vector.manager.ui.components.StatusNote
 import org.matrix.vector.manager.ui.components.ToggleRow
@@ -70,6 +73,7 @@ import org.matrix.vector.manager.net.DohStatus
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.components.ColorWheel
 import org.matrix.vector.manager.ui.components.ambience.AmbienceKind
+import org.matrix.vector.manager.ui.navigation.LocalNavigator
 import org.matrix.vector.manager.ui.theme.SeedScheme
 import org.matrix.vector.manager.ui.theme.ThemeMode
 
@@ -82,6 +86,14 @@ import org.matrix.vector.manager.ui.theme.ThemeMode
  * catch-all Settings screen at all: a screen that collects unrelated switches is where preferences
  * go to be forgotten, and every one of them has a place it actually belongs.
  *
+ * The navigation section stretches that rule the furthest and still keeps to it. Where the panels
+ * live is not a property of Home — but neither is the theme, and both answer the same question,
+ * which is what this app looks like. What is deliberately *not* here is the arrangement itself:
+ * panels are reordered on the navigation container, by long-pressing one, because a drag only means
+ * something where you can watch the others move aside. The row below is a way in rather than a
+ * second place to do it, and it has to exist because nothing on Android teaches that a navigation
+ * bar can be long-pressed at all.
+ *
  * Everything here takes effect immediately behind the sheet, which is the point of a sheet rather
  * than a screen: change the surface or the theme and you can watch it happen without losing your
  * place.
@@ -90,6 +102,10 @@ import org.matrix.vector.manager.ui.theme.ThemeMode
 @Composable
 fun HomeAppearanceSheet(onDismiss: () -> Unit) {
     val settings = ServiceLocator.settings
+    // Read out here rather than inside the sheet. A ModalBottomSheet is a subcomposition, so the
+    // locals VectorApp provides do reach into it, but the navigator is wanted for one callback and
+    // nothing about it changes between here and there.
+    val navigator = LocalNavigator.current
     val themeMode by settings.themeMode.collectAsStateWithLifecycle()
     val dynamicColor by settings.dynamicColor.collectAsStateWithLifecycle()
     val amoled by settings.amoledBlack.collectAsStateWithLifecycle()
@@ -194,6 +210,26 @@ LocalizedOverlay {
                     )
                 }
             }
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SheetHeading(stringResource(R.string.settings_navigation), Icons.Rounded.Dashboard)
+            SheetAction(
+                title = stringResource(R.string.settings_rearrange_panels),
+                icon = Icons.Rounded.Reorder,
+                onClick = {
+                    // Edit mode and the dismissal in the one click, and deliberately without
+                    // animating the sheet out first: hiding it through its own sheetState would
+                    // leave this dialog's window, scrim and all, over the container for the length
+                    // of the animation, and the first thing anyone does in edit mode is drag an
+                    // item. Dropping the sheet out of composition takes its window with it in the
+                    // same frame the container enters edit mode, so the first touch that lands
+                    // lands on a panel.
+                    navigator.editingPanels = true
+                    onDismiss()
+                },
+                subtitle = stringResource(R.string.settings_rearrange_panels_summary),
+            )
+
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
             // Here rather than under the Store's filters, where it used to sit. It was never a

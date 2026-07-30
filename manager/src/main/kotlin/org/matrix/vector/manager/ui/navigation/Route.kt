@@ -19,7 +19,19 @@ import org.matrix.vector.manager.R
  */
 @Serializable sealed interface Route : NavKey
 
-/** The four destinations in the navigation bar. Order here is the order on screen. */
+/**
+ * Every panel that exists, and the order a fresh install starts with.
+ *
+ * Not the order on screen: the reader's own order, and which panels they have hidden, live in
+ * SettingsRepository under `nav_panels` and are modelled by NavPanels. What is declared here is the
+ * catalogue and the default.
+ *
+ * Hiding a panel never removes it from this file. The back stack persists NavKeys by class name —
+ * NavKeySerializer resolves them with a bare `Class.forName` and has no fallback — and NavDisplay's
+ * entryProvider throws for a key it was never given, so a saved stack naming a panel that had been
+ * deleted would be a crash rather than a stale tab. Hiding is a fact about the navigation
+ * container, and about nothing else.
+ */
 @Serializable
 sealed interface TopLevelRoute : Route {
     @Serializable data object Home : TopLevelRoute
@@ -72,8 +84,15 @@ sealed interface TopLevelRoute : Route {
 /** GitHub, shown in the built-in viewer rather than handed to a browser. */
 @Serializable data class Web(val url: String) : Route
 
-/** Label and icon for a bar item. Titles come from resources; no hard-coded English. */
+/**
+ * Label and icon for a bar item. Titles come from resources; no hard-coded English.
+ *
+ * [key] is the only stable identity this type has, and so the only thing that is ever written to
+ * preferences: R8 rewrites class names in a release build, and an ordinal would quietly name a
+ * different panel the day a fifth one is declared. See NavPanels for what is stored.
+ */
 data class TopLevelDestination(
+    val key: String,
     val route: TopLevelRoute,
     val icon: ImageVector,
     val labelRes: Int,
@@ -81,10 +100,25 @@ data class TopLevelDestination(
 
 val TOP_LEVEL_DESTINATIONS: List<TopLevelDestination> =
     listOf(
-        TopLevelDestination(TopLevelRoute.Home, Icons.Rounded.Home, R.string.nav_home),
-        TopLevelDestination(TopLevelRoute.Modules, Icons.Rounded.Extension, R.string.nav_modules),
+        TopLevelDestination("home", TopLevelRoute.Home, Icons.Rounded.Home, R.string.nav_home),
+        TopLevelDestination(
+            "modules",
+            TopLevelRoute.Modules,
+            Icons.Rounded.Extension,
+            R.string.nav_modules,
+        ),
         // A cloud, not a shopfront. Nothing here is sold, and the tab's real subject is "modules
         // that live somewhere else and can be brought here".
-        TopLevelDestination(TopLevelRoute.Store, Icons.Rounded.CloudDownload, R.string.nav_store),
-        TopLevelDestination(TopLevelRoute.Logs, Icons.Rounded.ReceiptLong, R.string.nav_logs),
+        TopLevelDestination(
+            "store",
+            TopLevelRoute.Store,
+            Icons.Rounded.CloudDownload,
+            R.string.nav_store,
+        ),
+        TopLevelDestination(
+            "logs",
+            TopLevelRoute.Logs,
+            Icons.Rounded.ReceiptLong,
+            R.string.nav_logs,
+        ),
     )
