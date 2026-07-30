@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.CallSplit
+import androidx.compose.material.icons.rounded.AddToHomeScreen
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Close
@@ -88,6 +89,8 @@ import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.currentLocale
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.manager.ui.components.FrameworkState
+import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.show
 import org.matrix.vector.manager.data.github.CommunityFeed
@@ -144,10 +147,20 @@ fun HomeScreen(
     val windowChanged by viewModel.windowChanged.collectAsStateWithLifecycle()
     val frameworkUpdate by viewModel.frameworkUpdate.collectAsStateWithLifecycle()
     val ambienceKey by viewModel.headerAmbience.collectAsStateWithLifecycle()
+    val presence by viewModel.presence.collectAsStateWithLifecycle()
+    val promptDismissed by viewModel.launcherPromptDismissed.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showSplash by rememberSaveable { mutableStateOf(false) }
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showLanguage by rememberSaveable { mutableStateOf(false) }
+    // Answered or waved away once per visit, not once per return to Home. Saved so that a rotation
+    // does not put a dialog back in front of someone who has just dismissed it.
+    var showLauncherPrompt by rememberSaveable { mutableStateOf(true) }
+
+    // The status screen has its own copy of this ViewModel — a nav destination is its own store —
+    // so a shortcut pinned or an app installed from there is invisible to this one until it is
+    // asked again. Coming back to Home is when it is worth asking.
+    LaunchedEffect(Unit) { viewModel.refreshPresence() }
 
     // Four taps on the wordmark, with the remaining count announced from the second. Two taps
     // could be an accident; past that the reader is clearly poking at it, so the app plays along
@@ -329,6 +342,36 @@ fun HomeScreen(
         HomeAppearanceSheet(onDismiss = { showAppearance = false })
     }
 
+    // Nothing in the launcher points at a parasitic manager, so someone who reached this screen
+    // through the root manager's action button has no way of finding it again — which is what #815
+    // reported. Asked once, on the first launch that could act on the answer, and never again after
+    // "Don't ask again" or after either remedy has been applied. Dismissing it any other way means
+    // "later": the offer stays on the status page and returns on the next launch.
+    if (
+        showLauncherPrompt &&
+            presence.unreachable &&
+            !promptDismissed &&
+            // With no daemon there is no APK to install and bigger problems to report first.
+            status.state != FrameworkState.Inactive
+    ) {
+        LauncherPrompt(
+            shortcutSupported = presence.shortcutSupported,
+            onCreateShortcut = {
+                showLauncherPrompt = false
+                viewModel.requestShortcut()
+            },
+            onInstall = {
+                showLauncherPrompt = false
+                viewModel.installManagerApp()
+            },
+            onNever = {
+                showLauncherPrompt = false
+                viewModel.dismissLauncherPrompt()
+            },
+            onLater = { showLauncherPrompt = false },
+        )
+    }
+
     // Summoned by four taps on the wordmark. A dialog rather than an overlay inside the content,
     // so it covers the navigation bar too — a splash framed by app chrome is not a splash.
     if (showSplash) {
@@ -359,6 +402,46 @@ LocalizedOverlay {
         }
 }
     }
+}
+
+/**
+ * The one prompt Vector shows unasked, and only when there is genuinely no way back in.
+ *
+ * Two buttons rather than four: the primary is whichever remedy this device can actually apply, and
+ * the other is the refusal. "Later" is the dialog's ordinary dismissal — tapping away or pressing
+ * back — because that is already what dismissing a dialog means, and a third button spelling it out
+ * would crowd out the two that do something.
+ */
+@Composable
+private fun LauncherPrompt(
+    shortcutSupported: Boolean,
+    onCreateShortcut: () -> Unit,
+    onInstall: () -> Unit,
+    onNever: () -> Unit,
+    onLater: () -> Unit,
+) {
+    VectorAlertDialog(
+        onDismissRequest = onLater,
+        icon = { Icon(Icons.Rounded.AddToHomeScreen, contentDescription = null) },
+        title = { Text(stringResource(R.string.launcher_prompt_title)) },
+        text = { Text(stringResource(R.string.launcher_prompt_body)) },
+        confirmButton = {
+            // A launcher that refuses pin requests leaves installing as the only remedy, so that is
+            // what the button offers rather than one that would visibly do nothing.
+            if (shortcutSupported) {
+                TextButton(onClick = onCreateShortcut) {
+                    Text(stringResource(R.string.launcher_shortcut_create))
+                }
+            } else {
+                TextButton(onClick = onInstall) {
+                    Text(stringResource(R.string.launcher_install_action))
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onNever) { Text(stringResource(R.string.launcher_prompt_never)) }
+        },
+    )
 }
 
 /**

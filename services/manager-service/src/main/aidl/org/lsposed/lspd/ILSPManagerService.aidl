@@ -203,4 +203,15 @@ interface ILSPManagerService {
      * for it. Every app on screen goes with it.
      */
     void softReboot() = 62;
+
+    /**
+     * The manager APK the module was flashed with, opened read-only, or null when it cannot be.
+     *
+     * For installing the manager as an ordinary app. The manager cannot read this file itself:
+     * parasitically it runs as the host, whose UID has no business in the module directory, and
+     * standalone it is the very thing being replaced. The daemon verifies the signature before
+     * handing the descriptor over, so what comes back is the APK this framework would accept as its
+     * own manager and not whatever happens to sit at that path.
+     */
+    ParcelFileDescriptor getManagerApk() = 63;
 }

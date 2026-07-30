@@ -314,6 +314,18 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     suspend fun softReboot(): Result<Unit> = runIpc { it.softReboot() }
 
     /**
+     * The flashed manager APK, for installing the manager as an ordinary app.
+     *
+     * Null against a daemon too old to answer the call, and null when the daemon has the call but
+     * refused — the APK is missing from the module directory, or its signature is not the one this
+     * framework accepts. Both leave the offer to install unusable, and neither is worth telling
+     * apart on screen.
+     */
+    suspend fun getManagerApk(): Result<android.os.ParcelFileDescriptor?> = runIpc {
+        it.managerApk
+    }
+
+    /**
      * Whether apps that declare no launcher entry are given one anyway.
      *
      * True is the platform default, and is what the daemon answers on a device where nothing has

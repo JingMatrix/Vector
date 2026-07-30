@@ -37,6 +37,7 @@ import org.matrix.vector.daemon.data.PreferenceStore
 import org.matrix.vector.daemon.env.Dex2OatServer
 import org.matrix.vector.daemon.env.LogcatMonitor
 import org.matrix.vector.daemon.system.*
+import org.matrix.vector.daemon.utils.InstallerVerifier
 import org.matrix.vector.daemon.utils.PackageOptimizer
 import org.matrix.vector.daemon.utils.RootImplementation
 import org.matrix.vector.daemon.utils.applyXspaceWorkaround
@@ -292,6 +293,22 @@ object ManagerService : ILSPManagerService.Stub() {
   }
 
   override fun softReboot() = VectorDaemon.softReboot()
+
+  /**
+   * The flashed manager APK, verified, for the manager to install as an ordinary app.
+   *
+   * The same file and the same check as [ApplicationService.requestInjectedManagerBinder], which
+   * serves it to the host process for injection — one APK, one signature gate, whichever way it
+   * leaves the module directory.
+   */
+  override fun getManagerApk(): ParcelFileDescriptor? =
+      runCatching {
+            InstallerVerifier.verifyInstallerSignature(FileSystem.managerApkPath.toString())
+            ParcelFileDescriptor.open(
+                FileSystem.managerApkPath.toFile(), ParcelFileDescriptor.MODE_READ_ONLY)
+          }
+          .onFailure { Log.e(TAG, "Failed to open or verify manager APK", it) }
+          .getOrNull()
 
   override fun reboot() {
     powerManager?.reboot(false, null, false)

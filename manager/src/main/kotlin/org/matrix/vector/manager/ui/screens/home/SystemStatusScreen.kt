@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.WarningAmber
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -60,6 +62,7 @@ import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.model.XposedApi
+import org.matrix.vector.manager.data.repository.ManagerInstallStep
 import org.matrix.vector.manager.ui.components.SnackbarTone
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.show
@@ -84,6 +87,13 @@ fun SystemStatusScreen(
     val context = LocalContext.current
     val statusNotification by viewModel.statusNotification.collectAsStateWithLifecycle()
     val hiddenIcon by viewModel.hiddenIcon.collectAsStateWithLifecycle()
+    val presence by viewModel.presence.collectAsStateWithLifecycle()
+    val managerInstall by viewModel.managerInstall.collectAsStateWithLifecycle()
+
+    // Both the shortcut and the install can be undone from outside the app while it is open —
+    // dragged off the home screen, uninstalled from Settings — so what the rows offer is re-read on
+    // arrival rather than trusted from whenever the ViewModel was built.
+    LaunchedEffect(Unit) { viewModel.refreshPresence() }
 
     val sections = buildSections(status, device, context)
     // The same page again, in English, for the clipboard.
@@ -111,6 +121,9 @@ fun SystemStatusScreen(
     val snackbars = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copied = stringResource(R.string.copied)
+    val shortcutRefused = stringResource(R.string.launcher_shortcut_refused)
+    val installDone = stringResource(R.string.launcher_install_done)
+    val installFailed = stringResource(R.string.launcher_install_failed)
 
     Scaffold(
         snackbarHost = { VectorSnackbarHost(snackbars) },
@@ -203,6 +216,124 @@ fun SystemStatusScreen(
                     onCheckedChange = viewModel::setForcedLauncherIcons,
                 )
             }
+
+            // How to get back in. Only parasitically: installed, the manager has a launcher icon
+            // like any other app and neither of these means anything.
+            if (presence.parasitic) {
+                item { SectionHeading(stringResource(R.string.launcher_section)) }
+                item {
+                    ActionRow(
+                        title = stringResource(R.string.launcher_shortcut),
+                        subtitle = stringResource(R.string.launcher_shortcut_summary),
+                        action = stringResource(R.string.launcher_shortcut_create),
+                        done = presence.shortcutPinned,
+                        doneLabel = stringResource(R.string.launcher_shortcut_pinned),
+                        // A launcher that refuses pin requests would take the tap and do nothing
+                        // visible, so the row says so instead of offering a button that cannot work.
+                        enabled = presence.shortcutSupported,
+                        note =
+                            if (presence.shortcutSupported) null
+                            else stringResource(R.string.launcher_shortcut_unsupported),
+                        onClick = {
+                            if (!viewModel.requestShortcut()) {
+                                scope.launch {
+                                    snackbars.show(shortcutRefused, SnackbarTone.Failure)
+                                }
+                            }
+                        },
+                    )
+                }
+                item {
+                    ActionRow(
+                        title = stringResource(R.string.launcher_install),
+                        subtitle = stringResource(R.string.launcher_install_summary),
+                        action = stringResource(R.string.launcher_install_action),
+                        done = presence.installed,
+                        doneLabel = stringResource(R.string.launcher_installed),
+                        // The APK comes from the daemon, so there is nothing to install without one.
+                        enabled = daemonAlive && managerInstall !is ManagerInstallStep.Installing,
+                        busy = managerInstall is ManagerInstallStep.Installing,
+                        onClick = viewModel::installManagerApp,
+                    )
+                }
+            }
+        }
+    }
+
+    // Reported once per outcome, then acknowledged so a later visit does not replay it. The
+    // platform's own status message is not shown: it is untranslated and phrased for a developer,
+    // and it is already in the log for whoever needs it.
+    LaunchedEffect(managerInstall) {
+        val message =
+            when (managerInstall) {
+                is ManagerInstallStep.Done -> installDone to SnackbarTone.Success
+                is ManagerInstallStep.Failed -> installFailed to SnackbarTone.Failure
+                else -> return@LaunchedEffect
+            }
+        // Acknowledged first, and shown on the screen's own scope rather than this effect's:
+        // acknowledging changes the state this effect is keyed on and so cancels it, and `show`
+        // suspends for as long as the snackbar is up. The other order loses the message.
+        viewModel.acknowledgeManagerInstall()
+        scope.launch { snackbars.show(message.first, message.second) }
+    }
+}
+
+/**
+ * A row that does something, shaped like the ones above it that report something.
+ *
+ * The finished state replaces the button rather than disabling it: "Already on your home screen" is
+ * the answer to the question the row poses, and a greyed-out "Create" leaves the reader working out
+ * why it will not press.
+ */
+@Composable
+private fun ActionRow(
+    title: String,
+    subtitle: String,
+    action: String,
+    done: Boolean,
+    doneLabel: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    busy: Boolean = false,
+    /** Shown under the subtitle when the action cannot be offered, saying why. */
+    note: String? = null,
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+            )
+            if (note != null && !done) {
+                Spacer(Modifier.height(2.dp))
+                Text(note, style = MaterialTheme.typography.bodySmall, color = colors.error)
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        when {
+            done ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        doneLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.primary,
+                    )
+                }
+            busy -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            else -> TextButton(onClick = onClick, enabled = enabled) { Text(action) }
         }
     }
 }
@@ -387,9 +518,10 @@ private fun buildSections(
                     buildString {
                         append(status.versionLabel ?: unknown)
                         // The exact build, not just its number. Two builds share a version code
-                        // whenever they sit at the same depth on different branches, and a build
-                        // from a tree with uncommitted changes says so with `-dirty` — which is
-                        // what a bug report needs and what the number alone cannot give.
+                        // whenever they sit at the same depth on different branches, so this names
+                        // where the build came from as well as the commit: the repository for a CI
+                        // build, the machine for a local one from a modified tree. That is what a
+                        // bug report needs and what the number alone cannot give.
                         status.commit?.takeIf { it.isNotBlank() }?.let { append("  ·  ").append(it) }
                     },
                 ),

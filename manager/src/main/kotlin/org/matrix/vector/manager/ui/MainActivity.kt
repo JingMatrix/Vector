@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import org.matrix.vector.manager.data.repository.LaunchShortcut
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.screens.splash.SplashGate
 import org.matrix.vector.manager.ui.theme.LocalizedContent
@@ -37,6 +38,11 @@ class MainActivity : ComponentActivity() {
         // is spending anyway, and these reads are what makes a panel's first visit slower than its
         // second. By the time the splash has played, most of them have already answered.
         ServiceLocator.prefetch()
+
+        // The launcher copies the label and icon when the shortcut is pinned and keeps its copy, so
+        // a pinned shortcut otherwise represents Vector with whatever build pinned it for as long as
+        // it lives. A no-op unless one is pinned, and unless this manager is the parasitic one.
+        LaunchShortcut.update(this)
 
         // Keep the platform splash up only until the first frame is ready to draw; the Compose
         // splash then plays and decides for itself when the daemon has been given long enough.

@@ -260,6 +260,23 @@ class SettingsRepository(context: Context) {
         _openLinksExternally.value = enabled
     }
 
+    /**
+     * Whether Home has been told to stop offering a launcher icon.
+     *
+     * Set by the "don't ask again" on the prompt that appears on first launch. Kept separate from
+     * "a shortcut is pinned", which is the launcher's fact and is asked of the launcher: someone
+     * who dismisses the prompt and later pins the shortcut by hand should not be asked again, and
+     * someone who removes the shortcut should not be nagged about it once they have said no.
+     */
+    private val _launcherPromptDismissed =
+        MutableStateFlow(prefs.getBoolean("launcher_prompt_dismissed", false))
+    val launcherPromptDismissed: StateFlow<Boolean> = _launcherPromptDismissed.asStateFlow()
+
+    fun dismissLauncherPrompt() {
+        prefs.edit().putBoolean("launcher_prompt_dismissed", true).apply()
+        _launcherPromptDismissed.value = true
+    }
+
     // --- Logs ---
 
     /**

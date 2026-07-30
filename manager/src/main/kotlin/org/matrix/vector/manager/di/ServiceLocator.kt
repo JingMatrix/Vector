@@ -32,6 +32,7 @@ import org.matrix.vector.manager.data.repository.AppRepository
 import org.matrix.vector.manager.data.repository.BackupRepository
 import org.matrix.vector.manager.data.repository.FrameworkInstaller
 import org.matrix.vector.manager.data.repository.FrameworkUpdateRepository
+import org.matrix.vector.manager.data.repository.ManagerInstaller
 import org.matrix.vector.manager.data.repository.ModuleInstaller
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.data.repository.ModuleRepository
@@ -188,6 +189,9 @@ object ServiceLocator {
     val moduleUpdates: ModuleUpdateQueue by lazy { ModuleUpdateQueue(installer, store, modules, appScope) }
 
     val frameworkInstaller: FrameworkInstaller by lazy { FrameworkInstaller(context, http, daemon) }
+
+    /** Installs the manager itself as an ordinary app, for anyone who would rather have an icon. */
+    val managerInstaller: ManagerInstaller by lazy { ManagerInstaller(context, daemon) }
 
     val backup: BackupRepository by lazy { BackupRepository(context, daemon) }
 
