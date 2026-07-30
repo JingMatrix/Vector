@@ -33,7 +33,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +41,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
@@ -134,7 +134,14 @@ fun PackageActionSheet(
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
+    // Deliberately not `rememberCoroutineScope()`. Every action on this sheet dismisses it before
+    // it starts working, and the dismissal takes this composable out of the composition — which
+    // cancels the scope a composition remembered for it. The work launched into that scope then
+    // dies at the first `withContext` hop inside the daemon call, before the transaction is ever
+    // made, and dies quietly: no daemon call, no error branch, no snackbar, a button that did
+    // nothing. Worse, it is a race against the next frame rather than a reliable failure, so it
+    // reads as a flaky button. `appScope` belongs to the process and outlives the sheet.
+    val scope = ServiceLocator.appScope
     val daemon = ServiceLocator.daemon
 
     if (confirmSoftReboot) {
@@ -148,7 +155,7 @@ fun PackageActionSheet(
                     onClick = {
                         confirmSoftReboot = false
                         onDismiss()
-                        scope.launch {
+                        scope.launch(Dispatchers.Main) {
                             daemon.softReboot().onFailure {
                                 Log.e(Constants.TAG, "actions: soft reboot request failed", it)
                             }
@@ -177,9 +184,11 @@ fun PackageActionSheet(
     // still open at their own height and nothing gains a useless drag.
     val sheetState = rememberModalBottomSheetState()
 
+    // `Dispatchers.Main` because [onResult] reaches a snackbar on the screen underneath, and
+    // because that is the thread the composition scope this replaces used to resume on.
     fun finish(block: suspend () -> PackageActionResult) {
         onDismiss()
-        scope.launch { onResult(block()) }
+        scope.launch(Dispatchers.Main) { onResult(block()) }
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
