@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.matrix.vector.manager.data.github.FrameworkRelease
 import org.matrix.vector.manager.data.github.GitHubRepository
+import org.matrix.vector.manager.data.model.buildStamp
 
 /**
  * Whether a newer build of the framework exists, and which one this reader may be offered.
@@ -70,7 +71,12 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
  */
 data class FrameworkUpdateState(
     val installedVersionCode: Long = 0,
-    /** The commit the running daemon was built from, when it recorded one. */
+    /**
+     * The build stamp the running daemon reports, when it recorded one.
+     *
+     * Not a bare hash: it names where the build came from as well as what commit it was made from,
+     * in one of the shapes [buildStamp] reads. Nothing here compares it as a string.
+     */
     val installedCommit: String? = null,
     val available: FrameworkRelease? = null,
     /** Every release on this channel, newest first — including ones older than the installed one. */
@@ -93,12 +99,16 @@ enum class ReleaseDirection {
  * Only askable when both sides recorded a commit: the canaries carry a SHA, a hand-made release
  * carries a branch name, and a build made before this existed carries nothing. "I cannot tell" is a
  * third answer and is reported as false rather than as divergence.
+ *
+ * What the framework reports is a *build stamp*, not a bare hash, so the commit is read out of it
+ * before anything is compared. Comparing the whole stamp is what #809 left behind: a CI stamp
+ * carries the repository as well, no release SHA matches that, and so every canary reader was told
+ * they were running "same number, other build" against the very release they had flashed, with no
+ * row anywhere marked as installed.
  */
 fun FrameworkUpdateState.divergesFrom(release: FrameworkRelease?): Boolean {
     if (release == null || release.versionCode != installedVersionCode) return false
-    val mine = installedCommit ?: return false
-    val theirs = release.commit ?: return false
-    // A dirty build matches nothing by definition — it was not built from any commit.
-    if (mine.endsWith("-dirty")) return true
-    return !theirs.startsWith(mine)
+    val mine = buildStamp(installedCommit ?: return false)
+    if (mine.commit == null || release.commit == null) return false
+    return !mine.isCommit(release.commit)
 }

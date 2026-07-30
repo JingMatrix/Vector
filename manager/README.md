@@ -86,8 +86,11 @@ asserting the old meaning until someone notices, which can be a long time.
 ```
 
 The version code is `git rev-list --count refs/remotes/origin/master`, so a branch build and a
-master build can share one; `module.prop` carries the commit, marked `-dirty` when the tree was not
-clean, which is often the only way to tell two builds apart on a device.
+master build can share one; `module.prop` and the status page carry a build stamp, which is often
+the only way to tell two builds apart on a device. It names where the build came from as well as
+what it was built from. The commit leads and what follows says where: `93d66473-JingMatrix-Vector`
+for a CI build, the bare `93d66473` for a local one, and `93d66473+thinkpad` — the machine that made
+it — when the tree was not clean.
 
 Debug builds add a second launcher activity — a demo mode with scripted device states, in
 `src/debug` and absent from release builds, so it cannot be used to make a release report a healthy

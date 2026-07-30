@@ -46,7 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +68,7 @@ import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.model.XposedApi
+import org.matrix.vector.manager.data.model.buildStamp
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
 import org.matrix.vector.manager.ui.components.SnackbarTone
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
@@ -149,7 +153,12 @@ fun SystemStatusScreen(
                                 context,
                                 englishSections.joinToString("\n\n") { (heading, items) ->
                                     heading +
-                                        items.joinToString("") { "\n  ${it.label}: ${it.value}" }
+                                        items.joinToString("") {
+                                            // With the detail, which the screen only sets apart
+                                            // rather than shortens. Where a build came from is
+                                            // half of what makes the stamp worth pasting.
+                                            "\n  ${it.label}: ${it.value}${it.detail.orEmpty()}"
+                                        }
                                 },
                             )
                             scope.launch { snackbars.show(copied, SnackbarTone.Success) }
@@ -564,6 +573,12 @@ private fun CrashCard(report: String, onCopy: () -> Unit, onClear: () -> Unit) {
  *
  * A fact that can be good or bad says which by its colour, so the page answers "is anything wrong"
  * before it is read at all.
+ *
+ * A row may end in a [InfoItem.detail], set smaller and in the muted colour. It is part of the same
+ * value and stays in the same line — a reader copying a version out by hand still gets all of it —
+ * but it is not what the row is looked up for. On the build rows that is where the stamp came from;
+ * the commit is what someone comparing two devices reads, and the repository or machine after it is
+ * two thirds of the characters and almost never the answer.
  */
 @Composable
 private fun InfoRow(row: InfoItem) {
@@ -580,7 +595,15 @@ private fun InfoRow(row: InfoItem) {
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = row.value,
+                text =
+                    buildAnnotatedString {
+                        append(row.value)
+                        row.detail?.let { detail ->
+                            val muted =
+                                SpanStyle(fontSize = 12.sp, color = colors.onSurfaceVariant)
+                            withStyle(muted) { append(detail) }
+                        }
+                    },
                 style =
                     if (row.monospace) VectorMono.copy(fontSize = 15.sp)
                     else MaterialTheme.typography.bodyLarge,
@@ -616,10 +639,29 @@ private enum class Health {
 private data class InfoItem(
     val label: String,
     val value: String,
+    /** The tail of the value that is context rather than identity; set apart, never dropped. */
+    val detail: String? = null,
     val health: Health = Health.Neutral,
     /** True where the value is an identifier to be compared character by character. */
     val monospace: Boolean = true,
 )
+
+/**
+ * A build row: the version number, the commit, and — set apart — where that build was made.
+ *
+ * The stamp leads with the commit and says where after it, so the split is the commit's own length
+ * and needs no second opinion about which half is which. What is left includes the separator, which
+ * is worth keeping visible: `-` is a repository that holds this exact commit and `+` is a machine
+ * holding changes that no repository does.
+ *
+ * A stamp that names no commit — "unknown", from a build made where git could not be asked — is not
+ * cut at all. It goes to the muted half whole, because none of it is an identifier.
+ */
+private fun buildRow(label: String, number: String, reported: String?): InfoItem {
+    val stamp = reported?.takeIf { it.isNotBlank() } ?: return InfoItem(label, number)
+    val commit = buildStamp(stamp).commit.orEmpty()
+    return InfoItem(label, "$number  ·  $commit", detail = stamp.removePrefix(commit))
+}
 
 /** A heading, so the page reads as three short lists rather than one long one. */
 @Composable
@@ -649,24 +691,23 @@ private fun buildSections(
     return listOf(
         str(R.string.info_section_build) to
             listOf(
-                InfoItem(
+                // The exact build, not just its number. Two builds share a version code whenever
+                // they sit at the same depth on different branches, so the stamp names where the
+                // build came from as well as the commit: the repository for a CI build, the machine
+                // for a local one from a modified tree. That is what a bug report needs and what
+                // the number alone cannot give.
+                buildRow(
                     str(R.string.info_framework_version),
-                    buildString {
-                        append(status.versionLabel ?: unknown)
-                        // The exact build, not just its number. Two builds share a version code
-                        // whenever they sit at the same depth on different branches, so this names
-                        // where the build came from as well as the commit: the repository for a CI
-                        // build, the machine for a local one from a modified tree. That is what a
-                        // bug report needs and what the number alone cannot give.
-                        status.commit?.takeIf { it.isNotBlank() }?.let { append("  ·  ").append(it) }
-                    },
+                    status.versionLabel ?: unknown,
+                    status.commit,
                 ),
                 // Named separately from the framework, because they are flashed separately and are
                 // not always the same build. When these two disagree, that is the answer to a whole
                 // class of "it behaves oddly" reports.
-                InfoItem(
+                buildRow(
                     str(R.string.info_manager_version),
-                    "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})  ·  ${BuildConfig.VERSION_HASH}",
+                    "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    BuildConfig.VERSION_HASH,
                 ),
                 // Named by which scale the number is on. The two share a field and nothing else: 93
                 // is a legacy Xposed API, 101 is a libxposed one, and calling both "Xposed API" is

@@ -61,18 +61,26 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
 }
 
 /**
- * Which build this is, in one string: where it was built and from what commit.
+ * Which build this is, in one string: what commit it came from and where it was built.
  *
  * The version code is the commit count on origin/master, so every branch build carries master's
  * number: a build flashed from a feature branch and one flashed from master both report "v2.0
  * (3052)" and cannot be told apart on the device. That is not hypothetical — it cost a real
  * investigation to establish which of the two was installed.
  *
- * Two shapes, because "where did this binary come from" has two different answers:
+ * **The commit always comes first, and what follows always says where.** Both readers of this string
+ * want the commit and nothing else — the manager compares it against the SHA a release was cut from
+ * to answer "am I running this build", and the status page sets it in a type the rest is not given
+ * — and for both it is now simply the head of the string. No rule has to work out which part is
+ * which, so none can get it wrong when a repository or a machine turns out to have a hyphen in its
+ * name.
  *
- * *On GitHub Actions*, `JingMatrix-Vector-93d66473` — the repository the code came from, then the
- * commit. Forks build the same code from the same commits, so the hash alone identifies a
- * *revision* and not a *build*, and a fork's artifact was indistinguishable from ours.
+ * The separator says which kind of "where" follows, because they mean opposite things about whether
+ * the commit describes the binary:
+ *
+ * *On GitHub Actions*, `93d66473-JingMatrix-Vector` — the commit, then the repository the code came
+ * from. Forks build the same code from the same commits, so the hash alone identifies a *revision*
+ * and not a *build*, and a fork's artifact was indistinguishable from ours.
  *
  * Both halves are the *head* ones, and neither is read from the environment GitHub sets by default,
  * because on a pull request both defaults name something other than the code that was built:
@@ -91,11 +99,17 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
  * when there is not — outside a pull request the two agree anyway. Absent either, this falls back to
  * what the environment says and to `HEAD`, which covers a workflow too old to set them.
  *
- * *Locally*, the bare `93d66473`, or `93d66473-thinkpad` when the tree has uncommitted changes.
- * That build corresponds to no commit at all, so naming the commit alone would name something the
- * binary does not match — and whoever is looking at it is far better served by the machine it was
- * built on than by the word "dirty", since a device that has a hand-built framework on it usually
- * has exactly one candidate author.
+ * *Locally*, the bare `93d66473`, or `93d66473+thinkpad` when the tree has uncommitted changes. That
+ * build corresponds to no commit at all, so naming the commit alone would name something the binary
+ * does not match — and whoever is looking at it is far better served by the machine it was built on
+ * than by the word "dirty", since a device that has a hand-built framework on it usually has exactly
+ * one candidate author.
+ *
+ * `+` rather than `-` for that one, in semver's sense of build metadata: after a `-` is a repository
+ * that holds this exact commit, and after a `+` is a change that is in no repository at all. That is
+ * the one distinction a reader of the stamp cannot afford to lose — a modified build matches no
+ * release, and read as a CI build it would claim to be the release it was merely started from.
+ * Neither character can occur inside a host name or an `owner/repo`, so the two shapes stay apart.
  *
  * The dirty check is deliberately not applied on CI. The workflow's own "Write key" step appends
  * the signing credentials to the tracked `gradle.properties` before Gradle starts, so every master
@@ -165,7 +179,7 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
         val repository = parameters.buildRepository.getOrElse("")
         if (repository.isBlank()) {
             val dirty = capture("git", "status", "--porcelain", "--untracked-files=no") != null
-            return if (dirty) "$head-${hostname()}" else head
+            return if (dirty) "$head+${hostname()}" else head
         }
 
         // The pushed commit is an ancestor of the merge that was checked out, so it is in the
@@ -174,7 +188,7 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
         val pushed = parameters.buildCommit.getOrElse("").takeIf { it.isNotBlank() }
         val short =
             pushed?.let { capture("git", "rev-parse", "--short", it) ?: it.take(head.length) } ?: head
-        return repository.replace('/', '-') + "-" + short
+        return short + "-" + repository.replace('/', '-')
     }
 }
 

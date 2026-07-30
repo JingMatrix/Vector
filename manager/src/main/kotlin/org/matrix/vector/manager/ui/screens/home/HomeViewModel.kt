@@ -47,13 +47,14 @@ data class FrameworkStatus(
     val sepolicyLoaded: Boolean = false,
     val systemServerInjected: Boolean = false,
     /**
-     * Which build the running framework is: where it came from and from what commit.
+     * Which build the running framework is: what commit it came from and where it was built.
      *
      * The version code is a commit count, so it cannot tell a branch build from the official build
      * of the same depth — and the framework and the manager are flashed separately, so they are
      * not always the same build. Naming both is the difference between a bug report that can be
-     * placed and one that cannot. A CI build reads `JingMatrix-Vector-93d66473`, a clean local one
-     * the bare hash, and a local build from a modified tree adds the machine that made it.
+     * placed and one that cannot. The commit leads: a CI build reads `93d66473-JingMatrix-Vector`,
+     * a clean local one the bare hash, and a local build from a modified tree marks the machine
+     * that made it with a `+`. Taken apart by `buildStamp`; nothing compares it as a string.
      */
     val commit: String? = null,
 ) {
