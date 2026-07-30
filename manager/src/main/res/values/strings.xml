@@ -313,6 +313,7 @@
     <string name="modules_scope_framework">Hooks the system framework</string>
     <string name="scope_origin_locked">Fixed by the module</string>
     <string name="scope_origin_chosen">Your choice</string>
+    <string name="scope_origin_derived">Always in scope</string>
     <string name="modules_selection_clear">Clear the selection</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d selected</item>
@@ -410,6 +411,7 @@
     <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
     <string name="store_options">Options</string>
     <string name="scope_framework_shared">One process shared by every user, so this affects the whole device</string>
+    <string name="scope_self_hook">This module is loaded into its own app, which is how it reports that it is active</string>
     <string name="update_no_output">The installer produced no output.</string>
     <string name="update_variant_release">Release</string>
     <string name="update_variant_debug">Debug</string>

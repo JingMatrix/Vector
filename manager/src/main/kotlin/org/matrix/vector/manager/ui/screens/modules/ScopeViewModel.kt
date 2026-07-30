@@ -58,6 +58,16 @@ data class ScopeUiState(
      * about a distinction that does not exist, so it is not shown.
      */
     val multipleUsers: Boolean = false,
+    /**
+     * Whether the module is loaded into its own process whatever the scope table says.
+     *
+     * A legacy module reports being active by hooking a method in its own app, so it has to be in
+     * its own scope before it can say anything at all, and the daemon derives that one target
+     * rather than storing it. Nothing comes back from `getModuleScope` to say so — so without
+     * this, the one row the module certainly hooks is the one row shown unticked, and with the
+     * module filter at its default it is not shown at all.
+     */
+    val selfHooked: Boolean = false,
 )
 
 class ScopeViewModel(
@@ -225,6 +235,14 @@ class ScopeViewModel(
                 // the other few hundred apps beneath uncheckable checkboxes offered a choice that
                 // does not exist. This one stays absolute: there is no choice to preserve.
                 val locked = view.state.recommended.staticScope
+                // The row the daemon hooks whether or not the table names it. Matched on the user
+                // as well as the package: the same module in a work profile is another copy with
+                // its own row, and only the copy this screen is editing is the one being loaded
+                // into the process in front of it.
+                fun implicit(app: AppInfo) =
+                    view.state.selfHooked &&
+                        app.packageName == modulePackageName &&
+                        app.userId == userId
                 filters.apps
                     .asSequence()
                     .filter { app -> !locked || app.packageName in recommended }
@@ -236,7 +254,12 @@ class ScopeViewModel(
                         // An app already in the scope is never filtered away. Otherwise a default
                         // filter can hide a target the user deliberately chose, and the list then
                         // disagrees with what the module is actually hooking.
-                        val chosen = ScopeTarget(app.packageName, app.userId) in filters.draft
+                        // Derived counts as chosen throughout, so the module's own row survives
+                        // every filter — including the module filter, which is off by default and
+                        // would otherwise hide the row this whole exemption exists to show.
+                        val chosen =
+                            implicit(app) ||
+                                ScopeTarget(app.packageName, app.userId) in filters.draft
                         if (filters.recommendedOnly) {
                             // Answers one question — what does this module want, and what have I
                             // given it — and the other filters have no say in it. Chrome is a
@@ -262,7 +285,9 @@ class ScopeViewModel(
                     .map { app ->
                         app.copy(
                             isSelectedInScope =
-                                ScopeTarget(app.packageName, app.userId) in filters.draft,
+                                implicit(app) ||
+                                    ScopeTarget(app.packageName, app.userId) in filters.draft,
+                            isImplicitInScope = implicit(app),
                             isRecommended = app.packageName in recommended,
                         )
                     }
@@ -297,8 +322,14 @@ class ScopeViewModel(
                         // cannot be found by scrolling, so it has to lead the group it is being
                         // picked from — and once it is in the scope it is a member like any other,
                         // with no claim to sit above targets that are already in force.
+                        // A derived row is in force by definition: it is not waiting on an apply,
+                        // and grouping it with the newly ticked would promise a write that will
+                        // never happen.
                         val (inForce, newlyTicked) =
-                            chosen.partition { ScopeTarget(it.packageName, it.userId) in filters.saved }
+                            chosen.partition {
+                                it.isImplicitInScope ||
+                                    ScopeTarget(it.packageName, it.userId) in filters.saved
+                            }
                         inForce + frameworkFirst(newlyTicked) + frameworkFirst(rest)
                     }
             }
@@ -422,13 +453,15 @@ class ScopeViewModel(
                         }
                         .getOrNull()
                 }
-            val recommended =
+            // One inspection, two answers: what the module asks to hook, and which generation of
+            // module it is. Both come out of the same pass over the APK, and opening it is the
+            // expensive part.
+            val manifest =
                 info?.let {
-                    withContext(Dispatchers.IO) {
-                        val manifest = ModuleDetection.inspect(it, packageManager)
-                        RecommendedScope(manifest.scope, manifest.staticScope)
-                    }
-                } ?: RecommendedScope.NONE
+                    withContext(Dispatchers.IO) { ModuleDetection.inspect(it, packageManager) }
+                }
+            val recommended =
+                manifest?.let { RecommendedScope(it.scope, it.staticScope) } ?: RecommendedScope.NONE
 
             _uiState.value =
                 ScopeUiState(
@@ -440,6 +473,11 @@ class ScopeViewModel(
                     recommended = recommended,
                     loading = false,
                     multipleUsers = userCount > 1,
+                    // The manager's own reading of the APK, not the daemon's. The daemon settles
+                    // this while it loads the module and never tells anyone — and it only holds an
+                    // answer for a module that is enabled, which is precisely not the state a
+                    // module is in while its scope is being chosen for the first time.
+                    selfHooked = manifest?.isLegacy == true,
                 )
         }
     }
@@ -468,21 +506,33 @@ class ScopeViewModel(
 
     /** Local only. Nothing reaches the daemon until [apply]. */
     fun toggle(app: AppInfo, selected: Boolean) {
+        // A derived row is not the scope table's to give or to take away. Writing a row of our own
+        // for it would neither add the target — it is already there — nor let it be removed, and
+        // unticking it would draw an empty box beside a process the module is still loaded into.
+        if (app.isImplicitInScope) return
         val target = ScopeTarget(app.packageName, app.userId)
         draftScope.value =
             if (selected) draftScope.value + target else draftScope.value - target
     }
 
+    // Both skip the derived row for the reason [toggle] gives: it is shown among the visible rows
+    // but it is not one of the ones being written, and either of these sweeping it up would report
+    // a change to a row whose tick nothing here decides.
     fun selectAllVisible() {
         draftScope.value =
             draftScope.value +
-                filteredApps.value.map { ScopeTarget(it.packageName, it.userId) }
+                filteredApps.value
+                    .filterNot { it.isImplicitInScope }
+                    .map { ScopeTarget(it.packageName, it.userId) }
     }
 
     fun clearAllVisible() {
         draftScope.value =
             draftScope.value -
-                filteredApps.value.map { ScopeTarget(it.packageName, it.userId) }.toSet()
+                filteredApps.value
+                    .filterNot { it.isImplicitInScope }
+                    .map { ScopeTarget(it.packageName, it.userId) }
+                    .toSet()
     }
 
     /** Replace the draft with exactly what the module asked for. */

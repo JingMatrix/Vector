@@ -427,16 +427,26 @@ fun ScopeScreen(
                 items(apps, key = { "${it.packageName}:${it.userId}" }) { app ->
                     AppRow(
                         app = app,
-                        enabled = !state.recommended.staticScope,
+                        enabled = !state.recommended.staticScope && !app.isImplicitInScope,
                         origin =
                             when {
+                                app.isImplicitInScope -> ScopeOrigin.Derived
                                 state.recommended.staticScope && app.isRecommended ->
                                     ScopeOrigin.Locked
                                 app.isRecommended -> ScopeOrigin.Requested
                                 else -> ScopeOrigin.Chosen
                             },
-                        sharedNote =
-                            app.packageName == SYSTEM_FRAMEWORK_PACKAGE && state.multipleUsers,
+                        // The framework's note only on a device that has more than one user:
+                        // someone editing a work profile module's scope has no other way to know
+                        // that this target is not scoped to their profile, but on a single-user
+                        // phone it is a sentence about a distinction that does not exist.
+                        note =
+                            when {
+                                app.isImplicitInScope -> R.string.scope_self_hook
+                                app.packageName == SYSTEM_FRAMEWORK_PACKAGE &&
+                                    state.multipleUsers -> R.string.scope_framework_shared
+                                else -> null
+                            },
                         onToggle = { checked ->
                             haptics.performHapticFeedback(
                                 if (checked) HapticFeedbackType.ToggleOn
@@ -808,6 +818,13 @@ private enum class ScopeOrigin {
     Requested,
     /** Nothing asked for it; it is in the scope because someone ticked it. */
     Chosen,
+    /**
+     * The framework put it there, and no row in the scope table records it.
+     *
+     * A legacy module's own app: the daemon derives that target every time it rebuilds its
+     * configuration, so the tick is neither the user's nor the module's to give.
+     */
+    Derived,
 }
 
 @Composable
@@ -818,6 +835,9 @@ private fun ScopeOrigin.color(): Color =
         ScopeOrigin.Locked -> MaterialTheme.colorScheme.outline
         ScopeOrigin.Requested -> MaterialTheme.colorScheme.primary
         ScopeOrigin.Chosen -> Color.Transparent
+        // The same outline as Locked, and for the same reason: it is a tick nobody on this screen
+        // owns. The caption below it says which of the two kinds of "not yours" this one is.
+        ScopeOrigin.Derived -> MaterialTheme.colorScheme.outline
     }
 
 private fun ScopeOrigin.labelRes(): Int =
@@ -825,6 +845,7 @@ private fun ScopeOrigin.labelRes(): Int =
         ScopeOrigin.Locked -> R.string.scope_origin_locked
         ScopeOrigin.Requested -> R.string.scope_recommended
         ScopeOrigin.Chosen -> R.string.scope_origin_chosen
+        ScopeOrigin.Derived -> R.string.scope_origin_derived
     }
 
 @Composable
@@ -832,7 +853,14 @@ private fun AppRow(
     app: AppInfo,
     enabled: Boolean,
     origin: ScopeOrigin,
-    sharedNote: Boolean,
+    /**
+     * A sentence under the package name, for a row whose behaviour a label cannot carry.
+     *
+     * One slot rather than one flag per case: the two rows that have something to explain — the
+     * framework, and a legacy module's own app — are never the same row, and a boolean apiece
+     * would grow with every one that follows.
+     */
+    note: Int?,
     onToggle: (Boolean) -> Unit,
     onAction: (PackageActionResult) -> Unit,
 ) {
@@ -879,13 +907,12 @@ private fun AppRow(
                         color = ring,
                     )
                 }
-                // The one row on this screen that is not an app, and the one row offered
-                // identically to every user. Someone editing a work profile module's scope has no
-                // other way to know that this target is not scoped to their profile — but on a
-                // single-user device that is a sentence about a distinction that does not exist.
-                if (sharedNote) {
+                // Why this row does not behave like the rest: the framework is one process shared
+                // by every user, and a legacy module's own app is in the scope without anyone
+                // having put it there. Both are things a checkbox cannot say.
+                if (note != null) {
                     Text(
-                        text = stringResource(R.string.scope_framework_shared),
+                        text = stringResource(note),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
