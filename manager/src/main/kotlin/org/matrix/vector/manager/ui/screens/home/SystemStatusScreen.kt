@@ -307,9 +307,6 @@ private fun OpeningVectorCard(
                 // A launcher that refuses pin requests would take the tap and do nothing visible,
                 // so the row says so rather than offering a button that cannot work.
                 enabled = presence.shortcutSupported,
-                unavailable =
-                    if (presence.shortcutSupported) null
-                    else stringResource(R.string.launcher_shortcut_unsupported),
                 onClick = onCreateShortcut,
             )
             RouteRow(
@@ -334,6 +331,16 @@ private fun OpeningVectorCard(
                 onClick = onInstall,
             )
 
+            // Anything a row cannot say in its one line goes below all three, so that saying it
+            // does not make one row taller than its neighbours.
+            if (!presence.shortcutSupported && !presence.shortcutPinned) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.launcher_shortcut_unsupported),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant,
+                )
+            }
             if (install is ManagerInstallStep.Failed) {
                 Spacer(Modifier.height(8.dp))
                 InstallFailure(install, onRemoveConflicting)
@@ -355,6 +362,12 @@ private fun OpeningVectorCard(
  * The state is an icon rather than a word. "Pinned", "on" and "installed" are three different words
  * for one fact — that this route is already available — and reading them as a column made three
  * identical answers look like three different ones.
+ *
+ * The height is fixed, and that is the whole point of the row existing as its own composable. What
+ * sits on the right changes as the reader acts — a button becomes a check, or a spinner — and a
+ * `TextButton` is 40dp tall against an icon's 20dp, so an unpinned row was visibly taller than a
+ * pinned one and the card jumped every time a state flipped. Nothing here may wrap or stack for the
+ * same reason: an explanation that needs a second line goes underneath all three rows instead.
  */
 @Composable
 private fun RouteRow(
@@ -365,12 +378,10 @@ private fun RouteRow(
     enabled: Boolean,
     onClick: () -> Unit,
     busy: Boolean = false,
-    /** Set when this route cannot be had on this device at all, saying why. */
-    unavailable: String? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().height(ROUTE_ROW_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -380,16 +391,13 @@ private fun RouteRow(
             modifier = Modifier.size(20.dp),
         )
         Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyMedium)
-            if (unavailable != null && !done) {
-                Text(
-                    unavailable,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.onSurfaceVariant,
-                )
-            }
-        }
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
         Spacer(Modifier.width(8.dp))
         // Every trailing slot is either a 20dp icon or a compact button, so the edge stays straight
         // however the rows are filled in.
@@ -402,7 +410,6 @@ private fun RouteRow(
                     modifier = Modifier.size(20.dp),
                 )
             busy -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-            unavailable != null -> Unit
             else -> TextButton(onClick = onClick, enabled = enabled) { Text(action) }
         }
     }
@@ -457,6 +464,15 @@ private fun rootManagerName(presence: ManagerPresence): String =
 
 /** Must match `SECRET_CODE` in the daemon's VectorService, which is what actually answers it. */
 private const val SECRET_CODE = "*#*#832867#*#*"
+
+/**
+ * Every route row, whatever it currently shows.
+ *
+ * 48dp because that is the minimum touch target Material enforces on the button one of these rows
+ * carries — so it is the tallest state any of them can take, and pinning the rest to it is what
+ * stops the card resizing under the reader's finger.
+ */
+private val ROUTE_ROW_HEIGHT = 48.dp
 
 @Composable
 private fun IssueCard(issue: HealthIssue) {
