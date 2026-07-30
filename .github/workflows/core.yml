@@ -126,19 +126,28 @@ jobs:
           name: ${{ steps.prepareArtifact.outputs.zygiskDebugName }}
           path: "./Vector-Debug/*"
 
+      # One entry per module that minifies. `app` was the old manager and has not existed since
+      # #796, so the manager's mapping — the one an obfuscated stack trace from a user actually
+      # needs — has been missing from every run since.
       - name: Upload mappings
         uses: actions/upload-artifact@v7
         with:
           name: mappings
           path: |
             zygisk/build/outputs/mapping
-            app/build/outputs/mapping
+            manager/build/outputs/mapping
+            daemon/build/outputs/mapping
 
+      # DEBUG_SYMBOLS_PATH is set from `layout.buildDirectory` inside the root `subprojects` block,
+      # so each module writes its own build/symbols and nothing ever lands in the root one.
       - name: Upload symbols
         uses: actions/upload-artifact@v7
         with:
           name: symbols
-          path: build/symbols
+          path: |
+            zygisk/build/symbols
+            daemon/build/symbols
+            dex2oat/build/symbols
 
       # --- canary distribution ---------------------------------------------------------------
       #
