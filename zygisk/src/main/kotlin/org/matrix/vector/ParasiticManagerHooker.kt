@@ -146,6 +146,34 @@ object ParasiticManagerHooker {
             .onFailure { Utils.logW("Could not send binder to LSPosed Manager", it) }
     }
 
+    /**
+     * Drops any [LoadedApk] the process already holds for [packageName].
+     *
+     * Some OEM ROMs, reported on EMUI and HarmonyOS, pre-warm the host process, so a `LoadedApk`
+     * built from the stock host APK can already be cached when `bindApplication` arrives.
+     * `ActivityThread#getPackageInfo` would then return that instance and keep its original
+     * `ApplicationInfo`: its only repair path is guarded by `isLoadedApkResourceDirsUpToDate`,
+     * which compares nothing but the resource and overlay directories, and those we copy from the
+     * host in [getManagerPkgInfo]. The manager's `sourceDir` would never be picked up.
+     *
+     * A freshly forked process has an empty cache, which makes this a no-op on most devices. The
+     * warning below is therefore also the only evidence that such pre-warming is real.
+     */
+    private fun evictCachedLoadedApk(packageName: String) {
+        runCatching {
+                val at = ActivityThread.currentActivityThread()
+                for (field in arrayOf("mPackages", "mResourcePackages")) {
+                    val cache = XposedHelpers.getObjectField(at, field) as? ArrayMap<*, *>
+                    if (cache == null) {
+                        Utils.logW("ActivityThread#$field is not an ArrayMap, not evicting")
+                    } else if (cache.remove(packageName) != null) {
+                        Utils.logW("Evicted a pre-cached LoadedApk of $packageName from $field")
+                    }
+                }
+            }
+            .onFailure { logE("Failed to evict the cached LoadedApk of $packageName", it) }
+    }
+
     private fun hookForManager(managerService: ILSPManagerService) {
         // Hook 1: Swap ApplicationInfo during host binding
         XposedHelpers.findAndHookMethod(
@@ -158,7 +186,8 @@ object ParasiticManagerHooker {
                     val bindData = param.args[0]
                     val hostAppInfo =
                         XposedHelpers.getObjectField(bindData, "appInfo") as ApplicationInfo
-                    val parasiticInfo = getManagerPkgInfo(hostAppInfo)?.applicationInfo
+                    val parasiticInfo = getManagerPkgInfo(hostAppInfo)?.applicationInfo ?: return
+                    evictCachedLoadedApk(hostAppInfo.packageName)
                     XposedHelpers.setObjectField(bindData, "appInfo", parasiticInfo)
                 }
             },
