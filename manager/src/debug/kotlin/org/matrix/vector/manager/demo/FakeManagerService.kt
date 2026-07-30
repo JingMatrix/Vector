@@ -216,6 +216,14 @@ class FakeManagerService(
     override fun getLogPart(verbose: Boolean, name: String?): ParcelFileDescriptor? =
         real?.getLogPart(verbose, name)
 
+    /**
+     * Delegated, so the offer to install the manager is live or dead exactly as it really is.
+     *
+     * Null when there is no daemon behind the demo, which is the same answer the real one gives
+     * when it cannot serve the APK — and the status page renders that case rather than crashing.
+     */
+    override fun getManagerApk(): ParcelFileDescriptor? = real?.managerApk
+
     override fun getXposedVersionName(): String? = real?.xposedVersionName
 
     override fun clearLogs(verbose: Boolean): Boolean = real?.clearLogs(verbose) ?: false
