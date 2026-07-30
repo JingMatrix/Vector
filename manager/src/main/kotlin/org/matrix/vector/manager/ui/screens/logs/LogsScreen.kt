@@ -110,6 +110,7 @@ import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.VectorLogLine
 import org.matrix.vector.manager.data.log.LogLevel
 import org.matrix.vector.manager.ui.components.PanelHeader
+import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.ui.components.SearchField
 import org.matrix.vector.manager.ui.theme.VectorMono
 
@@ -721,6 +722,7 @@ LocalizedOverlay {
                 trailingContent = {
                     Switch(checked = enabled, onCheckedChange = { viewModel.setVerbose(it) })
                 },
+                colors = sheetRowColors,
             )
 
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
@@ -730,6 +732,7 @@ LocalizedOverlay {
                 headlineContent = { Text(stringResource(R.string.logs_save)) },
                 supportingContent = { Text(stringResource(R.string.logs_save_summary)) },
                 leadingContent = { Icon(Icons.Rounded.Save, contentDescription = null) },
+                colors = sheetRowColors,
             )
             ListItem(
                 modifier = Modifier.clickable(onClick = onRotate),
@@ -742,6 +745,7 @@ LocalizedOverlay {
                         tint = MaterialTheme.colorScheme.error,
                     )
                 },
+                colors = sheetRowColors,
             )
         }
     }

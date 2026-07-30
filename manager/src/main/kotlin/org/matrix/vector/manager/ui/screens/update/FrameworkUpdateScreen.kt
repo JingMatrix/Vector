@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import org.matrix.vector.manager.ui.theme.currentLocale
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.ui.components.SheetHeading
+import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.data.repository.ReleaseDirection
 import org.matrix.vector.manager.data.github.FrameworkRelease
 import java.util.Date
@@ -645,6 +646,7 @@ private fun VersionsSheet(
                                 )
                             }
                         },
+                        colors = sheetRowColors,
                     )
                 }
             }

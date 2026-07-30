@@ -29,7 +29,7 @@ import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Android
@@ -101,6 +101,7 @@ import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.ui.components.SheetHeading
+import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.ui.screens.repo.StoreChannel
 import org.matrix.vector.manager.ui.screens.repo.releasesOn
 import org.lsposed.lspd.ILSPManagerService
@@ -428,7 +429,7 @@ fun ModulesScreen(
     if (confirmUninstall) {
         VectorAlertDialog(
             onDismissRequest = { confirmUninstall = false },
-            icon = { Icon(Icons.Rounded.DeleteOutline, contentDescription = null) },
+            icon = { Icon(Icons.Rounded.Delete, contentDescription = null) },
             title = { Text(stringResource(R.string.modules_uninstall_title)) },
             // Names the consequence rather than asking "are you sure". The backup on this screen
             // holds the enabled flag and the scope; the module's own stored settings go with it
@@ -526,7 +527,7 @@ private fun SelectionBar(
             SelectionAction(Icons.Rounded.Block, R.string.modules_batch_disable, onDisable)
             SelectionAction(Icons.Rounded.SaveAlt, R.string.modules_backup, onBackup)
             SelectionAction(
-                Icons.Rounded.DeleteOutline,
+                Icons.Rounded.Delete,
                 R.string.action_uninstall,
                 onUninstall,
                 tint = MaterialTheme.colorScheme.error,
@@ -1402,6 +1403,7 @@ private fun ModuleUpdatesSheet(
                                         )
                                     }
                                 },
+                            colors = sheetRowColors,
                         )
                     }
                 }

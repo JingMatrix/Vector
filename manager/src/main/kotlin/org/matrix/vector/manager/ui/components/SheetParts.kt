@@ -14,6 +14,8 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -35,6 +37,19 @@ import androidx.compose.ui.unit.dp
  * wraps at another width. A new sheet inherits the pattern, and changing the pattern changes every
  * sheet at once.
  */
+
+/**
+ * What a [ListItem] needs to be given to sit on a sheet.
+ *
+ * A list item's container defaults to `surface`; a `ModalBottomSheet` is drawn on
+ * `surfaceContainerLow`, which is a shade darker. On a screen those two agree, so the default looks
+ * right in the place a row is usually written and wrong the moment it is put in a sheet — a pale
+ * full-width band across the sheet, ending wherever the row ends. Transparent takes whatever it is
+ * placed on, so it is right in both, and it is what every list item in a sheet should be given.
+ */
+val sheetRowColors: ListItemColors
+    @Composable get() = ListItemDefaults.colors(containerColor = Color.Transparent)
+
 @Composable
 fun SheetHeading(text: String, icon: ImageVector) {
     Row(
@@ -105,6 +120,7 @@ fun ToggleRow(
         supportingContent = subtitle?.let { { Text(it) } },
         leadingContent = { Icon(icon, contentDescription = null) },
         trailingContent = { Switch(checked = checked, onCheckedChange = null) },
+        colors = sheetRowColors,
     )
 }
 
@@ -167,5 +183,6 @@ fun SheetAction(
         leadingContent = {
             Icon(icon, contentDescription = null, tint = tint ?: LocalContentColor.current)
         },
+        colors = sheetRowColors,
     )
 }

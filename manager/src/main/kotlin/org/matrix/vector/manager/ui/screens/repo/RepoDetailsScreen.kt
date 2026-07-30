@@ -4,6 +4,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.matrix.vector.manager.ui.components.ConfirmInstall
 import org.matrix.vector.manager.ui.components.ToggleRow
 import org.matrix.vector.manager.ui.components.SheetHeading
+import org.matrix.vector.manager.ui.components.sheetRowColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.NotificationsOff
@@ -881,6 +882,7 @@ LocalizedOverlay {
                         }
                     Text(listOfNotNull(size, downloads).joinToString("  ·  "))
                 },
+                colors = sheetRowColors,
             )
         }
         Spacer(Modifier.navigationBarsPadding().height(16.dp))

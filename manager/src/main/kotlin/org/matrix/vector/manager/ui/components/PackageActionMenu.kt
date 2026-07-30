@@ -16,11 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Launch
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -39,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -370,7 +373,7 @@ LocalizedOverlay {
         if (isModule) {
             HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
             ActionRow(
-                icon = Icons.Rounded.DeleteOutline,
+                icon = Icons.Rounded.Delete,
                 title = stringResource(R.string.action_uninstall),
                 tint = colors.error,
             ) {
@@ -401,18 +404,31 @@ LocalizedOverlay {
 }
 
 /**
- * One action, with its icon in a tinted disc.
+ * The one shape every row on this sheet takes: a glyph in a tinted disc, the verb, and — when it
+ * needs one — the sentence under it saying what the verb costs.
  *
  * The disc is what lets a destructive action look destructive: an error-red glyph on a bare row is
- * easy to miss, the same glyph on a red disc is not.
+ * easy to miss, the same glyph on a red disc is not. Once one row carries it they all have to, or
+ * the bare one reads as a different kind of thing sitting in the same list — which is what the mute
+ * switch did while it was borrowing the generic [ToggleRow], a Material list item whose leading
+ * icon has no disc and whose text starts ten pixels to the left of every other row here.
+ *
+ * The measurements are chosen so that one column runs down the whole sheet: 24dp of margin, a 40dp
+ * disc and 20dp of gap put every title at 84dp, which is where the header puts the app's name over
+ * its 44dp icon and 16dp gap.
+ *
+ * [trailing] is for a row that carries state as well as an action, and the click behaviour comes in
+ * through [modifier] rather than as a callback: a switch row has to announce itself to a screen
+ * reader as a switch, not as a button, and only the caller knows which it is.
  */
 @Composable
-private fun ActionRow(
+private fun ActionRowLayout(
+    modifier: Modifier,
     icon: ImageVector,
     title: String,
-    subtitle: String? = null,
-    tint: Color? = null,
-    onClick: () -> Unit,
+    subtitle: String?,
+    tint: Color?,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     val accent = tint ?: colors.onSurfaceVariant
@@ -420,7 +436,7 @@ private fun ActionRow(
     Row(
         modifier =
             Modifier.fillMaxWidth()
-                .clickable(onClick = onClick)
+                .then(modifier)
                 .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -431,7 +447,7 @@ private fun ActionRow(
         ) {
             Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
         }
-        Spacer(Modifier.width(18.dp))
+        Spacer(Modifier.width(20.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -446,7 +462,61 @@ private fun ActionRow(
                 )
             }
         }
+        if (trailing != null) {
+            Spacer(Modifier.width(12.dp))
+            trailing()
+        }
     }
+}
+
+/**
+ * One action.
+ *
+ * [onClick] is nullable because one row on this sheet is a statement rather than an action — "not
+ * in the store" — and a row that ripples under a thumb and then does nothing is a worse answer than
+ * one that visibly cannot be pressed.
+ */
+@Composable
+private fun ActionRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    tint: Color? = null,
+    onClick: (() -> Unit)?,
+) {
+    ActionRowLayout(
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
+        icon = icon,
+        title = title,
+        subtitle = subtitle,
+        tint = tint,
+    )
+}
+
+/** One setting, in the same shape as the actions it sits among. */
+@Composable
+private fun ActionToggleRow(
+    icon: ImageVector,
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    subtitle: String? = null,
+) {
+    ActionRowLayout(
+        modifier =
+            Modifier.toggleable(
+                value = checked,
+                role = Role.Switch,
+                onValueChange = onCheckedChange,
+            ),
+        icon = icon,
+        title = title,
+        subtitle = subtitle,
+        tint = null,
+        // The whole row is the target, and the switch itself takes no callback, so a tap on it
+        // cannot be counted twice.
+        trailing = { Switch(checked = checked, onCheckedChange = null) },
+    )
 }
 
 /**
@@ -493,7 +563,7 @@ private fun ModuleUpdateSection(
                 icon = Icons.Rounded.CloudOff,
                 title = stringResource(R.string.action_not_in_store),
                 subtitle = stringResource(R.string.action_not_in_store_summary),
-                onClick = {},
+                onClick = null,
             )
             HorizontalDivider(Modifier.padding(horizontal = 24.dp))
             Spacer(Modifier.height(4.dp))
@@ -547,7 +617,7 @@ private fun ModuleUpdateSection(
         )
     }
 
-    ToggleRow(
+    ActionToggleRow(
         title = stringResource(R.string.store_mute_updates),
         icon = Icons.Rounded.NotificationsOff,
         checked = packageName in muted,
