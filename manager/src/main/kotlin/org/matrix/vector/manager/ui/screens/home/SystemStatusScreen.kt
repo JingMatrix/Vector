@@ -17,7 +17,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.AddToHomeScreen
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.InstallMobile
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -123,7 +126,6 @@ fun SystemStatusScreen(
     val copied = stringResource(R.string.copied)
     val shortcutRefused = stringResource(R.string.launcher_shortcut_refused)
     val installDone = stringResource(R.string.launcher_install_done)
-    val installFailed = stringResource(R.string.launcher_install_failed)
 
     Scaffold(
         snackbarHost = { VectorSnackbarHost(snackbars) },
@@ -218,125 +220,243 @@ fun SystemStatusScreen(
             }
 
             // How to get back in. Only parasitically: installed, the manager has a launcher icon
-            // like any other app and neither of these means anything.
+            // like any other app and none of this means anything.
             if (presence.parasitic) {
-                item { SectionHeading(stringResource(R.string.launcher_section)) }
                 item {
-                    ActionRow(
-                        title = stringResource(R.string.launcher_shortcut),
-                        subtitle = stringResource(R.string.launcher_shortcut_summary),
-                        action = stringResource(R.string.launcher_shortcut_create),
-                        done = presence.shortcutPinned,
-                        doneLabel = stringResource(R.string.launcher_shortcut_pinned),
-                        // A launcher that refuses pin requests would take the tap and do nothing
-                        // visible, so the row says so instead of offering a button that cannot work.
-                        enabled = presence.shortcutSupported,
-                        note =
-                            if (presence.shortcutSupported) null
-                            else stringResource(R.string.launcher_shortcut_unsupported),
-                        onClick = {
+                    Spacer(Modifier.height(20.dp))
+                    OpeningVectorCard(
+                        presence = presence,
+                        install = managerInstall,
+                        daemonAlive = daemonAlive,
+                        onCreateShortcut = {
                             if (!viewModel.requestShortcut()) {
                                 scope.launch {
                                     snackbars.show(shortcutRefused, SnackbarTone.Failure)
                                 }
                             }
                         },
-                    )
-                }
-                item {
-                    ActionRow(
-                        title = stringResource(R.string.launcher_install),
-                        subtitle = stringResource(R.string.launcher_install_summary),
-                        action = stringResource(R.string.launcher_install_action),
-                        done = presence.installed,
-                        doneLabel = stringResource(R.string.launcher_installed),
-                        // The APK comes from the daemon, so there is nothing to install without one.
-                        enabled = daemonAlive && managerInstall !is ManagerInstallStep.Installing,
-                        busy = managerInstall is ManagerInstallStep.Installing,
-                        onClick = viewModel::installManagerApp,
+                        onEnableNotification = { viewModel.setStatusNotification(true) },
+                        onInstall = viewModel::installManagerApp,
+                        onRemoveConflicting = viewModel::removeConflictingManager,
                     )
                 }
             }
         }
     }
 
-    // Reported once per outcome, then acknowledged so a later visit does not replay it. The
-    // platform's own status message is not shown: it is untranslated and phrased for a developer,
-    // and it is already in the log for whoever needs it.
+    // Success only. A failure stays on the card, where it can still be read by someone who was not
+    // looking at this screen when it happened — which is the common case, since the install runs
+    // while they are free to go elsewhere. Acknowledged first, and shown on the screen's own scope
+    // rather than this effect's: acknowledging changes the state this effect is keyed on and so
+    // cancels it, and `show` suspends for as long as the snackbar is up.
     LaunchedEffect(managerInstall) {
-        val message =
-            when (managerInstall) {
-                is ManagerInstallStep.Done -> installDone to SnackbarTone.Success
-                is ManagerInstallStep.Failed -> installFailed to SnackbarTone.Failure
-                else -> return@LaunchedEffect
-            }
-        // Acknowledged first, and shown on the screen's own scope rather than this effect's:
-        // acknowledging changes the state this effect is keyed on and so cancels it, and `show`
-        // suspends for as long as the snackbar is up. The other order loses the message.
+        if (managerInstall !is ManagerInstallStep.Done) return@LaunchedEffect
         viewModel.acknowledgeManagerInstall()
-        scope.launch { snackbars.show(message.first, message.second) }
+        scope.launch { snackbars.show(installDone, SnackbarTone.Success) }
     }
 }
 
 /**
- * A row that does something, shaped like the ones above it that report something.
+ * The one card that answers "how do I open this again".
  *
- * The finished state replaces the button rather than disabling it: "Already on your home screen" is
- * the answer to the question the row poses, and a greyed-out "Create" leaves the reader working out
- * why it will not press.
+ * A card rather than more rows, because these are not the settings the rows above are and did not
+ * read as them: a switch is always the same width, so a column of switches lines up, while these
+ * trailing controls were a long label, a spinner and a button — three different widths that left the
+ * right-hand edge ragged and squeezed each description into a narrow column with nothing beside it.
+ * The page already has this shape for "here is a situation, here is what to do about it": IssueCard
+ * and CrashCard.
+ *
+ * One card rather than one per remedy, because the reader's question is not "should I pin a
+ * shortcut" but "which of these do I have" — and each separate card would have to re-explain the
+ * same situation before getting to its own answer.
+ *
+ * The two routes that need no setup are a closing note rather than rows: nothing can be done to
+ * them, so a row with no control would be a row that only ever reports.
  */
 @Composable
-private fun ActionRow(
-    title: String,
-    subtitle: String,
-    action: String,
-    done: Boolean,
-    doneLabel: String,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    busy: Boolean = false,
-    /** Shown under the subtitle when the action cannot be offered, saying why. */
-    note: String? = null,
+private fun OpeningVectorCard(
+    presence: ManagerPresence,
+    install: ManagerInstallStep,
+    daemonAlive: Boolean,
+    onCreateShortcut: () -> Unit,
+    onEnableNotification: () -> Unit,
+    onInstall: () -> Unit,
+    onRemoveConflicting: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                subtitle,
+                stringResource(R.string.launcher_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.launcher_body),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.onSurfaceVariant,
             )
-            if (note != null && !done) {
-                Spacer(Modifier.height(2.dp))
-                Text(note, style = MaterialTheme.typography.bodySmall, color = colors.error)
+            Spacer(Modifier.height(8.dp))
+
+            RouteRow(
+                icon = Icons.Rounded.AddToHomeScreen,
+                label = stringResource(R.string.launcher_shortcut),
+                done = presence.shortcutPinned,
+                action = stringResource(R.string.launcher_shortcut_create),
+                // A launcher that refuses pin requests would take the tap and do nothing visible,
+                // so the row says so rather than offering a button that cannot work.
+                enabled = presence.shortcutSupported,
+                unavailable =
+                    if (presence.shortcutSupported) null
+                    else stringResource(R.string.launcher_shortcut_unsupported),
+                onClick = onCreateShortcut,
+            )
+            RouteRow(
+                icon = Icons.Rounded.Notifications,
+                // The same setting as the switch above, named the same, because it is the same
+                // thing seen from the other question: there it is framework behaviour, here it is
+                // a way in. Both read and write the daemon, so they cannot disagree.
+                label = stringResource(R.string.status_notification),
+                done = presence.notificationEnabled,
+                action = stringResource(R.string.launcher_turn_on),
+                enabled = daemonAlive,
+                onClick = onEnableNotification,
+            )
+            RouteRow(
+                icon = Icons.Rounded.InstallMobile,
+                label = stringResource(R.string.launcher_install),
+                done = presence.installed,
+                action = stringResource(R.string.launcher_install_action),
+                // The APK comes from the daemon, so there is nothing to install without one.
+                enabled = daemonAlive,
+                busy = install is ManagerInstallStep.Installing,
+                onClick = onInstall,
+            )
+
+            if (install is ManagerInstallStep.Failed) {
+                Spacer(Modifier.height(8.dp))
+                InstallFailure(install, onRemoveConflicting)
+            }
+
+            Spacer(Modifier.height(12.dp))
+            Text(
+                stringResource(R.string.launcher_note, SECRET_CODE, rootManagerName(presence)),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * One way in: what it is, and whether this device has it.
+ *
+ * The state is an icon rather than a word. "Pinned", "on" and "installed" are three different words
+ * for one fact — that this route is already available — and reading them as a column made three
+ * identical answers look like three different ones.
+ */
+@Composable
+private fun RouteRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    done: Boolean,
+    action: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    busy: Boolean = false,
+    /** Set when this route cannot be had on this device at all, saying why. */
+    unavailable: String? = null,
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = if (done) colors.primary else colors.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            if (unavailable != null && !done) {
+                Text(
+                    unavailable,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.onSurfaceVariant,
+                )
             }
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(8.dp))
+        // Every trailing slot is either a 20dp icon or a compact button, so the edge stays straight
+        // however the rows are filled in.
         when {
             done ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = colors.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        doneLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.primary,
-                    )
-                }
+                Icon(
+                    Icons.Rounded.CheckCircle,
+                    contentDescription = stringResource(R.string.launcher_route_available),
+                    tint = colors.primary,
+                    modifier = Modifier.size(20.dp),
+                )
             busy -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            unavailable != null -> Unit
             else -> TextButton(onClick = onClick, enabled = enabled) { Text(action) }
         }
     }
 }
+
+/**
+ * Why the install did not happen, on the card rather than in a snackbar.
+ *
+ * A snackbar is shown once, to whoever is looking at that screen at that moment. The install can
+ * finish while the reader is somewhere else — and parasitically the host process is killed often
+ * enough that they may not even be in the app — so the outcome has to survive on the row that
+ * offered it.
+ */
+@Composable
+private fun InstallFailure(failure: ManagerInstallStep.Failed, onRemoveConflicting: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Column {
+        Text(
+            stringResource(
+                if (failure.signatureConflict) R.string.launcher_install_conflict
+                else R.string.launcher_install_failed
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.error,
+        )
+        // Offered only for the one failure that has an answer. The old copy has to go before the
+        // platform will accept this one, and it is removed for every user because a copy left in
+        // another profile refuses the install just as loudly as one in this profile.
+        if (failure.signatureConflict) {
+            TextButton(onClick = onRemoveConflicting) {
+                Text(stringResource(R.string.launcher_install_remove))
+            }
+        }
+    }
+}
+
+/**
+ * What to call the root manager in the closing note.
+ *
+ * Product names, so they are not translated. The generic fallback covers a daemon that does not
+ * report one and the two answers that name no single implementation — nothing installed, or two of
+ * them — where naming one would be a guess.
+ */
+@Composable
+private fun rootManagerName(presence: ManagerPresence): String =
+    when (presence.rootImplementation) {
+        ILSPManagerService.ROOT_MAGISK -> "Magisk"
+        ILSPManagerService.ROOT_KERNELSU -> "KernelSU"
+        ILSPManagerService.ROOT_APATCH -> "APatch"
+        else -> stringResource(R.string.launcher_root_generic)
+    }
+
+/** Must match `SECRET_CODE` in the daemon's VectorService, which is what actually answers it. */
+private const val SECRET_CODE = "*#*#832867#*#*"
 
 @Composable
 private fun IssueCard(issue: HealthIssue) {

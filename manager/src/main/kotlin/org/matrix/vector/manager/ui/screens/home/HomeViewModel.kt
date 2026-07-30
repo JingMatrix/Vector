@@ -64,11 +64,12 @@ data class FrameworkStatus(
 /**
  * How the manager can be reached on this device.
  *
- * Parasitically it is not installed, so the launcher has nothing to show and there is no way in
- * short of the dialer code or the root manager's action button — which is what #815 reported.
- * Both remedies are offered from the status page, and the fields below decide which of them are
- * worth offering: a pinned shortcut or an installed app each already solve it, and a launcher that
- * refuses pin requests makes the first impossible.
+ * Parasitically it is not installed, so the launcher has nothing to show — which is what #815
+ * reported. Four routes lead back in: a pinned shortcut, an installed copy, the status
+ * notification, and the two that need no setup at all, the dialer code and the root manager's
+ * action button. The first three are what the status page offers, and the fields below decide
+ * which are worth offering — any one of them already solves it, and a launcher that refuses pin
+ * requests rules the first out entirely.
  */
 data class ManagerPresence(
     /** Injected into the host rather than installed. False leaves nothing here to offer. */
@@ -76,10 +77,21 @@ data class ManagerPresence(
     val shortcutSupported: Boolean = false,
     val shortcutPinned: Boolean = false,
     val installed: Boolean = false,
+    /**
+     * The status notification is a way in, not only a status.
+     *
+     * Its content intent opens the manager — see the daemon's NotificationManager — so a device
+     * showing it is a device with a tap-sized route back, and it is on by default. Leaving it out
+     * of this made the first-launch prompt claim there was no way back in to a reader who was
+     * looking at one.
+     */
+    val notificationEnabled: Boolean = false,
+    /** One of the ILSPManagerService.ROOT_* constants, for naming the action button's owner. */
+    val rootImplementation: Int = 0,
 ) {
     /** True when opening the manager currently depends on remembering how. */
     val unreachable: Boolean
-        get() = parasitic && !shortcutPinned && !installed
+        get() = parasitic && !shortcutPinned && !installed && !notificationEnabled
 }
 
 data class DeviceInfo(
@@ -150,13 +162,29 @@ class HomeViewModel(
 
     fun refreshPresence() {
         val context = ServiceLocator.context
-        _presence.value =
-            ManagerPresence(
+        _presence.update {
+            // Everything here is answered locally, so it stays synchronous and the first frame is
+            // already right. The notification and the root implementation come from the daemon and
+            // are folded in as they arrive, leaving whatever was last known in the meantime.
+            it.copy(
                 parasitic = LaunchShortcut.isParasitic(context),
                 shortcutSupported = LaunchShortcut.isSupported(context),
                 shortcutPinned = LaunchShortcut.isPinned(context),
                 installed = ServiceLocator.managerInstaller.isInstalled(),
             )
+        }
+        viewModelScope.launch {
+            val root = daemon.getRootImplementation().getOrNull()
+            if (root != null) _presence.update { it.copy(rootImplementation = root) }
+        }
+    }
+
+    /** Removes the copy of the manager whose signature is refusing the install. */
+    fun removeConflictingManager() {
+        viewModelScope.launch {
+            ServiceLocator.managerInstaller.removeConflicting()
+            refreshPresence()
+        }
     }
 
     /**
@@ -370,13 +398,19 @@ class HomeViewModel(
                     Log.w(Constants.TAG, "status: launcher-icon toggle unreadable, showing on", e)
                 }
                 .getOrDefault(true)
+        // The notification is one of the ways into the manager, so what the card offers has to
+        // follow the same value the switch above it shows.
+        _presence.update { it.copy(notificationEnabled = _statusNotification.value) }
     }
 
     fun setStatusNotification(enabled: Boolean) {
         viewModelScope.launch {
             daemon
                 .setEnableStatusNotification(enabled)
-                .onSuccess { _statusNotification.value = enabled }
+                .onSuccess {
+                    _statusNotification.value = enabled
+                    _presence.update { it.copy(notificationEnabled = enabled) }
+                }
                 .onFailure { e ->
                     Log.e(
                         Constants.TAG,

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ipc.DaemonClient
@@ -32,7 +33,17 @@ sealed interface ManagerInstallStep {
     /** Installed. The launcher now has a real Vector icon, and this process is still the host. */
     data object Done : ManagerInstallStep
 
-    data class Failed(val reason: String?) : ManagerInstallStep
+    /**
+     * [signatureConflict] is the one failure the reader can act on.
+     *
+     * A copy of the manager signed with a different key is already on the device, and the platform
+     * will not replace it — which happens to anyone who flashed a build from CI over one they built
+     * themselves, since the two are signed with different debug keys. Every other failure gets a
+     * flat "could not be installed", because naming a cause we cannot act on only invites the
+     * reader to try the same thing again.
+     */
+    data class Failed(val reason: String?, val signatureConflict: Boolean = false) :
+        ManagerInstallStep
 }
 
 /**
@@ -64,6 +75,22 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
         _state.value = ManagerInstallStep.Idle
     }
 
+    /**
+     * Removes the copy that is refusing the install, from every user.
+     *
+     * Through the daemon rather than through this app: the manager is not the installer of record
+     * for that package, and parasitically it is the host, which has no business uninstalling apps
+     * on its own account. Every user, because a copy left behind in another profile refuses the
+     * install exactly as loudly as one in this profile — which is how this device got here.
+     */
+    suspend fun removeConflicting(): Boolean {
+        val removed =
+            daemon.uninstallPackage(BuildConfig.MANAGER_PACKAGE_NAME, ALL_USERS).getOrDefault(false)
+        if (removed) _state.value = ManagerInstallStep.Idle
+        else Log.w(Constants.TAG, "actions: could not remove the conflicting manager")
+        return removed
+    }
+
     /** True once `org.matrix.vector.manager` is a package on this device. */
     fun isInstalled(): Boolean =
         runCatching {
@@ -83,7 +110,8 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
         withContext(Dispatchers.IO) {
             _state.value = ManagerInstallStep.Installing
 
-            val apk = daemon.getManagerApk().getOrNull()
+            val apk =
+                withTimeoutOrNull(APK_TIMEOUT_MS) { daemon.getManagerApk().getOrNull() }
             if (apk == null) {
                 // Either the daemon is gone, or it refused: the APK is missing from the module
                 // directory or its signature is not the one this framework was built to accept.
@@ -123,7 +151,16 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
                     }
                     _state.value =
                         if (succeeded) ManagerInstallStep.Done
-                        else ManagerInstallStep.Failed(message)
+                        else
+                            ManagerInstallStep.Failed(
+                                message,
+                                // STATUS_FAILURE_CONFLICT covers more than a signature clash, so
+                                // the platform's own reason decides. It is not localised and is
+                                // never shown; it is only matched on here and logged above.
+                                signatureConflict =
+                                    status == PackageInstaller.STATUS_FAILURE_CONFLICT &&
+                                        message?.contains(SIGNATURE_CONFLICT) == true,
+                            )
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -221,5 +258,21 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
     private companion object {
         const val WRITE_NAME = "manager.apk"
         const val RESULT_ACTION = "org.matrix.vector.manager.INSTALL_MANAGER_RESULT"
+
+        /** What the platform calls it in `EXTRA_STATUS_MESSAGE`; see PackageManagerException. */
+        const val SIGNATURE_CONFLICT = "INSTALL_FAILED_UPDATE_INCOMPATIBLE"
+
+        /**
+         * How long the daemon gets to hand over the APK.
+         *
+         * The binder call is synchronous and the daemon verifies a 20-odd megabyte signature before
+         * answering, so it is not instant — but it is also the one step here with no failure of its
+         * own to report. Without a bound, a daemon that never answers leaves the row spinning for
+         * the life of the process, which is exactly what it did.
+         */
+        const val APK_TIMEOUT_MS = 30_000L
+
+        /** `ManagerService.uninstallPackage` reads -1 as "every user". */
+        const val ALL_USERS = -1
     }
 }

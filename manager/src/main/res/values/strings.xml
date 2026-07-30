@@ -437,19 +437,22 @@
     <string name="settings_doh_retry">Try again</string>
 
     <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
-    <string name="launcher_section">Opening Vector</string>
+    <string name="launcher_title">How to open Vector</string>
+    <string name="launcher_body">Vector is not installed as an app, so your launcher has nothing to show. These are the ways back in.</string>
     <string name="launcher_shortcut">Home screen shortcut</string>
-    <string name="launcher_shortcut_summary">Vector is not installed as an app, so your launcher has nothing to show. A pinned shortcut gives it an icon.</string>
     <string name="launcher_shortcut_create">Create</string>
-    <string name="launcher_shortcut_pinned">Already on your home screen</string>
-    <string name="launcher_shortcut_unsupported">This launcher does not accept pinned shortcuts. Installing Vector as an app works instead.</string>
+    <string name="launcher_shortcut_unsupported">Your launcher does not accept pinned shortcuts.</string>
     <string name="launcher_shortcut_refused">Your launcher refused the shortcut.</string>
-    <string name="launcher_install">Install Vector as an app</string>
-    <string name="launcher_install_summary">Gives Vector an ordinary launcher icon and an entry in your app list. Installing a module then goes through the system\'s install prompt rather than happening silently.</string>
+    <string name="launcher_turn_on">Turn on</string>
+    <string name="launcher_install">Install as an app</string>
     <string name="launcher_install_action">Install</string>
-    <string name="launcher_installed">Installed</string>
     <string name="launcher_install_done">Vector is installed. Open it from your launcher.</string>
     <string name="launcher_install_failed">Vector could not be installed.</string>
+    <string name="launcher_install_conflict">A copy of Vector signed with a different key is already installed. It has to be removed before this one will fit.</string>
+    <string name="launcher_install_remove">Remove it</string>
+    <string name="launcher_route_available">Available</string>
+    <string name="launcher_note">You can also dial %1$s, or open Vector from the action button in %2$s.</string>
+    <string name="launcher_root_generic">your root manager</string>
     <string name="launcher_prompt_title">Vector has no icon yet</string>
     <string name="launcher_prompt_body">Vector runs inside another process rather than being installed, so nothing appears in your launcher and there is no obvious way back in. Give it a home screen shortcut, or install it as an ordinary app.</string>
     <string name="launcher_prompt_never">Don\'t ask again</string>
