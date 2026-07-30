@@ -5,6 +5,7 @@ import android.os.Process
 import org.lsposed.lspd.service.ILSPApplicationService
 import org.lsposed.lspd.util.Utils
 import org.matrix.vector.BuildConfig
+import org.matrix.vector.GrapheneDclHooker
 import org.matrix.vector.ParasiticManagerHooker
 import org.matrix.vector.ParasiticManagerSystemHooker
 import org.matrix.vector.Startup
@@ -33,6 +34,8 @@ object Main {
         // Initialize system-specific resolution hooks if in system_server
         if (isSystem) {
             ParasiticManagerSystemHooker.start()
+            // Exempt the manager host from GrapheneOS DCL restriction; no-op on other systems.
+            GrapheneDclHooker.start()
         }
 
         // Initialize Xposed bridge components
