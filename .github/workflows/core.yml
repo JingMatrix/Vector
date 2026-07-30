@@ -27,6 +27,15 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      # Before anything is built, because it needs nothing but Python and a translator's mistake
+      # should not wait twenty minutes to surface. Crowdin owns the content of these files, so what
+      # this catches is a bad merge or a line pasted into the wrong language -- both of which have
+      # happened, and neither of which any other check in this repository looks for.
+      - name: Check translations
+        run: |
+          python3 manager/tools/check_translations.py manager/src/main/res
+          python3 manager/tools/check_translations.py daemon/src/main/res
+
       # A missing secret used to be skipped over in silence, and the build carried on to publish a
       # canary or a tag signed with the debug key — which the daemon's InstallerVerifier rejects,
       # and which nobody notices until someone tries to install the manager. On this repository the

@@ -41,11 +41,23 @@ for d in sorted(base.glob('values-*')):
         for k, v in tr.items():
             src = en.get(k)
             if src is None: continue
-            def args(t): return set(re.findall(r'%(\d+)\$[sd]', t))
+            # Which %1$-style indices appear, plus how many bare %s/%d one item can carry. Bare
+            # arguments have to be counted as well as indexed ones: a translation holding a %d the
+            # source does not have prints the literal "%d" to the user, and looking only for the
+            # indexed form walks straight past it. Indices go in a set and bare ones are maxed over
+            # the items rather than summed, because a plural's item count is a property of the
+            # language -- Polish has four forms where English has two -- and is not a mismatch.
+            def args(t):
+                items = [t] if isinstance(t, str) else list(t.values())
+                idx = set()
+                bare = 0
+                for i in items:
+                    idx |= set(re.findall(r'%(\d+)\$[sd]', i))
+                    bare = max(bare, len(re.findall(r'%[sd]', i)))
+                return sorted(idx), bare
             sv = v if isinstance(v, str) else ' '.join(v.values())
-            ss = src if isinstance(src, str) else ' '.join(src.values())
-            if args(sv) != args(ss):
-                print(f"  {lang}/{name}:{k}: placeholder mismatch {sorted(args(ss))} -> {sorted(args(sv))}"); problems += 1
+            if args(v) != args(src):
+                print(f"  {lang}/{name}:{k}: placeholder mismatch {args(src)} -> {args(v)}"); problems += 1
             # A Latin-script translation containing Han or kana is almost always a line
             # pasted from the wrong file — the mistake that put a Chinese sentence inside the
             # Russian strings. Languages that legitimately use those scripts are exempt.
