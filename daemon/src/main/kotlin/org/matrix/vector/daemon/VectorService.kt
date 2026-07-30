@@ -38,6 +38,9 @@ object VectorService : IDaemonService.Stub() {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) TelephonyManager.ACTION_SECRET_CODE
       else Telephony.Sms.Intents.SECRET_CODE_ACTION
 
+  /** Dial *#*#832867#*#* ("VECTOR" on the keypad) to open the manager. */
+  private const val SECRET_CODE = "832867"
+
   override fun dispatchSystemServerContext(
       appThread: IBinder?,
       activityToken: IBinder?,
@@ -148,9 +151,9 @@ object VectorService : IDaemonService.Stub() {
         IntentFilter(NotificationManager.moduleScopeAction).apply { addDataScheme("module") }
 
     val secretCodeFilter =
-        IntentFilter().apply {
+        IntentFilter(ACTION_SECRET_CODE).apply {
           addDataScheme("android_secret_code")
-          addDataAuthority("5776733", null)
+          addDataAuthority(SECRET_CODE, null)
         }
 
     // Define strict Android 14+ flags and the system-only BRICK permission
