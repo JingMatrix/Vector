@@ -17,7 +17,6 @@
         <item quantity="other">%1$d pembaruan</item>
     </plurals>
     <string name="store_all_current">semua yang Anda punya sudah mutakhir</string>
-    <string name="store_offline">Menampilkan katalog tersimpan</string>
 
     <string name="store_badge_update">Perbarui ke %1$s</string>
     <string name="store_badge_reinstall">Pasang ulang %1$s</string>
@@ -41,7 +40,6 @@
     <string name="store_open_module">Buka halaman modul</string>
 
     <string name="store_install">Pasang</string>
-    <string name="store_update">Perbarui</string>
     <string name="store_reinstall">Pasang ulang</string>
     <string name="store_choose_asset">Pilih berkas untuk dipasang</string>
     <plurals name="store_asset_downloads">

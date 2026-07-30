@@ -82,17 +82,6 @@
         <item quantity="other">靜默 %1$d 天</item>
     </plurals>
 
-    <string name="time_yesterday">昨天</string>
-    <plurals name="time_days_ago">
-        <item quantity="other">%1$d 天前</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="other">%1$d 週前</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="other">%1$d 個月前</item>
-    </plurals>
-
     <string name="appearance_title">外觀</string>
     <string name="appearance_theme">主題</string>
     <string name="appearance_theme_system">跟隨系統</string>
@@ -130,7 +119,6 @@
     <string name="modules_incompatible_legacy">需要 Xposed API %1$d，本框架未提供該版本。</string>
     <string name="modules_api_behind">針對 libxposed API %1$d 建置。API %2$d 變更了介面，此模組可能無法完全運作。</string>
     <string name="modules_no_daemon">Vector 未執行，因此無法列出模組。請從主畫面開啟系統狀態以查看原因。</string>
-    <string name="module_toggle_failed">無法變更 %1$s。框架拒絕了這次變更。</string>
 
     <string name="web_open_external">在瀏覽器中開啟</string>
 
@@ -148,7 +136,6 @@
     <string name="settings_rearrange_panels_summary">調整順序，或隱藏從不開啟的面板。</string>
 
     <string name="settings_activity">動態</string>
-    <string name="settings_window">主畫面顯示的歷史範圍</string>
     <plurals name="settings_window_months">
         <item quantity="other">最近 %1$d 個月</item>
     </plurals>
@@ -204,7 +191,6 @@
     <string name="action_uninstalled">已解除安裝 %1$s。</string>
     <string name="action_uninstall_failed">無法解除安裝 %1$s。</string>
 
-    <string name="settings">設定</string>
     <string name="back">返回</string>
     <string name="retry">重試</string>
 
@@ -279,7 +265,6 @@
     <string name="update_failed_start">無法啟動安裝程式。</string>
     <string name="update_failed_download">無法下載此更新。</string>
     <string name="update_failed_exit">安裝程式失敗（結束碼 %1$d）。</string>
-    <string name="update_available">有可用更新</string>
     <string name="store_mute_updates">忽略此模組的更新</string>
     <string name="store_mute_updates_summary">在此處與模組列表中都不再計為過期</string>
     <string name="store_options">選項</string>

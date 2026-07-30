@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Очистити фільтр</string>
     <string name="logs_filter_scanning">Читається весь файл, щоб фільтр бачив і те, чого немає на екрані.</string>
 
-    <string name="logs_level_verbose">Докладний</string>
-    <string name="logs_level_debug">Налагодження</string>
-    <string name="logs_level_info">Інформація</string>
-    <string name="logs_level_warn">Попередження</string>
-    <string name="logs_level_error">Помилка</string>
-    <string name="logs_level_fatal">Критична</string>
-    <string name="logs_level_other">Інше</string>
-
     <string name="logs_window">Рядки %1$d–%2$d з %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d збіг у рядку</item>

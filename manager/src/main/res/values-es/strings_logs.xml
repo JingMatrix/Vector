@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Quitar el filtro</string>
     <string name="logs_filter_scanning">Leyendo el archivo entero para que el filtro alcance más allá de lo que hay en pantalla.</string>
 
-    <string name="logs_level_verbose">Detallado</string>
-    <string name="logs_level_debug">Depuración</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Aviso</string>
-    <string name="logs_level_error">Error</string>
-    <string name="logs_level_fatal">Fatal</string>
-    <string name="logs_level_other">Otro</string>
-
     <string name="logs_window">Líneas %1$d–%2$d de %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d línea coincidente</item>

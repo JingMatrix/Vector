@@ -8,7 +8,6 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import kotlin.random.Random
 

@@ -311,7 +311,6 @@ tasks.register<KtfmtFormatTask>("format") {
         "*/build.gradle.kts",
         "hiddenapi/*/build.gradle.kts",
         "services/*-service/build.gradle.kts",
-        "buildSrc/src/main/kotlin/**/*.kt",
     )
     // The daemon subproject is stuck on ktfmt's default (Meta) style instead of the
     // kotlinLangStyle() applied everywhere else — the wrong style was set for it, but a

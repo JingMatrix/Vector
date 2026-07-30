@@ -17,7 +17,6 @@
         <item quantity="other">%1$d bản cập nhật</item>
     </plurals>
     <string name="store_all_current">mọi thứ bạn có đều là mới nhất</string>
-    <string name="store_offline">Đang hiện danh mục đã lưu</string>
 
     <string name="store_badge_update">Cập nhật lên %1$s</string>
     <string name="store_badge_reinstall">Cài lại %1$s</string>
@@ -41,7 +40,6 @@
     <string name="store_open_module">Mở trang của mô-đun</string>
 
     <string name="store_install">Cài đặt</string>
-    <string name="store_update">Cập nhật</string>
     <string name="store_reinstall">Cài lại</string>
     <string name="store_choose_asset">Chọn tệp để cài</string>
     <plurals name="store_asset_downloads">

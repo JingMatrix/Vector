@@ -98,9 +98,6 @@ data class LogPaneState(
     val filtered: Boolean
         get() = query.isActive
 
-    val atOldest: Boolean
-        get() = windowFirst == 0
-
     val atNewest: Boolean
         get() = windowLast >= visibleLines
 }

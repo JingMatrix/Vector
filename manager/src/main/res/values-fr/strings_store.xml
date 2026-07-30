@@ -19,7 +19,6 @@
         <item quantity="other">%1$d mises à jour</item>
     </plurals>
     <string name="store_all_current">tout ce que vous avez est à jour</string>
-    <string name="store_offline">Catalogue enregistré</string>
 
     <string name="store_badge_update">Mettre à jour vers %1$s</string>
     <string name="store_badge_reinstall">Réinstaller %1$s</string>
@@ -43,7 +42,6 @@
     <string name="store_open_module">Ouvrir la page du module</string>
 
     <string name="store_install">Installer</string>
-    <string name="store_update">Mettre à jour</string>
     <string name="store_reinstall">Réinstaller</string>
     <string name="store_choose_asset">Choisir un fichier à installer</string>
     <plurals name="store_asset_downloads">

@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">필터 지우기</string>
     <string name="logs_filter_scanning">화면 밖까지 걸러낼 수 있도록 파일 전체를 읽는 중입니다.</string>
 
-    <string name="logs_level_verbose">상세</string>
-    <string name="logs_level_debug">디버그</string>
-    <string name="logs_level_info">정보</string>
-    <string name="logs_level_warn">경고</string>
-    <string name="logs_level_error">오류</string>
-    <string name="logs_level_fatal">치명적</string>
-    <string name="logs_level_other">기타</string>
-
     <string name="logs_window">%3$d줄 중 %1$d–%2$d줄</string>
     <plurals name="logs_matches">
         <item quantity="other">일치하는 줄 %1$d개</item>

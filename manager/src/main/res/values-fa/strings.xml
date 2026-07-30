@@ -87,20 +87,6 @@
         <item quantity="other">%1$d روز آرامش</item>
     </plurals>
 
-    <string name="time_yesterday">دیروز</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d روز پیش</item>
-        <item quantity="other">%1$d روز پیش</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d هفته پیش</item>
-        <item quantity="other">%1$d هفته پیش</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d ماه پیش</item>
-        <item quantity="other">%1$d ماه پیش</item>
-    </plurals>
-
     <string name="appearance_title">ظاهر</string>
     <string name="appearance_theme">پوسته</string>
     <string name="appearance_theme_system">هماهنگ با سامانه</string>
@@ -138,7 +124,6 @@
     <string name="modules_incompatible_legacy">به واسط Xposed %1$d نیاز دارد که این چارچوب فراهم نمی‌کند.</string>
     <string name="modules_api_behind">برای libxposed API %1$d ساخته شده است. API %2$d رابط را تغییر داد، پس ممکن است این ماژول کامل کار نکند.</string>
     <string name="modules_no_daemon">‏Vector در حال اجرا نیست، پس فهرست ماژول‌ها در دسترس نیست. برای دیدن علت، وضعیت سامانه را از خانه باز کنید.</string>
-    <string name="module_toggle_failed">تغییر %1$s ممکن نشد. چارچوب این تغییر را نپذیرفت.</string>
 
     <string name="web_open_external">باز کردن در مرورگر</string>
 
@@ -156,7 +141,6 @@
     <string name="settings_rearrange_panels_summary">ترتیبشان را تغییر دهید، یا آن‌هایی را که هرگز باز نمی‌کنید پنهان کنید.</string>
 
     <string name="settings_activity">جریان فعالیت</string>
-    <string name="settings_window">تاریخچهٔ نمایش‌داده‌شده در خانه</string>
     <plurals name="settings_window_months">
         <item quantity="one">%1$d ماه اخیر</item>
         <item quantity="other">%1$d ماه اخیر</item>
@@ -213,7 +197,6 @@
     <string name="action_uninstalled">‏%1$s حذف شد.</string>
     <string name="action_uninstall_failed">حذف %1$s ممکن نشد.</string>
 
-    <string name="settings">تنظیمات</string>
     <string name="back">بازگشت</string>
     <string name="retry">تلاش دوباره</string>
 
@@ -289,7 +272,6 @@
     <string name="update_failed_start">نصب‌کننده اجرا نشد.</string>
     <string name="update_failed_download">به‌روزرسانی بارگیری نشد.</string>
     <string name="update_failed_exit">نصب‌کننده شکست خورد (کد %1$d).</string>
-    <string name="update_available">به‌روزرسانی موجود است</string>
     <string name="store_mute_updates">نادیده گرفتن به‌روزرسانی‌های این ماژول</string>
     <string name="store_mute_updates_summary">دیگر نه اینجا و نه در فهرست ماژول‌ها قدیمی شمرده نمی‌شود</string>
     <string name="store_options">گزینه‌ها</string>

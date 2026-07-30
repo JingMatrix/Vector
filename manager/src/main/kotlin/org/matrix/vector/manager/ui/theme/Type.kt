@@ -1,12 +1,8 @@
 package org.matrix.vector.manager.ui.theme
 
-import androidx.compose.material3.Typography
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
@@ -38,12 +34,3 @@ val VectorLogLine: TextStyle =
         // A log line is machine output; it is read in the order it was written, always.
         textDirection = TextDirection.Ltr,
     )
-
-/**
- * Section headers on Home read as a magazine front page rather than a settings list, so they get
- * extra tracking and weight against the default `titleMedium`.
- */
-@Composable
-fun sectionHeaderStyle(base: Typography): TextStyle = remember(base) {
-    base.titleSmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
-}

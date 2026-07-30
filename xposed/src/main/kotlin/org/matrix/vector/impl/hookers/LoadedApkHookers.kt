@@ -6,7 +6,6 @@ import androidx.annotation.RequiresApi
 import io.github.libxposed.api.XposedInterface
 import java.util.Collections
 import java.util.WeakHashMap
-import java.util.concurrent.ConcurrentHashMap
 import org.lsposed.lspd.util.Utils
 import org.matrix.vector.impl.VectorLifecycleManager
 import org.matrix.vector.impl.di.LegacyPackageInfo
@@ -87,8 +86,6 @@ private object LoadedApkTracker {
 
 /** Tracks and prepares Application instances when their LoadedApk is instantiated. */
 object LoadedApkCtorHooker : XposedInterface.Hooker {
-    val trackedApks = ConcurrentHashMap.newKeySet<Any>()
-
     override fun intercept(chain: XposedInterface.Chain): Any? {
         val result = chain.proceed()
         val loadedApk = chain.thisObject ?: return result

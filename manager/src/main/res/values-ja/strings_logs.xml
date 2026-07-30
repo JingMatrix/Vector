@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">絞り込みを解除</string>
     <string name="logs_filter_scanning">画面の外まで絞り込めるよう、ファイル全体を読み込んでいます。</string>
 
-    <string name="logs_level_verbose">詳細</string>
-    <string name="logs_level_debug">デバッグ</string>
-    <string name="logs_level_info">情報</string>
-    <string name="logs_level_warn">警告</string>
-    <string name="logs_level_error">エラー</string>
-    <string name="logs_level_fatal">致命的</string>
-    <string name="logs_level_other">その他</string>
-
     <string name="logs_window">%3$d 行中 %1$d–%2$d 行</string>
     <plurals name="logs_matches">
         <item quantity="other">一致 %1$d 行</item>

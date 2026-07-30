@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">ניקוי הסינון</string>
     <string name="logs_filter_scanning">הקובץ כולו נקרא כדי שהסינון יראה גם את מה שמחוץ למסך.</string>
 
-    <string name="logs_level_verbose">מפורט</string>
-    <string name="logs_level_debug">ניפוי שגיאות</string>
-    <string name="logs_level_info">מידע</string>
-    <string name="logs_level_warn">אזהרה</string>
-    <string name="logs_level_error">שגיאה</string>
-    <string name="logs_level_fatal">קריטי</string>
-    <string name="logs_level_other">אחר</string>
-
     <string name="logs_window">שורות %1$d–%2$d מתוך %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">שורה תואמת אחת</item>

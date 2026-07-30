@@ -3,8 +3,6 @@ package android.app;
 import android.content.pm.ApplicationInfo;
 
 public final class LoadedApk {
-	private ClassLoader mDefaultClassLoader;
-
 	public ApplicationInfo getApplicationInfo() {
 		throw new UnsupportedOperationException("STUB");
 	}
@@ -14,10 +12,6 @@ public final class LoadedApk {
 	}
 
 	public String getPackageName() {
-		throw new UnsupportedOperationException("STUB");
-	}
-
-	public String getResDir() {
 		throw new UnsupportedOperationException("STUB");
 	}
 }

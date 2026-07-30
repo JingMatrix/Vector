@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Xoá bộ lọc</string>
     <string name="logs_filter_scanning">Đang đọc toàn bộ tệp để bộ lọc thấy được cả phần ngoài màn hình.</string>
 
-    <string name="logs_level_verbose">Chi tiết</string>
-    <string name="logs_level_debug">Gỡ lỗi</string>
-    <string name="logs_level_info">Thông tin</string>
-    <string name="logs_level_warn">Cảnh báo</string>
-    <string name="logs_level_error">Lỗi</string>
-    <string name="logs_level_fatal">Nghiêm trọng</string>
-    <string name="logs_level_other">Khác</string>
-
     <string name="logs_window">Dòng %1$d–%2$d trên %3$d</string>
     <plurals name="logs_matches">
         <item quantity="other">%1$d dòng khớp</item>

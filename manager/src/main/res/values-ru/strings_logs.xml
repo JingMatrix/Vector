@@ -10,13 +10,6 @@
     <string name="logs_filter_tags">Тег</string>
     <string name="logs_filter_clear">Сбросить фильтр</string>
     <string name="logs_filter_scanning">Читается весь файл, чтобы фильтр видел больше, чем помещается на экране.</string>
-    <string name="logs_level_verbose">Подробно</string>
-    <string name="logs_level_debug">Отладка</string>
-    <string name="logs_level_info">Информация</string>
-    <string name="logs_level_warn">Предупреждение</string>
-    <string name="logs_level_error">Ошибка</string>
-    <string name="logs_level_fatal">Критическая</string>
-    <string name="logs_level_other">Прочее</string>
     <string name="logs_window">Строки %1$d–%2$d из %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d совпавшая строка</item>

@@ -23,15 +23,6 @@
     <string name="logs_filter_clear">Clear filter</string>
     <string name="logs_filter_scanning">Reading the whole file so the filter can see past what is on screen.</string>
 
-    <!-- Level names, used by the filter chips and by TalkBack on each row -->
-    <string name="logs_level_verbose">Verbose</string>
-    <string name="logs_level_debug">Debug</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Warning</string>
-    <string name="logs_level_error">Error</string>
-    <string name="logs_level_fatal">Fatal</string>
-    <string name="logs_level_other">Other</string>
-
     <!-- The counter under the search field -->
     <!-- Example: "lines 1 200–3 200 of 30 412" -->
     <string name="logs_window">Lines %1$d–%2$d of %3$d</string>

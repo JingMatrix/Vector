@@ -126,7 +126,6 @@
     <string name="home_discussions">Discussions</string>
     <string name="home_review_prs">Review a change</string>
 
-    <!-- Optional GitHub sign-in. Never required; everything renders signed out. -->
     <!-- Joins a commit's author with its co-authors, e.g. "Leaf-lsgtky &amp; Qing" -->
     <string name="home_with_coauthor">%1$s &amp; %2$s</string>
     <string name="home_with_coauthors">%1$s &amp; %2$d others</string>
@@ -147,24 +146,6 @@
         <item quantity="one">%1$d day quiet</item>
         <item quantity="other">%1$d days quiet</item>
     </plurals>
-
-    <!-- Relative time -->
-
-    <string name="time_yesterday">yesterday</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d day ago</item>
-        <item quantity="other">%1$d days ago</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d week ago</item>
-        <item quantity="other">%1$d weeks ago</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d month ago</item>
-        <item quantity="other">%1$d months ago</item>
-    </plurals>
-
-    <!-- Commit kinds, shown as small chips on the timeline -->
 
     <!-- Home appearance sheet. Settings live beside what they change, not in one heap. -->
     <string name="appearance_title">Appearance</string>
@@ -228,7 +209,6 @@
     <string name="modules_incompatible_legacy">Needs Xposed API %1$d, which this framework does not provide.</string>
     <string name="modules_api_behind">Built for libxposed API %1$d. API %2$d changed the interface, so this module may not work fully.</string>
     <string name="modules_no_daemon">Vector is not running, so the module list is unavailable. Open system status from Home to see why.</string>
-    <string name="module_toggle_failed">Could not change %1$s. The framework refused the change.</string>
 
     <!-- Built-in web viewer -->
     <string name="web_open_external">Open in browser</string>
@@ -250,7 +230,6 @@
 
     <!-- Settings: activity feed -->
     <string name="settings_activity">Activity feed</string>
-    <string name="settings_window">History shown on Home</string>
     <plurals name="settings_window_months">
         <item quantity="one">Last %1$d month</item>
         <item quantity="other">Last %1$d months</item>
@@ -329,7 +308,6 @@
     <string name="action_uninstall_failed">Could not uninstall %1$s.</string>
 
     <!-- Generic -->
-    <string name="settings">Settings</string>
     <string name="back">Back</string>
     <string name="retry">Retry</string>
     <string name="app_name" translatable="false">Vector</string>
@@ -435,7 +413,6 @@
     <string name="update_failed_start">The installer could not be started.</string>
     <string name="update_failed_download">The update could not be downloaded.</string>
     <string name="update_failed_exit">The installer failed (exit %1$d).</string>
-    <string name="update_available">Update available</string>
     <string name="store_mute_updates">Ignore updates for this module</string>
     <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
     <string name="store_options">Options</string>

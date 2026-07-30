@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">مسح التصفية</string>
     <string name="logs_filter_scanning">تُقرأ كامل الملف كي تتجاوز التصفية ما يظهر على الشاشة.</string>
 
-    <string name="logs_level_verbose">مفصّل</string>
-    <string name="logs_level_debug">تنقيح</string>
-    <string name="logs_level_info">معلومة</string>
-    <string name="logs_level_warn">تحذير</string>
-    <string name="logs_level_error">خطأ</string>
-    <string name="logs_level_fatal">فادح</string>
-    <string name="logs_level_other">أخرى</string>
-
     <string name="logs_window">الأسطر %1$d–%2$d من %3$d</string>
     <plurals name="logs_matches">
         <item quantity="zero">لا أسطر مطابقة</item>

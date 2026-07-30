@@ -87,20 +87,6 @@
         <item quantity="other">%1$d dias parado</item>
     </plurals>
 
-    <string name="time_yesterday">ontem</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">há %1$d dia</item>
-        <item quantity="other">há %1$d dias</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">há %1$d semana</item>
-        <item quantity="other">há %1$d semanas</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">há %1$d mês</item>
-        <item quantity="other">há %1$d meses</item>
-    </plurals>
-
     <string name="appearance_title">Aparência</string>
     <string name="appearance_theme">Tema</string>
     <string name="appearance_theme_system">Seguir o sistema</string>
@@ -138,7 +124,6 @@
     <string name="modules_incompatible_legacy">Precisa da API %1$d do Xposed, que este framework não fornece.</string>
     <string name="modules_api_behind">Compilado para a API %1$d do libxposed. A API %2$d mudou a interface, então este módulo pode não funcionar totalmente.</string>
     <string name="modules_no_daemon">O Vector não está em execução, então a lista de módulos não está disponível. Abra o status do sistema pelo Início para ver por quê.</string>
-    <string name="module_toggle_failed">Não foi possível alterar %1$s. O framework recusou a alteração.</string>
 
     <string name="web_open_external">Abrir no navegador</string>
 
@@ -156,7 +141,6 @@
     <string name="settings_rearrange_panels_summary">Mude a ordem delas, ou oculte as que você nunca abre.</string>
 
     <string name="settings_activity">Feed de atividade</string>
-    <string name="settings_window">Histórico mostrado no Início</string>
     <plurals name="settings_window_months">
         <item quantity="one">Último %1$d mês</item>
         <item quantity="other">Últimos %1$d meses</item>
@@ -213,7 +197,6 @@
     <string name="action_uninstalled">%1$s desinstalado.</string>
     <string name="action_uninstall_failed">Não foi possível desinstalar %1$s.</string>
 
-    <string name="settings">Configurações</string>
     <string name="back">Voltar</string>
     <string name="retry">Tentar de novo</string>
 
@@ -289,7 +272,6 @@
     <string name="update_failed_start">Não foi possível iniciar o instalador.</string>
     <string name="update_failed_download">Não foi possível baixar a atualização.</string>
     <string name="update_failed_exit">O instalador falhou (código %1$d).</string>
-    <string name="update_available">Atualização disponível</string>
     <string name="store_mute_updates">Ignorar atualizações deste módulo</string>
     <string name="store_mute_updates_summary">Ele deixa de contar como desatualizado, aqui e na lista de módulos</string>
     <string name="store_options">Opções</string>

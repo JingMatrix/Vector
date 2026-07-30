@@ -247,35 +247,6 @@ data class GhReleaseAsset(
     @SerialName("browser_download_url") val downloadUrl: String? = null,
 )
 
-@Serializable
-data class GhWorkflowRuns(
-    @SerialName("workflow_runs") val runs: List<GhWorkflowRun> = emptyList()
-)
-
-@Serializable
-data class GhWorkflowRun(
-    val id: Long,
-    val name: String? = null,
-    @SerialName("head_branch") val headBranch: String? = null,
-    @SerialName("head_sha") val headSha: String = "",
-    @SerialName("display_title") val displayTitle: String? = null,
-    @SerialName("created_at") val createdAt: String = "",
-    @SerialName("html_url") val htmlUrl: String? = null,
-    val conclusion: String? = null,
-)
-
-@Serializable
-data class GhArtifacts(val artifacts: List<GhArtifact> = emptyList())
-
-@Serializable
-data class GhArtifact(
-    val id: Long,
-    val name: String,
-    @SerialName("size_in_bytes") val sizeInBytes: Long = 0,
-    val expired: Boolean = false,
-    @SerialName("archive_download_url") val downloadUrl: String? = null,
-)
-
 /** A successful CI run, as the canary screen renders it. */
 data class CanaryBuild(
     val id: Long,

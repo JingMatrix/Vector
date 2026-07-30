@@ -97,26 +97,6 @@
         <item quantity="other">%1$d дня тиші</item>
     </plurals>
 
-    <string name="time_yesterday">учора</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d день тому</item>
-        <item quantity="few">%1$d дні тому</item>
-        <item quantity="many">%1$d днів тому</item>
-        <item quantity="other">%1$d дня тому</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d тиждень тому</item>
-        <item quantity="few">%1$d тижні тому</item>
-        <item quantity="many">%1$d тижнів тому</item>
-        <item quantity="other">%1$d тижня тому</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d місяць тому</item>
-        <item quantity="few">%1$d місяці тому</item>
-        <item quantity="many">%1$d місяців тому</item>
-        <item quantity="other">%1$d місяця тому</item>
-    </plurals>
-
     <string name="appearance_title">Вигляд</string>
     <string name="appearance_theme">Тема</string>
     <string name="appearance_theme_system">Як у системі</string>
@@ -154,7 +134,6 @@
     <string name="modules_incompatible_legacy">Потрібен Xposed API %1$d, якого цей фреймворк не надає.</string>
     <string name="modules_api_behind">Зібрано під libxposed API %1$d. В API %2$d інтерфейс змінився, тож модуль може працювати не повністю.</string>
     <string name="modules_no_daemon">Vector не працює, тож перелік модулів недоступний. Відкрийте стан системи з головної, щоб побачити причину.</string>
-    <string name="module_toggle_failed">Не вдалося змінити %1$s. Фреймворк відхилив зміну.</string>
 
     <string name="web_open_external">Відкрити в браузері</string>
 
@@ -172,7 +151,6 @@
     <string name="settings_rearrange_panels_summary">Змініть їхній порядок або сховайте ті, які ніколи не відкриваєте.</string>
 
     <string name="settings_activity">Стрічка активності</string>
-    <string name="settings_window">Історія на головній</string>
     <plurals name="settings_window_months">
         <item quantity="one">Останній %1$d місяць</item>
         <item quantity="few">Останні %1$d місяці</item>
@@ -231,7 +209,6 @@
     <string name="action_uninstalled">%1$s видалено.</string>
     <string name="action_uninstall_failed">Не вдалося видалити %1$s.</string>
 
-    <string name="settings">Налаштування</string>
     <string name="back">Назад</string>
     <string name="retry">Повторити</string>
 
@@ -311,7 +288,6 @@
     <string name="update_failed_start">Не вдалося запустити встановлювач.</string>
     <string name="update_failed_download">Не вдалося завантажити оновлення.</string>
     <string name="update_failed_exit">Встановлювач завершився помилкою (код %1$d).</string>
-    <string name="update_available">Є оновлення</string>
     <string name="store_mute_updates">Ігнорувати оновлення цього модуля</string>
     <string name="store_mute_updates_summary">Він перестане рахуватися застарілим — і тут, і в переліку модулів</string>
     <string name="store_options">Параметри</string>

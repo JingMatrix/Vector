@@ -17,7 +17,6 @@
         <item quantity="other">%1$d 件の更新</item>
     </plurals>
     <string name="store_all_current">手元のものはすべて最新です</string>
-    <string name="store_offline">保存済みのカタログを表示しています</string>
 
     <string name="store_badge_update">%1$s に更新</string>
     <string name="store_badge_reinstall">%1$s を再インストール</string>
@@ -41,7 +40,6 @@
     <string name="store_open_module">モジュールのページを開く</string>
 
     <string name="store_install">インストール</string>
-    <string name="store_update">更新</string>
     <string name="store_reinstall">再インストール</string>
     <string name="store_choose_asset">インストールするファイルを選択</string>
     <plurals name="store_asset_downloads">

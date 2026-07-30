@@ -87,20 +87,6 @@
         <item quantity="other">%1$d gün sessizlik</item>
     </plurals>
 
-    <string name="time_yesterday">dün</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d gün önce</item>
-        <item quantity="other">%1$d gün önce</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d hafta önce</item>
-        <item quantity="other">%1$d hafta önce</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d ay önce</item>
-        <item quantity="other">%1$d ay önce</item>
-    </plurals>
-
     <string name="appearance_title">Görünüm</string>
     <string name="appearance_theme">Tema</string>
     <string name="appearance_theme_system">Sistemi izle</string>
@@ -138,7 +124,6 @@
     <string name="modules_incompatible_legacy">Xposed API %1$d gerekiyor; bu çatı onu sağlamıyor.</string>
     <string name="modules_api_behind">libxposed API %1$d için derlendi. API %2$d arayüzü değiştirdi; bu modül tam çalışmayabilir.</string>
     <string name="modules_no_daemon">Vector çalışmıyor, bu yüzden modül listesi alınamıyor. Nedenini görmek için Ana sayfadan sistem durumunu açın.</string>
-    <string name="module_toggle_failed">%1$s değiştirilemedi. Çatı değişikliği reddetti.</string>
 
     <string name="web_open_external">Tarayıcıda aç</string>
 
@@ -156,7 +141,6 @@
     <string name="settings_rearrange_panels_summary">Sıralarını değiştirin ya da hiç açmadıklarınızı gizleyin.</string>
 
     <string name="settings_activity">Hareket akışı</string>
-    <string name="settings_window">Ana sayfada gösterilen geçmiş</string>
     <plurals name="settings_window_months">
         <item quantity="one">Son %1$d ay</item>
         <item quantity="other">Son %1$d ay</item>
@@ -213,7 +197,6 @@
     <string name="action_uninstalled">%1$s kaldırıldı.</string>
     <string name="action_uninstall_failed">%1$s kaldırılamadı.</string>
 
-    <string name="settings">Ayarlar</string>
     <string name="back">Geri</string>
     <string name="retry">Yeniden dene</string>
 
@@ -289,7 +272,6 @@
     <string name="update_failed_start">Kurulum programı başlatılamadı.</string>
     <string name="update_failed_download">Güncelleme indirilemedi.</string>
     <string name="update_failed_exit">Kurulum programı başarısız oldu (çıkış %1$d).</string>
-    <string name="update_available">Güncelleme var</string>
     <string name="store_mute_updates">Bu modülün güncellemelerini yok say</string>
     <string name="store_mute_updates_summary">Ne burada ne de modül listesinde artık eski sayılır</string>
     <string name="store_options">Seçenekler</string>

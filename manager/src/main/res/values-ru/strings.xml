@@ -88,25 +88,6 @@
         <item quantity="many">%1$d дней тишины</item>
         <item quantity="other">%1$d дней тишины</item>
     </plurals>
-    <string name="time_yesterday">вчера</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d день назад</item>
-        <item quantity="few">%1$d дня назад</item>
-        <item quantity="many">%1$d дней назад</item>
-        <item quantity="other">%1$d дней назад</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d неделю назад</item>
-        <item quantity="few">%1$d недели назад</item>
-        <item quantity="many">%1$d недель назад</item>
-        <item quantity="other">%1$d недель назад</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d месяц назад</item>
-        <item quantity="few">%1$d месяца назад</item>
-        <item quantity="many">%1$d месяцев назад</item>
-        <item quantity="other">%1$d месяцев назад</item>
-    </plurals>
     <string name="appearance_title">Оформление</string>
     <string name="appearance_theme">Тема</string>
     <string name="appearance_theme_system">Как в системе</string>
@@ -143,7 +124,6 @@
     <string name="modules_incompatible_legacy">Требуется Xposed API %1$d, которого этот фреймворк не предоставляет.</string>
     <string name="modules_api_behind">Собран под libxposed API %1$d. В API %2$d интерфейс изменился, поэтому модуль может работать не полностью.</string>
     <string name="modules_no_daemon">Vector не запущен, поэтому список модулей недоступен. Откройте состояние системы с главного экрана, чтобы узнать причину.</string>
-    <string name="module_toggle_failed">Не удалось изменить %1$s. Фреймворк отклонил изменение.</string>
     <string name="web_open_external">Открыть в браузере</string>
     <string name="settings_ambience">Фон заголовка</string>
     <string name="ambience_snow">Снег</string>
@@ -158,7 +138,6 @@
     <string name="settings_rearrange_panels_summary">Измените их порядок или скройте те, которые никогда не открываете.</string>
 
     <string name="settings_activity">Лента активности</string>
-    <string name="settings_window">Период истории на главной</string>
     <plurals name="settings_window_months">
         <item quantity="one">Последний %1$d месяц</item>
         <item quantity="few">Последние %1$d месяца</item>
@@ -214,7 +193,6 @@
     <string name="action_optimize_failed">Не удалось переоптимизировать %1$s.</string>
     <string name="action_uninstalled">%1$s удалено.</string>
     <string name="action_uninstall_failed">Не удалось удалить %1$s.</string>
-    <string name="settings">Настройки</string>
     <string name="back">Назад</string>
     <string name="retry">Повторить</string>
     <string name="appearance_color">Цвет</string>
@@ -292,7 +270,6 @@
     <string name="update_failed_start">Не удалось запустить установщик.</string>
     <string name="update_failed_download">Не удалось загрузить обновление.</string>
     <string name="update_failed_exit">Установщик завершился с ошибкой (код %1$d).</string>
-    <string name="update_available">Есть обновление</string>
     <string name="store_mute_updates">Не сообщать об обновлениях этого модуля</string>
     <string name="store_mute_updates_summary">Он перестанет считаться устаревшим и здесь, и в списке модулей</string>
     <string name="store_options">Параметры</string>

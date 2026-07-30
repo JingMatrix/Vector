@@ -922,14 +922,7 @@ class GitHubRepository(
         const val ISSUES_URL = "$REPO_URL/issues"
         const val PULLS_URL = "$REPO_URL/pulls"
         const val DISCUSSIONS_URL = "$REPO_URL/discussions"
-        const val GOOD_FIRST_ISSUE_URL = "$REPO_URL/issues?q=is%3Aopen+label%3A%22good+first+issue%22"
 
-        /**
-         * The workflow's own run list, filtered to master.
-         *
-         * The way out of the app for anyone who wants a build log, or a commit older than the five
-         * canaries CI keeps published. [canaryBuilds] itself reads prereleases, not this page.
-         */
         /**
          * The Actions page, filtered the way the project README's build badge filters it.
          *

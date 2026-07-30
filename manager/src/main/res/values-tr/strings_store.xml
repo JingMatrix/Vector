@@ -19,7 +19,6 @@
         <item quantity="other">%1$d güncelleme</item>
     </plurals>
     <string name="store_all_current">elinizdeki her şey güncel</string>
-    <string name="store_offline">Kayıtlı katalog gösteriliyor</string>
 
     <string name="store_badge_update">%1$s sürümüne güncelle</string>
     <string name="store_badge_reinstall">%1$s sürümünü yeniden kur</string>
@@ -43,7 +42,6 @@
     <string name="store_open_module">Modül sayfasını aç</string>
 
     <string name="store_install">Kur</string>
-    <string name="store_update">Güncelle</string>
     <string name="store_reinstall">Yeniden kur</string>
     <string name="store_choose_asset">Kurulacak dosyayı seçin</string>
     <plurals name="store_asset_downloads">

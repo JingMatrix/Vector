@@ -20,20 +20,14 @@
 package hidden;
 
 import android.app.ActivityManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInstaller;
 import android.content.res.AssetManager;
 import android.content.res.CompatibilityInfo;
 import android.content.res.Resources;
 import android.content.res.ResourcesImpl;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.UserHandle;
 import android.system.ErrnoException;
@@ -43,7 +37,6 @@ import android.util.MutableInt;
 
 import androidx.annotation.RequiresApi;
 
-import java.io.File;
 import java.io.FileDescriptor;
 
 public class HiddenApiBridge {
@@ -59,30 +52,8 @@ public class HiddenApiBridge {
         resources.setImpl(impl);
     }
 
-    public static int PackageInstaller_SessionParams_installFlags(PackageInstaller.SessionParams params) {
-        return params.installFlags;
-    }
-
-    public static void PackageInstaller_SessionParams_installFlags(PackageInstaller.SessionParams params, int flags) {
-        params.installFlags = flags;
-    }
-
     public static IBinder Context_getActivityToken(Context ctx) {
         return ctx.getActivityToken();
-    }
-
-    public static File Environment_getDataProfilesDePackageDirectory(int userId, String packageName) {
-        return Environment.getDataProfilesDePackageDirectory(userId, packageName);
-    }
-
-    public static Intent Context_registerReceiverAsUser(Context ctx, BroadcastReceiver receiver, UserHandle user,
-                                                        IntentFilter filter, String broadcastPermission, Handler scheduler) {
-
-        return ctx.registerReceiverAsUser(receiver, user, filter, broadcastPermission, scheduler);
-    }
-
-    public static UserHandle UserHandle_ALL() {
-        return UserHandle.ALL;
     }
 
     public static UserHandle UserHandle(int h) {

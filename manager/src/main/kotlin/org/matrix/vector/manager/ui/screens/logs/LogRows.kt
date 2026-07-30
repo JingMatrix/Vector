@@ -484,20 +484,6 @@ fun levelColor(level: LogLevel): Color =
         else -> MaterialTheme.colorScheme.outline
     }
 
-@Composable
-fun levelLabel(level: LogLevel): String =
-    stringResource(
-        when (level) {
-            LogLevel.VERBOSE -> R.string.logs_level_verbose
-            LogLevel.DEBUG -> R.string.logs_level_debug
-            LogLevel.INFO -> R.string.logs_level_info
-            LogLevel.WARN -> R.string.logs_level_warn
-            LogLevel.ERROR -> R.string.logs_level_error
-            LogLevel.FATAL -> R.string.logs_level_fatal
-            else -> R.string.logs_level_other
-        }
-    )
-
 /**
  * The throwable type an entry's message names, or null if it does not name one.
  *

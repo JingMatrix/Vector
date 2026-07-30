@@ -32,13 +32,13 @@ import java.io.StringWriter
  * ordinary Android practice and would land nowhere; there are none in this app.
  *
  * A message is `area: lowercase phrase naming the operation and its subject`, where the area is one
- * of ipc, dns, apps, modules, backup, restore, scope, store, update, feed, auth, status, framework,
- * logs, actions, report, splash. The subject matters: "modules: enable of $packageName failed" can
- * be acted on, "failed to enable module" cannot.
+ * of ipc, dns, apps, modules, backup, restore, scope, store, update, feed, status, framework, logs,
+ * actions, report, splash. The subject matters: "modules: enable of $packageName failed" can be
+ * acted on, "failed to enable module" cannot.
  *
  * The `Throwable` is always the last argument — never `e.message`, which discards the stack.
- * Nothing secret is ever interpolated: no OAuth token, no SAF `Uri` beyond its authority, no
- * third-party query string.
+ * Nothing secret is ever interpolated: no SAF `Uri` beyond its authority, no third-party query
+ * string.
  *
  * Levels are [logE] when something the user asked for did not happen and nothing else will explain
  * it, [logW] for a degraded path recovered from, and [logI] for a one-off milestone worth having in

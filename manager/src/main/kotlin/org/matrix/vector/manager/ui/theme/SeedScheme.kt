@@ -18,8 +18,8 @@ import kotlin.math.sin
  * Android's own generator is only reachable through `dynamicColorScheme`, which reads the
  * *wallpaper* and nothing else — there is no public API that takes a colour and hands back a
  * scheme. So a user who wants Vector in their own colour, or anyone below Android 12 where dynamic
- * colour does not exist at all, would otherwise be stuck with the one hand-written palette in
- * [VectorLightColors]. This file removes that limit without pulling in a dependency.
+ * colour does not exist at all, would otherwise be stuck with a single hand-written palette. This
+ * file removes that limit without pulling in a dependency.
  *
  * The work happens in **CIE LCh**, which is the same idea as Google's HCT: hold the hue and the
  * colourfulness of the seed fixed, and walk the *lightness* up and down to build a tonal ramp. That
@@ -36,7 +36,10 @@ import kotlin.math.sin
  */
 object SeedScheme {
 
-    /** The Winged Victory's patina, and the app's identity colour when nothing else is chosen. */
+    /**
+     * The Winged Victory's patina — the deepest of the eight tones in `ic_winged_victory.xml` — and
+     * the app's identity colour when nothing else is chosen.
+     */
     const val DEFAULT_SEED: Int = 0xFF6ABFCF.toInt()
 
     /**
@@ -291,12 +294,4 @@ object SeedScheme {
     fun Color.toHex(): String =
         "#%02X%02X%02X"
             .format((red * 255).roundToInt(), (green * 255).roundToInt(), (blue * 255).roundToInt())
-
-    /** Parses `#RRGGBB` or `RRGGBB`, returning null rather than throwing on a half-typed value. */
-    fun parseHex(text: String): Int? {
-        val body = text.trim().removePrefix("#")
-        if (body.length != 6) return null
-        val value = body.toLongOrNull(16) ?: return null
-        return (0xFF000000L or value).toInt()
-    }
 }

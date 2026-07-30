@@ -28,7 +28,6 @@
         <item quantity="other">%1$d updates</item>
     </plurals>
     <string name="store_all_current">everything you have is current</string>
-    <string name="store_offline">Showing the saved catalogue</string>
 
     <!-- Rows -->
     <string name="store_badge_update">Update to %1$s</string>
@@ -58,7 +57,6 @@
 
     <!-- Install -->
     <string name="store_install">Install</string>
-    <string name="store_update">Update</string>
     <string name="store_reinstall">Reinstall</string>
     <string name="store_choose_asset">Choose a file to install</string>
     <plurals name="store_asset_downloads">

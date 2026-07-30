@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Süzgeci temizle</string>
     <string name="logs_filter_scanning">Süzgecin ekranda görünenin ötesini de görebilmesi için dosyanın tamamı okunuyor.</string>
 
-    <string name="logs_level_verbose">Ayrıntılı</string>
-    <string name="logs_level_debug">Hata ayıklama</string>
-    <string name="logs_level_info">Bilgi</string>
-    <string name="logs_level_warn">Uyarı</string>
-    <string name="logs_level_error">Hata</string>
-    <string name="logs_level_fatal">Ölümcül</string>
-    <string name="logs_level_other">Diğer</string>
-
     <string name="logs_window">%3$d satırdan %1$d–%2$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d eşleşen satır</item>

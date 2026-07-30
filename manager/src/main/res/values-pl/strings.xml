@@ -97,26 +97,6 @@
         <item quantity="other">%1$d dnia ciszy</item>
     </plurals>
 
-    <string name="time_yesterday">wczoraj</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d dzień temu</item>
-        <item quantity="few">%1$d dni temu</item>
-        <item quantity="many">%1$d dni temu</item>
-        <item quantity="other">%1$d dnia temu</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d tydzień temu</item>
-        <item quantity="few">%1$d tygodnie temu</item>
-        <item quantity="many">%1$d tygodni temu</item>
-        <item quantity="other">%1$d tygodnia temu</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d miesiąc temu</item>
-        <item quantity="few">%1$d miesiące temu</item>
-        <item quantity="many">%1$d miesięcy temu</item>
-        <item quantity="other">%1$d miesiąca temu</item>
-    </plurals>
-
     <string name="appearance_title">Wygląd</string>
     <string name="appearance_theme">Motyw</string>
     <string name="appearance_theme_system">Jak w systemie</string>
@@ -154,7 +134,6 @@
     <string name="modules_incompatible_legacy">Wymaga API Xposed %1$d, którego ten szkielet nie udostępnia.</string>
     <string name="modules_api_behind">Zbudowany dla API libxposed %1$d. API %2$d zmieniło interfejs, więc ten moduł może nie działać w pełni.</string>
     <string name="modules_no_daemon">Vector nie działa, więc lista modułów jest niedostępna. Otwórz stan systemu ze strony startowej, aby zobaczyć dlaczego.</string>
-    <string name="module_toggle_failed">Nie udało się zmienić %1$s. Szkielet odrzucił tę zmianę.</string>
 
     <string name="web_open_external">Otwórz w przeglądarce</string>
 
@@ -172,7 +151,6 @@
     <string name="settings_rearrange_panels_summary">Zmień ich kolejność albo ukryj te, których nigdy nie otwierasz.</string>
 
     <string name="settings_activity">Strumień aktywności</string>
-    <string name="settings_window">Historia pokazywana na stronie startowej</string>
     <plurals name="settings_window_months">
         <item quantity="one">Ostatni %1$d miesiąc</item>
         <item quantity="few">Ostatnie %1$d miesiące</item>
@@ -231,7 +209,6 @@
     <string name="action_uninstalled">Odinstalowano %1$s.</string>
     <string name="action_uninstall_failed">Nie udało się odinstalować %1$s.</string>
 
-    <string name="settings">Ustawienia</string>
     <string name="back">Wstecz</string>
     <string name="retry">Spróbuj ponownie</string>
 
@@ -311,7 +288,6 @@
     <string name="update_failed_start">Nie udało się uruchomić instalatora.</string>
     <string name="update_failed_download">Nie udało się pobrać aktualizacji.</string>
     <string name="update_failed_exit">Instalator zawiódł (kod %1$d).</string>
-    <string name="update_available">Dostępna aktualizacja</string>
     <string name="store_mute_updates">Ignoruj aktualizacje tego modułu</string>
     <string name="store_mute_updates_summary">Przestaje liczyć się jako nieaktualny, tutaj i na liście modułów</string>
     <string name="store_options">Opcje</string>

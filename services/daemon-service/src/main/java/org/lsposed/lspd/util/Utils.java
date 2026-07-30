@@ -25,15 +25,11 @@ import android.text.TextUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.zone.ZoneRulesException;
 
 public class Utils {
 
     public static final String LOG_TAG = "Vector";
     public static final boolean isMIUI = !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name"));
-    public static final boolean isLENOVO = !TextUtils.isEmpty(SystemProperties.get("ro.lenovo.region"));
 
     public class Log {
         public static final int VERBOSE = android.util.Log.VERBOSE;
@@ -152,14 +148,5 @@ public class Utils {
 
     public static void logE(String msg, Throwable throwable) {
         Log.e(LOG_TAG, msg, throwable);
-    }
-
-    public static ZoneId getZoneId() {
-        var timezone = SystemProperties.get("persist.sys.timezone", "GMT");
-        try {
-            return ZoneId.of(timezone);
-        } catch (ZoneRulesException e) {
-            return ZoneOffset.UTC;
-        }
     }
 }

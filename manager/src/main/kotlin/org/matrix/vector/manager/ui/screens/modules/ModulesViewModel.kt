@@ -298,10 +298,6 @@ class ModulesViewModel(
         _selection.update { if (key in it) it - key else it + key }
     }
 
-    fun selectAll(modules: List<InstalledModule>) {
-        _selection.update { it + modules.map { m -> ModuleKey(m.packageName, m.userId) } }
-    }
-
     fun clearSelection() {
         _selection.value = emptySet()
     }

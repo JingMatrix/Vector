@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Rimuovi il filtro</string>
     <string name="logs_filter_scanning">Lettura dell\'intero file, così il filtro vede oltre quello che c\'è sullo schermo.</string>
 
-    <string name="logs_level_verbose">Dettagliato</string>
-    <string name="logs_level_debug">Debug</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Avviso</string>
-    <string name="logs_level_error">Errore</string>
-    <string name="logs_level_fatal">Fatale</string>
-    <string name="logs_level_other">Altro</string>
-
     <string name="logs_window">Righe %1$d–%2$d di %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d riga corrispondente</item>

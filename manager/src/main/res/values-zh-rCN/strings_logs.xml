@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">清除筛选</string>
     <string name="logs_filter_scanning">正在读取整个文件，以便筛选能覆盖屏幕之外的内容。</string>
 
-    <string name="logs_level_verbose">详细</string>
-    <string name="logs_level_debug">调试</string>
-    <string name="logs_level_info">信息</string>
-    <string name="logs_level_warn">警告</string>
-    <string name="logs_level_error">错误</string>
-    <string name="logs_level_fatal">致命</string>
-    <string name="logs_level_other">其他</string>
-
     <string name="logs_window">第 %1$d–%2$d 行，共 %3$d 行</string>
     <plurals name="logs_matches">
         <item quantity="other">%1$d 行匹配</item>

@@ -21,7 +21,6 @@
         <item quantity="other">%1$d обновлений</item>
     </plurals>
     <string name="store_all_current">всё установленное актуально</string>
-    <string name="store_offline">Показан сохранённый каталог</string>
     <string name="store_badge_update">Обновить до %1$s</string>
     <string name="store_badge_reinstall">Переустановить %1$s</string>
     <string name="store_badge_installed">Установлен</string>
@@ -40,7 +39,6 @@
     <string name="store_open_release">Открыть на GitHub</string>
     <string name="store_open_module">Открыть страницу модуля</string>
     <string name="store_install">Установить</string>
-    <string name="store_update">Обновить</string>
     <string name="store_reinstall">Переустановить</string>
     <string name="store_choose_asset">Выберите файл для установки</string>
     <plurals name="store_asset_downloads">

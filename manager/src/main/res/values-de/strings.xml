@@ -87,20 +87,6 @@
         <item quantity="other">%1$d Tage still</item>
     </plurals>
 
-    <string name="time_yesterday">gestern</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">vor %1$d Tag</item>
-        <item quantity="other">vor %1$d Tagen</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">vor %1$d Woche</item>
-        <item quantity="other">vor %1$d Wochen</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">vor %1$d Monat</item>
-        <item quantity="other">vor %1$d Monaten</item>
-    </plurals>
-
     <string name="appearance_title">Darstellung</string>
     <string name="appearance_theme">Design</string>
     <string name="appearance_theme_system">System folgen</string>
@@ -138,7 +124,6 @@
     <string name="modules_incompatible_legacy">Benötigt Xposed-API %1$d, die dieses Framework nicht bereitstellt.</string>
     <string name="modules_api_behind">Für libxposed-API %1$d gebaut. API %2$d hat die Schnittstelle geändert, daher funktioniert dieses Modul möglicherweise nicht vollständig.</string>
     <string name="modules_no_daemon">Vector läuft nicht, deshalb ist die Modulliste nicht verfügbar. Öffne den Systemstatus auf der Startseite, um zu sehen, warum.</string>
-    <string name="module_toggle_failed">%1$s konnte nicht geändert werden. Das Framework hat die Änderung abgelehnt.</string>
 
     <string name="web_open_external">Im Browser öffnen</string>
 
@@ -156,7 +141,6 @@
     <string name="settings_rearrange_panels_summary">Ändere ihre Reihenfolge oder blende aus, was du nie öffnest.</string>
 
     <string name="settings_activity">Aktivitätsverlauf</string>
-    <string name="settings_window">Auf der Startseite gezeigter Verlauf</string>
     <plurals name="settings_window_months">
         <item quantity="one">Letzter %1$d Monat</item>
         <item quantity="other">Letzte %1$d Monate</item>
@@ -213,7 +197,6 @@
     <string name="action_uninstalled">%1$s deinstalliert.</string>
     <string name="action_uninstall_failed">%1$s konnte nicht deinstalliert werden.</string>
 
-    <string name="settings">Einstellungen</string>
     <string name="back">Zurück</string>
     <string name="retry">Erneut versuchen</string>
 
@@ -289,7 +272,6 @@
     <string name="update_failed_start">Das Installationsprogramm ließ sich nicht starten.</string>
     <string name="update_failed_download">Das Update konnte nicht geladen werden.</string>
     <string name="update_failed_exit">Das Installationsprogramm ist fehlgeschlagen (Exit %1$d).</string>
-    <string name="update_available">Update verfügbar</string>
     <string name="store_mute_updates">Updates für dieses Modul ignorieren</string>
     <string name="store_mute_updates_summary">Es gilt hier und in der Modulliste nicht mehr als veraltet</string>
     <string name="store_options">Optionen</string>

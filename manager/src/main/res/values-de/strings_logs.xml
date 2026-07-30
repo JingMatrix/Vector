@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Filter löschen</string>
     <string name="logs_filter_scanning">Die ganze Datei wird gelesen, damit der Filter über das Sichtbare hinaus greift.</string>
 
-    <string name="logs_level_verbose">Ausführlich</string>
-    <string name="logs_level_debug">Debug</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Warnung</string>
-    <string name="logs_level_error">Fehler</string>
-    <string name="logs_level_fatal">Fatal</string>
-    <string name="logs_level_other">Sonstige</string>
-
     <string name="logs_window">Zeilen %1$d–%2$d von %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d passende Zeile</item>

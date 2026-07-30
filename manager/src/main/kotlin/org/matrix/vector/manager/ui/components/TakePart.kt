@@ -89,7 +89,7 @@ fun TakePartSection(
         ) {
             // A screen rather than a link to the Actions page, which shows an anonymous visitor
             // that a build exists and then refuses to hand it over. The screen lists the builds
-            // without a sign-in and explains what signing in would buy.
+            // without a sign-in.
             Door(
                 Icons.Rounded.Science,
                 stringResource(R.string.home_test_canary),

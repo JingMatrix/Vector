@@ -17,7 +17,6 @@
         <item quantity="other">%1$d 个可更新</item>
     </plurals>
     <string name="store_all_current">已安装的都是最新版</string>
-    <string name="store_offline">正在显示已保存的目录</string>
 
     <string name="store_badge_update">可更新至 %1$s</string>
     <string name="store_badge_reinstall">重新安装 %1$s</string>
@@ -41,7 +40,6 @@
     <string name="store_open_module">打开模块页面</string>
 
     <string name="store_install">安装</string>
-    <string name="store_update">更新</string>
     <string name="store_reinstall">重新安装</string>
     <string name="store_choose_asset">选择要安装的文件</string>
     <plurals name="store_asset_downloads">

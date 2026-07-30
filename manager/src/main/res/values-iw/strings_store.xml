@@ -23,7 +23,6 @@
         <item quantity="other">%1$d עדכונים</item>
     </plurals>
     <string name="store_all_current">כל מה שיש לכם עדכני</string>
-    <string name="store_offline">מוצג הקטלוג השמור</string>
 
     <string name="store_badge_update">עדכון ל-%1$s</string>
     <string name="store_badge_reinstall">התקנה מחדש של %1$s</string>
@@ -47,7 +46,6 @@
     <string name="store_open_module">פתיחת דף המודול</string>
 
     <string name="store_install">התקנה</string>
-    <string name="store_update">עדכון</string>
     <string name="store_reinstall">התקנה מחדש</string>
     <string name="store_choose_asset">בחרו קובץ להתקנה</string>
     <plurals name="store_asset_downloads">

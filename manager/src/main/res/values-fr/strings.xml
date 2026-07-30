@@ -87,20 +87,6 @@
         <item quantity="other">%1$d jours de calme</item>
     </plurals>
 
-    <string name="time_yesterday">hier</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">il y a %1$d jour</item>
-        <item quantity="other">il y a %1$d jours</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">il y a %1$d semaine</item>
-        <item quantity="other">il y a %1$d semaines</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">il y a %1$d mois</item>
-        <item quantity="other">il y a %1$d mois</item>
-    </plurals>
-
     <string name="appearance_title">Apparence</string>
     <string name="appearance_theme">Thème</string>
     <string name="appearance_theme_system">Suivre le système</string>
@@ -138,7 +124,6 @@
     <string name="modules_incompatible_legacy">Nécessite l\'API Xposed %1$d, que ce framework ne fournit pas.</string>
     <string name="modules_api_behind">Conçu pour l’API libxposed %1$d. L’API %2$d a modifié l’interface : ce module peut ne pas fonctionner entièrement.</string>
     <string name="modules_no_daemon">Vector ne fonctionne pas, la liste des modules est donc indisponible. Ouvrez l\'état du système depuis l\'accueil pour savoir pourquoi.</string>
-    <string name="module_toggle_failed">Impossible de modifier %1$s. Le framework a refusé la modification.</string>
 
     <string name="web_open_external">Ouvrir dans le navigateur</string>
 
@@ -156,7 +141,6 @@
     <string name="settings_rearrange_panels_summary">Changez leur ordre, ou masquez celles que vous n\'ouvrez jamais.</string>
 
     <string name="settings_activity">Fil d\'activité</string>
-    <string name="settings_window">Historique affiché sur l\'accueil</string>
     <plurals name="settings_window_months">
         <item quantity="one">Dernier %1$d mois</item>
         <item quantity="other">%1$d derniers mois</item>
@@ -213,7 +197,6 @@
     <string name="action_uninstalled">%1$s désinstallée.</string>
     <string name="action_uninstall_failed">Impossible de désinstaller %1$s.</string>
 
-    <string name="settings">Paramètres</string>
     <string name="back">Retour</string>
     <string name="retry">Réessayer</string>
 
@@ -289,7 +272,6 @@
     <string name="update_failed_start">Impossible de lancer l\'installateur.</string>
     <string name="update_failed_download">Impossible de télécharger la mise à jour.</string>
     <string name="update_failed_exit">L\'installateur a échoué (code %1$d).</string>
-    <string name="update_available">Mise à jour disponible</string>
     <string name="store_mute_updates">Ignorer les mises à jour de ce module</string>
     <string name="store_mute_updates_summary">Il ne comptera plus comme obsolète, ici comme dans la liste des modules</string>
     <string name="store_options">Options</string>

@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">Hapus saringan</string>
     <string name="logs_filter_scanning">Membaca seluruh berkas agar saringan bisa melihat melampaui apa yang ada di layar.</string>
 
-    <string name="logs_level_verbose">Rinci</string>
-    <string name="logs_level_debug">Debug</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Peringatan</string>
-    <string name="logs_level_error">Kesalahan</string>
-    <string name="logs_level_fatal">Fatal</string>
-    <string name="logs_level_other">Lainnya</string>
-
     <string name="logs_window">Baris %1$d–%2$d dari %3$d</string>
     <plurals name="logs_matches">
         <item quantity="other">%1$d baris cocok</item>

@@ -14,14 +14,6 @@
     <string name="logs_filter_clear">پاک کردن پالایه</string>
     <string name="logs_filter_scanning">کل پرونده خوانده می‌شود تا پالایه فراتر از آنچه روی نمایشگر است را ببیند.</string>
 
-    <string name="logs_level_verbose">پرگو</string>
-    <string name="logs_level_debug">اشکال‌زدایی</string>
-    <string name="logs_level_info">اطلاع</string>
-    <string name="logs_level_warn">هشدار</string>
-    <string name="logs_level_error">خطا</string>
-    <string name="logs_level_fatal">مرگبار</string>
-    <string name="logs_level_other">دیگر</string>
-
     <string name="logs_window">سطرهای %1$d–%2$d از %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d سطر هم‌خوان</item>

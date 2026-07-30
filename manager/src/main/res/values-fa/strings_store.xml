@@ -19,7 +19,6 @@
         <item quantity="other">%1$d به‌روزرسانی</item>
     </plurals>
     <string name="store_all_current">هر چه دارید تازه است</string>
-    <string name="store_offline">فهرست ذخیره‌شده نمایش داده می‌شود</string>
 
     <string name="store_badge_update">به‌روزرسانی به %1$s</string>
     <string name="store_badge_reinstall">نصب دوباره %1$s</string>
@@ -43,7 +42,6 @@
     <string name="store_open_module">باز کردن صفحهٔ ماژول</string>
 
     <string name="store_install">نصب</string>
-    <string name="store_update">به‌روزرسانی</string>
     <string name="store_reinstall">نصب دوباره</string>
     <string name="store_choose_asset">پرونده‌ای برای نصب برگزینید</string>
     <plurals name="store_asset_downloads">

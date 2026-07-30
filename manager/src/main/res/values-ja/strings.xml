@@ -82,17 +82,6 @@
         <item quantity="other">%1$d 日間の静けさ</item>
     </plurals>
 
-    <string name="time_yesterday">昨日</string>
-    <plurals name="time_days_ago">
-        <item quantity="other">%1$d 日前</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="other">%1$d 週間前</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="other">%1$d か月前</item>
-    </plurals>
-
     <string name="appearance_title">外観</string>
     <string name="appearance_theme">テーマ</string>
     <string name="appearance_theme_system">システムに合わせる</string>
@@ -130,7 +119,6 @@
     <string name="modules_incompatible_legacy">Xposed API %1$d が必要ですが、このフレームワークは提供していません。</string>
     <string name="modules_api_behind">libxposed API %1$d 向けにビルドされています。API %2$d でインターフェースが変わったため、完全には動作しない可能性があります。</string>
     <string name="modules_no_daemon">Vector が動作していないため、モジュール一覧を取得できません。理由はホームのシステム状態で確認できます。</string>
-    <string name="module_toggle_failed">%1$s を変更できませんでした。フレームワークが変更を拒否しました。</string>
 
     <string name="web_open_external">ブラウザーで開く</string>
 
@@ -148,7 +136,6 @@
     <string name="settings_rearrange_panels_summary">並び順を変えたり、開かないものを隠したりできます。</string>
 
     <string name="settings_activity">活動フィード</string>
-    <string name="settings_window">ホームに表示する期間</string>
     <plurals name="settings_window_months">
         <item quantity="other">直近 %1$d か月</item>
     </plurals>
@@ -204,7 +191,6 @@
     <string name="action_uninstalled">%1$s をアンインストールしました。</string>
     <string name="action_uninstall_failed">%1$s をアンインストールできませんでした。</string>
 
-    <string name="settings">設定</string>
     <string name="back">戻る</string>
     <string name="retry">再試行</string>
 
@@ -278,7 +264,6 @@
     <string name="update_failed_start">インストーラーを起動できませんでした。</string>
     <string name="update_failed_download">更新をダウンロードできませんでした。</string>
     <string name="update_failed_exit">インストーラーが失敗しました（終了コード %1$d）。</string>
-    <string name="update_available">更新があります</string>
     <string name="store_mute_updates">このモジュールの更新を無視する</string>
     <string name="store_mute_updates_summary">ここでもモジュール一覧でも、古いものとして数えられなくなります</string>
     <string name="store_options">オプション</string>

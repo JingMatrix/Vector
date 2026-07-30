@@ -82,17 +82,6 @@
         <item quantity="other">%1$d일간 잠잠</item>
     </plurals>
 
-    <string name="time_yesterday">어제</string>
-    <plurals name="time_days_ago">
-        <item quantity="other">%1$d일 전</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="other">%1$d주 전</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="other">%1$d개월 전</item>
-    </plurals>
-
     <string name="appearance_title">모양</string>
     <string name="appearance_theme">테마</string>
     <string name="appearance_theme_system">시스템 설정 따르기</string>
@@ -130,7 +119,6 @@
     <string name="modules_incompatible_legacy">Xposed API %1$d이(가) 필요하지만 이 프레임워크는 제공하지 않습니다.</string>
     <string name="modules_api_behind">libxposed API %1$d용으로 빌드되었습니다. API %2$d에서 인터페이스가 바뀌어 이 모듈이 완전히 작동하지 않을 수 있습니다.</string>
     <string name="modules_no_daemon">Vector가 실행 중이 아니라 모듈 목록을 가져올 수 없습니다. 이유는 홈의 시스템 상태에서 확인하세요.</string>
-    <string name="module_toggle_failed">%1$s을(를) 변경하지 못했습니다. 프레임워크가 변경을 거부했습니다.</string>
 
     <string name="web_open_external">브라우저에서 열기</string>
 
@@ -148,7 +136,6 @@
     <string name="settings_rearrange_panels_summary">순서를 바꾸거나, 열지 않는 패널을 숨깁니다.</string>
 
     <string name="settings_activity">활동 피드</string>
-    <string name="settings_window">홈에 표시할 기간</string>
     <plurals name="settings_window_months">
         <item quantity="other">최근 %1$d개월</item>
     </plurals>
@@ -204,7 +191,6 @@
     <string name="action_uninstalled">%1$s을(를) 제거했습니다.</string>
     <string name="action_uninstall_failed">%1$s을(를) 제거하지 못했습니다.</string>
 
-    <string name="settings">설정</string>
     <string name="back">뒤로</string>
     <string name="retry">다시 시도</string>
 
@@ -278,7 +264,6 @@
     <string name="update_failed_start">설치 프로그램을 시작하지 못했습니다.</string>
     <string name="update_failed_download">업데이트를 내려받지 못했습니다.</string>
     <string name="update_failed_exit">설치 프로그램이 실패했습니다(종료 코드 %1$d).</string>
-    <string name="update_available">업데이트 있음</string>
     <string name="store_mute_updates">이 모듈의 업데이트 무시</string>
     <string name="store_mute_updates_summary">여기서도 모듈 목록에서도 더 이상 오래된 것으로 세지 않습니다</string>
     <string name="store_options">옵션</string>
