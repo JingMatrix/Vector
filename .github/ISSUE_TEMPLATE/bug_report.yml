@@ -5,11 +5,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting issues of LSPosed!
+        Thanks for reporting issues of Vector!
 
         To make it easier for us to help you, please read all pinned issues and provide the following details.
 
-        感谢给 LSPosed 汇报问题！
+        感谢给 Vector 汇报问题！
         为了使我们更好地帮助你，请务必阅读所有已置顶的 Issues 并提供以下细节。
         为了防止重复汇报，标题请务必使用英文。
   - type: textarea
@@ -54,7 +54,7 @@ body:
       required: true
   - type: input
     attributes:
-      label: LSPosed version/LSPosed 版本
+      label: Vector version/Vector 版本
       description: Don't use 'latest'. Specify actual version with 4 digits, otherwise your issue will be closed./不要填用“最新版”。给出四位版本号，不然 issue 会被关闭。
     validations:
       required: true
@@ -69,7 +69,7 @@ body:
     attributes:
       label: Version requirement/版本要求
       options:
-        - label: I am using the latest debug build from [GitHub Actions](https://github.com/JingMatrix/LSPosed/actions?query=branch%3Amaster)./我正在使用 [GitHub Actions](https://github.com/JingMatrix/LSPosed/actions?query=branch%3Amaster) 中最新的调试版本。
+        - label: I am using the latest debug build from [GitHub Actions](https://github.com/JingMatrix/Vector/actions?query=branch%3Amaster)./我正在使用 [GitHub Actions](https://github.com/JingMatrix/Vector/actions?query=branch%3Amaster) 中最新的调试版本。
           required: true
   - type: textarea
     attributes:
