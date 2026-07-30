@@ -238,6 +238,7 @@
     <string name="modules_scope_framework">Podpina się pod szkielet systemu</string>
     <string name="scope_origin_locked">Ustalone przez moduł</string>
     <string name="scope_origin_chosen">Twój wybór</string>
+    <string name="scope_origin_derived">Zawsze w zakresie</string>
     <string name="modules_selection_clear">Wyczyść zaznaczenie</string>
     <plurals name="modules_selected">
         <item quantity="one">Zaznaczono %1$d</item>
@@ -310,6 +311,7 @@
     <string name="store_mute_updates_summary">Przestaje liczyć się jako nieaktualny, tutaj i na liście modułów</string>
     <string name="store_options">Opcje</string>
     <string name="scope_framework_shared">Jeden proces wspólny dla wszystkich użytkowników, więc dotyczy to całego urządzenia</string>
+    <string name="scope_self_hook">Ten moduł jest ładowany do własnej aplikacji i w ten sposób zgłasza, że działa</string>
     <string name="update_no_output">Instalator nie wypisał nic.</string>
     <string name="update_variant_release">Stabilna</string>
     <string name="update_variant_debug">Debug</string>

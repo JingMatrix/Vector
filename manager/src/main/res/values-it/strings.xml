@@ -220,6 +220,7 @@
     <string name="modules_scope_framework">Aggancia il framework di sistema</string>
     <string name="scope_origin_locked">Fissata dal modulo</string>
     <string name="scope_origin_chosen">Scelta tua</string>
+    <string name="scope_origin_derived">Sempre nell\'ambito</string>
     <string name="modules_selection_clear">Annulla la selezione</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d selezionato</item>
@@ -288,6 +289,7 @@
     <string name="store_mute_updates_summary">Smette di contare come non aggiornato, qui e nell\'elenco dei moduli</string>
     <string name="store_options">Opzioni</string>
     <string name="scope_framework_shared">Un solo processo condiviso da tutti gli utenti: riguarda l\'intero dispositivo</string>
+    <string name="scope_self_hook">Questo modulo viene caricato nella sua stessa app: è così che segnala di essere attivo</string>
     <string name="update_no_output">Il programma di installazione non ha prodotto output.</string>
     <string name="update_variant_release">Stabile</string>
     <string name="update_variant_debug">Debug</string>

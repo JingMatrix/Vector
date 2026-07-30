@@ -211,6 +211,7 @@
     <string name="modules_scope_framework">시스템 프레임워크를 후킹함</string>
     <string name="scope_origin_locked">모듈이 고정함</string>
     <string name="scope_origin_chosen">직접 선택함</string>
+    <string name="scope_origin_derived">항상 적용 범위에 포함</string>
     <string name="modules_selection_clear">선택 해제</string>
     <plurals name="modules_selected">
         <item quantity="other">%1$d개 선택됨</item>
@@ -277,6 +278,7 @@
     <string name="store_mute_updates_summary">여기서도 모듈 목록에서도 더 이상 오래된 것으로 세지 않습니다</string>
     <string name="store_options">옵션</string>
     <string name="scope_framework_shared">모든 사용자가 함께 쓰는 하나의 프로세스라, 기기 전체에 영향을 줍니다</string>
+    <string name="scope_self_hook">이 모듈은 자기 앱에 로드되며, 그렇게 해서 활성 상태임을 알립니다</string>
     <string name="update_no_output">설치 프로그램이 아무것도 출력하지 않았습니다.</string>
     <string name="update_variant_release">정식</string>
     <string name="update_variant_debug">디버그</string>

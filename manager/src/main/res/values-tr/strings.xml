@@ -220,6 +220,7 @@
     <string name="modules_scope_framework">Sistem çatısına hook takar</string>
     <string name="scope_origin_locked">Modül tarafından sabitlendi</string>
     <string name="scope_origin_chosen">Sizin seçiminiz</string>
+    <string name="scope_origin_derived">Her zaman kapsamda</string>
     <string name="modules_selection_clear">Seçimi temizle</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d seçildi</item>
@@ -288,6 +289,7 @@
     <string name="store_mute_updates_summary">Ne burada ne de modül listesinde artık eski sayılır</string>
     <string name="store_options">Seçenekler</string>
     <string name="scope_framework_shared">Tüm kullanıcıların paylaştığı tek bir süreç, dolayısıyla bu cihazın tamamını etkiler</string>
+    <string name="scope_self_hook">Bu modül kendi uygulamasına yüklenir, etkin olduğunu böyle bildirir</string>
     <string name="update_no_output">Kurulum programı hiçbir çıktı üretmedi.</string>
     <string name="update_variant_release">Kararlı</string>
     <string name="update_variant_debug">Hata ayıklama</string>

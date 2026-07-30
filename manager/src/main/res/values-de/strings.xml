@@ -220,6 +220,7 @@
     <string name="modules_scope_framework">Hookt das System-Framework</string>
     <string name="scope_origin_locked">Vom Modul festgelegt</string>
     <string name="scope_origin_chosen">Deine Wahl</string>
+    <string name="scope_origin_derived">Immer im Geltungsbereich</string>
     <string name="modules_selection_clear">Auswahl aufheben</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d ausgewählt</item>
@@ -288,6 +289,7 @@
     <string name="store_mute_updates_summary">Es gilt hier und in der Modulliste nicht mehr als veraltet</string>
     <string name="store_options">Optionen</string>
     <string name="scope_framework_shared">Ein Prozess, den sich alle Benutzer teilen — das betrifft das ganze Gerät</string>
+    <string name="scope_self_hook">Dieses Modul wird in seine eigene App geladen — so meldet es, dass es aktiv ist</string>
     <string name="update_no_output">Das Installationsprogramm hat nichts ausgegeben.</string>
     <string name="update_variant_release">Release</string>
     <string name="update_variant_debug">Debug</string>

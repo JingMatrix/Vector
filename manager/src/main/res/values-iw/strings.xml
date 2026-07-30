@@ -242,6 +242,7 @@
     <string name="modules_scope_framework">מתחבר למסגרת המערכת</string>
     <string name="scope_origin_locked">נקבע על ידי המודול</string>
     <string name="scope_origin_chosen">הבחירה שלכם</string>
+    <string name="scope_origin_derived">תמיד בתחום</string>
     <string name="modules_selection_clear">ניקוי הבחירה</string>
     <plurals name="modules_selected">
         <item quantity="one">נבחר אחד</item>
@@ -314,6 +315,7 @@
     <string name="store_mute_updates_summary">הוא יפסיק להיחשב מיושן, כאן וברשימת המודולים</string>
     <string name="store_options">אפשרויות</string>
     <string name="scope_framework_shared">תהליך אחד שכל המשתמשים חולקים, ולכן זה משפיע על כל המכשיר</string>
+    <string name="scope_self_hook">המודול הזה נטען לתוך האפליקציה של עצמו, וכך הוא מדווח שהוא פעיל</string>
     <string name="update_no_output">תוכנית ההתקנה לא הדפיסה דבר.</string>
     <string name="update_variant_release">יציבה</string>
     <string name="update_variant_debug">ניפוי שגיאות</string>

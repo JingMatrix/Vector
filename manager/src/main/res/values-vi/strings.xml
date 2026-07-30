@@ -211,6 +211,7 @@
     <string name="modules_scope_framework">Hook framework hệ thống</string>
     <string name="scope_origin_locked">Do mô-đun cố định</string>
     <string name="scope_origin_chosen">Bạn chọn</string>
+    <string name="scope_origin_derived">Luôn trong phạm vi</string>
     <string name="modules_selection_clear">Bỏ chọn</string>
     <plurals name="modules_selected">
         <item quantity="other">Đã chọn %1$d</item>
@@ -277,6 +278,7 @@
     <string name="store_mute_updates_summary">Nó thôi bị tính là cũ, ở đây và trong danh sách mô-đun</string>
     <string name="store_options">Tuỳ chọn</string>
     <string name="scope_framework_shared">Một tiến trình dùng chung cho mọi người dùng, nên việc này ảnh hưởng toàn thiết bị</string>
+    <string name="scope_self_hook">Mô-đun này được nạp vào chính ứng dụng của nó, đó là cách nó báo rằng mình đang hoạt động</string>
     <string name="update_no_output">Trình cài đặt không xuất ra gì cả.</string>
     <string name="update_variant_release">Chính thức</string>
     <string name="update_variant_debug">Gỡ lỗi</string>

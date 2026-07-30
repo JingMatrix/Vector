@@ -238,6 +238,7 @@
     <string name="modules_scope_framework">Перехоплює системний фреймворк</string>
     <string name="scope_origin_locked">Задано модулем</string>
     <string name="scope_origin_chosen">Ваш вибір</string>
+    <string name="scope_origin_derived">Завжди в області дії</string>
     <string name="modules_selection_clear">Зняти вибір</string>
     <plurals name="modules_selected">
         <item quantity="one">Вибрано %1$d</item>
@@ -310,6 +311,7 @@
     <string name="store_mute_updates_summary">Він перестане рахуватися застарілим — і тут, і в переліку модулів</string>
     <string name="store_options">Параметри</string>
     <string name="scope_framework_shared">Один процес, спільний для всіх користувачів, тож це стосується всього пристрою</string>
+    <string name="scope_self_hook">Цей модуль завантажується у власний застосунок — так він і повідомляє, що активний</string>
     <string name="update_no_output">Встановлювач нічого не вивів.</string>
     <string name="update_variant_release">Стабільна</string>
     <string name="update_variant_debug">Зневаджувальна</string>

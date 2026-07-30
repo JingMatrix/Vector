@@ -211,6 +211,7 @@
     <string name="modules_scope_framework">システムフレームワークをフック</string>
     <string name="scope_origin_locked">モジュールが固定</string>
     <string name="scope_origin_chosen">あなたの選択</string>
+    <string name="scope_origin_derived">常に適用範囲内</string>
     <string name="modules_selection_clear">選択を解除</string>
     <plurals name="modules_selected">
         <item quantity="other">%1$d 個選択中</item>
@@ -277,6 +278,7 @@
     <string name="store_mute_updates_summary">ここでもモジュール一覧でも、古いものとして数えられなくなります</string>
     <string name="store_options">オプション</string>
     <string name="scope_framework_shared">すべてのユーザーが共有する 1 つのプロセスなので、端末全体に影響します</string>
+    <string name="scope_self_hook">このモジュールは自分自身のアプリに読み込まれ、そうやって有効であることを伝えます</string>
     <string name="update_no_output">インストーラーは何も出力しませんでした。</string>
     <string name="update_variant_release">正式版</string>
     <string name="update_variant_debug">デバッグ版</string>

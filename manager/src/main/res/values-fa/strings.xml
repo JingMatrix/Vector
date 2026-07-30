@@ -220,6 +220,7 @@
     <string name="modules_scope_framework">به چارچوب سامانه قلاب می‌زند</string>
     <string name="scope_origin_locked">ثابت‌شده از سوی ماژول</string>
     <string name="scope_origin_chosen">گزینش شما</string>
+    <string name="scope_origin_derived">همیشه در دامنه</string>
     <string name="modules_selection_clear">برداشتن گزینش</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d گزیده</item>
@@ -288,6 +289,7 @@
     <string name="store_mute_updates_summary">دیگر نه اینجا و نه در فهرست ماژول‌ها قدیمی شمرده نمی‌شود</string>
     <string name="store_options">گزینه‌ها</string>
     <string name="scope_framework_shared">یک فرایند که همهٔ کاربران در آن شریک‌اند، پس این کل دستگاه را تحت تأثیر می‌گذارد</string>
+    <string name="scope_self_hook">این ماژول در برنامهٔ خودش بارگذاری می‌شود و به همین شکل فعال‌بودنش را گزارش می‌کند</string>
     <string name="update_no_output">نصب‌کننده چیزی چاپ نکرد.</string>
     <string name="update_variant_release">نهایی</string>
     <string name="update_variant_debug">اشکال‌زدایی</string>

@@ -211,6 +211,7 @@
     <string name="modules_scope_framework">掛鉤系統框架</string>
     <string name="scope_origin_locked">由模組固定</string>
     <string name="scope_origin_chosen">你的選擇</string>
+    <string name="scope_origin_derived">永遠在範圍內</string>
     <string name="modules_selection_clear">取消選取</string>
     <plurals name="modules_selected">
         <item quantity="other">已選取 %1$d 個</item>
@@ -278,6 +279,7 @@
     <string name="store_mute_updates_summary">在此處與模組列表中都不再計為過期</string>
     <string name="store_options">選項</string>
     <string name="scope_framework_shared">所有使用者共用的同一個行程，因此這會影響整台裝置</string>
+    <string name="scope_self_hook">此模組會載入自己的應用程式，它正是以此回報自己已生效</string>
     <string name="update_no_output">安裝程式沒有任何輸出。</string>
     <string name="update_variant_release">正式版</string>
     <string name="update_variant_debug">偵錯版</string>

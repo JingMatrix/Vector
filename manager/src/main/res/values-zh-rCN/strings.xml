@@ -211,6 +211,7 @@
     <string name="modules_scope_framework">挂钩系统框架</string>
     <string name="scope_origin_locked">由模块固定</string>
     <string name="scope_origin_chosen">你的选择</string>
+    <string name="scope_origin_derived">始终在作用域内</string>
     <string name="modules_selection_clear">取消选择</string>
     <plurals name="modules_selected">
         <item quantity="other">已选 %1$d 个</item>
@@ -278,6 +279,7 @@
     <string name="store_mute_updates_summary">在此处与模块列表中都不再计为过期</string>
     <string name="store_options">选项</string>
     <string name="scope_framework_shared">所有用户共用的同一个进程，因此这会影响整台设备</string>
+    <string name="scope_self_hook">此模块会被加载到自己的应用中，它正是以此报告自己已生效</string>
     <string name="update_no_output">安装程序没有任何输出。</string>
     <string name="update_variant_release">正式版</string>
     <string name="update_variant_debug">调试版</string>

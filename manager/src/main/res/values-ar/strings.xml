@@ -256,6 +256,7 @@
     <string name="modules_scope_framework">يربط إطار النظام</string>
     <string name="scope_origin_locked">ثابت من الوحدة</string>
     <string name="scope_origin_chosen">اختيارك</string>
+    <string name="scope_origin_derived">دائمًا في النطاق</string>
     <string name="modules_selection_clear">إلغاء التحديد</string>
     <plurals name="modules_selected">
         <item quantity="zero">لم يُحدَّد شيء</item>
@@ -332,6 +333,7 @@
     <string name="store_mute_updates_summary">لن تُحتسب قديمة بعد الآن، لا هنا ولا في قائمة الوحدات</string>
     <string name="store_options">خيارات</string>
     <string name="scope_framework_shared">عملية واحدة يتشاركها جميع المستخدمين، لذا يؤثر هذا في الجهاز كله</string>
+    <string name="scope_self_hook">تُحمَّل هذه الوحدة داخل تطبيقها الخاص، وبهذا تُبلغ أنها فعّالة</string>
     <string name="update_no_output">لم يُخرج برنامج التثبيت أي شيء.</string>
     <string name="update_variant_release">نهائي</string>
     <string name="update_variant_debug">تنقيح</string>
