@@ -270,6 +270,15 @@ object ConfigCache {
       }
 
       val newScopes = mutableMapOf<ProcessScope, MutableList<Module>>()
+
+      // A module can reach the same process by more than one route: self rows in two users each
+      // propagate into the other's, and the scope derived below can name a process a row named as
+      // well. Twice in the list is twice loaded, so every insertion goes through here.
+      fun addToScope(processName: String, uid: Int, module: Module) {
+        val modules = newScopes.getOrPut(ProcessScope(processName, uid)) { mutableListOf() }
+        if (modules.none { it === module }) modules.add(module)
+      }
+
       ModuleDatabase.enabledScopeRows().forEach { scopeRow ->
         val appPkg = scopeRow.appPackage
         val modPkg = scopeRow.modulePackage
@@ -278,7 +287,7 @@ object ConfigCache {
         val module = newModules[modPkg] ?: return@forEach
 
         if (appPkg == "system") {
-          newScopes.getOrPut(ProcessScope("system_server", 1000)) { mutableListOf() }.add(module)
+          addToScope("system_server", 1000, module)
           return@forEach
         }
 
@@ -291,21 +300,39 @@ object ConfigCache {
         val appUid = pkgInfo.applicationInfo!!.uid
 
         for (processName in processNames) {
-          val processScope = ProcessScope(processName, appUid)
-          newScopes.getOrPut(processScope) { mutableListOf() }.add(module)
+          addToScope(processName, appUid, module)
 
           if (modPkg == appPkg) {
             val appId = appUid % PER_USER_RANGE
             userManager?.getRealUsers()?.forEach { user ->
               val moduleUid = user.id * PER_USER_RANGE + appId
-              if (moduleUid != appUid) {
-                val moduleSelf = ProcessScope(processName, moduleUid)
-                newScopes.getOrPut(moduleSelf) { mutableListOf() }.add(module)
-              }
+              if (moduleUid != appUid) addToScope(processName, moduleUid, module)
             }
           }
         }
       }
+
+      // A legacy module reports being active by hooking a method in its own app, so it has to be
+      // in its own scope before it can say anything at all. The manager used to add that row on
+      // every save and hide it again on read; #796 dropped both halves, and every legacy module
+      // has reported itself inactive since (#816).
+      //
+      // Derived here rather than stored, so a configuration written by those builds needs no
+      // repair and nothing that replaces the scope table can drop it again. Legacy is the
+      // loader's own verdict, so a module built against API 101 keeps its own process to itself.
+      newModules.values
+          .filter { it.file?.legacy == true }
+          .forEach { module ->
+            userManager?.getRealUsers()?.forEach { user ->
+              val pkgInfo =
+                  packageManager?.getPackageInfoWithComponents(
+                      module.packageName, MATCH_ALL_FLAGS, user.id) ?: return@forEach
+              val moduleUid = pkgInfo.applicationInfo?.uid ?: return@forEach
+              pkgInfo.fetchProcesses().forEach { processName ->
+                addToScope(processName, moduleUid, module)
+              }
+            }
+          }
 
       // --- ATOMIC STATE SWAP ---
       //
