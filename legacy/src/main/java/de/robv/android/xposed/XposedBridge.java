@@ -174,13 +174,17 @@ public final class XposedBridge {
      */
     public static XC_MethodHook.Unhook hookMethod(Member hookMethod, XC_MethodHook callback) {
         if (!(hookMethod instanceof Executable)) {
-            throw new IllegalArgumentException("Only methods and constructors can be hooked: " + hookMethod);
+            throw new IllegalArgumentException("Only methods and constructors can be hooked, not " + hookMethod);
         } else if (Modifier.isAbstract(hookMethod.getModifiers())) {
-            throw new IllegalArgumentException("Cannot hook abstract methods: " + hookMethod);
+            throw new IllegalArgumentException(hookMethod + " is abstract: it has no body to hook. Hook the concrete override instead.");
         } else if (hookMethod.getDeclaringClass().getClassLoader() == XposedBridge.class.getClassLoader()) {
-            throw new IllegalArgumentException("Do not allow hooking inner methods");
+            throw new IllegalArgumentException(hookMethod + " belongs to Vector itself. Hooking the framework would hook the code running your hook.");
         } else if (hookMethod.getDeclaringClass() == Method.class && hookMethod.getName().equals("invoke")) {
-            throw new IllegalArgumentException("Cannot hook Method.invoke");
+            throw new IllegalArgumentException("Method.invoke cannot be hooked: Vector calls it to run the original of every hooked method, so a hook here would call itself forever.");
+        } else if (hookMethod.getDeclaringClass() == Object.class && hookMethod.getName().equals("getClass")) {
+            // Since AGP 9, R8 compiles Kotlin null checks into Object.getClass(), so the dispatch
+            // calls it entering every hooked method; a hook here re-enters the dispatch. See #798.
+            throw new IllegalArgumentException("Object.getClass cannot be hooked: Vector's dispatch calls it entering every hooked method, so a hook here would call itself forever.");
         }
 
         if (callback == null) {

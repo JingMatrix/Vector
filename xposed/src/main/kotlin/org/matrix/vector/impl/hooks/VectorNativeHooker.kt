@@ -34,23 +34,41 @@ class VectorHookBuilder(
 
     override fun intercept(hooker: Hooker): HookHandle {
         if (Modifier.isAbstract(origin.modifiers)) {
-            throw IllegalArgumentException("Cannot hook abstract methods: $origin")
+            throw IllegalArgumentException(
+                "$origin is abstract: it has no body to hook. Hook the concrete override instead."
+            )
         } else if (origin.declaringClass.classLoader == VectorHookBuilder::class.java.classLoader) {
-            throw IllegalArgumentException("Do not allow hooking inner methods")
+            throw IllegalArgumentException(
+                "$origin belongs to Vector itself. Hooking the framework would hook the code running your hook."
+            )
         } else if (
             origin is Method &&
                 origin.declaringClass == Method::class.java &&
                 origin.name == "invoke"
         ) {
-            throw IllegalArgumentException("Cannot hook Method.invoke")
+            throw IllegalArgumentException(
+                "Method.invoke cannot be hooked: Vector calls it to run the original of every hooked method, so a hook here would call itself forever."
+            )
         } else if (
             origin is Method &&
                 origin.declaringClass == Constructor::class.java &&
                 origin.name == "newInstance"
         ) {
-            // Named alongside Method.invoke by the API: the framework reflects through both, so
-            // hooking either recurses into the hook dispatch.
-            throw IllegalArgumentException("Cannot hook Constructor.newInstance")
+            throw IllegalArgumentException(
+                "Constructor.newInstance cannot be hooked: Vector reflects through it the same way it does Method.invoke, so a hook here would recurse."
+            )
+        } else if (
+            origin is Method &&
+                origin.declaringClass == Any::class.java &&
+                origin.name == "getClass"
+        ) {
+            // The compiler, not the framework, is what makes this recurse: since AGP 9 R8 compiles
+            // Kotlin null checks into Object.getClass(), so the dispatch calls it entering every
+            // hooked method. See #798. If you meant a getClass override on another class, hook that
+            // class; Class.getMethods() lists the inherited one, which is not what you want.
+            throw IllegalArgumentException(
+                "Object.getClass cannot be hooked: Vector's dispatch calls it entering every hooked method, so a hook here would call itself forever."
+            )
         }
 
         // Resolve DEFAULT here rather than at throw time: the record is stored natively and
