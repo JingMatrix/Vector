@@ -290,9 +290,9 @@ lsplant::ScopedLocalRef<jobject> IPCBridge::RequestAppBinder(JNIEnv *env, jstrin
                 env->NewGlobalRef(heartbeat_binder.get());
             }
         }
-    } else {
-        LOGD("Transact call to request app binder failed.");
     }
+    // No else: a false transaction is the daemon declining, which is the ordinary answer for a
+    // process no module has in scope. The caller logs that outcome, with the process name.
 
     return result_binder;
 }

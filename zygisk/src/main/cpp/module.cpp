@@ -324,12 +324,14 @@ void VectorModule::postAppSpecialize(const zygisk::AppSpecializeArgs *args) {
 
     // --- Framework Injection ---
     lsplant::JUTFString nice_name_str(env_, args->nice_name);
-    LOGD("Attempting injection into '{}'.", nice_name_str.get());
+    LOGD("Asking the daemon about '{}'.", nice_name_str.get());
 
     auto &ipc_bridge = IPCBridge::GetInstance();
     auto binder = ipc_bridge.RequestAppBinder(env_, args->nice_name);
     if (!binder) {
-        LOGD("No IPC binder obtained for '{}'. Skipping injection.", nice_name_str.get());
+        // Usually because nothing has it in scope, but the daemon may also not be up yet or have
+        // registered this process already. Only it knows which, and it logs the reason itself.
+        LOGD("Not injecting '{}': the daemon has no binder for it.", nice_name_str.get());
         SetAllowUnload(true);
         return;
     }
