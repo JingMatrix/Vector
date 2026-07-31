@@ -175,6 +175,7 @@
     <string name="modules_updating">Updating %1$s — %2$d of %3$d</string>
     <string name="modules_updates_title">Modules to update</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">Reinstall %1$s · %2$s</string>
     <string name="modules_update_ignored">Ignored</string>
     <string name="modules_update_selected">Update %1$d</string>
     <string name="modules_active_of">%1$d of %2$d active</string>
@@ -273,6 +274,7 @@
     <string name="action_not_in_store_summary">Updates for this module cannot be checked</string>
     <string name="action_update_to">Update to %1$s</string>
     <string name="action_update_from">From %1$s · %2$s</string>
+    <string name="action_reinstall_same">Same version · %1$s</string>
     <string name="action_update_running">Installing…</string>
     <string name="action_update_no_apk">This release has no APK to install</string>
     <string name="action_update_choose">Several builds — choose one in the store</string>

@@ -20,6 +20,7 @@
     <string name="store_offline">保存済みのカタログを表示しています</string>
 
     <string name="store_badge_update">%1$s に更新</string>
+    <string name="store_badge_reinstall">%1$s を再インストール</string>
     <string name="store_badge_installed">インストール済み</string>
     <string name="store_badge_prerelease">プレリリース</string>
     <string name="store_updated_on">%1$s に更新</string>

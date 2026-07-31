@@ -20,6 +20,7 @@
     <string name="store_offline">Menampilkan katalog tersimpan</string>
 
     <string name="store_badge_update">Perbarui ke %1$s</string>
+    <string name="store_badge_reinstall">Pasang ulang %1$s</string>
     <string name="store_badge_installed">Terpasang</string>
     <string name="store_badge_prerelease">Pra-rilis</string>
     <string name="store_updated_on">Diperbarui %1$s</string>

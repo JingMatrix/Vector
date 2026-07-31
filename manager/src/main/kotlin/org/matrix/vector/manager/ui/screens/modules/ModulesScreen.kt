@@ -1373,6 +1373,16 @@ private fun ModuleUpdatesSheet(
                                         when {
                                             row.asset == null ->
                                                 stringResource(R.string.action_update_choose)
+                                            // "1.1.1 → 1.1.1" is not a thing to say to anyone.
+                                            row.entry.sameVersion ->
+                                                stringResource(
+                                                    R.string.modules_update_reinstall,
+                                                    row.entry.latest?.versionName.orEmpty(),
+                                                    Formatter.formatShortFileSize(
+                                                        context,
+                                                        row.asset.size,
+                                                    ),
+                                                )
                                             else ->
                                                 stringResource(
                                                     R.string.modules_update_versions,

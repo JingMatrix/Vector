@@ -314,6 +314,7 @@
     <string name="action_not_in_store_summary">Bu modülün güncellemeleri denetlenemez</string>
     <string name="action_update_to">%1$s sürümüne güncelle</string>
     <string name="action_update_from">%1$s sürümünden · %2$s</string>
+    <string name="action_reinstall_same">Aynı sürüm · %1$s</string>
     <string name="action_update_running">Yükleniyor…</string>
     <string name="action_update_no_apk">Bu sürümde yüklenecek APK yok</string>
     <string name="action_update_choose">Birden çok yapı — depodan seçin</string>
@@ -322,6 +323,7 @@
     <string name="modules_updating">%1$s güncelleniyor — %3$d modülden %2$d.</string>
     <string name="modules_updates_title">Güncellenecek modüller</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">%1$s sürümünü yeniden kur · %2$s</string>
     <string name="modules_update_ignored">Yok sayılıyor</string>
     <string name="modules_update_selected">%1$d modülü güncelle</string>
     <plurals name="modules_updates">

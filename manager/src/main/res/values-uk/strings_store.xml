@@ -26,6 +26,7 @@
     <string name="store_offline">Показано збережений каталог</string>
 
     <string name="store_badge_update">Оновити до %1$s</string>
+    <string name="store_badge_reinstall">Перевстановити %1$s</string>
     <string name="store_badge_installed">Встановлено</string>
     <string name="store_badge_prerelease">Попередній випуск</string>
     <string name="store_updated_on">Оновлено %1$s</string>

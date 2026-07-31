@@ -22,6 +22,7 @@
     <string name="store_offline">فهرست ذخیره‌شده نمایش داده می‌شود</string>
 
     <string name="store_badge_update">به‌روزرسانی به %1$s</string>
+    <string name="store_badge_reinstall">نصب دوباره %1$s</string>
     <string name="store_badge_installed">نصب‌شده</string>
     <string name="store_badge_prerelease">پیش‌انتشار</string>
     <string name="store_updated_on">به‌روز شده در %1$s</string>

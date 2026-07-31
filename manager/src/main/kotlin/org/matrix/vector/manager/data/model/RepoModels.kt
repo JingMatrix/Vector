@@ -145,6 +145,21 @@ data class RepoVersion(val versionCode: Long, val versionName: String) {
         versionCode > installedCode ||
             (versionCode == installedCode && installedName.replace(' ', '_') != versionName)
 
+    /**
+     * Whether installing this would leave the reader on the version they already have, by name.
+     *
+     * Which is all the offer can be worded as when it is true. Two different things reach here — a
+     * rebuild of the same version under a higher code, and a tag whose code is simply not the APK's
+     * — and nothing in either number tells them apart, so the wording has to be true of both. What
+     * is certain in both is where the reader ends up: on this version name again.
+     *
+     * The underscores are the same normalisation [upgradableOver] applies, and for the same reason:
+     * a git tag cannot carry a space, so an author whose versionName has one writes it with an
+     * underscore.
+     */
+    fun sameVersionAs(installed: RepoVersion?): Boolean =
+        installed != null && installed.versionName.replace(' ', '_') == versionName
+
     companion object {
         fun parse(raw: String?): RepoVersion? {
             val text = raw?.takeIf { it.isNotBlank() } ?: return null
@@ -203,6 +218,16 @@ data class StoreEntry(
     /** The newest release is one we installed, and the device still reports what it left behind. */
     private val alreadyInstalled: Boolean
         get() = storeInstall?.satisfies(latest, installed) == true
+
+    /**
+     * The offer would not change which version this device says it has. See [sameVersionAs].
+     *
+     * Read by everything that *words* an offer, because `1.1.1 → 1.1.1` is a sentence the app cannot
+     * mean. [upgradable] deliberately does not consult it: whether to offer at all is a different
+     * question from what to call it, and a rebuild is worth offering.
+     */
+    val sameVersion: Boolean
+        get() = latest?.sameVersionAs(installed) == true
 
     /**
      * There is a newer version *and* the reader wants to hear about it.

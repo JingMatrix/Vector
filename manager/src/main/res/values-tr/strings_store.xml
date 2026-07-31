@@ -22,6 +22,7 @@
     <string name="store_offline">Kayıtlı katalog gösteriliyor</string>
 
     <string name="store_badge_update">%1$s sürümüne güncelle</string>
+    <string name="store_badge_reinstall">%1$s sürümünü yeniden kur</string>
     <string name="store_badge_installed">Kurulu</string>
     <string name="store_badge_prerelease">Ön sürüm</string>
     <string name="store_updated_on">%1$s tarihinde güncellendi</string>

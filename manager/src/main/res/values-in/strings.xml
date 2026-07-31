@@ -307,6 +307,7 @@
     <string name="action_not_in_store_summary">Pembaruan modul ini tidak dapat diperiksa</string>
     <string name="action_update_to">Perbarui ke %1$s</string>
     <string name="action_update_from">Dari %1$s · %2$s</string>
+    <string name="action_reinstall_same">Versi sama · %1$s</string>
     <string name="action_update_running">Memasang…</string>
     <string name="action_update_no_apk">Rilis ini tidak memuat APK</string>
     <string name="action_update_choose">Beberapa build — pilih satu di toko</string>
@@ -315,6 +316,7 @@
     <string name="modules_updating">Memperbarui %1$s — %2$d dari %3$d</string>
     <string name="modules_updates_title">Modul untuk diperbarui</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">Pasang ulang %1$s · %2$s</string>
     <string name="modules_update_ignored">Diabaikan</string>
     <string name="modules_update_selected">Perbarui %1$d</string>
     <plurals name="modules_updates">

@@ -30,6 +30,7 @@
     <string name="store_offline">يُعرض الفهرس المحفوظ</string>
 
     <string name="store_badge_update">التحديث إلى %1$s</string>
+    <string name="store_badge_reinstall">إعادة تثبيت %1$s</string>
     <string name="store_badge_installed">مثبَّتة</string>
     <string name="store_badge_prerelease">إصدار تجريبي</string>
     <string name="store_updated_on">حُدِّثت في %1$s</string>

@@ -22,6 +22,7 @@
     <string name="store_offline">Mostrando el catálogo guardado</string>
 
     <string name="store_badge_update">Actualizar a %1$s</string>
+    <string name="store_badge_reinstall">Reinstalar %1$s</string>
     <string name="store_badge_installed">Instalado</string>
     <string name="store_badge_prerelease">Preversión</string>
     <string name="store_updated_on">Actualizado el %1$s</string>

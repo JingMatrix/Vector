@@ -23,6 +23,7 @@
     <string name="store_all_current">всё установленное актуально</string>
     <string name="store_offline">Показан сохранённый каталог</string>
     <string name="store_badge_update">Обновить до %1$s</string>
+    <string name="store_badge_reinstall">Переустановить %1$s</string>
     <string name="store_badge_installed">Установлен</string>
     <string name="store_badge_prerelease">Предварительный</string>
     <string name="store_updated_on">Обновлён %1$s</string>

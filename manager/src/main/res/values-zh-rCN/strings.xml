@@ -304,6 +304,7 @@
     <string name="action_not_in_store_summary">无法检查此模块的更新</string>
     <string name="action_update_to">更新到 %1$s</string>
     <string name="action_update_from">当前 %1$s · %2$s</string>
+    <string name="action_reinstall_same">同一版本 · %1$s</string>
     <string name="action_update_running">正在安装…</string>
     <string name="action_update_no_apk">此版本没有可安装的 APK</string>
     <string name="action_update_choose">有多个构建 — 请在仓库中选择</string>
@@ -312,6 +313,7 @@
     <string name="modules_updating">正在更新 %1$s — 第 %2$d 个，共 %3$d 个</string>
     <string name="modules_updates_title">待更新的模块</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">重新安装 %1$s · %2$s</string>
     <string name="modules_update_ignored">已忽略</string>
     <string name="modules_update_selected">更新 %1$d 个</string>
     <plurals name="modules_updates">

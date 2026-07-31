@@ -469,7 +469,8 @@ private fun InstallBar(
                             when {
                                 state.upgradable ->
                                     stringResource(
-                                        R.string.store_badge_update,
+                                        if (state.sameVersion) R.string.store_badge_reinstall
+                                        else R.string.store_badge_update,
                                         state.latest?.versionName.orEmpty(),
                                     )
                                 state.installed != null -> stringResource(R.string.store_reinstall)

@@ -26,6 +26,7 @@
     <string name="store_offline">מוצג הקטלוג השמור</string>
 
     <string name="store_badge_update">עדכון ל-%1$s</string>
+    <string name="store_badge_reinstall">התקנה מחדש של %1$s</string>
     <string name="store_badge_installed">מותקן</string>
     <string name="store_badge_prerelease">גרסה מקדימה</string>
     <string name="store_updated_on">עודכן ב-%1$s</string>

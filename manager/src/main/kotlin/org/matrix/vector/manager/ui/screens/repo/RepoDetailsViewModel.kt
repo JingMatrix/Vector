@@ -62,6 +62,10 @@ data class RepoDetailsState(
                 latest != null &&
                 storeInstall?.satisfies(latest, installed) != true &&
                 latest.upgradableOver(installed.versionCode, installed.versionName)
+
+    /** As `StoreEntry.sameVersion`: what the bar may call the offer, not whether to make it. */
+    val sameVersion: Boolean
+        get() = latest?.sameVersionAs(installed) == true
 }
 
 class RepoDetailsViewModel(

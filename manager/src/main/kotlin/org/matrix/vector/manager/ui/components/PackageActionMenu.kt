@@ -587,7 +587,11 @@ private fun ModuleUpdateSection(
         ActionRow(
             icon = Icons.Rounded.ArrowCircleUp,
             title =
-                stringResource(R.string.action_update_to, entry.latest?.versionName.orEmpty()),
+                stringResource(
+                    if (entry.sameVersion) R.string.store_badge_reinstall
+                    else R.string.action_update_to,
+                    entry.latest?.versionName.orEmpty(),
+                ),
             subtitle =
                 when {
                     busy -> stringResource(R.string.action_update_running)
@@ -596,6 +600,13 @@ private fun ModuleUpdateSection(
                     // them needs the names and sizes the store page already lays out. Sending the
                     // reader there is better than picking one on their behalf.
                     apks.size > 1 -> stringResource(R.string.action_update_choose)
+                    // The title already names the version; saying "from 1.1.1" under "Reinstall
+                    // 1.1.1" would only invite the reader to look for the difference.
+                    entry.sameVersion ->
+                        stringResource(
+                            R.string.action_reinstall_same,
+                            Formatter.formatShortFileSize(context, apks.first().size),
+                        )
                     else ->
                         stringResource(
                             R.string.action_update_from,

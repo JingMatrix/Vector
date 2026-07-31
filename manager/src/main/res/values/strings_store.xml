@@ -32,6 +32,7 @@
 
     <!-- Rows -->
     <string name="store_badge_update">Update to %1$s</string>
+    <string name="store_badge_reinstall">Reinstall %1$s</string>
     <string name="store_badge_installed">Installed</string>
     <string name="store_badge_prerelease">Prerelease</string>
     <!-- Example: "Updated 23 Jul 2026" -->

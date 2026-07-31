@@ -340,6 +340,7 @@
     <string name="action_not_in_store_summary">לא ניתן לבדוק עדכונים למודול הזה</string>
     <string name="action_update_to">עדכון ל-%1$s</string>
     <string name="action_update_from">מ-%1$s · %2$s</string>
+    <string name="action_reinstall_same">אותה גרסה · %1$s</string>
     <string name="action_update_running">מתקין…</string>
     <string name="action_update_no_apk">למהדורה הזו אין APK להתקנה</string>
     <string name="action_update_choose">כמה גרסאות — בחר אחת בחנות</string>
@@ -348,6 +349,7 @@
     <string name="modules_updating">מעדכן את %1$s — %2$d מתוך %3$d</string>
     <string name="modules_updates_title">מודולים לעדכון</string>
     <string name="modules_update_versions">%1$s ← %2$s · %3$s</string>
+    <string name="modules_update_reinstall">התקנה מחדש של %1$s · %2$s</string>
     <string name="modules_update_ignored">מתעלמים</string>
     <string name="modules_update_selected">עדכון %1$d</string>
     <plurals name="modules_updates">

@@ -317,6 +317,7 @@
     <string name="action_not_in_store_summary">Обновления этого модуля проверить нельзя</string>
     <string name="action_update_to">Обновить до %1$s</string>
     <string name="action_update_from">С %1$s · %2$s</string>
+    <string name="action_reinstall_same">Та же версия · %1$s</string>
     <string name="action_update_running">Установка…</string>
     <string name="action_update_no_apk">В этом выпуске нет APK для установки</string>
     <string name="action_update_choose">Несколько сборок — выберите в репозитории</string>
@@ -325,6 +326,7 @@
     <string name="modules_updating">Обновление %1$s — %2$d из %3$d</string>
     <string name="modules_updates_title">Модули для обновления</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">Переустановить %1$s · %2$s</string>
     <string name="modules_update_ignored">Игнорируется</string>
     <string name="modules_update_selected">Обновить %1$d</string>
     <plurals name="modules_updates">

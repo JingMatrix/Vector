@@ -20,6 +20,7 @@
     <string name="store_offline">Đang hiện danh mục đã lưu</string>
 
     <string name="store_badge_update">Cập nhật lên %1$s</string>
+    <string name="store_badge_reinstall">Cài lại %1$s</string>
     <string name="store_badge_installed">Đã cài</string>
     <string name="store_badge_prerelease">Phát hành thử</string>
     <string name="store_updated_on">Cập nhật %1$s</string>

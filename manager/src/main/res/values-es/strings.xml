@@ -314,6 +314,7 @@
     <string name="action_not_in_store_summary">No se pueden comprobar actualizaciones de este módulo</string>
     <string name="action_update_to">Actualizar a %1$s</string>
     <string name="action_update_from">Desde %1$s · %2$s</string>
+    <string name="action_reinstall_same">Misma versión · %1$s</string>
     <string name="action_update_running">Instalando…</string>
     <string name="action_update_no_apk">Esta versión no incluye ningún APK</string>
     <string name="action_update_choose">Varias compilaciones: elige una en la tienda</string>
@@ -322,6 +323,7 @@
     <string name="modules_updating">Actualizando %1$s: %2$d de %3$d</string>
     <string name="modules_updates_title">Módulos para actualizar</string>
     <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
+    <string name="modules_update_reinstall">Reinstalar %1$s · %2$s</string>
     <string name="modules_update_ignored">Ignorado</string>
     <string name="modules_update_selected">Actualizar %1$d</string>
     <plurals name="modules_updates">

@@ -22,6 +22,7 @@
     <string name="store_offline">Gespeicherter Katalog</string>
 
     <string name="store_badge_update">Update auf %1$s</string>
+    <string name="store_badge_reinstall">%1$s neu installieren</string>
     <string name="store_badge_installed">Installiert</string>
     <string name="store_badge_prerelease">Vorabversion</string>
     <string name="store_updated_on">Aktualisiert %1$s</string>

@@ -20,6 +20,7 @@
     <string name="store_offline">저장된 카탈로그를 표시합니다</string>
 
     <string name="store_badge_update">%1$s(으)로 업데이트</string>
+    <string name="store_badge_reinstall">%1$s 다시 설치</string>
     <string name="store_badge_installed">설치됨</string>
     <string name="store_badge_prerelease">사전 릴리스</string>
     <string name="store_updated_on">%1$s 업데이트</string>

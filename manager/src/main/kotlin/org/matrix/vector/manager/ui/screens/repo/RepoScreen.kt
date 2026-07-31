@@ -396,7 +396,8 @@ private fun StoreRow(entry: StoreEntry, onClick: () -> Unit) {
                         icon = Icons.Rounded.Upgrade,
                         text =
                             stringResource(
-                                R.string.store_badge_update,
+                                if (entry.sameVersion) R.string.store_badge_reinstall
+                                else R.string.store_badge_update,
                                 entry.latest?.versionName.orEmpty(),
                             ),
                         tint = colors.primary,

@@ -20,6 +20,7 @@
     <string name="store_offline">正在显示已保存的目录</string>
 
     <string name="store_badge_update">可更新至 %1$s</string>
+    <string name="store_badge_reinstall">重新安装 %1$s</string>
     <string name="store_badge_installed">已安装</string>
     <string name="store_badge_prerelease">预发布</string>
     <string name="store_updated_on">更新于 %1$s</string>
