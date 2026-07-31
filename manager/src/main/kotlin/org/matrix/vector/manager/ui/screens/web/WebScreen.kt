@@ -2,7 +2,6 @@ package org.matrix.vector.manager.ui.screens.web
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.ViewGroup
@@ -93,19 +92,9 @@ fun WebScreen(url: String, onNavigateBack: () -> Unit) {
     var secure by remember { mutableStateOf(url.startsWith("https")) }
     var barVisible by remember { mutableStateOf(true) }
 
-    // The night bit is read from the context the WebView is constructed with, so forcing it here is
-    // what makes the page follow Vector's own theme rather than the system's.
-    val themedContext =
-        remember(dark) {
-            val config =
-                Configuration(context.resources.configuration).apply {
-                    uiMode =
-                        (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
-                            if (dark) Configuration.UI_MODE_NIGHT_YES
-                            else Configuration.UI_MODE_NIGHT_NO
-                }
-            context.createConfigurationContext(config)
-        }
+    // Both the page's colour scheme and whether it may reach the network at all are decided by the
+    // context this is built with, and cannot be changed afterwards. See [forWebView].
+    val themedContext = remember(dark) { context.forWebView(dark) }
 
     val webView =
         remember(themedContext) {

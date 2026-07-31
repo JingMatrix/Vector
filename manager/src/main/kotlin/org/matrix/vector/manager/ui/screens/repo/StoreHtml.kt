@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.ui.screens.repo
 
-import android.content.Context
-import android.content.res.Configuration
 import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.ViewConfiguration
@@ -28,6 +26,7 @@ import java.io.ByteArrayInputStream
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.manager.ui.screens.web.forWebView
 
 /**
  * Repository-supplied HTML — a README, or a release's notes — rendered inside Vector.
@@ -91,8 +90,9 @@ private fun HtmlPane(
 
     // A WebView reads prefers-color-scheme from the configuration of the context it was built
     // with. The stylesheet below covers our own markup, but a README using <picture> with a
-    // dark-mode <source> picks its image from this.
-    val themedContext = remember(dark) { context.forNightMode(dark) }
+    // dark-mode <source> picks its image from this. The same context is what decides whether the
+    // pane may fetch anything, which parasitically it otherwise may not — see [forWebView].
+    val themedContext = remember(dark) { context.forWebView(dark) }
 
     val webView =
         remember(themedContext) {
@@ -214,16 +214,6 @@ private val TRANSPARENT_GIF =
         0x02, 0x02, 0x44, 0x01, 0x00, // one pixel of LZW
         0x3B, // trailer
     )
-
-private fun Context.forNightMode(dark: Boolean): Context {
-    val configuration =
-        Configuration(resources.configuration).apply {
-            uiMode =
-                (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
-                    if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
-        }
-    return createConfigurationContext(configuration)
-}
 
 private fun Color.isDark(): Boolean = (0.299f * red + 0.587f * green + 0.114f * blue) < 0.5f
 
