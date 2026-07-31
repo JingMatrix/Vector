@@ -50,12 +50,18 @@ class MainActivity : ComponentActivity() {
         // splash then plays and decides for itself when the daemon has been given long enough.
         splash.setKeepOnScreenCondition { false }
 
-        // The launch intent can name where to open — the module a notification was about. Offered
-        // on a first creation only: `getIntent` keeps answering the same intent for the life of the
-        // task, so offering it again would drag the reader back to that module every time they
-        // rotated the phone away from it, and after process death the restored back stack already
-        // has them where they left off.
-        if (savedInstanceState == null) DeepLink.offer(intent)
+        // The launch intent can name where to open — the module a notification was about.
+        //
+        // Offered on every creation, including a restored one. Parasitically the zygisk hooker
+        // saves and restores this activity's state itself, so an activity started by a notification
+        // arrives *with* a bundle and cannot tell itself apart from a rotation by looking at one:
+        // guarding on `savedInstanceState == null`, which is the obvious reading, skipped the offer
+        // on exactly the launch that mattered and left the previous tap's destination to be applied
+        // instead — one module's notification opened another module's scope editor.
+        //
+        // Applying it twice is prevented where it can be judged properly, in the shell, by looking
+        // at where the reader already is.
+        DeepLink.offer(intent)
 
         setContent { LocalizedContent { VectorTheme { SplashGate { VectorApp() } } } }
     }

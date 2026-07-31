@@ -60,6 +60,12 @@ fun VectorApp() {
     val pending by DeepLink.pending.collectAsStateWithLifecycle()
     LaunchedEffect(pending) {
         val destination = DeepLink.consume() ?: return@LaunchedEffect
+        // Already there, so nothing to do. This is what makes it safe for the activity to offer its
+        // launch intent on every creation: a rotation re-offers the same destination, and re-running
+        // the navigation below would rebuild the stack under the reader for no reason. A second tap
+        // on a notification for the module they have since navigated away from is a different
+        // matter, and still moves them.
+        if (navigator.current == (destination.detail ?: destination.tab)) return@LaunchedEffect
         // The tab goes down first and the screen on top of it: a notification about a module opens
         // that module's scope editor, and back from there should be the module list rather than the
         // door out of the app it just opened. Switching also discards whatever detail screen was
