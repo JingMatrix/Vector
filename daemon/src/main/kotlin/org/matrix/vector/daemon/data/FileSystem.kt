@@ -204,10 +204,25 @@ object FileSystem {
                     }
                   }
               if (!props.getProperty("staticScope").toBoolean()) return@use null
-              val entry = zip.getEntry("META-INF/xposed/scope.list") ?: return@use emptySet()
-              zip.getInputStream(entry).bufferedReader().useLines { lines ->
-                lines.filter { it.isNotEmpty() }.toSet()
+              val claimed =
+                  zip.getEntry("META-INF/xposed/scope.list")?.let { entry ->
+                    zip.getInputStream(entry).bufferedReader().useLines { lines ->
+                      lines.map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+                    }
+                  } ?: emptySet()
+              // A module that fixes its scope and then names nothing has fixed it at "no apps at
+              // all": every write through here is refused, and pruneScopeToClaimed deletes the rows
+              // the user had already chosen on the next cache rebuild. That is a packaging mistake
+              // rather than an intention — a module ships staticScope=true with a scope.list it
+              // forgot to generate — and the cost of reading it literally is a module that can
+              // never hook anything, silently. So the declaration is ignored and the scope stays
+              // the user's; the manager's ModuleDetection ignores it too, so the picker it draws
+              // and the writes accepted here agree about what the module may hook.
+              if (claimed.isEmpty()) {
+                Log.w(TAG, "$apkPath fixes its scope but names nothing; ignoring staticScope")
+                return@use null
               }
+              claimed
             }
           }
           .onFailure { Log.w(TAG, "Cannot read the scope list of $apkPath", it) }
