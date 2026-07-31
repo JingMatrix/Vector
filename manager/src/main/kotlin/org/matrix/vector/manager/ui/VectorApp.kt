@@ -7,7 +7,9 @@ import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -20,6 +22,7 @@ import org.matrix.vector.manager.ui.navigation.Canary
 import org.matrix.vector.manager.ui.screens.canary.CanaryScreen
 import org.matrix.vector.manager.ui.navigation.Troubleshoot
 import org.matrix.vector.manager.ui.screens.report.TroubleshootScreen
+import org.matrix.vector.manager.ui.navigation.DeepLink
 import org.matrix.vector.manager.ui.navigation.LocalNavigator
 import org.matrix.vector.manager.ui.navigation.Navigator
 import org.matrix.vector.manager.ui.navigation.Scope
@@ -50,6 +53,20 @@ import org.matrix.vector.manager.ui.screens.web.WebScreen
 @Composable
 fun VectorApp() {
     val navigator = rememberNavigator()
+
+    // Where the launch intent asked to open. The activity has no back stack to act on, so it leaves
+    // the destination here and this is the first place there is one — on a cold start the splash is
+    // still playing when the intent arrives.
+    val pending by DeepLink.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(pending) {
+        val destination = DeepLink.consume() ?: return@LaunchedEffect
+        // The tab goes down first and the screen on top of it: a notification about a module opens
+        // that module's scope editor, and back from there should be the module list rather than the
+        // door out of the app it just opened. Switching also discards whatever detail screen was
+        // already up, so the reader is not left with a stale one buried underneath.
+        navigator.switchTo(destination.tab)
+        destination.detail?.let { navigator.go(it) }
+    }
 
     CompositionLocalProvider(LocalNavigator provides navigator) {
         // The bar shows only at the root of a tab. On a detail screen none of the four items is

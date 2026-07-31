@@ -1,5 +1,6 @@
 package org.matrix.vector.manager.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import org.matrix.vector.manager.data.repository.LaunchShortcut
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.manager.ui.navigation.DeepLink
 import org.matrix.vector.manager.ui.screens.splash.SplashGate
 import org.matrix.vector.manager.ui.theme.LocalizedContent
 import org.matrix.vector.manager.ui.theme.VectorTheme
@@ -48,6 +50,25 @@ class MainActivity : ComponentActivity() {
         // splash then plays and decides for itself when the daemon has been given long enough.
         splash.setKeepOnScreenCondition { false }
 
+        // The launch intent can name where to open — the module a notification was about. Offered
+        // on a first creation only: `getIntent` keeps answering the same intent for the life of the
+        // task, so offering it again would drag the reader back to that module every time they
+        // rotated the phone away from it, and after process death the restored back stack already
+        // has them where they left off.
+        if (savedInstanceState == null) DeepLink.offer(intent)
+
         setContent { LocalizedContent { VectorTheme { SplashGate { VectorApp() } } } }
+    }
+
+    /**
+     * A second launch while the manager is already up.
+     *
+     * `launchMode` is `singleTop`, so tapping a notification reuses this activity instead of
+     * starting another one and the new intent arrives here rather than at [onCreate]. Without this
+     * the app would stay on whatever it was already showing and the notification would look broken.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        DeepLink.offer(intent)
     }
 }
