@@ -106,6 +106,17 @@ class ScopeViewModel(
      */
     private val draftScope = MutableStateFlow<Set<ScopeTarget>>(emptySet())
 
+    /**
+     * Every target the reader has ticked or unticked on this visit, whichever way it ended up.
+     *
+     * Only the list's own filters read it, and only to keep a row present. Unticking is an edit
+     * like any other and the row has to survive it — an app that vanishes the moment it is
+     * unticked cannot be re-ticked, so a slip becomes permanent for as long as the reader does not
+     * think to go and turn a filter on. It never shrinks: a row put in play stays in play until
+     * the screen is left, which is the point.
+     */
+    private val touched = MutableStateFlow<Set<ScopeTarget>>(emptySet())
+
     private val _uiState = MutableStateFlow(ScopeUiState())
     val uiState: StateFlow<ScopeUiState> = _uiState.asStateFlow()
 
@@ -219,6 +230,7 @@ class ScopeViewModel(
             // The saved set as well as the draft: the difference between them is what "newly
             // ticked" means, and the order below leads with it.
             .combine(savedScope) { filters, saved -> filters.copy(saved = saved) }
+            .combine(touched) { filters, t -> filters.copy(touched = t) }
             // Two typed halves rather than one list of Any. The inputs outnumber the arities
             // `combine` provides, and carrying them positionally through a `List<Any>` and casting
             // each one back out lets a rename or a reorder compile and then fail at runtime.
@@ -257,35 +269,41 @@ class ScopeViewModel(
                             filters.query.isBlank() ||
                                 app.appName.contains(filters.query, ignoreCase = true) ||
                                 app.packageName.contains(filters.query, ignoreCase = true)
-                        // An app already in the scope is never filtered away. Otherwise a default
-                        // filter can hide a target the user deliberately chose, and the list then
-                        // disagrees with what the module is actually hooking.
-                        // Derived counts as chosen throughout, so the module's own row survives
-                        // every filter — including the module filter, which is off by default and
-                        // would otherwise hide the row this whole exemption exists to show.
-                        val chosen =
+                        // A row the reader is working with is never filtered away — and unticking
+                        // it is working with it. Keying this on the draft alone meant that
+                        // unticking a system app dropped it through the default filter and out of
+                        // the list mid-edit, taking with it the only tick that could undo the
+                        // mistake. So a row counts as in play if it was in force when this screen
+                        // opened, is in the draft now, or has been touched during this visit.
+                        // Derived counts throughout, so the module's own row survives every filter
+                        // — including the module filter, which is off by default and would
+                        // otherwise hide the row this whole exemption exists to show.
+                        val target = ScopeTarget(app.packageName, app.userId)
+                        val inPlay =
                             implicit(app) ||
-                                ScopeTarget(app.packageName, app.userId) in filters.draft
-                        if (filters.recommendedOnly) {
-                            // Answers one question — what does this module want, and what have I
-                            // given it — and the other filters have no say in it. Chrome is a
-                            // system app, so letting them apply would show nothing at all for a
+                                target in filters.draft ||
+                                target in filters.saved ||
+                                target in filters.touched
+                        if (locked || filters.recommendedOnly) {
+                            // Both answer one question — what does this module want, and what have
+                            // I given it — and the other filters have no say in either. Chrome is
+                            // a system app, so letting them apply would show nothing at all for a
                             // module asking for Chrome unless the reader had also thought to turn
-                            // system apps on. The screen greys the other three out while this is
-                            // on, and this is the code that makes that honest rather than
-                            // decorative.
-                            return@filter matchesQuery &&
-                                (chosen || app.packageName in recommended)
+                            // system apps on; a module that fixes its scope on system packages,
+                            // which is most of them, showed an empty list for exactly that reason.
+                            // The screen greys the other three out in both cases, and this is the
+                            // code that makes that honest rather than decorative.
+                            return@filter matchesQuery && (inPlay || app.packageName in recommended)
                         }
                         // The framework is a system target and is filtered like one. It needs no
                         // exemption of its own: once it is in the scope the line above puts it
                         // beyond every filter, and before it is chosen it is simply the most
                         // system of system apps, so someone who has asked not to see those has
                         // asked not to see it.
-                        val matchesSys = chosen || filters.showSystem || !app.isSystemApp
-                        val matchesGame = chosen || filters.showGames || !app.isGame
+                        val matchesSys = inPlay || filters.showSystem || !app.isSystemApp
+                        val matchesGame = inPlay || filters.showGames || !app.isGame
                         val matchesModule =
-                            chosen || showMods || modules == null || app.packageName !in modules
+                            inPlay || showMods || modules == null || app.packageName !in modules
                         matchesQuery && matchesSys && matchesGame && matchesModule
                     }
                     .map { app ->
@@ -362,6 +380,7 @@ class ScopeViewModel(
         val showGames: Boolean,
         val recommendedOnly: Boolean,
         val saved: Set<ScopeTarget> = emptySet(),
+        val touched: Set<ScopeTarget> = emptySet(),
     )
 
     private fun comparatorFor(order: ScopeSort): Comparator<AppInfo> =
@@ -567,6 +586,8 @@ class ScopeViewModel(
         // unticking it would draw an empty box beside a process the module is still loaded into.
         if (app.isImplicitInScope) return
         val target = ScopeTarget(app.packageName, app.userId)
+        // Before the draft changes, so the row cannot be filtered out by the very edit being made.
+        touched.value = touched.value + target
         draftScope.value =
             if (selected) draftScope.value + target else draftScope.value - target
     }
@@ -583,12 +604,16 @@ class ScopeViewModel(
     }
 
     fun clearAllVisible() {
-        draftScope.value =
-            draftScope.value -
-                filteredApps.value
-                    .filterNot { it.isImplicitInScope }
-                    .map { ScopeTarget(it.packageName, it.userId) }
-                    .toSet()
+        val cleared =
+            filteredApps.value
+                .filterNot { it.isImplicitInScope }
+                .map { ScopeTarget(it.packageName, it.userId) }
+                .toSet()
+        // Unticking everything visible must not empty the list as well. Without this, clearing a
+        // list of system apps removes the rows along with the ticks and leaves the reader looking
+        // at nothing, with no way to put any of it back.
+        touched.value = touched.value + cleared
+        draftScope.value = draftScope.value - cleared
     }
 
     /** Replace the draft with exactly what the module asked for. */
