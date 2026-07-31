@@ -367,12 +367,28 @@ object VectorService : IDaemonService.Stub() {
     val scopePackageName = data.path?.substring(1) ?: return // remove leading '/'
     val action = data.getQueryParameter("action") ?: return
 
+    // One prompt reaches this receiver from four places — its three buttons and its delete intent
+    // — and a swipe or the one-hour timeout fires the delete intent whether or not a button was
+    // pressed first. Answering the module twice, an approval followed by a spurious "Request
+    // timeout", would be worse than the dismissal never reaching it, so whichever of the four
+    // arrives first is the one that answers and the rest are dropped. The request is identified by
+    // the module, its user and the package it asked for; the action is deliberately not part of
+    // that, since the whole point is that a second *different* action must not answer again.
+    if (!NotificationManager.claimScopeAnswer(packageName, userId, scopePackageName)) {
+      Log.d(TAG, "Ignoring $action of $scopePackageName for $packageName: already answered")
+      return
+    }
+
     val iCallback = IXposedScopeCallback.Stub.asInterface(callbackBinder)
     runCatching {
           val appInfo = packageManager?.getPackageInfoCompat(scopePackageName, 0, userId)
           if (appInfo == null) {
+            // Leaving the whole function here skipped the cancel below, which used to be merely
+            // untidy and is now a prompt nobody can use: the request has been answered, so every
+            // later press of its buttons is dropped. The request is over either way, so the
+            // notification goes with it.
             iCallback.onScopeRequestFailed("Package not found")
-            return
+            return@runCatching
           }
           when (action) {
             "approve" -> {
@@ -396,13 +412,22 @@ object VectorService : IDaemonService.Stub() {
               PreferenceStore.updateModulePref(
                   "lspd", 0, "config", "scope_request_blocked", blocked + packageName)
               iCallback.onScopeRequestFailed("Request blocked by configuration")
+              // The preference only stops the *next* request. A module that asked for three
+              // packages has a prompt up for each, so without this the user says "never ask again"
+              // and is left looking at two more questions, both still approvable. Each withdrawn
+              // request is answered in its own right, because each of them was asked in its own
+              // right.
+              NotificationManager.withdrawScopeRequests(packageName).forEach { pending ->
+                runCatching { pending.onScopeRequestFailed("Request blocked by configuration") }
+              }
             }
           }
         }
         // onScopeRequestFailed declares @NonNull, and Throwable.message is frequently null.
         .onFailure { runCatching { iCallback.onScopeRequestFailed(it.message ?: it.toString()) } }
 
-    NotificationManager.cancelNotification(
-        NotificationManager.SCOPE_CHANNEL_ID, packageName, userId)
+    // Only this one request goes; a module that asked for several packages has a prompt still open
+    // for each of the others, and they are answered on their own.
+    NotificationManager.cancelScopeRequest(packageName, userId, scopePackageName)
   }
 }

@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import org.lsposed.lspd.models.Application
+import org.matrix.vector.daemon.system.NotificationManager
 
 private const val TAG = "VectorModuleDatabase"
 
@@ -209,7 +210,22 @@ object ModuleDatabase {
       changed = db.update("modules", values, "module_pkg_name = ?", arrayOf(packageName)) > 0
     }
 
-    if (changed) ConfigCache.requestCacheUpdate()
+    if (changed) {
+      ConfigCache.requestCacheUpdate()
+      // The shade may be telling the user this module "is not activated yet". It has just been
+      // activated, and nothing else was ever going to take that notice down: it is only marked
+      // auto-cancel, which fires when it is tapped, and the sole cancel path belonged to the scope
+      // prompt. The manager cannot do it either — the AIDL exposes no cancel, and a parasitic
+      // manager could not cancel a notification posted as "android" in any case.
+      //
+      // It lives here, at the data layer, rather than in ManagerService because this function is
+      // the single point every activation passes through: the manager's toggle, the socket CLI, a
+      // backup restore and setModuleScope's implicit enable. Putting it one level up would cover
+      // the manager alone and leave the other three lying to the user. Reaching out of the
+      // database for it is the same reach requestCacheUpdate() above already makes, and for the
+      // same reason — a row changed, and something outside has to be told.
+      NotificationManager.cancelModuleUpdated(packageName)
+    }
     return changed
   }
 
