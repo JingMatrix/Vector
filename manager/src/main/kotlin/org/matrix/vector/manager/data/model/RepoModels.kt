@@ -174,20 +174,21 @@ data class RepoVersion(val versionCode: Long, val versionName: String) {
 /**
  * A release this manager installed, and what the device said the module was afterwards.
  *
- * Two versions, because they are not the same kind of fact and for some modules not the same
- * number: [release] is what a tag claimed, [installed] is what the APK inside it turned out to be.
+ * Two versions, because they are not the same kind of fact and need not be the same number:
+ * [release] is what a tag claimed, [installed] is what the APK inside it turned out to be.
  *
  * That difference is the whole reason this is recorded. The comparison above believes the tag, and
- * for most modules it may — of the 745 catalogue entries whose newest release carries a single APK,
- * 741 state the code their APK really has. For the rest the offer cannot be satisfied by installing
- * it: `top.cbug.adbx` is tagged `4115-1.1.1` around an APK that is versionCode 4, so `4115 > 4`
- * stays true however many times it is installed, and the update sheet reads `1.1.1 → 1.1.1` for
- * ever. Seven others are stuck the same way, six of them through the name half of the tag rather
- * than the code. Nothing in the two numbers distinguishes that from a rebuild the reader does want
- * — 17 modules publish the same versionName under several codes, and 31 keep one code across every
- * release they have ever published, so the code signal is dead for those and the name signal is
- * dead for these. Rather than parse the tag harder, the Store remembers what it installed and
- * answers "you already have this one".
+ * nothing obliges an author to tag a release with the version their manifest actually states. Where
+ * the two disagree the offer cannot be satisfied by taking it: installing leaves the device on a
+ * version the tag still claims to beat, so the row asks again, and again, for ever.
+ *
+ * Nor can it be settled by reading the two numbers harder, because both halves of the comparison
+ * are load-bearing for someone: a module that never changes its tag code is only ever seen to
+ * update through the name clause, and one that reuses a versionName across several codes only
+ * through the code clause. Any rule over `(code, name)` is wrong for one of them.
+ *
+ * So the Store stops inferring and records instead. An offer it has already installed, on a device
+ * still reporting what that install produced, is one the reader has taken.
  *
  * [installed] is what makes the record expire on its own: it is checked against what the device
  * reports now, so a module replaced from anywhere else stops matching and the offer comes back.
