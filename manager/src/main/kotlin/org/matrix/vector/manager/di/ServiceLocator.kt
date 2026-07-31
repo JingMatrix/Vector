@@ -135,7 +135,8 @@ object ServiceLocator {
                 store.installedVersions,
                 settings.updateChannel,
                 settings.mutedUpdates,
-            ) { catalog, installed, channelPreference, muted ->
+                settings.storeInstalls,
+            ) { catalog, installed, channelPreference, muted, storeInstalls ->
                 val channel = StoreChannel.of(channelPreference)
                 catalog.modules
                     .filter { it.name in installed }
@@ -146,6 +147,7 @@ object ServiceLocator {
                                 latest = module.latestOn(channel),
                                 installed = installed[module.name],
                                 updatesMuted = module.name in muted,
+                                storeInstall = storeInstalls[module.name],
                             )
                     }
             }
@@ -186,7 +188,7 @@ object ServiceLocator {
     }
 
     /** Sequential module updates, outliving the sheet that started them. */
-    val moduleUpdates: ModuleUpdateQueue by lazy { ModuleUpdateQueue(installer, store, modules, appScope) }
+    val moduleUpdates: ModuleUpdateQueue by lazy { ModuleUpdateQueue(installer, store, modules, settings, appScope) }
 
     val frameworkInstaller: FrameworkInstaller by lazy { FrameworkInstaller(context, http, daemon) }
 

@@ -137,6 +137,10 @@ data class ReleaseAsset(
  */
 data class RepoVersion(val versionCode: Long, val versionName: String) {
 
+    /** The tag this was read from, which is also how [StoreInstall] writes one back down. */
+    val tag: String
+        get() = "$versionCode-$versionName"
+
     fun upgradableOver(installedCode: Long, installedName: String): Boolean =
         versionCode > installedCode ||
             (versionCode == installedCode && installedName.replace(' ', '_') != versionName)
@@ -153,6 +157,34 @@ data class RepoVersion(val versionCode: Long, val versionName: String) {
 }
 
 /**
+ * A release this manager installed, and what the device said the module was afterwards.
+ *
+ * Two versions, because they are not the same kind of fact and for some modules not the same
+ * number: [release] is what a tag claimed, [installed] is what the APK inside it turned out to be.
+ *
+ * That difference is the whole reason this is recorded. The comparison above believes the tag, and
+ * for most modules it may — of the 745 catalogue entries whose newest release carries a single APK,
+ * 741 state the code their APK really has. For the rest the offer cannot be satisfied by installing
+ * it: `top.cbug.adbx` is tagged `4115-1.1.1` around an APK that is versionCode 4, so `4115 > 4`
+ * stays true however many times it is installed, and the update sheet reads `1.1.1 → 1.1.1` for
+ * ever. Seven others are stuck the same way, six of them through the name half of the tag rather
+ * than the code. Nothing in the two numbers distinguishes that from a rebuild the reader does want
+ * — 17 modules publish the same versionName under several codes, and 31 keep one code across every
+ * release they have ever published, so the code signal is dead for those and the name signal is
+ * dead for these. Rather than parse the tag harder, the Store remembers what it installed and
+ * answers "you already have this one".
+ *
+ * [installed] is what makes the record expire on its own: it is checked against what the device
+ * reports now, so a module replaced from anywhere else stops matching and the offer comes back.
+ */
+data class StoreInstall(val release: RepoVersion, val installed: RepoVersion) {
+
+    /** Whether this note says [latest] is already here, as [current]. */
+    fun satisfies(latest: RepoVersion?, current: RepoVersion?): Boolean =
+        release == latest && installed == current
+}
+
+/**
  * One row of the Store: a catalogue entry, plus what this device has to say about it.
  *
  * The join lives in the ViewModel rather than in either repository, so the network layer stays
@@ -164,9 +196,19 @@ data class StoreEntry(
     val installed: RepoVersion?,
     /** The reader asked not to be told about this one again. */
     val updatesMuted: Boolean = false,
+    /** What this manager last installed here, if this manager is what installed it. */
+    val storeInstall: StoreInstall? = null,
 ) {
+
+    /** The newest release is one we installed, and the device still reports what it left behind. */
+    private val alreadyInstalled: Boolean
+        get() = storeInstall?.satisfies(latest, installed) == true
+
     /**
      * There is a newer version *and* the reader wants to hear about it.
+     *
+     * A release this manager itself installed is not a newer version, whatever the two numbers say;
+     * see [StoreInstall].
      *
      * Muting is folded in here rather than at each place that reads this, because every list and
      * count that mentions updates reads it — the Store's header count, its updates filter, its row
@@ -184,6 +226,7 @@ data class StoreEntry(
             !updatesMuted &&
                 installed != null &&
                 latest != null &&
+                !alreadyInstalled &&
                 latest.upgradableOver(installed.versionCode, installed.versionName)
 }
 

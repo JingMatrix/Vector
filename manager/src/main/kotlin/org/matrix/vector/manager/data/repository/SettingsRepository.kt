@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.matrix.vector.manager.data.model.RepoVersion
+import org.matrix.vector.manager.data.model.StoreInstall
 
 /**
  * The manager's own preferences: how it looks, what it shows, and what it has been told to stop
@@ -196,6 +198,50 @@ class SettingsRepository(context: Context) {
         prefs.edit().putStringSet("muted_updates", HashSet(next)).apply()
         _mutedUpdates.value = next
     }
+
+    /**
+     * Which catalogue release the Store put on this device, per package. See [StoreInstall].
+     *
+     * Here rather than in the daemon for the reason the mute above is: the daemon has never heard
+     * of the catalogue, and this is a fact about what *this* app did rather than about the module.
+     * It has to survive a process death for the same reason too — parasitically the process is the
+     * shell's, and it is killed constantly, so an in-memory note would forget by the next visit and
+     * the offer it silenced would be back.
+     *
+     * A string set, like the mute, rather than a serialised map: three fields per row, joined by
+     * newlines, which no package name or tag contains. A row that no longer parses is dropped,
+     * which is the right answer for a note whose only job is to suppress an offer — the worst a
+     * lost row can do is offer an update again. Rows are never pruned either, for the same reason:
+     * one is a few dozen bytes, a device carries tens of modules, and a note left behind by a
+     * module that has since been uninstalled says nothing until that module is back at that exact
+     * version.
+     */
+    private val _storeInstalls = MutableStateFlow(readStoreInstalls())
+    val storeInstalls: StateFlow<Map<String, StoreInstall>> = _storeInstalls.asStateFlow()
+
+    /** Records what the Store installed for [packageName], replacing any earlier note of it. */
+    fun noteStoreInstall(packageName: String, install: StoreInstall) {
+        val next = _storeInstalls.value + (packageName to install)
+        val rows = next.mapTo(HashSet()) { (name, noted) -> encode(name, noted) }
+        prefs.edit().putStringSet("store_installs", rows).apply()
+        _storeInstalls.value = next
+    }
+
+    private fun encode(packageName: String, install: StoreInstall): String =
+        "$packageName\n${install.release.tag}\n${install.installed.tag}"
+
+    private fun readStoreInstalls(): Map<String, StoreInstall> =
+        prefs
+            .getStringSet("store_installs", emptySet())
+            .orEmpty()
+            .mapNotNull { row ->
+                val parts = row.split('\n')
+                if (parts.size != 3) return@mapNotNull null
+                val release = RepoVersion.parse(parts[1]) ?: return@mapNotNull null
+                val installed = RepoVersion.parse(parts[2]) ?: return@mapNotNull null
+                parts[0] to StoreInstall(release, installed)
+            }
+            .toMap()
 
     /** Which living surface the status header draws. See AmbienceKind. */
     private val _headerAmbience =

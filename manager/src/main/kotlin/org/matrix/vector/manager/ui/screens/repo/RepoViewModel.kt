@@ -20,6 +20,7 @@ import org.matrix.vector.manager.data.model.Release
 import org.matrix.vector.manager.data.model.RepoVersion
 import org.matrix.vector.manager.data.model.StoreCatalog
 import org.matrix.vector.manager.data.model.StoreEntry
+import org.matrix.vector.manager.data.model.StoreInstall
 import org.matrix.vector.manager.data.repository.RepoRepository
 import org.matrix.vector.manager.data.repository.SettingsRepository
 
@@ -148,12 +149,14 @@ class RepoViewModel(
      * and it walks 809 entries.
      */
     private val allEntries: StateFlow<List<StoreEntry>> =
-        combine(repository.catalog, repository.installedVersions, channel, settings.mutedUpdates) {
-                catalog,
-                installed,
+        combine(
+                repository.catalog,
+                repository.installedVersions,
                 channel,
-                muted ->
-                catalog.modules.map { entryFor(it, installed, channel, muted) }
+                settings.mutedUpdates,
+                settings.storeInstalls,
+            ) { catalog, installed, channel, muted, storeInstalls ->
+                catalog.modules.map { entryFor(it, installed, channel, muted, storeInstalls) }
             }
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -231,12 +234,14 @@ class RepoViewModel(
         installed: Map<String, RepoVersion>,
         channel: StoreChannel,
         muted: Set<String>,
+        storeInstalls: Map<String, StoreInstall>,
     ): StoreEntry =
         StoreEntry(
             module = module,
             latest = module.latestOn(channel),
             installed = installed[module.name],
             updatesMuted = module.name in muted,
+            storeInstall = storeInstalls[module.name],
         )
 
     private fun StoreEntry.matches(query: String): Boolean {

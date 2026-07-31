@@ -158,6 +158,23 @@ class RepoRepository(
         scope.launch { loadInstalled() }
     }
 
+    /**
+     * The same read, awaited and handed back, for a caller that has to act on what it finds.
+     *
+     * Which is how an install records what it produced: the note that suppresses a satisfied offer
+     * is compared against [installedVersions], so it has to be written from that same reading. A
+     * local `getPackageInfo` would answer for user 0 while this map answers with the highest version
+     * across every user, and on a device with a work profile the two differ — leaving a note that can
+     * never match and a row that nags for ever.
+     *
+     * Returns the last known map when the daemon cannot be reached, which is the safe direction: a
+     * note written from a stale version simply fails to match, and the offer stays.
+     */
+    suspend fun readInstalled(): Map<String, RepoVersion> {
+        loadInstalled()
+        return _installed.value
+    }
+
     private suspend fun loadInstalled() {
         val packages =
             daemon

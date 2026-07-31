@@ -98,6 +98,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import org.matrix.vector.manager.data.model.ReleaseAsset
+import org.matrix.vector.manager.data.model.RepoVersion
 import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.ui.components.SheetHeading
@@ -1315,20 +1316,20 @@ private fun ModuleUpdatesSheet(
 
     // One APK is installable from here; several is a choice this sheet has no room to make, so
     // those keep their row, uncheckable, pointing at the store page that does.
-    data class Row(val entry: StoreEntry, val asset: ReleaseAsset?, val muted: Boolean)
+    data class Row(
+        val entry: StoreEntry,
+        val release: RepoVersion?,
+        val asset: ReleaseAsset?,
+        val muted: Boolean,
+    )
 
     val rows =
         remember(entries, upgradable, mutedUpgradable, channel) {
             (upgradable + mutedUpgradable).mapNotNull { name ->
                 val entry = entries[name] ?: return@mapNotNull null
-                val apks =
-                    entry.module
-                        .releasesOn(channel)
-                        .firstOrNull()
-                        ?.releaseAssets
-                        .orEmpty()
-                        .filter { it.isApk }
-                Row(entry, apks.singleOrNull(), name in mutedUpgradable)
+                val release = entry.module.releasesOn(channel).firstOrNull()
+                val apks = release?.releaseAssets.orEmpty().filter { it.isApk }
+                Row(entry, release?.version, apks.singleOrNull(), name in mutedUpgradable)
             }
                 .sortedWith(compareBy({ it.muted }, { it.entry.module.title.lowercase() }))
         }
@@ -1420,6 +1421,7 @@ private fun ModuleUpdatesSheet(
                                         packageName = it.entry.module.name,
                                         title = it.entry.module.title,
                                         asset = it.asset!!,
+                                        release = it.release,
                                     )
                                 }
                         )

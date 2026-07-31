@@ -657,6 +657,7 @@ private fun ModuleUpdateSection(
                             packageName = packageName,
                             title = entry.module.title,
                             asset = asset,
+                            release = release?.version,
                         )
                     )
                 )

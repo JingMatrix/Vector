@@ -74,6 +74,11 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
      * Returns true only when the platform reports the package installed. There is no resume: a
      * dropped connection costs the whole transfer, which is an acceptable trade for module APKs
      * (tens to a few hundred kilobytes) in exchange for never touching the filesystem.
+     *
+     * What became of it is recorded by the caller rather than here — see RepoRepository.readInstalled
+     * and SettingsRepository.noteStoreInstall — because the version to record has to be read the way
+     * the Store reads it, across every user, and this class talks to the platform rather than to the
+     * daemon.
      */
     suspend fun install(packageName: String, asset: ReleaseAsset): Boolean =
         withContext(Dispatchers.IO) {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ import org.matrix.vector.manager.data.model.OnlineModule
 import org.matrix.vector.manager.data.model.Release
 import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.data.model.RepoVersion
+import org.matrix.vector.manager.data.model.StoreInstall
 import org.matrix.vector.manager.data.repository.InstallStep
 import org.matrix.vector.manager.data.repository.ModuleInstaller
 import org.matrix.vector.manager.data.repository.RepoRepository
@@ -45,11 +47,20 @@ data class RepoDetailsState(
     val latest: RepoVersion? = null,
     val fetch: DetailFetch = DetailFetch.Loading,
     val channel: StoreChannel = StoreChannel.Stable,
+    /** What the Store last installed for this module, if the Store is what installed it. */
+    val storeInstall: StoreInstall? = null,
 ) {
+    /**
+     * As `StoreEntry.upgradable`, minus the mute: this page is a module the reader went looking for.
+     *
+     * The note is honoured here as well, and has to be. It is the one thing that keeps this badge
+     * from disagreeing with the list that led to it — see [StoreInstall].
+     */
     val upgradable: Boolean
         get() =
             installed != null &&
                 latest != null &&
+                storeInstall?.satisfies(latest, installed) != true &&
                 latest.upgradableOver(installed.versionCode, installed.versionName)
 }
 
@@ -110,17 +121,30 @@ class RepoDetailsViewModel(
 
     fun setUpdatesMuted(muted: Boolean) = settings.setUpdatesMuted(packageName, muted)
 
+    /**
+     * The two preferences this page reads, as one value.
+     *
+     * Paired rather than passed separately because `combine` takes five flows and this page already
+     * watches five things of its own.
+     */
+    private data class Preferences(val channel: StoreChannel, val storeInstall: StoreInstall?)
+
+    private fun preferences(): Flow<Preferences> =
+        combine(settings.updateChannel, settings.storeInstalls) { channelPreference, installs ->
+            Preferences(StoreChannel.of(channelPreference), installs[packageName])
+        }
+
     val state: StateFlow<RepoDetailsState> =
         combine(
                 repository.catalog,
                 _detail,
                 _fetch,
                 repository.installedVersions,
-                settings.updateChannel,
-            ) { catalog, detail, fetch, installed, channelPreference ->
+                preferences(),
+            ) { catalog, detail, fetch, installed, preferences ->
                 val seed = catalog.modules.firstOrNull { it.name == packageName }
                 val module = detail ?: seed
-                val channel = StoreChannel.of(channelPreference)
+                val channel = preferences.channel
                 RepoDetailsState(
                     module = module,
                     releases = releasesFor(module, channel),
@@ -128,6 +152,7 @@ class RepoDetailsViewModel(
                     latest = latestFor(module, channel),
                     fetch = fetch,
                     channel = channel,
+                    storeInstall = preferences.storeInstall,
                 )
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RepoDetailsState())
@@ -156,9 +181,15 @@ class RepoDetailsViewModel(
      * change of mind. The installer's state is a single shared flow, so coming back re-attaches to
      * the progress that kept running.
      */
-    fun install(asset: ReleaseAsset) {
+    fun install(asset: ReleaseAsset, release: RepoVersion?) {
         backgroundScope.launch {
-            if (installer.install(packageName, asset)) repository.refreshInstalled()
+            if (!installer.install(packageName, asset)) return@launch
+            // The version has to come from this read rather than from the platform directly: it is
+            // the one the offer is compared against. See RepoRepository.readInstalled.
+            val installed = repository.readInstalled()[packageName]
+            if (release != null && installed != null) {
+                settings.noteStoreInstall(packageName, StoreInstall(release, installed))
+            }
         }
     }
 

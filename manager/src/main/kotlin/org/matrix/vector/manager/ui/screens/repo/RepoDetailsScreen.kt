@@ -154,7 +154,9 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
 
     var choosing by remember { mutableStateOf<Release?>(null) }
     var optionsOpen by remember { mutableStateOf(false) }
-    var confirming by remember { mutableStateOf<ReleaseAsset?>(null) }
+    // The release travels with the asset: what is installed is recorded against the release it came
+    // from, and picking an older release from the list must not silence the newest one.
+    var confirming by remember { mutableStateOf<Pair<Release, ReleaseAsset>?>(null) }
 
     Scaffold(
         topBar = {
@@ -209,7 +211,8 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
                     // One file is the overwhelmingly common case, and asking which of one is
                     // noise. More than one and the choice is the user's — some modules ship a
                     // variant per architecture.
-                    if (assets.size == 1) confirming = assets.first() else choosing = release
+                    if (assets.size == 1) confirming = release to assets.first()
+                    else choosing = release
                 },
                 onAcknowledge = viewModel::acknowledgeInstall,
             )
@@ -306,7 +309,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
                             onOpenUrl = openUrl,
                             onInstall = { release ->
                                 val assets = release.apks
-                                if (assets.size == 1) confirming = assets.first()
+                                if (assets.size == 1) confirming = release to assets.first()
                                 else choosing = release
                             },
                         )
@@ -347,12 +350,12 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
             onDismiss = { choosing = null },
             onPick = { asset ->
                 choosing = null
-                confirming = asset
+                confirming = release to asset
             },
         )
     }
 
-    confirming?.let { asset ->
+    confirming?.let { (release, asset) ->
         ConfirmInstall(
             module = state.module,
             packageName = packageName,
@@ -360,7 +363,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
             onDismiss = { confirming = null },
             onConfirm = {
                 confirming = null
-                viewModel.install(asset)
+                viewModel.install(asset, release.version)
             },
         )
     }

@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.data.model.ReleaseAsset
+import org.matrix.vector.manager.data.model.RepoVersion
+import org.matrix.vector.manager.data.model.StoreInstall
 
 /**
  * Several module updates, installed one after another.
@@ -27,11 +29,22 @@ class ModuleUpdateQueue(
     private val installer: ModuleInstaller,
     private val store: RepoRepository,
     private val modules: ModuleRepository,
+    private val settings: SettingsRepository,
     private val scope: CoroutineScope,
 ) {
 
-    /** One module to update, resolved before the run starts so nothing is looked up mid-flight. */
-    data class Item(val packageName: String, val title: String, val asset: ReleaseAsset)
+    /**
+     * One module to update, resolved before the run starts so nothing is looked up mid-flight.
+     *
+     * [release] is the version of the release [asset] came from, carried so that the installer can
+     * record what it put on the device. See ModuleInstaller.install.
+     */
+    data class Item(
+        val packageName: String,
+        val title: String,
+        val asset: ReleaseAsset,
+        val release: RepoVersion?,
+    )
 
     data class State(
         val queued: List<Item> = emptyList(),
@@ -82,12 +95,29 @@ class ModuleUpdateQueue(
                 // Once, at the end, rather than after each install: every version read comes from
                 // one daemon call over every installed package, and paying that four times to
                 // watch four badges settle a second earlier each is not a trade worth making.
-                store.refreshInstalled()
+                // Awaited, because the notes below are written from that same read.
+                note(items, store.readInstalled())
                 // Told rather than overheard. A replaced package does broadcast, and the manager
                 // does listen, but this is the one install path the app performed itself: there is
                 // no reason for the list to wait on a delivery the system owns.
                 modules.notePackagesChanged()
             }
+    }
+
+    /**
+     * Records what landed, so the Store stops offering a release it has already installed.
+     *
+     * Only the items that succeeded, and only against what the device reports now — which is why
+     * [installed] is passed in rather than read here. See [StoreInstall].
+     */
+    private fun note(items: List<Item>, installed: Map<String, RepoVersion>) {
+        val landed = _state.value.done
+        for (item in items) {
+            if (item.packageName !in landed) continue
+            val release = item.release ?: continue
+            val version = installed[item.packageName] ?: continue
+            settings.noteStoreInstall(item.packageName, StoreInstall(release, version))
+        }
     }
 
     /**
