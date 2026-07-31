@@ -102,10 +102,17 @@ object VectorDaemon {
 
     applyNotificationWorkaround()
 
+    // Read this before `sendToBridge`, which leaves the main thread at euid 1000: the config
+    // database lives under a directory only root can enter, so the first process to open it has
+    // to do so while we still have root. On a successful injection a binder thread opens it for
+    // us during specialization, but when the injection fails nothing else has, and the daemon
+    // used to die here on an unreadable preference.
+    val isVerboseLog = ManagerService.isVerboseLog()
+
     // Setup IPC channel for applications by injecting DaemonService binder
     sendToBridge(VectorService.asBinder(), false, systemServerMaxRetry)
 
-    if (!ManagerService.isVerboseLog()) {
+    if (!isVerboseLog) {
       LogcatMonitor.stopVerbose()
     }
 
