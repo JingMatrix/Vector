@@ -22,6 +22,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import org.lsposed.lspd.ILSPManagerService
@@ -39,6 +40,7 @@ import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.manager.data.repository.RepoRepository
 import org.matrix.vector.manager.data.repository.SettingsRepository
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.ipc.daemonPackageEventsFlow
 import org.matrix.vector.manager.ipc.packageEventsFlow
 import org.matrix.vector.manager.net.HttpClientFactory
 import org.matrix.vector.manager.net.VectorDns
@@ -234,12 +236,23 @@ object ServiceLocator {
     /**
      * Invalidates the caches when a package is installed, updated or removed.
      *
-     * The only collector of `packageEventsFlow`, and on [appScope] so it lasts as long as the
-     * process: without it a module installed while the manager is open would never appear.
+     * The only collector of either flow, and on [appScope] so it lasts as long as the process:
+     * without it a module installed while the manager is open would never appear.
+     *
+     * Two sources, because neither sees the whole device. The platform's own broadcasts arrive only
+     * for the user this process runs in, so an app installed into a work profile or a secondary
+     * user went unnoticed here and the scope editor for a module in that profile never listed it.
+     * The daemon watches every user and re-broadcasts what it saw, but only while it is alive, so
+     * it cannot replace the platform source either.
+     *
+     * A package event on the primary user therefore arrives twice and this body runs twice, which
+     * is left alone on purpose: it drops two cached fields, reads the enabled list once and bumps a
+     * revision, and the platform alone already delivers ADDED and REPLACED for a single update — a
+     * repeat is the case this collector was written for, not a new one.
      */
     private fun observePackageChanges() {
         appScope.launch {
-            context.packageEventsFlow().collect {
+            merge(context.packageEventsFlow(), context.daemonPackageEventsFlow()).collect {
                 apps.invalidate()
                 modules.refresh()
                 modules.notePackagesChanged()
