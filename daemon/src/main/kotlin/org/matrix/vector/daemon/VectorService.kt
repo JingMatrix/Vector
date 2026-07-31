@@ -266,6 +266,13 @@ object VectorService : IDaemonService.Stub() {
           // Otherwise, only wipe it for the user that just uninstalled it.
           val targetUser = if (isRemovedForAllUsers) null else userId
           PreferenceStore.deleteModulePrefs(moduleName, userId, group = null)
+          // The one preference of a module that is not stored under the module. "Never ask again"
+          // writes the package into a set belonging to "lspd", so the line above — which deletes
+          // what is filed under the module's own name — walks straight past it, and the package
+          // stayed blocked after it was uninstalled. Nothing else ever removes it: the CLI does not
+          // know the key and the manager offers no way back, so a module blocked by a mis-tap could
+          // never ask again on that device, and reinstalling it did not help.
+          if (isRemovedForAllUsers) unblockScopeRequests(moduleName)
           if (isRemovedForAllUsers && ModuleDatabase.removeModule(moduleName)) {
             // If it was in our DB and we successfully removed it, we treat it as an Xposed module.
             isXposedModule = true
@@ -406,11 +413,7 @@ object VectorService : IDaemonService.Stub() {
             "deny" -> iCallback.onScopeRequestFailed("Request denied by user")
             "delete" -> iCallback.onScopeRequestFailed("Request timeout")
             "block" -> {
-              val blocked =
-                  PreferenceStore.getModulePrefs("lspd", 0, "config")["scope_request_blocked"]
-                      as? Set<String> ?: emptySet()
-              PreferenceStore.updateModulePref(
-                  "lspd", 0, "config", "scope_request_blocked", blocked + packageName)
+              blockScopeRequests(packageName)
               iCallback.onScopeRequestFailed("Request blocked by configuration")
               // The preference only stops the *next* request. A module that asked for three
               // packages has a prompt up for each, so without this the user says "never ask again"
@@ -429,5 +432,40 @@ object VectorService : IDaemonService.Stub() {
     // Only this one request goes; a module that asked for several packages has a prompt still open
     // for each of the others, and they are answered on their own.
     NotificationManager.cancelScopeRequest(packageName, userId, scopePackageName)
+  }
+
+  /**
+   * The modules that may not ask for scope again.
+   *
+   * Filed under "lspd" rather than under the module it names, because it records the user's decision
+   * about a module rather than that module's own configuration. That is also why uninstalling a
+   * module does not take it away — `deleteModulePrefs` deletes what is filed under the module's own
+   * name — and why [unblockScopeRequests] has to exist.
+   */
+  @Suppress("UNCHECKED_CAST")
+  private fun blockedScopeRequests(): Set<String> =
+      PreferenceStore.getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<String>
+          ?: emptySet()
+
+  private fun blockScopeRequests(packageName: String) {
+    PreferenceStore.updateModulePref(
+        "lspd", 0, "config", "scope_request_blocked", blockedScopeRequests() + packageName)
+  }
+
+  /**
+   * Lets an uninstalled module ask again if it comes back.
+   *
+   * "Never ask again" is a button in a notification, one tap from Approve, and nothing anywhere
+   * undid it: the socket CLI does not know the key, the manager offers no control for it, and the
+   * uninstall path missed it. A module blocked by a mis-tap was blocked on that device forever, and
+   * reinstalling it changed nothing. Uninstalling is a deliberate enough act to count as taking it
+   * back — and a module that is gone has no decision left to honour.
+   */
+  private fun unblockScopeRequests(packageName: String) {
+    val blocked = blockedScopeRequests()
+    if (packageName !in blocked) return
+    PreferenceStore.updateModulePref(
+        "lspd", 0, "config", "scope_request_blocked", blocked - packageName)
+    Log.i(TAG, "$packageName was uninstalled; it may ask for scope again if it returns")
   }
 }
