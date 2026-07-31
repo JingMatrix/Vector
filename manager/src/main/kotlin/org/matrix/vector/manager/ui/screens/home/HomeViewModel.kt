@@ -85,14 +85,36 @@ data class ManagerPresence(
      * showing it is a device with a tap-sized route back, and it is on by default. Leaving it out
      * of this made the first-launch prompt claim there was no way back in to a reader who was
      * looking at one.
+     *
+     * Seeded to what the daemon itself would answer for a device where nobody has touched the
+     * preference — PreferenceStore.isStatusNotificationEnabled reads the stored value `?: true` —
+     * because this seed is the answer for as long as it takes to ask, and asking is not quick.
+     * Seeded false it said the opposite of what was sitting in the shade.
      */
-    val notificationEnabled: Boolean = false,
+    val notificationEnabled: Boolean = true,
+    /**
+     * False until the daemon has actually answered [notificationEnabled].
+     *
+     * [unreachable] is a claim about a device, and it must not be made before the read that would
+     * settle it has come back: the toggle read queues behind refreshStatus's eight round trips, so
+     * "we have not asked yet" lasts long enough to be seen. The seed above is what makes that
+     * window harmless today; this is what keeps it harmless if the seed is ever wrong again,
+     * because not knowing and knowing there is no way in are not the same thing and only the second
+     * is worth a modal.
+     */
+    val notificationKnown: Boolean = false,
     /** One of the ILSPManagerService.ROOT_* constants, for naming the action button's owner. */
     val rootImplementation: Int = 0,
 ) {
-    /** True when opening the manager currently depends on remembering how. */
+    /**
+     * True when opening the manager currently depends on remembering how.
+     *
+     * False while [notificationKnown] is false as well. The only thing that reads this puts a
+     * scrimmed dialog in front of the reader, and an unanswered question is not a missing route.
+     */
     val unreachable: Boolean
-        get() = parasitic && !shortcutPinned && !installed && !notificationEnabled
+        get() =
+            notificationKnown && parasitic && !shortcutPinned && !installed && !notificationEnabled
 }
 
 data class DeviceInfo(
@@ -142,9 +164,28 @@ class HomeViewModel(
 
     // --- how the manager can be reached -------------------------------------------------------
     // Above `init` on purpose: a Kotlin class body initialises top to bottom, so the refresh in
-    // `init` would run against a `_presence` that does not exist yet.
+    // `init` would run against a `_presence` that does not exist yet. The two framework toggles are
+    // here for the same reason and not with the rest of their section further down: `init` reaches
+    // `refreshToggles` through `refreshPresence`, and `viewModelScope` dispatches on
+    // `Main.immediate`, so that body starts running on the thread that is still constructing this
+    // object. It only survives today because the first thing it does is suspend on a binder call;
+    // declared below `init`, it is one refactor away from writing to a null.
 
     private val _presence = MutableStateFlow(ManagerPresence())
+
+    // True is the daemon's own default for `enable_status_notification` — PreferenceStore reads the
+    // stored value `?: true` — so the switch shows what the framework is doing on a device where
+    // nobody has touched it rather than reading "off" until the daemon answers. A switch that reads
+    // off while the notification is sitting in the shade is worse than one that briefly reads
+    // optimistically: the first contradicts something the reader can see.
+    private val _statusNotification = MutableStateFlow(true)
+    val statusNotification: StateFlow<Boolean> = _statusNotification.asStateFlow()
+
+    // True is the platform's own default for `show_hidden_icon_apps_enabled`, so the switch shows
+    // what the system is doing on a device where nobody has touched it rather than reading "off"
+    // until the daemon answers.
+    private val _hiddenIcon = MutableStateFlow(true)
+    val hiddenIcon: StateFlow<Boolean> = _hiddenIcon.asStateFlow()
 
     /**
      * How this manager can be opened, and how it currently is.
@@ -175,6 +216,12 @@ class HomeViewModel(
             )
         }
         viewModelScope.launch {
+            // The toggles first, because one of them decides whether the "no way back in" prompt is
+            // drawn at all while the root implementation only names a button on the card that
+            // explains the ways in. This call is also the only retry the toggle reads ever get:
+            // arriving at Home or at the status page is the moment a stale switch would be looked
+            // at, and it is a moment somebody chose, unlike a timer.
+            refreshToggles()
             val root = daemon.getRootImplementation().getOrNull()
             if (root != null) _presence.update { it.copy(rootImplementation = root) }
         }
@@ -217,7 +264,9 @@ class HomeViewModel(
             ServiceLocator.service.collect { service ->
                 refreshStatus(service)
                 // Both switches on the status page hold the daemon's state rather than ours, and
-                // this is the moment there is a daemon to ask.
+                // this is the moment there is a daemon to ask. Not the last such moment:
+                // `refreshPresence` asks again whenever a screen that shows them is opened, since
+                // this flow does not emit a second time while one binder stays alive.
                 if (service != null) refreshToggles()
             }
         }
@@ -360,13 +409,6 @@ class HomeViewModel(
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    // --- framework toggles ------------------------------------------------------------------
-    // Properties of the *framework* rather than of the app, so they belong on the screen that
-    // reports the framework's state rather than in a settings screen of their own.
-
-    private val _statusNotification = MutableStateFlow(false)
-    val statusNotification: StateFlow<Boolean> = _statusNotification.asStateFlow()
-
     /**
      * Whether a newer framework build exists, on the channel this device is actually on.
      *
@@ -376,32 +418,49 @@ class HomeViewModel(
      */
     val frameworkUpdate: StateFlow<FrameworkUpdateState> = ServiceLocator.frameworkUpdates.state
 
-    // True is the platform's own default for `show_hidden_icon_apps_enabled`, so the switch shows
-    // what the system is doing on a device where nobody has touched it rather than reading "off"
-    // until the daemon answers.
-    private val _hiddenIcon = MutableStateFlow(true)
-    val hiddenIcon: StateFlow<Boolean> = _hiddenIcon.asStateFlow()
-
+    /**
+     * Re-reads both framework switches from the daemon, and is meant to be called again.
+     *
+     * `ServiceLocator.service` does not emit a second time while one binder stays alive, so the
+     * collect in `init` is a single shot: with no other caller, one dropped transaction pinned both
+     * switches to their seeds — and the launcher prompt to "not asked yet" — for the life of this
+     * ViewModel. [refreshPresence] is the other caller, which puts the retry on someone opening a
+     * screen that shows these rather than on a timer. A timer is the wrong shape here anyway: the
+     * launcher-icon read costs the daemon a `settings get global` fork every time.
+     *
+     * A read that failed writes nothing at all. It is not an answer, and letting it fall back to a
+     * default is how a switch read correctly on arrival ends up reporting the opposite after a
+     * single refused transaction.
+     */
     private suspend fun refreshToggles() {
-        _statusNotification.value =
-            daemon
-                .enableStatusNotification()
-                .onFailure { e ->
-                    Log.w(Constants.TAG, "status: notification toggle unreadable, showing off", e)
+        // Nothing to ask and nothing gained by asking: with no binder both reads fail without
+        // leaving the process, and the log fills with unreadable-toggle warnings about a framework
+        // that is simply not running.
+        if (!daemon.isAlive) return
+        daemon
+            .enableStatusNotification()
+            .onSuccess { enabled ->
+                _statusNotification.value = enabled
+                // The notification is one of the ways into the manager, so what the card offers
+                // has to follow the same value the switch above it shows — and it is published
+                // here, not at the end of this function, because the read below forks
+                // `settings get global` in the daemon and waits for it. Those hundreds of
+                // milliseconds used to be spent with the launcher prompt believing there was no
+                // way back into an app the reader may well have opened from this very
+                // notification. Moving it up is not the whole fix, which is why the seeds and
+                // [ManagerPresence.notificationKnown] exist: refreshStatus's eight round trips run
+                // before this function is reached at all.
+                _presence.update {
+                    it.copy(notificationEnabled = enabled, notificationKnown = true)
                 }
-                .getOrDefault(false)
+            }
+            .onFailure { e -> Log.w(Constants.TAG, "status: notification toggle unread", e) }
         // Read rather than assumed: this one is a global system setting, so anything on the device
         // can have moved it since the manager last wrote it.
-        _hiddenIcon.value =
-            daemon
-                .forcedLauncherIcons()
-                .onFailure { e ->
-                    Log.w(Constants.TAG, "status: launcher-icon toggle unreadable, showing on", e)
-                }
-                .getOrDefault(true)
-        // The notification is one of the ways into the manager, so what the card offers has to
-        // follow the same value the switch above it shows.
-        _presence.update { it.copy(notificationEnabled = _statusNotification.value) }
+        daemon
+            .forcedLauncherIcons()
+            .onSuccess { _hiddenIcon.value = it }
+            .onFailure { e -> Log.w(Constants.TAG, "status: launcher-icon toggle unread", e) }
     }
 
     fun setStatusNotification(enabled: Boolean) {
@@ -410,7 +469,13 @@ class HomeViewModel(
                 .setEnableStatusNotification(enabled)
                 .onSuccess {
                     _statusNotification.value = enabled
-                    _presence.update { it.copy(notificationEnabled = enabled) }
+                    // Known either way now, which matters when `enabled` is false: someone who
+                    // turns the notification off on a parasitic install with nothing else pinned
+                    // has just closed the last easy route back in, and that is precisely the case
+                    // the prompt exists to catch.
+                    _presence.update {
+                        it.copy(notificationEnabled = enabled, notificationKnown = true)
+                    }
                 }
                 .onFailure { e ->
                     Log.e(

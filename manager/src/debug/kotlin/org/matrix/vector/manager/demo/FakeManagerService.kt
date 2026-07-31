@@ -278,7 +278,11 @@ class FakeManagerService(
     override fun optimizePackage(packageName: String?): Boolean =
         real?.optimizePackage(packageName) ?: false
 
-    override fun enableStatusNotification(): Boolean = real?.enableStatusNotification() ?: false
+    // `?: true` to match the daemon, whose PreferenceStore reads this one `?: true` when nobody has
+    // set it — the same reason forcedLauncherIcons above answers true. Answering false here is a
+    // *successful* read of the wrong value, so the demo host settles the launcher prompt's question
+    // with "there is no way back into this app" and shows it on every launch.
+    override fun enableStatusNotification(): Boolean = real?.enableStatusNotification() ?: true
 
     override fun setEnableStatusNotification(enable: Boolean) {
         real?.setEnableStatusNotification(enable)
