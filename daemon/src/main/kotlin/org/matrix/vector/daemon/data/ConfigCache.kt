@@ -396,6 +396,7 @@ object ConfigCache {
 
             val cached = currentState.modules[pkgName]
             if (cached != null) {
+              stageNativeLibrariesFor(cached)
               modules.add(cached)
               return@forEach
             }
@@ -431,12 +432,33 @@ object ConfigCache {
 
             FileSystem.loadModule(apkPath, state.isDexObfuscateEnabled).apkOrNull?.let {
               module.file = it
+              stageNativeLibrariesFor(module)
               modules.add(module)
               // We intentionally don't mutate state.modules here. Cache update will catch it.
             }
           }
         }
+    FileSystem.pruneStagedNativeLibraries(
+        state.miscPath, modules.mapTo(mutableSetOf()) { it.packageName })
     return modules
+  }
+
+  /**
+   * Hands a module bound for system_server the copy of its native libraries it can actually map.
+   *
+   * Only that scope needs one. Every other process may execute straight out of /data/app, so the
+   * in-APK entries the loader already builds serve them, and staging for them would buy nothing but
+   * disk. A module that ships no library, or whose staging failed, keeps a null here and loads
+   * exactly as it did before.
+   */
+  private fun stageNativeLibrariesFor(module: Module) {
+    val file = module.file ?: return
+    // system_server asks for its modules early enough that the cache may not have been built yet,
+    // and this is the same reason getPrefsPath does not trust the field either.
+    setupMiscPath()
+    val misc = state.miscPath ?: return
+    file.nativeLibraryDir =
+        FileSystem.stageNativeLibraries(misc, module.packageName, module.apkPath)
   }
 
   fun getModuleApkPath(info: ApplicationInfo): String? {

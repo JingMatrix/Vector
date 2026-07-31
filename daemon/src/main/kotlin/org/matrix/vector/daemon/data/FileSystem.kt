@@ -3,6 +3,7 @@ package org.matrix.vector.daemon.data
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.os.Binder
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.os.RemoteException
@@ -397,6 +398,102 @@ object FileSystem {
           .onFailure { throw RemoteException("Failed to set SELinux context: ${it.message}") }
     }
     return path
+  }
+
+  /**
+   * Copies a module's native libraries out of its APK into a directory this framework owns, and
+   * answers with that directory.
+   *
+   * A module loaded into system_server cannot dlopen a library straight out of its own APK.
+   * Everything under /data/app is apk_data_file, and while system_server may read and map such a
+   * file it may not execute it; AOSP says why in so many words - "Executable files in /data are a
+   * persistence vector" - and forbids granting it. Every app domain does hold that permission,
+   * which is the whole reason the same module loads the same library without trouble in an ordinary
+   * process and fails only in system_server.
+   *
+   * The way past it is not a new rule but the one this module already ships. xposed_data is a type
+   * we declare ourselves, outside the data_file_type attribute that neverallow is written against,
+   * and `allow * xposed_data {file dir} *` already reaches every domain - system_server included.
+   * A copy placed under it is one system_server may map executable. Extraction has a second
+   * benefit: the library ends up at offset zero of an ordinary file, so it no longer has to be
+   * stored uncompressed and page-aligned inside the APK to be mappable at all.
+   *
+   * Note that this deliberately does not consult moduleLibraryNames. That list only names the
+   * libraries whose native_init we are asked to call, and a module is free to load its own
+   * libraries without declaring any - the module that prompted all this does exactly that.
+   *
+   * Returns null when the module ships nothing for this ABI or the copy failed, in which case the
+   * module still loads and only its native part fails, exactly as it does today.
+   */
+  fun stageNativeLibraries(root: Path, packageName: String, apkPath: String): String? =
+      runCatching {
+            val apk = File(apkPath)
+            val dir = root.resolve("lib").resolve(packageName)
+
+            // Re-extract only when the APK behind the copy changed. Getting this wrong in the
+            // lenient direction would leave system_server running a module's superseded native
+            // code, so the framework's own version is part of the stamp as well.
+            val stamp = "${apk.length()}:${apk.lastModified()}:${BuildConfig.VERSION_CODE}"
+            val stampFile = dir.resolve(".stamp").toFile()
+            if (stampFile.isFile && stampFile.readText() == stamp) return@runCatching dir.toString()
+
+            val abis =
+                if (Process.is64Bit()) Build.SUPPORTED_64_BIT_ABIS else Build.SUPPORTED_32_BIT_ABIS
+
+            ZipFile(apk).use { zip ->
+              val libraries =
+                  zip.entries().asSequence().filter { !it.isDirectory && it.name.endsWith(".so") }
+                      .toList()
+              // A module built for several ABIs keeps them in sibling directories, and only the one
+              // this process could load is worth copying.
+              val abi =
+                  abis.firstOrNull { abi -> libraries.any { it.name.startsWith("lib/$abi/") } }
+                      ?: return@runCatching null
+
+              dir.toFile().deleteRecursively()
+              Files.createDirectories(dir)
+
+              libraries
+                  .filter { it.name.startsWith("lib/$abi/") }
+                  .forEach { entry ->
+                    val target = dir.resolve(entry.name.substringAfterLast('/'))
+                    zip.getInputStream(entry).use { input ->
+                      Files.newOutputStream(target).use { input.copyTo(it) }
+                    }
+                    Os.chmod(target.toString(), "644".toInt(8))
+                  }
+
+              stampFile.writeText(stamp)
+              // The daemon runs with a zero umask, so every mode here is set rather than inherited.
+              Os.chmod(stampFile.absolutePath, "644".toInt(8))
+              // The misc root is searchable but not listable; the staged tree keeps that shape, and
+              // the label is what actually decides whether system_server may map these files.
+              Os.chmod(dir.parent.toString(), "711".toInt(8))
+              Os.chmod(dir.toString(), "711".toInt(8))
+              setSelinuxContextRecursive(dir, "u:object_r:xposed_data:s0")
+              SELinux.setFileContext(dir.parent.toString(), "u:object_r:xposed_data:s0")
+              dir.toString()
+            }
+          }
+          .onFailure { Log.e(TAG, "Failed to stage the native libraries of $packageName", it) }
+          .getOrNull()
+
+  /**
+   * Drops staged libraries belonging to modules that are no longer bound for system_server, so an
+   * uninstalled or rescoped module does not leave a copy of its native code behind for good.
+   */
+  fun pruneStagedNativeLibraries(root: Path?, keep: Set<String>) {
+    if (root == null) return
+    runCatching {
+          val libRoot = root.resolve("lib")
+          if (!libRoot.isDirectory()) return
+          Files.list(libRoot).use { stream ->
+            stream
+                .filter { it.fileName.toString() !in keep }
+                .forEach { it.toFile().deleteRecursively() }
+          }
+        }
+        .onFailure { Log.e(TAG, "Failed to prune staged native libraries", it) }
   }
 
   fun toGlobalNamespace(path: String): File {

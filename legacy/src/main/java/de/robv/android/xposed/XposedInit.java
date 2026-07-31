@@ -291,6 +291,13 @@ public final class XposedInit {
         Log.v(TAG, "Loading legacy module " + name + " from " + apk);
 
         var sb = new StringBuilder();
+        // In system_server the in-APK entries below can only ever be refused: /data/app is
+        // apk_data_file, which that domain may read and map but never execute. The daemon stages a
+        // copy under a label we own for exactly this reason, and it has to come first, because
+        // findLibrary answers with the first candidate it can open.
+        if (startsSystemServer && file.nativeLibraryDir != null) {
+            sb.append(file.nativeLibraryDir).append(File.pathSeparator);
+        }
         var abis = Process.is64Bit() ? Build.SUPPORTED_64_BIT_ABIS : Build.SUPPORTED_32_BIT_ABIS;
         for (String abi : abis) {
             sb.append(apk).append("!/lib/").append(abi).append(File.pathSeparator);
