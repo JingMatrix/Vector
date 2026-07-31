@@ -192,6 +192,7 @@ fun FrameworkUpdateScreen(
                 flash = flash,
                 onFlash = { viewModel.flash() },
                 onReboot = { scope.launch { viewModel.reboot() } },
+                onDismiss = viewModel::acknowledge,
             )
         },
     ) { padding ->
@@ -300,6 +301,7 @@ private fun UpdateBar(
     flash: FlashStep,
     onFlash: () -> Unit,
     onReboot: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -338,8 +340,16 @@ private fun UpdateBar(
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
+            // Both finished rows are put away by tapping them, the same press the modules list
+            // takes on its own settled update line. The flash now outlives the screen, so a result
+            // stays up until somebody reads it — and a build that was installed and not restarted
+            // straight away would otherwise sit on the bar for the life of the process, with the
+            // variant picker and the Install button behind it.
             FlashStep.Done ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = colors.primary)
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
@@ -366,7 +376,10 @@ private fun UpdateBar(
                     }
                 }
             is FlashStep.Failed ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable(onClick = onDismiss),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Icon(Icons.Rounded.ErrorOutline, contentDescription = null, tint = colors.error)
                     Spacer(Modifier.width(10.dp))
                     Text(

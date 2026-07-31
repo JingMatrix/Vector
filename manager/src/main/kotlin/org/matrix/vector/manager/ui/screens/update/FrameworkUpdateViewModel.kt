@@ -143,8 +143,14 @@ class FrameworkUpdateViewModel : ViewModel() {
 
     fun chooseVariant(variant: ZipVariant) = settings.setUpdateVariant(variant.key)
 
-    val lines: StateFlow<List<String>> =
-        installer.lines.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    /**
+     * Everything the installer has said, straight from the installer.
+     *
+     * Not a copy kept alive on this scope, the way it used to be: the flash outlives the screen
+     * now, and a screen that comes back has to find the log it left rather than an empty one that
+     * fills in a frame later.
+     */
+    val lines: StateFlow<List<String>> = installer.lines
 
     private val _root = MutableStateFlow(RootState())
     val root: StateFlow<RootState> = _root.asStateFlow()
@@ -180,6 +186,14 @@ class FrameworkUpdateViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Asks for the flash. Nothing here waits on it.
+     *
+     * The installer runs it on a scope of its own, because this one goes when the screen does: the
+     * view model is scoped to the nav entry, so a back gesture during a flash used to cancel the
+     * wait for the exit code and leave the bar spinning for the life of the process over an install
+     * the daemon had quietly finished.
+     */
     fun flash() {
         val zip =
             chosenZip.value
@@ -200,8 +214,17 @@ class FrameworkUpdateViewModel : ViewModel() {
                     )
                     return
                 }
-        viewModelScope.launch { installer.flash(url, zip.sizeInBytes, zip.name) }
+        installer.start(url, zip.sizeInBytes, zip.name)
     }
+
+    /**
+     * Clears a flash that has finished, one way or the other.
+     *
+     * A result stays up until it is read, which is the whole point of the installer outliving the
+     * screen — but it has to be possible to put it down again, or a build that was installed and
+     * not restarted right away hides the picker behind itself until the process dies.
+     */
+    fun acknowledge() = installer.acknowledge()
 
     suspend fun reboot() {
         daemon.reboot().onFailure { Log.e(Constants.TAG, "update: reboot request failed", it) }

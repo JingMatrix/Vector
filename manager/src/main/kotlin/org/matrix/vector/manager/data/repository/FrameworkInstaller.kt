@@ -5,12 +5,16 @@ import android.util.Log
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -48,6 +52,10 @@ sealed interface FlashStep {
  * **The download is separate from the flash, and reported separately**, because they fail for
  * unrelated reasons and the reader needs to know which happened. A download that dies on a flaky
  * connection has changed nothing on the device; an installer that dies halfway has.
+ *
+ * **The flash belongs to this object, not to the screen that asked for it.** It is the daemon that
+ * is doing the work, and the daemon does not stop for anything the manager does, so the only thing
+ * a caller taken away mid-flash can achieve is losing the answer.
  */
 class FrameworkInstaller(
     private val context: Context,
@@ -55,38 +63,89 @@ class FrameworkInstaller(
     private val daemon: DaemonClient,
 ) {
 
+    /**
+     * The flash's own scope, alive for as long as the process is.
+     *
+     * A flash takes minutes, and the screen that starts one is a single back gesture away from
+     * being destroyed together with its view model scope. When the work ran there, that gesture
+     * killed the one line that reads the installer's exit code and moves off [FlashStep.Flashing]:
+     * the daemon finished the install regardless, and the manager went on reporting a flash that
+     * was already over, with no button anywhere on the bar to say otherwise, until it was force
+     * stopped. Supervised, so a run that ends in a throw does not take the scope down with it and
+     * leave the next flash nowhere to run.
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private val _state = MutableStateFlow<FlashStep>(FlashStep.Idle)
     val state: StateFlow<FlashStep> = _state.asStateFlow()
 
     private val _lines = MutableStateFlow<List<String>>(emptyList())
 
-    /** Everything the installer has said, in order. Cleared when a new flash starts. */
+    /**
+     * Everything the installer has said, in order.
+     *
+     * Cleared when a new flash starts, and when a finished one is put away with [acknowledge].
+     */
     val lines: StateFlow<List<String>> = _lines.asStateFlow()
 
+    private var job: Job? = null
+
+    /**
+     * Starts fetching [url] and flashing it, and returns straight away.
+     *
+     * There is nothing to wait for: [state] and [lines] are where the answer arrives, and they
+     * outlive whatever screen is watching them.
+     *
+     * One at a time. A second call while a flash is in flight is refused rather than queued behind
+     * it — the only way to reach one is a button on a screen that is reporting a flash in progress,
+     * so honouring it would mean acting on a decision made against a screen that had moved on. And
+     * refused means untouched: clearing [lines] on a press that starts nothing would empty the log
+     * of the flash that is actually running.
+     */
+    fun start(url: String, declaredSize: Long, fileName: String) {
+        if (job?.isActive == true) return
+        _lines.value = emptyList()
+        // Here rather than when the first byte lands: opening the connection can take seconds, and
+        // a press that leaves the Install button sitting where it was reads as a press that missed.
+        _state.value = FlashStep.Downloading(0, declaredSize)
+        job = scope.launch { flash(url, declaredSize, fileName) }
+    }
+
+    /**
+     * Puts a finished flash away, so the bar goes back to offering one.
+     *
+     * Only a finished one. A flash still running owns what [state] says about it, and clearing it
+     * would leave the download and the installer going with nothing on screen admitting it — which
+     * is the reset this class used to do to itself.
+     *
+     * That refusal is only safe because [FlashStep.Flashing] cannot outlive the thing it is waiting
+     * for. The one way the exit code never arrives is the daemon dying with the install started,
+     * and `Constants.setBinder` links to that death and exits the manager process — so the state
+     * this declines to clear goes with it, rather than becoming a spinner nothing can reach.
+     */
     fun acknowledge() {
+        val step = _state.value
+        if (step !is FlashStep.Done && step !is FlashStep.Failed) return
         _state.value = FlashStep.Idle
         _lines.value = emptyList()
     }
 
     /**
-     * Fetches [url] and flashes it.
+     * Fetches [url] and flashes it, reporting where it has got to through [state].
      *
-     * Returns when the *installer* has exited, not when the download finishes — the caller is a
-     * screen that stays open across both.
+     * Runs to the end on [scope] whatever the screen that asked for it does. Nothing cancels it:
+     * an installer half way through writing a module tree cannot be recalled, so stopping the wait
+     * would throw away the exit code and change nothing else.
      */
-    suspend fun flash(url: String, declaredSize: Long, fileName: String) {
-        _lines.value = emptyList()
+    private suspend fun flash(url: String, declaredSize: Long, fileName: String) {
         val zip =
             try {
                 download(url, declaredSize, fileName)
             } catch (e: Exception) {
-                if (e is CancellationException) {
-                    // Leaving the screen cancels the download, and a cancellation is not a missing
-                    // file. It has to travel on — but the bar goes back to resting first, because
-                    // the progress line has no button on it and nothing else would ever move it.
-                    _state.value = FlashStep.Idle
-                    throw e
-                }
+                // Nothing cancels a run any more, so this is only ever the process going away —
+                // but a cancellation is a coroutine ending, not a file that could not be fetched,
+                // and it must never be recorded as one.
+                if (e is CancellationException) throw e
                 Log.w(Constants.TAG, "update: download failed", e)
                 append("Download failed: ${e.message}")
                 _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
@@ -94,24 +153,18 @@ class FrameworkInstaller(
             }
 
         _state.value = FlashStep.Flashing
-        var cancelled = false
         try {
             awaitInstall(zip.absolutePath)
-        } catch (e: CancellationException) {
-            cancelled = true
-            throw e
         } finally {
             // Deleted once the installer has exited: a release zip left in the cache costs tens of
-            // megabytes that nothing else will ever clean up. A cancelled wait is not an exited
-            // installer — the daemon flashes on regardless, out of this very file.
-            if (!cancelled) runCatching { zip.delete() }
+            // megabytes that nothing else will ever clean up.
+            runCatching { zip.delete() }
         }
     }
 
     private suspend fun download(url: String, declaredSize: Long, fileName: String): File =
         withContext(Dispatchers.IO) {
             val target = File(context.cacheDir, fileName)
-            _state.value = FlashStep.Downloading(0, declaredSize)
 
             client.newCall(Request.Builder().url(url).build()).execute().use { response ->
                 if (!response.isSuccessful) throw IOException("HTTP ${response.code} for $url")
@@ -140,10 +193,9 @@ class FrameworkInstaller(
      * Runs the daemon-side install and suspends until it reports an exit code.
      *
      * The installer's output arrives on the callback as it is produced rather than with the result,
-     * so the screen fills in during a flash that takes minutes. The exit code comes separately,
-     * over a deferred whose await is cancellable — leaving the screen stops the wait, and the
-     * daemon keeps flashing regardless, which is the only safe thing for it to do half way through
-     * writing a module tree.
+     * so the screen fills in during a flash that takes minutes. The exit code comes separately, on
+     * a deferred nobody here abandons: it is the one moment the flash can be called finished, and a
+     * wait that ended early left the bar spinning over an install that had long since succeeded.
      */
     private suspend fun awaitInstall(path: String) {
         val done = kotlinx.coroutines.CompletableDeferred<Int>()
