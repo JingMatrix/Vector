@@ -1,15 +1,8 @@
 package org.matrix.vector.manager.data.repository
 
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageInstaller
-import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -18,12 +11,12 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.data.model.ReleaseAsset
+import org.matrix.vector.manager.ipc.commitForResult
 
 /** Where an install has got to. One at a time, because a user installs one module at a time. */
 sealed interface InstallStep {
@@ -182,82 +175,24 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
     /**
      * Commits the session and waits for the platform's verdict.
      *
-     * The result arrives as a broadcast, and the receiver is registered at runtime rather than
-     * declared: parasitically nothing in the manifest exists, so a declared receiver would simply
-     * never fire. `STATUS_PENDING_USER_ACTION` is not terminal — it means the system is asking the
-     * user, and the real status follows once they answer.
+     * @see commitForResult
      */
     private suspend fun commit(
         session: PackageInstaller.Session,
         sessionId: Int,
         packageName: String,
-    ): Pair<Int, String?> = suspendCancellableCoroutine { continuation ->
-        val action = "$RESULT_ACTION.$sessionId"
-        val receiver =
-            object : BroadcastReceiver() {
-                override fun onReceive(received: Context, intent: Intent) {
-                    val status =
-                        intent.getIntExtra(
-                            PackageInstaller.EXTRA_STATUS,
-                            PackageInstaller.STATUS_FAILURE,
-                        )
-                    if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
-                        _state.value = InstallStep.Confirming(packageName)
-                        IntentCompat.getParcelableExtra(intent, Intent.EXTRA_INTENT, Intent::class.java)
-                            ?.let { confirm ->
-                                runCatching {
-                                        context.startActivity(
-                                            confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        )
-                                    }
-                                    .onFailure { e ->
-                                        Log.e(
-                                            Constants.TAG,
-                                            "store: install prompt for $packageName could not be started",
-                                            e,
-                                        )
-                                    }
-                            }
-                        return
-                    }
-                    runCatching { context.unregisterReceiver(this) }
-                    if (continuation.isActive) {
-                        continuation.resumeWith(
-                            Result.success(
-                                status to
-                                    intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                            )
-                        )
-                    }
-                }
-            }
-
-        ContextCompat.registerReceiver(
-            context,
-            receiver,
-            IntentFilter(action),
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-        continuation.invokeOnCancellation { runCatching { context.unregisterReceiver(receiver) } }
-
-        val flags =
-            PendingIntent.FLAG_UPDATE_CURRENT or
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE
-                else 0
-        val pending =
-            PendingIntent.getBroadcast(
-                context,
-                sessionId,
-                Intent(action).setPackage(context.packageName),
-                flags,
-            )
-        session.commit(pending.intentSender)
-    }
+    ): Pair<Int, String?> =
+        context.commitForResult(
+            session,
+            sessionId,
+            promptFailure = "store: install prompt for $packageName could not be started",
+        ) {
+            _state.value = InstallStep.Confirming(packageName)
+        }
 
     private companion object {
         const val WRITE_NAME = "module.apk"
         const val CHUNK_BYTES = 64 * 1024
         const val PROGRESS_STEP_BYTES = 256L * 1024
-        const val RESULT_ACTION = "org.matrix.vector.manager.INSTALL_RESULT"
     }
 }

@@ -1,27 +1,20 @@
 package org.matrix.vector.manager.data.repository
 
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageInstaller
-import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
 import java.io.FileInputStream
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ipc.DaemonClient
+import org.matrix.vector.manager.ipc.commitForResult
 
 /** Where installing the manager as an app has got to. */
 sealed interface ManagerInstallStep {
@@ -179,85 +172,25 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
     /**
      * Commits the session and waits for the platform's verdict.
      *
-     * Registered at runtime rather than declared, because parasitically nothing in this app's
-     * manifest exists and a declared receiver would never fire. `STATUS_PENDING_USER_ACTION` is not
-     * terminal — it means the system is asking, and the real status follows the answer. It should
-     * not arise here: the host holds `INSTALL_PACKAGES`, so the commit is silent. It is handled
-     * anyway, because the same code runs from a manager that is already installed and updating
-     * itself, where the prompt is exactly what the platform will do.
+     * `STATUS_PENDING_USER_ACTION` should not arise here — the host holds `INSTALL_PACKAGES`, so
+     * the commit is silent — but it is handled anyway, because the same code runs from a manager
+     * that is already installed and updating itself, where the prompt is exactly what the platform
+     * will do.
+     *
+     * @see commitForResult
      */
     private suspend fun commit(
         session: PackageInstaller.Session,
         sessionId: Int,
-    ): Pair<Int, String?> = suspendCancellableCoroutine { continuation ->
-        val action = "$RESULT_ACTION.$sessionId"
-        val receiver =
-            object : BroadcastReceiver() {
-                override fun onReceive(received: Context, intent: Intent) {
-                    val status =
-                        intent.getIntExtra(
-                            PackageInstaller.EXTRA_STATUS,
-                            PackageInstaller.STATUS_FAILURE,
-                        )
-                    if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
-                        IntentCompat.getParcelableExtra(
-                                intent,
-                                Intent.EXTRA_INTENT,
-                                Intent::class.java,
-                            )
-                            ?.let { confirm ->
-                                runCatching {
-                                        context.startActivity(
-                                            confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        )
-                                    }
-                                    .onFailure { e ->
-                                        Log.e(
-                                            Constants.TAG,
-                                            "actions: manager install prompt could not be started",
-                                            e,
-                                        )
-                                    }
-                            }
-                        return
-                    }
-                    runCatching { context.unregisterReceiver(this) }
-                    if (continuation.isActive) {
-                        continuation.resumeWith(
-                            Result.success(
-                                status to
-                                    intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-                            )
-                        )
-                    }
-                }
-            }
-
-        ContextCompat.registerReceiver(
-            context,
-            receiver,
-            IntentFilter(action),
-            ContextCompat.RECEIVER_NOT_EXPORTED,
+    ): Pair<Int, String?> =
+        context.commitForResult(
+            session,
+            sessionId,
+            promptFailure = "actions: manager install prompt could not be started",
         )
-        continuation.invokeOnCancellation { runCatching { context.unregisterReceiver(receiver) } }
-
-        val flags =
-            PendingIntent.FLAG_UPDATE_CURRENT or
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE
-                else 0
-        val pending =
-            PendingIntent.getBroadcast(
-                context,
-                sessionId,
-                Intent(action).setPackage(context.packageName),
-                flags,
-            )
-        session.commit(pending.intentSender)
-    }
 
     private companion object {
         const val WRITE_NAME = "manager.apk"
-        const val RESULT_ACTION = "org.matrix.vector.manager.INSTALL_MANAGER_RESULT"
 
         /** What the platform calls it in `EXTRA_STATUS_MESSAGE`; see PackageManagerException. */
         const val SIGNATURE_CONFLICT = "INSTALL_FAILED_UPDATE_INCOMPATIBLE"
