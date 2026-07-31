@@ -22,6 +22,7 @@ import androidx.compose.material.icons.rounded.RadioButtonChecked
 import androidx.compose.material.icons.rounded.History
 import org.matrix.vector.manager.data.github.ZipVariant
 import org.matrix.vector.manager.data.github.CanaryArtifact
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -546,6 +547,16 @@ private fun VariantPicker(
 }
 
 /**
+ * How much of a version row the status on its right may take.
+ *
+ * Wide enough for "Installed" and "Older" on one line in every language shipped, and narrow enough
+ * that what is left still holds a build's name and its date without wrapping on a phone. The
+ * divergence clause is longer than that and wraps inside this width, which is the point of fixing
+ * it: one row's wordier status must not move where the next row's name begins.
+ */
+private val STATUS_WIDTH = 96.dp
+
+/**
  * Every build on this channel, so "no update available" is not a dead end.
  *
  * The same list that answers "is there anything newer" also answers "what could I go back to",
@@ -591,7 +602,13 @@ private fun VersionsSheet(
                                 onSelect(release)
                                 onDismiss()
                             },
-                        headlineContent = { Text(release.title) },
+                        // One line each, always. What names the build is the same shape in every
+                        // row — "Vector v2.0 canary 3060", then its date and channel — and a row
+                        // that wraps because of what is beside it reads as a different kind of
+                        // entry when it is not.
+                        headlineContent = {
+                            Text(release.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        },
                         supportingContent = {
                             Text(
                                 listOfNotNull(
@@ -603,7 +620,9 @@ private fun VersionsSheet(
                                             stringResource(R.string.update_channel_release)
                                         },
                                     )
-                                    .joinToString("  ·  ")
+                                    .joinToString("  ·  "),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         leadingContent = {
@@ -625,6 +644,13 @@ private fun VersionsSheet(
                                     },
                             )
                         },
+                        // A column of its own width, kept even when this row has nothing to say.
+                        // The status is one word on most rows and a whole clause on the divergent
+                        // one; sized to its content it would take the room the build's name needs
+                        // and wrap that row alone, and a slot that disappears when empty would
+                        // start each row's name in a different place. The label wraps inside its
+                        // column instead, where it costs nothing: three lines of it are still
+                        // shorter than the two the name and its date already occupy.
                         trailingContent = {
                             val label =
                                 when {
@@ -633,17 +659,23 @@ private fun VersionsSheet(
                                     older -> stringResource(R.string.update_older)
                                     else -> null
                                 }
-                            if (label != null) {
-                                Text(
-                                    label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color =
-                                        when {
-                                            installed -> colors.primary
-                                            diverged -> colors.tertiary
-                                            else -> colors.onSurfaceVariant
-                                        },
-                                )
+                            Box(
+                                modifier = Modifier.width(STATUS_WIDTH),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                if (label != null) {
+                                    Text(
+                                        label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        textAlign = TextAlign.End,
+                                        color =
+                                            when {
+                                                installed -> colors.primary
+                                                diverged -> colors.tertiary
+                                                else -> colors.onSurfaceVariant
+                                            },
+                                    )
+                                }
                             }
                         },
                         colors = sheetRowColors,
