@@ -94,6 +94,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
@@ -224,6 +225,14 @@ fun ScopeScreen(
             )
             viewModel.consumeMessage()
         }
+    }
+
+    // The view model is scoped to the navigation entry, so it survives leaving the app entirely,
+    // and nothing else re-reads the scope after `init`. Without this the screen would go on showing
+    // what the table held when it opened. See `refreshSavedScope` for who else writes it.
+    LifecycleResumeEffect(packageName, userId) {
+        viewModel.refreshSavedScope()
+        onPauseOrDispose {}
     }
 
     // Leaving a module enabled with nothing to hook does nothing at all but looks like it works.

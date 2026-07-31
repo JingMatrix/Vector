@@ -87,7 +87,13 @@ class ScopeViewModel(
 
     private val allApps = MutableStateFlow<List<AppInfo>>(emptyList())
 
-    /** What the daemon currently holds. */
+    /**
+     * What the daemon held when this screen last looked.
+     *
+     * The baseline the draft is measured against, and not an oracle: the scope table has writers
+     * other than this screen, so it goes stale the moment one of them runs. That is why
+     * [refreshSavedScope] exists, and why [apply] re-reads instead of trusting it.
+     */
     private val savedScope = MutableStateFlow<Set<ScopeTarget>>(emptySet())
 
     /**
@@ -417,21 +423,10 @@ class ScopeViewModel(
             val userCount =
                 withContext(Dispatchers.IO) { daemonClient.getUsers().getOrNull()?.size ?: 1 }
 
-            val savedResult = daemonClient.getModuleScope(modulePackageName)
-            // Keyed on the exception, not on a null: a fresh module with nothing ticked is a
-            // success carrying an empty list and must stay silent.
-            savedResult.exceptionOrNull()?.let { e ->
-                Log.e(
-                    Constants.TAG,
-                    "scope: reading the saved scope of $modulePackageName failed, showing none",
-                    e,
-                )
-            }
-            val saved =
-                savedResult
-                    .getOrNull()
-                    ?.map { ScopeTarget(it.packageName, it.userId) }
-                    ?.toSet() ?: emptySet()
+            // A scope the daemon will not hand over shows as none rather than keeping the screen
+            // shut; [readSavedScope] logs why, and keeps that case apart from the empty list a
+            // module with nothing ticked legitimately has.
+            val saved = readSavedScope() ?: emptySet()
             savedScope.value = saved
             draftScope.value = saved
 
@@ -479,6 +474,67 @@ class ScopeViewModel(
                     // module is in while its scope is being chosen for the first time.
                     selfHooked = manifest?.isLegacy == true,
                 )
+        }
+    }
+
+    /**
+     * What the daemon holds for this module right now, or null when it would not say.
+     *
+     * Null and empty are different answers and every caller here has to tell them apart: a fresh
+     * module with nothing ticked is a success carrying an empty list, and treating a refused read
+     * as "no rows" would turn a broken connection into an erased scope.
+     */
+    private suspend fun readSavedScope(): Set<ScopeTarget>? {
+        val result = daemonClient.getModuleScope(modulePackageName)
+        result.exceptionOrNull()?.let { e ->
+            Log.e(Constants.TAG, "scope: reading the saved scope of $modulePackageName failed", e)
+        }
+        val rows = result.getOrNull() ?: return null
+        return rows.map { ScopeTarget(it.packageName, it.userId) }.toSet().asStored()
+    }
+
+    /**
+     * The set spelled the way the daemon stores it, so two readings of it can be subtracted.
+     *
+     * `ModuleDatabase.setModuleScope` files the framework under user 0 whoever asked for it, so it
+     * always comes back as user 0 — while a scope restored from a backup written by an older
+     * manager still names it under the module's own user, and this screen's own row for it is
+     * user 0. Comparing the two spellings without this makes the framework look added and removed
+     * at once, and a merge built on that difference would act on both.
+     */
+    private fun Set<ScopeTarget>.asStored(): Set<ScopeTarget> =
+        mapTo(mutableSetOf()) {
+            if (it.packageName == SYSTEM_FRAMEWORK_PACKAGE) it.copy(userId = 0) else it
+        }
+
+    /**
+     * Re-reads the stored scope and folds whatever arrived from elsewhere into the draft.
+     *
+     * Called every time the screen comes back to the front, because this editor is not the only
+     * writer of that table and the other writer is one tap away: the button in the corner opens
+     * the module, a libxposed module asks for a target while it runs, and the user approves it
+     * from the notification shade. Nothing here would ever notice — the load runs once, from
+     * `init` — so the list would go on drawing an empty box beside a target the module is already
+     * being loaded into, and the apply bar would count a removal nobody asked for.
+     *
+     * Additive on purpose. What the user has ticked here is theirs and survives untouched; a row
+     * that appeared outside joins both the baseline and the draft, so it reads as in force rather
+     * than as a pending change. A row that *vanished* outside is left in the draft, where it shows
+     * honestly as something applying would put back — unticking it here would undo a choice on the
+     * user's behalf and say nothing.
+     */
+    fun refreshSavedScope() {
+        // The screen's first resume lands while the load started in `init` is still in flight, and
+        // that load is this same read: running both races two answers into the same field for no
+        // gain, and the stale one can win. An apply is likewise mid-write and publishes its own
+        // result, which this would only be able to contradict.
+        if (_uiState.value.loading || _applying.value) return
+        viewModelScope.launch {
+            val current = readSavedScope() ?: return@launch
+            val baseline = savedScope.value.asStored()
+            if (current == baseline) return@launch
+            savedScope.value = current
+            draftScope.value = draftScope.value + (current - baseline)
         }
     }
 
@@ -683,10 +739,23 @@ class ScopeViewModel(
     }
 
     /**
-     * Writes the draft, once.
+     * Writes what the user did, once.
      *
-     * The whole draft goes out as one `setModuleScope`, which replaces every scope row of the
-     * module and triggers one configuration rebuild. The new scope reaches an app when its process
+     * Not the draft as it stands, deliberately. One `setModuleScope` replaces *every* scope row of
+     * the module, so sending a draft built when the screen opened sends a set that has never heard
+     * of anything written since — and a row can arrive while this screen sits in the background,
+     * because the user approving a module's own `requestScope` from the notification shade adds
+     * one. This screen's own button for opening the module is exactly how a module gets to run and
+     * ask. The approval would then be deleted by the next apply, minutes after the module had
+     * already been told it was granted, and nothing anywhere would say so.
+     *
+     * So the edit is what travels: the targets ticked and unticked here, applied to whatever the
+     * daemon holds at the moment of writing rather than to what the user was shown. When the fresh
+     * read fails there is nothing better than the picture on screen — falling back to the baseline
+     * reduces the expression below to exactly the draft, which is the behaviour this replaces, and
+     * refusing to apply at all would leave an edit that can never be committed.
+     *
+     * One write means one configuration rebuild. The new scope reaches an app when its process
      * next starts; nothing running is restarted here.
      *
      * The daemon enables the module as a side effect of storing a scope.
@@ -695,9 +764,22 @@ class ScopeViewModel(
         if (_applying.value) return
         viewModelScope.launch {
             _applying.value = true
-            val draft = draftScope.value
+            // The snapshot the draft was built from, so the difference between the two is exactly
+            // what was done on this screen and nothing else.
+            val baseline = savedScope.value.asStored()
+            val draft = draftScope.value.asStored()
+            val current = readSavedScope()
+            if (current == null) {
+                Log.w(
+                    Constants.TAG,
+                    "scope: could not re-read the scope of $modulePackageName before writing; " +
+                        "applying the draft as it stands",
+                )
+            }
+            val before = current ?: baseline
+            val merged = before + (draft - baseline) - (baseline - draft)
             val aidl =
-                draft.map { target ->
+                merged.map { target ->
                     Application().apply {
                         packageName = target.packageName
                         userId = target.userId
@@ -706,23 +788,30 @@ class ScopeViewModel(
             daemonClient
                 .setModuleScope(modulePackageName, aidl)
                 .onSuccess { stored ->
-                    // The daemon's answer, not merely the fact that it answered: it refuses a
-                    // draft that reaches beyond a scope the module fixes for itself, and keeping
-                    // the draft on a refusal would show a scope the framework never took.
+                    // The daemon's answer, not merely the fact that it answered: it refuses a set
+                    // that reaches beyond a scope the module fixes for itself, and moving the saved
+                    // set on a refusal would show a scope the framework never took.
                     if (!stored) {
                         Log.e(
                             Constants.TAG,
-                            "scope: daemon refused ${draft.size} targets for $modulePackageName",
+                            "scope: daemon refused ${merged.size} targets for $modulePackageName",
                         )
                         _message.value = ScopeMessage.ApplyFailed
                     } else {
                         // Whether the framework itself just joined or left this scope. Compared
-                        // against what was stored before the write, so it is the change that is
-                        // reported and not the mere presence of the row.
+                        // against what the daemon actually held a moment ago rather than against
+                        // the picture the screen was showing, so it is the change this write made
+                        // that is reported — not the mere presence of the row, and not a change
+                        // somebody else had already made.
                         val framework = ScopeTarget(SYSTEM_FRAMEWORK_PACKAGE, 0)
-                        val wasThere = framework in savedScope.value
-                        val isThere = framework in draft
-                        savedScope.value = draft
+                        val wasThere = framework in before
+                        val isThere = framework in merged
+                        savedScope.value = merged
+                        // The draft moves with it. What went out is now what is stored, and a row
+                        // that arrived from elsewhere and has just been written would otherwise sit
+                        // in the saved set but not the draft — the apply bar would come straight
+                        // back up offering to remove it.
+                        draftScope.value = merged
                         // Storing a scope enables the module, so applying one to a disabled
                         // module would leave the switch here and the row in the module list
                         // both saying it is off. Followed through the switch's own path, so
@@ -747,7 +836,7 @@ class ScopeViewModel(
                 .onFailure { e ->
                     Log.e(
                         Constants.TAG,
-                        "scope: apply of ${draft.size} targets to $modulePackageName failed",
+                        "scope: apply of ${merged.size} targets to $modulePackageName failed",
                         e,
                     )
                     _message.value = ScopeMessage.ApplyFailed
