@@ -15,6 +15,7 @@ import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.ipc.commitForResult
+import org.matrix.vector.manager.ipc.requestReplaceExisting
 
 /** Where installing the manager as an app has got to. */
 sealed interface ManagerInstallStep {
@@ -125,6 +126,9 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
                             // with it. A daemon serving something else cannot install it as Vector.
                             setAppPackageName(BuildConfig.MANAGER_PACKAGE_NAME)
                             if (size > 0) setSize(size)
+                            // Updating an installed manager from the host is a replace, and
+                            // parasitically the platform does not make it one for us.
+                            requestReplaceExisting()
                         }
                 sessionId = packageInstaller.createSession(params)
 

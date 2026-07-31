@@ -14,6 +14,34 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import org.matrix.vector.manager.Constants
 
 /**
+ * Asks for an install that replaces whatever copy of the package is already on the device.
+ *
+ * `MODE_FULL_INSTALL` does not say that, and parasitically nothing else does either.
+ * `PackageInstallerService.createSessionInternal` sets `INSTALL_REPLACE_EXISTING` itself for every
+ * ordinary caller, and takes a separate branch for `SHELL_UID` and `ROOT_UID` which adds
+ * `INSTALL_FROM_ADB` and leaves the rest of the flags as they came. `pm install` sets the flag in
+ * its own argument parsing, which is why an adb install still replaces and why `-r` is accepted and
+ * ignored; a caller of the framework API gets no such help. Under the host the manager *is* that
+ * uid, so `PackageManagerService` treats a module the device already has as a first install and
+ * fails it with `INSTALL_FAILED_ALREADY_EXISTS: Attempt to re-install <package> without first
+ * uninstalling`. That branch reads the same from API 27, this app's minimum, to AOSP main, so
+ * updating a module through the store has never worked parasitically on any release, and neither
+ * has updating an installed manager from the host.
+ *
+ * Standalone this changes nothing, because the platform has already set the flag by the time a
+ * session exists — which is why failing to set it is worth no more than a warning. The field is
+ * `@hide` but greylisted (`@UnsupportedAppUsage` carrying no `maxTargetSdk`), so the reflection is
+ * permitted in both modes rather than only under the platform-signed host.
+ */
+fun PackageInstaller.SessionParams.requestReplaceExisting() {
+    runCatching {
+            val flags = PackageInstaller.SessionParams::class.java.getDeclaredField("installFlags")
+            flags.setInt(this, flags.getInt(this) or INSTALL_REPLACE_EXISTING)
+        }
+        .onFailure { Log.w(Constants.TAG, "ipc: install session could not request a replace", it) }
+}
+
+/**
  * Commits [session] and suspends until the platform says what became of it.
  *
  * The verdict arrives as a broadcast, and the receiver is registered here rather than declared:
@@ -95,3 +123,6 @@ suspend fun Context.commitForResult(
 
 /** Only ever a prefix; the session id and a UUID follow. */
 private const val RESULT_ACTION = "org.matrix.vector.manager.INSTALL_RESULT"
+
+/** `PackageManager.INSTALL_REPLACE_EXISTING`, `@hide` like the field it belongs in. */
+private const val INSTALL_REPLACE_EXISTING = 0x00000002

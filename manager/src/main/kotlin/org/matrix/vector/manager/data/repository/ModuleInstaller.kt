@@ -17,6 +17,7 @@ import okhttp3.Request
 import org.matrix.vector.manager.Constants
 import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.ipc.commitForResult
+import org.matrix.vector.manager.ipc.requestReplaceExisting
 
 /** Where an install has got to. One at a time, because a user installs one module at a time. */
 sealed interface InstallStep {
@@ -95,6 +96,7 @@ class ModuleInstaller(private val context: Context, private val client: OkHttpCl
                         .apply {
                             setAppPackageName(packageName)
                             if (asset.size > 0) setSize(asset.size)
+                            requestReplaceExisting()
                         }
                 sessionId = packageInstaller.createSession(params)
 
