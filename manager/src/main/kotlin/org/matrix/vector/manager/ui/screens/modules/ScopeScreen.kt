@@ -436,7 +436,15 @@ fun ScopeScreen(
                 items(apps, key = { "${it.packageName}:${it.userId}" }) { app ->
                     AppRow(
                         app = app,
-                        enabled = !state.recommended.staticScope && !app.isImplicitInScope,
+                        // A static scope fixes *which apps may be listed*, not which of them the
+                        // user wants. "Users should not apply the module on apps outside the scope
+                        // list" is the whole of what module.prop claims, the list above is already
+                        // narrowed to that set, and the daemon refuses only targets beyond it — a
+                        // subset is accepted. Disabling every row here went further than any of
+                        // that and made the declared scope all or nothing: a module naming three
+                        // apps could be given all three from the selection menu or none, and one
+                        // of them never, with no way to drop one afterwards either.
+                        enabled = !app.isImplicitInScope,
                         origin =
                             when {
                                 app.isImplicitInScope -> ScopeOrigin.Derived
