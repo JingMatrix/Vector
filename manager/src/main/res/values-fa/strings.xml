@@ -6,6 +6,14 @@
     <string name="nav_store">فهرست</string>
     <string name="nav_logs">گزارش‌ها</string>
 
+    <string name="panels_done">انجام شد</string>
+    <string name="panels_hide">پنهان کردن %1$s</string>
+    <string name="panels_show">نمایش %1$s</string>
+    <string name="panels_move_earlier">انتقال به جلو</string>
+    <string name="panels_move_later">انتقال به عقب</string>
+    <string name="panels_ball_open">باز کردن ناوبری</string>
+    <string name="panels_ball_close">بستن ناوبری</string>
+
     <string name="status_active">فعال</string>
     <string name="status_degraded">نیازمند توجه</string>
     <string name="status_inactive">فعال نشده</string>
@@ -149,6 +157,12 @@
     <string name="ambience_circuit">مدار</string>
     <string name="ambience_matrix">باران کد</string>
     <string name="ambience_none">ساکن</string>
+
+    <string name="settings_navigation">ناوبری</string>
+    <string name="settings_floating_nav">ناوبری شناور</string>
+    <string name="settings_floating_nav_summary">نوار را با توپ کوچکی جایگزین می‌کند که می‌توانید هرجا بکشید. برای بادبزنی شدن بخش‌ها آن را نگه دارید، یا برای باز ماندنشان ضربه بزنید.</string>
+    <string name="settings_rearrange_panels">چیدمان دوبارهٔ بخش‌ها</string>
+    <string name="settings_rearrange_panels_summary">ترتیبشان را تغییر دهید، یا آن‌هایی را که هرگز باز نمی‌کنید پنهان کنید.</string>
 
     <string name="settings_activity">جریان فعالیت</string>
     <string name="settings_window">تاریخچهٔ نمایش‌داده‌شده در خانه</string>

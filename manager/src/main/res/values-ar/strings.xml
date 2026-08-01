@@ -6,6 +6,14 @@
     <string name="nav_store">الفهرس</string>
     <string name="nav_logs">السجلات</string>
 
+    <string name="panels_done">تمّ</string>
+    <string name="panels_hide">إخفاء %1$s</string>
+    <string name="panels_show">إظهار %1$s</string>
+    <string name="panels_move_earlier">نقل إلى الأمام</string>
+    <string name="panels_move_later">نقل إلى الخلف</string>
+    <string name="panels_ball_open">فتح التنقّل</string>
+    <string name="panels_ball_close">إغلاق التنقّل</string>
+
     <string name="status_active">نشط</string>
     <string name="status_degraded">يحتاج فحصًا</string>
     <string name="status_inactive">غير مُفعَّل</string>
@@ -181,6 +189,12 @@
     <string name="ambience_circuit">دارة</string>
     <string name="ambience_matrix">مطر الشيفرة</string>
     <string name="ambience_none">ساكن</string>
+
+    <string name="settings_navigation">التنقّل</string>
+    <string name="settings_floating_nav">تنقّل عائم</string>
+    <string name="settings_floating_nav_summary">يستعيض عن الشريط بكرة صغيرة يمكن سحبها إلى أي مكان. المس مطوّلًا لنشر الأقسام، أو انقر لإبقائها مفتوحة.</string>
+    <string name="settings_rearrange_panels">إعادة ترتيب الأقسام</string>
+    <string name="settings_rearrange_panels_summary">غيّر ترتيبها، أو أخفِ ما لا تفتحه أبدًا.</string>
 
     <string name="settings_activity">تدفّق النشاط</string>
     <string name="settings_window">التاريخ المعروض في الرئيسية</string>

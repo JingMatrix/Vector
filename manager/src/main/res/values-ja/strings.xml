@@ -6,6 +6,14 @@
     <string name="nav_store">カタログ</string>
     <string name="nav_logs">ログ</string>
 
+    <string name="panels_done">完了</string>
+    <string name="panels_hide">%1$s を非表示</string>
+    <string name="panels_show">%1$s を表示</string>
+    <string name="panels_move_earlier">前へ移動</string>
+    <string name="panels_move_later">後ろへ移動</string>
+    <string name="panels_ball_open">ナビゲーションを開く</string>
+    <string name="panels_ball_close">ナビゲーションを閉じる</string>
+
     <string name="status_active">有効</string>
     <string name="status_degraded">確認が必要</string>
     <string name="status_inactive">未有効化</string>
@@ -141,6 +149,12 @@
     <string name="ambience_circuit">回路</string>
     <string name="ambience_matrix">コードの雨</string>
     <string name="ambience_none">静止</string>
+
+    <string name="settings_navigation">ナビゲーション</string>
+    <string name="settings_floating_nav">フローティングナビゲーション</string>
+    <string name="settings_floating_nav_summary">バーの代わりに、どこへでもドラッグできる小さなボールを表示します。長押しするとパネルが扇状に開き、タップすると開いたままになります。</string>
+    <string name="settings_rearrange_panels">パネルを並べ替える</string>
+    <string name="settings_rearrange_panels_summary">並び順を変えたり、開かないものを隠したりできます。</string>
 
     <string name="settings_activity">活動フィード</string>
     <string name="settings_window">ホームに表示する期間</string>

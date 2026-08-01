@@ -6,6 +6,14 @@
     <string name="nav_store">Catalogue</string>
     <string name="nav_logs">Journaux</string>
 
+    <string name="panels_done">Terminé</string>
+    <string name="panels_hide">Masquer %1$s</string>
+    <string name="panels_show">Afficher %1$s</string>
+    <string name="panels_move_earlier">Déplacer avant</string>
+    <string name="panels_move_later">Déplacer après</string>
+    <string name="panels_ball_open">Ouvrir la navigation</string>
+    <string name="panels_ball_close">Fermer la navigation</string>
+
     <string name="status_active">Actif</string>
     <string name="status_degraded">À vérifier</string>
     <string name="status_inactive">Non activé</string>
@@ -149,6 +157,12 @@
     <string name="ambience_circuit">Circuit</string>
     <string name="ambience_matrix">Pluie de code</string>
     <string name="ambience_none">Immobile</string>
+
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_floating_nav">Navigation flottante</string>
+    <string name="settings_floating_nav_summary">Remplace la barre par une petite boule que vous pouvez déplacer où vous voulez. Maintenez-la pour déployer les sections, ou touchez-la pour les garder ouvertes.</string>
+    <string name="settings_rearrange_panels">Réorganiser les sections</string>
+    <string name="settings_rearrange_panels_summary">Changez leur ordre, ou masquez celles que vous n\'ouvrez jamais.</string>
 
     <string name="settings_activity">Fil d\'activité</string>
     <string name="settings_window">Historique affiché sur l\'accueil</string>

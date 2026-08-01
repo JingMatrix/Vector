@@ -6,6 +6,14 @@
     <string name="nav_store">Каталог</string>
     <string name="nav_logs">Журнали</string>
 
+    <string name="panels_done">Готово</string>
+    <string name="panels_hide">Сховати «%1$s»</string>
+    <string name="panels_show">Показати «%1$s»</string>
+    <string name="panels_move_earlier">Перемістити вперед</string>
+    <string name="panels_move_later">Перемістити назад</string>
+    <string name="panels_ball_open">Відкрити навігацію</string>
+    <string name="panels_ball_close">Закрити навігацію</string>
+
     <string name="status_active">Активний</string>
     <string name="status_degraded">Проблеми</string>
     <string name="status_inactive">Не активовано</string>
@@ -165,6 +173,12 @@
     <string name="ambience_circuit">Схема</string>
     <string name="ambience_matrix">Дощ із коду</string>
     <string name="ambience_none">Нерухома</string>
+
+    <string name="settings_navigation">Навігація</string>
+    <string name="settings_floating_nav">Плаваюча навігація</string>
+    <string name="settings_floating_nav_summary">Замінює панель навігації маленькою кулькою, яку можна перетягнути будь-куди. Утримуйте її, щоб розгорнути розділи віялом, або торкніться, щоб вони лишилися відкритими.</string>
+    <string name="settings_rearrange_panels">Змінити порядок розділів</string>
+    <string name="settings_rearrange_panels_summary">Змініть їхній порядок або сховайте ті, які ніколи не відкриваєте.</string>
 
     <string name="settings_activity">Стрічка активності</string>
     <string name="settings_window">Історія на головній</string>

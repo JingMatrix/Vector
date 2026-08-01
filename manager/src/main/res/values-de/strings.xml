@@ -6,6 +6,14 @@
     <string name="nav_store">Katalog</string>
     <string name="nav_logs">Protokolle</string>
 
+    <string name="panels_done">Fertig</string>
+    <string name="panels_hide">%1$s ausblenden</string>
+    <string name="panels_show">%1$s einblenden</string>
+    <string name="panels_move_earlier">Nach vorne verschieben</string>
+    <string name="panels_move_later">Nach hinten verschieben</string>
+    <string name="panels_ball_open">Navigation öffnen</string>
+    <string name="panels_ball_close">Navigation schließen</string>
+
     <string name="status_active">Aktiv</string>
     <string name="status_degraded">Prüfen nötig</string>
     <string name="status_inactive">Nicht aktiviert</string>
@@ -149,6 +157,12 @@
     <string name="ambience_circuit">Leiterbahnen</string>
     <string name="ambience_matrix">Coderegen</string>
     <string name="ambience_none">Ruhig</string>
+
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_floating_nav">Schwebende Navigation</string>
+    <string name="settings_floating_nav_summary">Ersetzt die Leiste durch einen kleinen Ball, den du überallhin ziehen kannst. Halte ihn gedrückt, um die Bereiche aufzufächern, oder tippe ihn an, damit sie offen bleiben.</string>
+    <string name="settings_rearrange_panels">Bereiche neu anordnen</string>
+    <string name="settings_rearrange_panels_summary">Ändere ihre Reihenfolge oder blende aus, was du nie öffnest.</string>
 
     <string name="settings_activity">Aktivitätsverlauf</string>
     <string name="settings_window">Auf der Startseite gezeigter Verlauf</string>

@@ -6,6 +6,14 @@
     <string name="nav_store">Kho mô-đun</string>
     <string name="nav_logs">Nhật ký</string>
 
+    <string name="panels_done">Xong</string>
+    <string name="panels_hide">Ẩn %1$s</string>
+    <string name="panels_show">Hiện %1$s</string>
+    <string name="panels_move_earlier">Chuyển lên trước</string>
+    <string name="panels_move_later">Chuyển ra sau</string>
+    <string name="panels_ball_open">Mở điều hướng</string>
+    <string name="panels_ball_close">Đóng điều hướng</string>
+
     <string name="status_active">Đang hoạt động</string>
     <string name="status_degraded">Cần kiểm tra</string>
     <string name="status_inactive">Chưa kích hoạt</string>
@@ -141,6 +149,12 @@
     <string name="ambience_circuit">Mạch điện</string>
     <string name="ambience_matrix">Mưa mã</string>
     <string name="ambience_none">Đứng yên</string>
+
+    <string name="settings_navigation">Điều hướng</string>
+    <string name="settings_floating_nav">Điều hướng nổi</string>
+    <string name="settings_floating_nav_summary">Thay thanh điều hướng bằng một quả bóng nhỏ có thể kéo tới bất kỳ đâu. Giữ để xòe các mục ra, hoặc chạm để giữ chúng mở.</string>
+    <string name="settings_rearrange_panels">Sắp xếp lại các mục</string>
+    <string name="settings_rearrange_panels_summary">Đổi thứ tự, hoặc ẩn những mục bạn không bao giờ mở.</string>
 
     <string name="settings_activity">Dòng hoạt động</string>
     <string name="settings_window">Lịch sử hiện ở trang chính</string>

@@ -6,6 +6,14 @@
     <string name="nav_store">仓库</string>
     <string name="nav_logs">日志</string>
 
+    <string name="panels_done">完成</string>
+    <string name="panels_hide">隐藏%1$s</string>
+    <string name="panels_show">显示%1$s</string>
+    <string name="panels_move_earlier">向前移动</string>
+    <string name="panels_move_later">向后移动</string>
+    <string name="panels_ball_open">打开导航</string>
+    <string name="panels_ball_close">关闭导航</string>
+
     <string name="status_active">已激活</string>
     <string name="status_degraded">异常</string>
     <string name="status_inactive">未激活</string>
@@ -141,6 +149,12 @@
     <string name="ambience_circuit">电路</string>
     <string name="ambience_matrix">代码雨</string>
     <string name="ambience_none">静止</string>
+
+    <string name="settings_navigation">导航</string>
+    <string name="settings_floating_nav">悬浮导航</string>
+    <string name="settings_floating_nav_summary">用一颗可以拖到任意位置的小球代替导航栏。按住小球会将面板扇形展开，轻点则让它们保持展开。</string>
+    <string name="settings_rearrange_panels">重新排列面板</string>
+    <string name="settings_rearrange_panels_summary">调整顺序，或隐藏从不打开的面板。</string>
 
     <string name="settings_activity">动态</string>
     <string name="settings_window">主页显示的历史范围</string>

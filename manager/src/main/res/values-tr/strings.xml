@@ -6,6 +6,14 @@
     <string name="nav_store">Katalog</string>
     <string name="nav_logs">Günlükler</string>
 
+    <string name="panels_done">Bitti</string>
+    <string name="panels_hide">%1$s öğesini gizle</string>
+    <string name="panels_show">%1$s öğesini göster</string>
+    <string name="panels_move_earlier">Öne taşı</string>
+    <string name="panels_move_later">Arkaya taşı</string>
+    <string name="panels_ball_open">Gezinmeyi aç</string>
+    <string name="panels_ball_close">Gezinmeyi kapat</string>
+
     <string name="status_active">Etkin</string>
     <string name="status_degraded">Sorun var</string>
     <string name="status_inactive">Etkinleştirilmedi</string>
@@ -149,6 +157,12 @@
     <string name="ambience_circuit">Devre</string>
     <string name="ambience_matrix">Kod yağmuru</string>
     <string name="ambience_none">Durgun</string>
+
+    <string name="settings_navigation">Gezinme</string>
+    <string name="settings_floating_nav">Yüzen gezinme</string>
+    <string name="settings_floating_nav_summary">Çubuğu, istediğiniz yere sürükleyebileceğiniz küçük bir topla değiştirir. Panelleri yelpaze gibi açmak için basılı tutun, açık kalmaları için dokunun.</string>
+    <string name="settings_rearrange_panels">Panelleri yeniden düzenle</string>
+    <string name="settings_rearrange_panels_summary">Sıralarını değiştirin ya da hiç açmadıklarınızı gizleyin.</string>
 
     <string name="settings_activity">Hareket akışı</string>
     <string name="settings_window">Ana sayfada gösterilen geçmiş</string>

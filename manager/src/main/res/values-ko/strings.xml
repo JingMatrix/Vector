@@ -6,6 +6,14 @@
     <string name="nav_store">카탈로그</string>
     <string name="nav_logs">로그</string>
 
+    <string name="panels_done">완료</string>
+    <string name="panels_hide">%1$s 숨기기</string>
+    <string name="panels_show">%1$s 표시</string>
+    <string name="panels_move_earlier">앞으로 이동</string>
+    <string name="panels_move_later">뒤로 이동</string>
+    <string name="panels_ball_open">탐색 열기</string>
+    <string name="panels_ball_close">탐색 닫기</string>
+
     <string name="status_active">활성</string>
     <string name="status_degraded">확인 필요</string>
     <string name="status_inactive">활성화되지 않음</string>
@@ -141,6 +149,12 @@
     <string name="ambience_circuit">회로</string>
     <string name="ambience_matrix">코드 비</string>
     <string name="ambience_none">정지</string>
+
+    <string name="settings_navigation">탐색</string>
+    <string name="settings_floating_nav">플로팅 탐색</string>
+    <string name="settings_floating_nav_summary">막대 대신 어디로든 끌 수 있는 작은 공을 띄웁니다. 길게 누르면 패널이 부채꼴로 펼쳐지고, 탭하면 펼친 채로 유지됩니다.</string>
+    <string name="settings_rearrange_panels">패널 순서 바꾸기</string>
+    <string name="settings_rearrange_panels_summary">순서를 바꾸거나, 열지 않는 패널을 숨깁니다.</string>
 
     <string name="settings_activity">활동 피드</string>
     <string name="settings_window">홈에 표시할 기간</string>

@@ -10,6 +10,14 @@
     <string name="nav_store">קטלוג</string>
     <string name="nav_logs">יומנים</string>
 
+    <string name="panels_done">סיום</string>
+    <string name="panels_hide">הסתרת %1$s</string>
+    <string name="panels_show">הצגת %1$s</string>
+    <string name="panels_move_earlier">העברה קדימה</string>
+    <string name="panels_move_later">העברה אחורה</string>
+    <string name="panels_ball_open">פתיחת הניווט</string>
+    <string name="panels_ball_close">סגירת הניווט</string>
+
     <string name="status_active">פעיל</string>
     <string name="status_degraded">דורש בדיקה</string>
     <string name="status_inactive">לא הופעל</string>
@@ -169,6 +177,12 @@
     <string name="ambience_circuit">מעגל</string>
     <string name="ambience_matrix">גשם של קוד</string>
     <string name="ambience_none">דומם</string>
+
+    <string name="settings_navigation">ניווט</string>
+    <string name="settings_floating_nav">ניווט צף</string>
+    <string name="settings_floating_nav_summary">מחליף את הסרגל בכדור קטן שאפשר לגרור לכל מקום. לחיצה ארוכה פורשת את המקטעים במניפה, והקשה משאירה אותם פתוחים.</string>
+    <string name="settings_rearrange_panels">סידור המקטעים מחדש</string>
+    <string name="settings_rearrange_panels_summary">אפשר לשנות את סדרם, או להסתיר את מה שאף פעם לא נפתח.</string>
 
     <string name="settings_activity">זרם הפעילות</string>
     <string name="settings_window">ההיסטוריה שמוצגת בבית</string>

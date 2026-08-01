@@ -6,6 +6,14 @@
     <string name="nav_store">Catalogo</string>
     <string name="nav_logs">Log</string>
 
+    <string name="panels_done">Fatto</string>
+    <string name="panels_hide">Nascondi %1$s</string>
+    <string name="panels_show">Mostra %1$s</string>
+    <string name="panels_move_earlier">Sposta prima</string>
+    <string name="panels_move_later">Sposta dopo</string>
+    <string name="panels_ball_open">Apri la navigazione</string>
+    <string name="panels_ball_close">Chiudi la navigazione</string>
+
     <string name="status_active">Attivo</string>
     <string name="status_degraded">Da verificare</string>
     <string name="status_inactive">Non attivato</string>
@@ -149,6 +157,12 @@
     <string name="ambience_circuit">Circuito</string>
     <string name="ambience_matrix">Pioggia di codice</string>
     <string name="ambience_none">Ferma</string>
+
+    <string name="settings_navigation">Navigazione</string>
+    <string name="settings_floating_nav">Navigazione fluttuante</string>
+    <string name="settings_floating_nav_summary">Sostituisce la barra con una pallina che puoi trascinare dove vuoi. Tienila premuta per aprire a ventaglio le sezioni, o toccala per lasciarle aperte.</string>
+    <string name="settings_rearrange_panels">Riordina le sezioni</string>
+    <string name="settings_rearrange_panels_summary">Cambia il loro ordine, o nascondi quelle che non apri mai.</string>
 
     <string name="settings_activity">Attività</string>
     <string name="settings_window">Cronologia mostrata nella Home</string>

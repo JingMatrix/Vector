@@ -4,6 +4,14 @@
     <string name="nav_modules">Модули</string>
     <string name="nav_store">Репозиторий</string>
     <string name="nav_logs">Журнал</string>
+
+    <string name="panels_done">Готово</string>
+    <string name="panels_hide">Скрыть «%1$s»</string>
+    <string name="panels_show">Показать «%1$s»</string>
+    <string name="panels_move_earlier">Переместить вперёд</string>
+    <string name="panels_move_later">Переместить назад</string>
+    <string name="panels_ball_open">Открыть навигацию</string>
+    <string name="panels_ball_close">Закрыть навигацию</string>
     <string name="status_active">Активен</string>
     <string name="status_degraded">Проблемы</string>
     <string name="status_inactive">Не активирован</string>
@@ -152,6 +160,12 @@
     <string name="ambience_circuit">Схема</string>
     <string name="ambience_matrix">Цифровой дождь</string>
     <string name="ambience_none">Без анимации</string>
+    <string name="settings_navigation">Навигация</string>
+    <string name="settings_floating_nav">Плавающая навигация</string>
+    <string name="settings_floating_nav_summary">Заменяет панель навигации маленьким шариком, который можно перетащить куда угодно. Удерживайте его, чтобы развернуть разделы веером, или коснитесь, чтобы они остались открытыми.</string>
+    <string name="settings_rearrange_panels">Изменить порядок разделов</string>
+    <string name="settings_rearrange_panels_summary">Измените их порядок или скройте те, которые никогда не открываете.</string>
+
     <string name="settings_activity">Лента активности</string>
     <string name="settings_window">Период истории на главной</string>
     <plurals name="settings_window_months">

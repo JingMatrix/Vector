@@ -6,6 +6,14 @@
     <string name="nav_store">Katalog</string>
     <string name="nav_logs">Dzienniki</string>
 
+    <string name="panels_done">Gotowe</string>
+    <string name="panels_hide">Ukryj %1$s</string>
+    <string name="panels_show">Pokaż %1$s</string>
+    <string name="panels_move_earlier">Przesuń wcześniej</string>
+    <string name="panels_move_later">Przesuń później</string>
+    <string name="panels_ball_open">Otwórz nawigację</string>
+    <string name="panels_ball_close">Zamknij nawigację</string>
+
     <string name="status_active">Aktywny</string>
     <string name="status_degraded">Problemy</string>
     <string name="status_inactive">Nieaktywowany</string>
@@ -165,6 +173,12 @@
     <string name="ambience_circuit">Obwód</string>
     <string name="ambience_matrix">Deszcz kodu</string>
     <string name="ambience_none">Nieruchoma</string>
+
+    <string name="settings_navigation">Nawigacja</string>
+    <string name="settings_floating_nav">Pływająca nawigacja</string>
+    <string name="settings_floating_nav_summary">Zastępuje pasek małą kulką, którą można przeciągnąć w dowolne miejsce. Przytrzymaj ją, aby rozłożyć panele w wachlarz, albo dotknij, aby zostały otwarte.</string>
+    <string name="settings_rearrange_panels">Zmień kolejność paneli</string>
+    <string name="settings_rearrange_panels_summary">Zmień ich kolejność albo ukryj te, których nigdy nie otwierasz.</string>
 
     <string name="settings_activity">Strumień aktywności</string>
     <string name="settings_window">Historia pokazywana na stronie startowej</string>
