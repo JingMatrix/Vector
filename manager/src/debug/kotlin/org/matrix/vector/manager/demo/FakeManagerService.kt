@@ -279,9 +279,10 @@ class FakeManagerService(
         real?.optimizePackage(packageName) ?: false
 
     // `?: true` to match the daemon, whose PreferenceStore reads this one `?: true` when nobody has
-    // set it — the same reason forcedLauncherIcons above answers true. Answering false here is a
-    // *successful* read of the wrong value, so the demo host settles the launcher prompt's question
-    // with "there is no way back into this app" and shows it on every launch.
+    // set it — the same reason forcedLauncherIcons above answers true. A fallback here is not a
+    // failed read: it is handed upstream as a *successful* answer, so answering false would leave
+    // the status page's switch — and the ManagerPresence field HomeViewModel fills from the same
+    // call — showing the opposite of what an untouched device with a real daemon behind it says.
     override fun enableStatusNotification(): Boolean = real?.enableStatusNotification() ?: true
 
     override fun setEnableStatusNotification(enable: Boolean) {
