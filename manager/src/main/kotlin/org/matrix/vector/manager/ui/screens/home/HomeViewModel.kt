@@ -88,19 +88,24 @@ data class ManagerPresence(
      *
      * Seeded to what the daemon itself would answer for a device where nobody has touched the
      * preference — PreferenceStore.isStatusNotificationEnabled reads the stored value `?: true` —
-     * because this seed is the answer for as long as it takes to ask, and asking is not quick.
-     * Seeded false it said the opposite of what was sitting in the shade.
+     * because this seed is the answer until the daemon's own has come back, which on a launch that
+     * has no binder yet is nine round trips away rather than one. Seeded false it said the opposite
+     * of what was sitting in the shade.
      */
     val notificationEnabled: Boolean = true,
     /**
      * False until the daemon has actually answered [notificationEnabled].
      *
      * [unreachable] is a claim about a device, and it must not be made before the read that would
-     * settle it has come back: the toggle read queues behind refreshStatus's eight round trips, so
-     * "we have not asked yet" lasts long enough to be seen. The seed above is what makes that
-     * window harmless today; this is what keeps it harmless if the seed is ever wrong again,
-     * because not knowing and knowing there is no way in are not the same thing and only the second
-     * is worth a modal.
+     * settle it has come back. How long that takes depends on which of the two arrived first, this
+     * ViewModel or the binder. With a binder already in hand, `init` issues the toggle read through
+     * `refreshPresence` before `refreshStatus` asks for anything, and the wait is one cheap round
+     * trip; with a binder that lands later, that call found nothing to ask and returned, and the
+     * read that answers is the one the `service` collect makes once `refreshStatus`'s eight
+     * sequential round trips are done. The second window is long enough to be seen. The seed above
+     * is what makes both harmless today; this is what keeps them harmless if the seed is ever wrong
+     * again, because not knowing and knowing there is no way in are not the same thing and only the
+     * second is worth a modal.
      */
     val notificationKnown: Boolean = false,
     /** One of the ILSPManagerService.ROOT_* constants, for naming the action button's owner. */
@@ -111,6 +116,13 @@ data class ManagerPresence(
      *
      * False while [notificationKnown] is false as well. The only thing that reads this puts a
      * scrimmed dialog in front of the reader, and an unanswered question is not a missing route.
+     *
+     * That term withholds nothing an answer has justified: both writers of [notificationEnabled]
+     * set [notificationKnown] in the same update, so a false [notificationEnabled] already implies
+     * the daemon answered. What keeps the dialog away from a device whose daemon never answers at
+     * all is the optimistic seed, and deliberately — HomeScreen already declines to draw it while
+     * the framework reads inactive, and the offer to install a manager APK is one only a live
+     * daemon can hand over.
      */
     val unreachable: Boolean
         get() =
@@ -164,12 +176,15 @@ class HomeViewModel(
 
     // --- how the manager can be reached -------------------------------------------------------
     // Above `init` on purpose: a Kotlin class body initialises top to bottom, so the refresh in
-    // `init` would run against a `_presence` that does not exist yet. The two framework toggles are
-    // here for the same reason and not with the rest of their section further down: `init` reaches
-    // `refreshToggles` through `refreshPresence`, and `viewModelScope` dispatches on
-    // `Main.immediate`, so that body starts running on the thread that is still constructing this
-    // object. It only survives today because the first thing it does is suspend on a binder call;
-    // declared below `init`, it is one refactor away from writing to a null.
+    // `init` would run against a `_presence` that does not exist yet — it writes there
+    // synchronously, before it launches anything. The two framework toggles are here for the same
+    // concern rather than the same certainty: `init` reaches `refreshToggles` through
+    // `refreshPresence`, and `viewModelScope` dispatches on `Main.immediate`, so that body starts
+    // running on the thread that is still constructing this object instead of being posted for
+    // later. What saves it is what it does first rather than where these flows sit — it writes
+    // nothing until a `runIpc` has answered, and `runIpc` is a `withContext(Dispatchers.IO)` that
+    // always dispatches — so declared below `init` it would be one changed first statement away
+    // from writing to a null.
 
     private val _presence = MutableStateFlow(ManagerPresence())
 
@@ -218,9 +233,12 @@ class HomeViewModel(
         viewModelScope.launch {
             // The toggles first, because one of them decides whether the "no way back in" prompt is
             // drawn at all while the root implementation only names a button on the card that
-            // explains the ways in. This call is also the only retry the toggle reads ever get:
-            // arriving at Home or at the status page is the moment a stale switch would be looked
-            // at, and it is a moment somebody chose, unlike a timer.
+            // explains the ways in. On a launch that already has a binder this is the first daemon
+            // read the ViewModel starts, ahead of `refreshStatus`'s: `init` calls `refreshPresence`
+            // before it begins collecting, and `Main.immediate` runs this body inline on the
+            // constructing thread. It is also the only retry the toggle reads ever get — arriving
+            // at Home or at the status page is the moment a stale switch would be looked at, and it
+            // is a moment somebody chose, unlike a timer.
             refreshToggles()
             val root = daemon.getRootImplementation().getOrNull()
             if (root != null) _presence.update { it.copy(rootImplementation = root) }
@@ -264,7 +282,10 @@ class HomeViewModel(
             ServiceLocator.service.collect { service ->
                 refreshStatus(service)
                 // Both switches on the status page hold the daemon's state rather than ours, and
-                // this is the moment there is a daemon to ask. Not the last such moment:
+                // the binder is what they need. This runs for every binder, including one already
+                // in hand when `refreshPresence` ran above — a second read of two idempotent
+                // values — and it is here for the one that arrives afterwards, which that call
+                // found nothing to ask about and returned. Nor is it the last such moment:
                 // `refreshPresence` asks again whenever a screen that shows them is opened, since
                 // this flow does not emit a second time while one binder stays alive.
                 if (service != null) refreshToggles()
@@ -424,9 +445,10 @@ class HomeViewModel(
      * `ServiceLocator.service` does not emit a second time while one binder stays alive, so the
      * collect in `init` is a single shot: with no other caller, one dropped transaction pinned both
      * switches to their seeds — and the launcher prompt to "not asked yet" — for the life of this
-     * ViewModel. [refreshPresence] is the other caller, which puts the retry on someone opening a
-     * screen that shows these rather than on a timer. A timer is the wrong shape here anyway: the
-     * launcher-icon read costs the daemon a `settings get global` fork every time.
+     * ViewModel. [refreshPresence] is the other caller, and on a launch that already has a binder
+     * the earlier one, since `init` calls it before it starts collecting; it puts the retry on
+     * someone opening a screen that shows these rather than on a timer. A timer is the wrong shape
+     * here anyway: the launcher-icon read costs the daemon a `settings get global` fork every time.
      *
      * A read that failed writes nothing at all. It is not an answer, and letting it fall back to a
      * default is how a switch read correctly on arrival ends up reporting the opposite after a
@@ -448,8 +470,9 @@ class HomeViewModel(
                 // milliseconds used to be spent with the launcher prompt believing there was no
                 // way back into an app the reader may well have opened from this very
                 // notification. Moving it up is not the whole fix, which is why the seeds and
-                // [ManagerPresence.notificationKnown] exist: refreshStatus's eight round trips run
-                // before this function is reached at all.
+                // [ManagerPresence.notificationKnown] exist: when the binder arrives after this
+                // ViewModel was built, the call that reaches here is the one in the `service`
+                // collect, and it waits out refreshStatus's eight sequential round trips first.
                 _presence.update {
                     it.copy(notificationEnabled = enabled, notificationKnown = true)
                 }
