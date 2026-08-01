@@ -373,6 +373,20 @@
     <string name="crash_recorded_title">マネージャーが予期せず終了しました</string>
     <string name="crash_recorded_summary">完全なスタックトレースは、ログの書き出しの crash_manager に含まれます。</string>
     <string name="crash_recorded_clear">破棄</string>
+    <string name="crash_what">種類</string>
+    <string name="crash_message">メッセージ</string>
+    <string name="crash_where">場所</string>
+    <string name="crash_when">発生時刻</string>
+    <string name="crash_where_unknown">Vector 自身のコードには見当たりません</string>
+    <string name="crash_when_value">%1$s（スレッド %2$s）</string>
+    <string name="crash_open_trace">スタックトレースを見る</string>
+    <string name="crash_trace">クラッシュ</string>
+    <string name="crash_caused_by">原因</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">上と同じスタックがさらに %1$d 段</item>
+    </plurals>
+    <string name="crash_frame_copied">スタックの 1 段をコピーしました</string>
+    <string name="crash_unreadable">このクラッシュは読み取れませんでした。そのままコピーして報告に添えてください。</string>
     <string name="force_launcher_icons">アプリがランチャーアイコンを隠すのを防ぐ</string>
     <string name="force_launcher_icons_summary">Android 10 以降、自分のランチャーアイコンを隠したアプリには、代わりにアプリ情報の画面を開くアイコンが与えられます。オフにすると隠れたままにできます — ランチャー側は再起動するまで古い一覧を表示し続けることがあります。もともとランチャーアイコンを持たないアプリ（ほとんどのモジュールがそうです）には影響しません。</string>
     <string name="action_force_stop_failed">%1$s を停止できませんでした。</string>

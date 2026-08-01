@@ -410,6 +410,23 @@
     <string name="crash_recorded_title">המנהל נסגר באופן בלתי צפוי</string>
     <string name="crash_recorded_summary">דוח הקריסה המלא נכלל בייצוא היומנים, בתיקייה crash_manager.</string>
     <string name="crash_recorded_clear">מחיקה</string>
+    <string name="crash_what">מה</string>
+    <string name="crash_message">הודעה</string>
+    <string name="crash_where">איפה</string>
+    <string name="crash_when">מתי</string>
+    <string name="crash_where_unknown">בשום מקום בקוד של Vector עצמו</string>
+    <string name="crash_when_value">%1$s ב־%2$s</string>
+    <string name="crash_open_trace">הצגת המעקב</string>
+    <string name="crash_trace">קריסה</string>
+    <string name="crash_caused_by">נגרם על ידי</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">מסגרת אחת נוספת, זהה לאלה שלמעלה</item>
+        <item quantity="two">שתי מסגרות נוספות, זהות לאלה שלמעלה</item>
+        <item quantity="many">%1$d מסגרות נוספות, זהות לאלה שלמעלה</item>
+        <item quantity="other">%1$d מסגרות נוספות, זהות לאלה שלמעלה</item>
+    </plurals>
+    <string name="crash_frame_copied">המסגרת הועתקה</string>
+    <string name="crash_unreadable">לא הצלחנו לקרוא את הקריסה הזאת. העתיקו אותה וצרפו אותה לדיווח כמות שהיא.</string>
     <string name="force_launcher_icons">למנוע מאפליקציות להסתיר את הסמל שלהן במסך הבית</string>
     <string name="force_launcher_icons_summary">החל מ-Android 10, אפליקציה שמסתירה את סמל מסך הבית שלה מקבלת סמל חלופי שפותח את פרטי האפליקציה שלה. כבו את האפשרות הזאת כדי לתת לה להישאר מוסתרת — ייתכן שאפליקציית מסך הבית תתעדכן רק לאחר הפעלה מחדש. אפליקציות שמעולם לא היה להן סמל במסך הבית, ובהן רוב המודולים, אינן מושפעות.</string>
     <string name="action_force_stop_failed">לא ניתן היה לעצור את %1$s.</string>

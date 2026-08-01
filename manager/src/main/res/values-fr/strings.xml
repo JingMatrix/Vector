@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">Le gestionnaire s\'est arrêté de façon inattendue</string>
     <string name="crash_recorded_summary">La trace complète est incluse dans l\'export des journaux, sous crash_manager.</string>
     <string name="crash_recorded_clear">Effacer</string>
+    <string name="crash_what">Quoi</string>
+    <string name="crash_message">Message</string>
+    <string name="crash_where">Où</string>
+    <string name="crash_when">Quand</string>
+    <string name="crash_where_unknown">Nulle part dans le code de Vector</string>
+    <string name="crash_when_value">%1$s sur %2$s</string>
+    <string name="crash_open_trace">Voir la trace</string>
+    <string name="crash_trace">Plantage</string>
+    <string name="crash_caused_by">Causé par</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d trame de plus, identique à ci-dessus</item>
+        <item quantity="other">%1$d trames de plus, identiques à ci-dessus</item>
+    </plurals>
+    <string name="crash_frame_copied">Trame copiée</string>
+    <string name="crash_unreadable">Ce plantage n\'a pas pu être lu. Copiez-le et joignez-le tel quel au rapport.</string>
     <string name="force_launcher_icons">Empêcher les applications de masquer leur icône de lancement</string>
     <string name="force_launcher_icons_summary">Depuis Android 10, une application qui masque sa propre icône de lancement en récupère une, qui ouvre sa page d\'infos sur l\'application. Désactivez cette option pour la laisser masquée — votre lanceur ne s\'en apercevra peut-être qu\'après son redémarrage. Les applications qui n\'ont jamais eu d\'icône de lancement, dont la plupart des modules, ne sont pas concernées.</string>
     <string name="action_force_stop_failed">Impossible d\'arrêter %1$s.</string>

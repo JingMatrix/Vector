@@ -33,6 +33,10 @@
         <item quantity="one">%1$d frame</item>
         <item quantity="other">%1$d frame</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d riga in più</item>
+        <item quantity="other">%1$d righe in più</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Il daemon non è raggiungibile</string>
     <string name="logs_state_daemon_body">Del log non si sa nulla finché Vector non è in esecuzione. È lo stesso motivo per cui la fascia di stato nella Home non è verde.</string>
@@ -73,6 +77,9 @@
     <string name="logs_source_more">Includi anche le righe del framework</string>
     <string name="logs_source_less">Mostra solo le righe dei moduli</string>
     <string name="logs_verbose_summary">Attivala prima di segnalare un bug. Le app possono leggere i propri log, quindi lasciarla attiva è un modo in cui un\'app può accorgersi di Vector.</string>
+    <string name="logs_trace_title">Stack trace</string>
+    <string name="logs_traces_inline">Apri le tracce sul posto</string>
+    <string name="logs_traces_inline_summary">Una traccia si apre sotto la sua riga. Disattivalo per aprirla invece su una schermata dedicata.</string>
     <string name="logs_save_summary">Scrive entrambi i log in uno zip che scegli tu</string>
     <string name="logs_rotate_summary">Chiude la parte attuale e ne apre una nuova</string>
     <string name="logs_part">parte %1$d/%2$d</string>

@@ -31,6 +31,9 @@
     <plurals name="logs_frames">
         <item quantity="other">%1$d khung</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="other">thêm %1$d dòng nữa</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Không liên lạc được tiến trình nền</string>
     <string name="logs_state_daemon_body">Không biết gì về nhật ký khi Vector chưa chạy. Cũng vì lý do đó mà dải trạng thái ở trang chính không xanh.</string>
@@ -71,6 +74,9 @@
     <string name="logs_source_more">Kèm cả các dòng của framework</string>
     <string name="logs_source_less">Chỉ hiện các dòng của mô-đun</string>
     <string name="logs_verbose_summary">Hãy bật trước khi báo lỗi. Ứng dụng đọc được nhật ký của chính nó, nên để bật lâu dài là một cách để ứng dụng nhận ra Vector.</string>
+    <string name="logs_trace_title">Vết ngăn xếp</string>
+    <string name="logs_traces_inline">Mở vết lỗi tại chỗ</string>
+    <string name="logs_traces_inline_summary">Vết lỗi bung ra ngay dưới dòng của nó. Tắt mục này để mở nó trên màn hình riêng.</string>
     <string name="logs_save_summary">Ghi cả hai nhật ký vào tệp zip bạn chọn</string>
     <string name="logs_rotate_summary">Đóng phần hiện tại và mở một phần mới</string>
     <string name="logs_part">phần %1$d/%2$d</string>

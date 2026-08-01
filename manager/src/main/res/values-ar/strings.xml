@@ -428,6 +428,25 @@
     <string name="crash_recorded_title">أُغلق المدير على نحو غير متوقع</string>
     <string name="crash_recorded_summary">التتبّع الكامل يخرج ضمن ملف السجلات المُصدَّر، في مجلد crash_manager.</string>
     <string name="crash_recorded_clear">تجاهل</string>
+    <string name="crash_what">ماذا</string>
+    <string name="crash_message">الرسالة</string>
+    <string name="crash_where">أين</string>
+    <string name="crash_when">متى</string>
+    <string name="crash_where_unknown">ليس في أي موضع من كود Vector نفسه</string>
+    <string name="crash_when_value">%1$s في %2$s</string>
+    <string name="crash_open_trace">عرض التتبّع</string>
+    <string name="crash_trace">تعطّل</string>
+    <string name="crash_caused_by">سببه</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="zero">بلا إطارات أخرى</item>
+        <item quantity="one">إطار آخر، مثل ما سبق</item>
+        <item quantity="two">إطاران آخران، مثل ما سبق</item>
+        <item quantity="few">%1$d إطارات أخرى، مثل ما سبق</item>
+        <item quantity="many">%1$d إطارًا آخر، مثل ما سبق</item>
+        <item quantity="other">%1$d إطار آخر، مثل ما سبق</item>
+    </plurals>
+    <string name="crash_frame_copied">نُسخ الإطار</string>
+    <string name="crash_unreadable">تعذّرت قراءة هذا التعطّل. انسخه وأرفقه بالتقرير كما هو.</string>
     <string name="force_launcher_icons">منع التطبيقات من إخفاء أيقوناتها في المشغّل</string>
     <string name="force_launcher_icons_summary">منذ Android 10، يستعيد التطبيق الذي يخفي أيقونته في المشغّل أيقونةً تفتح صفحة معلومات التطبيق. أوقف هذا الخيار ليبقى مخفيًا — وقد لا يلحق المشغّل بالتغيير حتى يُعاد تشغيله. أما التطبيقات التي لم تكن لها أيقونة أصلًا، ومنها معظم الوحدات، فلا يمسّها هذا.</string>
     <string name="action_force_stop_failed">تعذّر إيقاف %1$s.</string>

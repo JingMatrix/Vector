@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">O gerenciador fechou inesperadamente</string>
     <string name="crash_recorded_summary">O rastreamento completo vai junto no zip dos registros, na pasta crash_manager.</string>
     <string name="crash_recorded_clear">Descartar</string>
+    <string name="crash_what">O quê</string>
+    <string name="crash_message">Mensagem</string>
+    <string name="crash_where">Onde</string>
+    <string name="crash_when">Quando</string>
+    <string name="crash_where_unknown">Em nenhum ponto do código do Vector</string>
+    <string name="crash_when_value">%1$s em %2$s</string>
+    <string name="crash_open_trace">Ver o rastreamento</string>
+    <string name="crash_trace">Falha</string>
+    <string name="crash_caused_by">Causado por</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">mais %1$d quadro, igual aos de cima</item>
+        <item quantity="other">mais %1$d quadros, iguais aos de cima</item>
+    </plurals>
+    <string name="crash_frame_copied">Quadro copiado</string>
+    <string name="crash_unreadable">Não foi possível ler esta falha. Copie e anexe ao relato como está.</string>
     <string name="force_launcher_icons">Impedir que apps escondam o ícone do launcher</string>
     <string name="force_launcher_icons_summary">Desde o Android 10, um app que esconde o próprio ícone do launcher recebe um de volta, que abre a página de informações do app. Desligue isto para deixá-lo continuar escondido — seu launcher pode seguir mostrando a lista antiga até reiniciar. Apps que nunca tiveram ícone no launcher, incluindo a maioria dos módulos, não são afetados.</string>
     <string name="action_force_stop_failed">Não foi possível parar %1$s.</string>

@@ -45,8 +45,8 @@
     <string name="crash_caused_by">Caused by</string>
     <!-- The frames printStackTrace replaced with "... N more" because it had printed them already. -->
     <plurals name="crash_frames_elided">
-        <item quantity="one">%d more frame, the same as above</item>
-        <item quantity="other">%d more frames, the same as above</item>
+        <item quantity="one">%1$d more frame, the same as above</item>
+        <item quantity="other">%1$d more frames, the same as above</item>
     </plurals>
     <string name="crash_frame_copied">Frame copied</string>
     <string name="crash_unreadable">This crash could not be read. Copy it and attach it to the report as it is.</string>

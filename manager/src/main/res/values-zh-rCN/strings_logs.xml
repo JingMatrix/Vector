@@ -31,6 +31,9 @@
     <plurals name="logs_frames">
         <item quantity="other">%1$d 层调用栈</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="other">还有 %1$d 行</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">无法连接到守护进程</string>
     <string name="logs_state_daemon_body">Vector 未运行时无法获知日志情况。主页上的状态标识不是绿色，也是同一个原因。</string>
@@ -71,6 +74,9 @@
     <string name="logs_source_more">同时显示框架自身的日志</string>
     <string name="logs_source_less">仅显示模块日志</string>
     <string name="logs_verbose_summary">上报问题前请先开启。应用可以读取自己的日志，因此保持开启会让应用有机会发现 Vector。</string>
+    <string name="logs_trace_title">调用栈</string>
+    <string name="logs_traces_inline">就地展开调用栈</string>
+    <string name="logs_traces_inline_summary">调用栈在所属行下方展开。关闭后改为在单独的页面打开。</string>
     <string name="logs_save_summary">把两份日志写入你选择的 zip 文件</string>
     <string name="logs_rotate_summary">关闭当前分段并新建一个</string>
     <string name="logs_part">第 %1$d/%2$d 段</string>

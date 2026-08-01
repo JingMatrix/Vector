@@ -33,6 +33,10 @@
         <item quantity="one">%1$d çerçeve</item>
         <item quantity="other">%1$d çerçeve</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d satır daha</item>
+        <item quantity="other">%1$d satır daha</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Art alan sürecine ulaşılamıyor</string>
     <string name="logs_state_daemon_body">Vector çalışmadığı sürece günlük hakkında hiçbir şey bilinemez. Ana sayfadaki durum şeridinin yeşil olmamasının nedeni de aynıdır.</string>
@@ -73,6 +77,9 @@
     <string name="logs_source_more">Çatının kendi satırlarını da göster</string>
     <string name="logs_source_less">Yalnızca modül satırlarını göster</string>
     <string name="logs_verbose_summary">Bir hatayı bildirmeden önce bunu açın. Uygulamalar kendi günlüklerini okuyabilir; açık bırakmak, bir uygulamanın Vector\'ü fark etmesinin yollarından biridir.</string>
+    <string name="logs_trace_title">Yığın izi</string>
+    <string name="logs_traces_inline">İzleri yerinde aç</string>
+    <string name="logs_traces_inline_summary">Yığın izi kendi satırının altında açılır. Bunu kapatırsanız kendi ekranında açılır.</string>
     <string name="logs_save_summary">İki günlüğü de seçtiğiniz bir zip dosyasına yazar</string>
     <string name="logs_rotate_summary">Mevcut parçayı kapatıp yenisini açar</string>
     <string name="logs_part">parça %1$d/%2$d</string>

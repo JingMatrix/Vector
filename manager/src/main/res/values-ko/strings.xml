@@ -373,6 +373,20 @@
     <string name="crash_recorded_title">관리자가 예기치 않게 종료되었습니다</string>
     <string name="crash_recorded_summary">전체 스택 트레이스는 로그를 내보낼 때 crash_manager 아래에 함께 담깁니다.</string>
     <string name="crash_recorded_clear">지우기</string>
+    <string name="crash_what">종류</string>
+    <string name="crash_message">메시지</string>
+    <string name="crash_where">위치</string>
+    <string name="crash_when">시각</string>
+    <string name="crash_where_unknown">Vector 자체 코드에는 없음</string>
+    <string name="crash_when_value">%1$s (%2$s 스레드)</string>
+    <string name="crash_open_trace">스택 트레이스 보기</string>
+    <string name="crash_trace">충돌</string>
+    <string name="crash_caused_by">원인</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">위와 같은 스택 %1$d단 더</item>
+    </plurals>
+    <string name="crash_frame_copied">스택 한 단을 복사했습니다</string>
+    <string name="crash_unreadable">이 충돌은 읽을 수 없었습니다. 그대로 복사해 신고에 첨부하세요.</string>
     <string name="force_launcher_icons">앱이 런처 아이콘을 숨기지 못하게 막기</string>
     <string name="force_launcher_icons_summary">Android 10부터, 자기 런처 아이콘을 숨긴 앱에는 앱 정보 페이지를 여는 아이콘이 대신 주어집니다. 이 설정을 끄면 숨긴 채로 둘 수 있습니다 — 런처는 다시 시작하기 전까지 예전 목록을 그대로 보여줄 수 있습니다. 처음부터 런처 아이콘이 없던 앱은 영향을 받지 않으며, 대부분의 모듈이 여기에 해당합니다.</string>
     <string name="action_force_stop_failed">%1$s을(를) 중지하지 못했습니다.</string>

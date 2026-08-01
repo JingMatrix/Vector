@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">Il gestore si è chiuso in modo imprevisto</string>
     <string name="crash_recorded_summary">La traccia completa viaggia nello zip dei log, nella cartella crash_manager.</string>
     <string name="crash_recorded_clear">Scarta</string>
+    <string name="crash_what">Cosa</string>
+    <string name="crash_message">Messaggio</string>
+    <string name="crash_where">Dove</string>
+    <string name="crash_when">Quando</string>
+    <string name="crash_where_unknown">In nessun punto del codice di Vector</string>
+    <string name="crash_when_value">%1$s su %2$s</string>
+    <string name="crash_open_trace">Vedi la traccia</string>
+    <string name="crash_trace">Arresto</string>
+    <string name="crash_caused_by">Causato da</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d frame in più, uguale a sopra</item>
+        <item quantity="other">%1$d frame in più, uguali a sopra</item>
+    </plurals>
+    <string name="crash_frame_copied">Frame copiato</string>
+    <string name="crash_unreadable">Non è stato possibile leggere questo arresto. Copialo e allegalo al report così com\'è.</string>
     <string name="force_launcher_icons">Impedisci alle app di nascondere la loro icona nel launcher</string>
     <string name="force_launcher_icons_summary">Da Android 10, un\'app che nasconde la propria icona nel launcher ne riceve una che apre la sua pagina Info app. Disattiva questa opzione per lasciarla nascosta — il tuo launcher potrebbe non accorgersene finché non si riavvia. Le app che non hanno mai avuto un\'icona nel launcher, inclusa la maggior parte dei moduli, non sono interessate.</string>
     <string name="action_force_stop_failed">Impossibile arrestare %1$s.</string>

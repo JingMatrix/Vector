@@ -33,6 +33,10 @@
         <item quantity="one">%1$d Frame</item>
         <item quantity="other">%1$d Frames</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d weitere Zeile</item>
+        <item quantity="other">%1$d weitere Zeilen</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Der Daemon ist nicht erreichbar</string>
     <string name="logs_state_daemon_body">Über das Protokoll ist nichts bekannt, solange Vector nicht läuft. Aus demselben Grund ist das Statusband auf der Startseite nicht grün.</string>
@@ -73,6 +77,9 @@
     <string name="logs_source_more">Auch die Zeilen des Frameworks zeigen</string>
     <string name="logs_source_less">Nur Modulzeilen zeigen</string>
     <string name="logs_verbose_summary">Schalte dies ein, bevor du einen Fehler meldest. Apps können ihre eigenen Protokolle lesen; dauerhaft eingeschaltet ist dies also ein Weg, auf dem eine App Vector entdecken kann.</string>
+    <string name="logs_trace_title">Stacktrace</string>
+    <string name="logs_traces_inline">Stacktraces an Ort und Stelle öffnen</string>
+    <string name="logs_traces_inline_summary">Ein Stacktrace klappt unter seiner Zeile auf. Schalte dies aus, um ihn stattdessen auf einem eigenen Bildschirm zu öffnen.</string>
     <string name="logs_save_summary">Schreibt beide Protokolle in eine ZIP-Datei deiner Wahl</string>
     <string name="logs_rotate_summary">Schließt den aktuellen Teil und beginnt einen neuen</string>
     <string name="logs_part">Teil %1$d/%2$d</string>

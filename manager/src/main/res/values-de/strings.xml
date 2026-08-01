@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">Der Manager wurde unerwartet beendet</string>
     <string name="crash_recorded_summary">Der vollständige Stacktrace geht im Protokoll-Export mit, unter crash_manager.</string>
     <string name="crash_recorded_clear">Verwerfen</string>
+    <string name="crash_what">Was</string>
+    <string name="crash_message">Meldung</string>
+    <string name="crash_where">Wo</string>
+    <string name="crash_when">Wann</string>
+    <string name="crash_where_unknown">Nirgends in Vectors eigenem Code</string>
+    <string name="crash_when_value">%1$s auf %2$s</string>
+    <string name="crash_open_trace">Stacktrace ansehen</string>
+    <string name="crash_trace">Absturz</string>
+    <string name="crash_caused_by">Verursacht durch</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d weiterer Frame, wie oben</item>
+        <item quantity="other">%1$d weitere Frames, wie oben</item>
+    </plurals>
+    <string name="crash_frame_copied">Frame kopiert</string>
+    <string name="crash_unreadable">Dieser Absturz ließ sich nicht lesen. Kopiere ihn und hänge ihn unverändert an den Bericht an.</string>
     <string name="force_launcher_icons">Apps daran hindern, ihr Launcher-Symbol zu verstecken</string>
     <string name="force_launcher_icons_summary">Seit Android 10 bekommt eine App, die ihr eigenes Launcher-Symbol versteckt, eines zurück, das ihre App-Info-Seite öffnet. Schalte das aus, damit sie versteckt bleiben kann — dein Launcher merkt das womöglich erst nach einem Neustart. Apps, die nie ein Launcher-Symbol hatten, darunter die meisten Module, sind nicht betroffen.</string>
     <string name="action_force_stop_failed">%1$s konnte nicht beendet werden.</string>

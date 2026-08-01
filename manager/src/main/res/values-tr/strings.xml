@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">Yönetici beklenmedik biçimde kapandı</string>
     <string name="crash_recorded_summary">Yığın izinin tamamı, günlük dışa aktarımında crash_manager altında yer alır.</string>
     <string name="crash_recorded_clear">Sil</string>
+    <string name="crash_what">Ne</string>
+    <string name="crash_message">İleti</string>
+    <string name="crash_where">Nerede</string>
+    <string name="crash_when">Ne zaman</string>
+    <string name="crash_where_unknown">Vector\'ün kendi kodunun hiçbir yerinde</string>
+    <string name="crash_when_value">%1$s, %2$s iş parçacığında</string>
+    <string name="crash_open_trace">Yığın izini gör</string>
+    <string name="crash_trace">Çökme</string>
+    <string name="crash_caused_by">Nedeni</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">yukarıdakinin aynısı %1$d çerçeve daha</item>
+        <item quantity="other">yukarıdakilerin aynısı %1$d çerçeve daha</item>
+    </plurals>
+    <string name="crash_frame_copied">Çerçeve kopyalandı</string>
+    <string name="crash_unreadable">Bu çökme okunamadı. Olduğu gibi kopyalayıp bildirime ekleyin.</string>
     <string name="force_launcher_icons">Uygulamaların başlatıcı simgesini gizlemesini engelle</string>
     <string name="force_launcher_icons_summary">Android 10\'dan beri, kendi başlatıcı simgesini gizleyen bir uygulamaya, uygulama bilgisi sayfasını açan bir simge geri verilir. Gizli kalabilmesi için bunu kapatın — başlatıcınız yeniden başlatılana kadar durumu yansıtmayabilir. Hiçbir zaman başlatıcı simgesi olmamış uygulamalar, çoğu modül dahil, bundan etkilenmez.</string>
     <string name="action_force_stop_failed">%1$s durdurulamadı.</string>

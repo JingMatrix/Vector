@@ -33,6 +33,10 @@
         <item quantity="one">%1$d marco</item>
         <item quantity="other">%1$d marcos</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d línea más</item>
+        <item quantity="other">%1$d líneas más</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">No se puede contactar con el daemon</string>
     <string name="logs_state_daemon_body">No se sabe nada del registro mientras Vector no esté en marcha. Es la misma razón por la que la cinta de estado de Inicio no está verde.</string>
@@ -73,6 +77,9 @@
     <string name="logs_source_more">Incluir también las líneas del framework</string>
     <string name="logs_source_less">Mostrar solo las líneas de los módulos</string>
     <string name="logs_verbose_summary">Actívalo antes de informar de un error. Las apps pueden leer sus propios registros, así que dejarlo activado es una vía por la que una app puede detectar Vector.</string>
+    <string name="logs_trace_title">Traza de pila</string>
+    <string name="logs_traces_inline">Abrir las trazas en el sitio</string>
+    <string name="logs_traces_inline_summary">La traza se despliega bajo su línea. Desactívalo para abrirla en una pantalla propia.</string>
     <string name="logs_save_summary">Escribe ambos registros en un zip que tú elijas</string>
     <string name="logs_rotate_summary">Cierra la parte actual y abre una nueva</string>
     <string name="logs_part">parte %1$d/%2$d</string>

@@ -33,6 +33,10 @@
         <item quantity="one">%1$d quadro</item>
         <item quantity="other">%1$d quadros</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">mais %1$d linha</item>
+        <item quantity="other">mais %1$d linhas</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">O daemon está inacessível</string>
     <string name="logs_state_daemon_body">Não se sabe nada do registro enquanto o Vector não estiver em execução. É o mesmo motivo pelo qual a faixa de status no Início não está verde.</string>
@@ -73,6 +77,9 @@
     <string name="logs_source_more">Incluir também as linhas do framework</string>
     <string name="logs_source_less">Mostrar só as linhas dos módulos</string>
     <string name="logs_verbose_summary">Ligue isto antes de relatar um erro. Os apps conseguem ler os próprios registros, então deixar ligado é um jeito de um app perceber o Vector.</string>
+    <string name="logs_trace_title">Rastreamento de pilha</string>
+    <string name="logs_traces_inline">Abrir os rastreamentos no lugar</string>
+    <string name="logs_traces_inline_summary">O rastreamento se abre embaixo da linha dele. Desligue para abri-lo em uma tela própria.</string>
     <string name="logs_save_summary">Grava os dois registros em um zip escolhido por você</string>
     <string name="logs_rotate_summary">Fecha a parte atual e abre uma nova</string>
     <string name="logs_part">parte %1$d/%2$d</string>

@@ -384,6 +384,21 @@
     <string name="crash_recorded_title">مدیر به‌طور غیرمنتظره بسته شد</string>
     <string name="crash_recorded_summary">رد کامل خطا در خروجی گزارش‌ها، درون پوشهٔ crash_manager، گنجانده می‌شود.</string>
     <string name="crash_recorded_clear">دور انداختن</string>
+    <string name="crash_what">چه</string>
+    <string name="crash_message">پیام</string>
+    <string name="crash_where">کجا</string>
+    <string name="crash_when">چه زمانی</string>
+    <string name="crash_where_unknown">در هیچ‌جای کد خود Vector</string>
+    <string name="crash_when_value">%1$s در %2$s</string>
+    <string name="crash_open_trace">دیدن رد خطا</string>
+    <string name="crash_trace">خرابی</string>
+    <string name="crash_caused_by">ناشی از</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d قاب دیگر، مانند بالا</item>
+        <item quantity="other">%1$d قاب دیگر، مانند بالا</item>
+    </plurals>
+    <string name="crash_frame_copied">قاب رونوشت شد</string>
+    <string name="crash_unreadable">این خرابی خوانده نشد. آن را همان‌گونه که هست رونوشت کنید و به گزارش پیوست کنید.</string>
     <string name="force_launcher_icons">جلوگیری از پنهان کردن نماد برنامه‌ها در لانچر</string>
     <string name="force_launcher_icons_summary">از Android 10 به بعد، برنامه‌ای که نماد خود را در لانچر پنهان می‌کند، نمادی جایگزین می‌گیرد که صفحهٔ اطلاعات برنامه را باز می‌کند. این را خاموش کنید تا پنهان بماند — شاید لانچر شما تا راه‌اندازی دوبارهٔ خودش به‌روز نشود. برنامه‌هایی که هرگز نماد لانچر نداشته‌اند، از جمله بیشتر ماژول‌ها، تحت تأثیر قرار نمی‌گیرند.</string>
     <string name="action_force_stop_failed">توقف %1$s ممکن نشد.</string>

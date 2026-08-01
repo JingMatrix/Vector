@@ -37,6 +37,12 @@
         <item quantity="many">%1$d ramek</item>
         <item quantity="other">%1$d ramki</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d wiersz więcej</item>
+        <item quantity="few">%1$d wiersze więcej</item>
+        <item quantity="many">%1$d wierszy więcej</item>
+        <item quantity="other">%1$d wiersza więcej</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Usługa jest nieosiągalna</string>
     <string name="logs_state_daemon_body">Dopóki Vector nie działa, o dzienniku nic nie wiadomo. Z tego samego powodu pasek stanu na stronie startowej nie jest zielony.</string>
@@ -77,6 +83,9 @@
     <string name="logs_source_more">Pokaż też wiersze samego szkieletu</string>
     <string name="logs_source_less">Pokaż tylko wiersze modułów</string>
     <string name="logs_verbose_summary">Włącz to przed zgłoszeniem błędu. Aplikacje mogą czytać własne dzienniki, więc pozostawienie tej opcji włączonej to jeden ze sposobów, w jaki aplikacja może wykryć Vectora.</string>
+    <string name="logs_trace_title">Ślad stosu</string>
+    <string name="logs_traces_inline">Otwieraj ślady na miejscu</string>
+    <string name="logs_traces_inline_summary">Ślad stosu rozwija się pod swoim wierszem. Wyłącz to, aby otwierać go na osobnym ekranie.</string>
     <string name="logs_save_summary">Zapisuje oba dzienniki do wybranego pliku zip</string>
     <string name="logs_rotate_summary">Zamyka bieżącą część i otwiera nową</string>
     <string name="logs_part">część %1$d/%2$d</string>

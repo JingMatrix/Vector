@@ -32,6 +32,12 @@
         <item quantity="many">%1$d кадров стека</item>
         <item quantity="other">%1$d кадров стека</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">ещё %1$d строка</item>
+        <item quantity="few">ещё %1$d строки</item>
+        <item quantity="many">ещё %1$d строк</item>
+        <item quantity="other">ещё %1$d строки</item>
+    </plurals>
     <string name="logs_state_daemon_title">Служба недоступна</string>
     <string name="logs_state_daemon_body">Пока Vector не запущен, о журнале ничего не известно. По той же причине индикатор состояния на главном экране не зелёный.</string>
     <string name="logs_state_nofile_title">Файла журнала пока нет</string>
@@ -65,6 +71,9 @@
     <string name="logs_source_more">Показывать и строки самого фреймворка</string>
     <string name="logs_source_less">Только строки модулей</string>
     <string name="logs_verbose_summary">Включите перед тем, как сообщать об ошибке. Приложение может читать собственный журнал, поэтому постоянно включённое логирование — один из способов заметить Vector.</string>
+    <string name="logs_trace_title">Трассировка стека</string>
+    <string name="logs_traces_inline">Открывать трассировки на месте</string>
+    <string name="logs_traces_inline_summary">Трассировка разворачивается под своей строкой. Выключите, чтобы открывать её на отдельном экране.</string>
     <string name="logs_save_summary">Записывает оба журнала в выбранный вами zip</string>
     <string name="logs_rotate_summary">Закрывает текущую часть и начинает новую</string>
     <string name="logs_part">часть %1$d/%2$d</string>

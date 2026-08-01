@@ -373,6 +373,20 @@
     <string name="crash_recorded_title">Trình quản lý đã đóng đột ngột</string>
     <string name="crash_recorded_summary">Toàn bộ vết lỗi nằm trong bản xuất nhật ký, ở thư mục crash_manager.</string>
     <string name="crash_recorded_clear">Xoá</string>
+    <string name="crash_what">Cái gì</string>
+    <string name="crash_message">Thông báo</string>
+    <string name="crash_where">Ở đâu</string>
+    <string name="crash_when">Khi nào</string>
+    <string name="crash_where_unknown">Không ở đâu trong mã của chính Vector</string>
+    <string name="crash_when_value">%1$s trên %2$s</string>
+    <string name="crash_open_trace">Xem vết lỗi</string>
+    <string name="crash_trace">Sự cố</string>
+    <string name="crash_caused_by">Nguyên nhân</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">thêm %1$d khung nữa, giống như trên</item>
+    </plurals>
+    <string name="crash_frame_copied">Đã sao chép khung</string>
+    <string name="crash_unreadable">Không đọc được sự cố này. Hãy sao chép và đính kèm nguyên trạng vào báo cáo.</string>
     <string name="force_launcher_icons">Không cho ứng dụng ẩn biểu tượng trên trình khởi chạy</string>
     <string name="force_launcher_icons_summary">Từ Android 10, ứng dụng tự ẩn biểu tượng của mình trên trình khởi chạy sẽ được cấp lại một biểu tượng mở trang thông tin ứng dụng. Tắt mục này để nó vẫn được ẩn — trình khởi chạy có thể chưa cập nhật cho tới khi nó khởi động lại. Những ứng dụng vốn không có biểu tượng khởi chạy, gồm hầu hết mô-đun, không bị ảnh hưởng.</string>
     <string name="action_force_stop_failed">Không dừng được %1$s.</string>

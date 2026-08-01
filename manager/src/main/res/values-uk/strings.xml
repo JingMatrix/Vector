@@ -406,6 +406,23 @@
     <string name="crash_recorded_title">Менеджер несподівано завершив роботу</string>
     <string name="crash_recorded_summary">Повне трасування стека потрапляє в експорт журналів, у теку crash_manager.</string>
     <string name="crash_recorded_clear">Відкинути</string>
+    <string name="crash_what">Що</string>
+    <string name="crash_message">Повідомлення</string>
+    <string name="crash_where">Де</string>
+    <string name="crash_when">Коли</string>
+    <string name="crash_where_unknown">Ніде у власному коді Vector</string>
+    <string name="crash_when_value">%1$s у потоці %2$s</string>
+    <string name="crash_open_trace">Переглянути трасування</string>
+    <string name="crash_trace">Збій</string>
+    <string name="crash_caused_by">Причина</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">ще %1$d кадр, такий самий, як вище</item>
+        <item quantity="few">ще %1$d кадри, такі самі, як вище</item>
+        <item quantity="many">ще %1$d кадрів, таких самих, як вище</item>
+        <item quantity="other">ще %1$d кадра, такі самі, як вище</item>
+    </plurals>
+    <string name="crash_frame_copied">Кадр скопійовано</string>
+    <string name="crash_unreadable">Цей збій не вдалося прочитати. Скопіюйте його та додайте до звіту як є.</string>
     <string name="force_launcher_icons">Не дозволяти застосункам ховати свій значок у лаунчері</string>
     <string name="force_launcher_icons_summary">Починаючи з Android 10, застосунок, який ховає свій значок у лаунчері, отримує його назад, і цей значок відкриває сторінку відомостей про застосунок. Вимкніть це, щоб значок лишався прихованим — лаунчер може оновити свій перелік лише після перезапуску. Застосунків, які ніколи не мали значка в лаунчері, зокрема більшість модулів, це не стосується.</string>
     <string name="action_force_stop_failed">Не вдалося зупинити %1$s.</string>

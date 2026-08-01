@@ -387,6 +387,23 @@
     <string name="crash_recorded_title">Менеджер неожиданно завершил работу</string>
     <string name="crash_recorded_summary">Полная трассировка стека попадает в экспорт журналов, в папку crash_manager.</string>
     <string name="crash_recorded_clear">Убрать</string>
+    <string name="crash_what">Что</string>
+    <string name="crash_message">Сообщение</string>
+    <string name="crash_where">Где</string>
+    <string name="crash_when">Когда</string>
+    <string name="crash_where_unknown">Нигде в коде самого Vector</string>
+    <string name="crash_when_value">%1$s в потоке %2$s</string>
+    <string name="crash_open_trace">Посмотреть трассировку</string>
+    <string name="crash_trace">Сбой</string>
+    <string name="crash_caused_by">Причина</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">ещё %1$d кадр стека, такой же, как выше</item>
+        <item quantity="few">ещё %1$d кадра стека, такие же, как выше</item>
+        <item quantity="many">ещё %1$d кадров стека, таких же, как выше</item>
+        <item quantity="other">ещё %1$d кадров стека, таких же, как выше</item>
+    </plurals>
+    <string name="crash_frame_copied">Кадр скопирован</string>
+    <string name="crash_unreadable">Этот сбой не удалось прочитать. Скопируйте его и приложите к отчёту как есть.</string>
     <string name="force_launcher_icons">Не давать приложениям скрывать значок в лаунчере</string>
     <string name="force_launcher_icons_summary">Начиная с Android 10, приложение, которое скрывает свой значок в лаунчере, получает его обратно, и этот значок открывает страницу сведений о приложении. Выключите это, чтобы значок оставался скрытым — лаунчер может обновить свой список только после перезапуска. Приложений, у которых значка в лаунчере никогда не было, включая большинство модулей, это не касается.</string>
     <string name="action_force_stop_failed">Не удалось остановить %1$s.</string>

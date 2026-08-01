@@ -406,6 +406,23 @@
     <string name="crash_recorded_title">Menedżer zamknął się nieoczekiwanie</string>
     <string name="crash_recorded_summary">Pełny ślad stosu znajdziesz w pliku zip z dziennikami, w katalogu crash_manager.</string>
     <string name="crash_recorded_clear">Odrzuć</string>
+    <string name="crash_what">Co</string>
+    <string name="crash_message">Komunikat</string>
+    <string name="crash_where">Gdzie</string>
+    <string name="crash_when">Kiedy</string>
+    <string name="crash_where_unknown">Nigdzie we własnym kodzie Vectora</string>
+    <string name="crash_when_value">%1$s w %2$s</string>
+    <string name="crash_open_trace">Zobacz ślad stosu</string>
+    <string name="crash_trace">Awaria</string>
+    <string name="crash_caused_by">Spowodowane przez</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d ramka więcej, taka sama jak powyżej</item>
+        <item quantity="few">%1$d ramki więcej, takie same jak powyżej</item>
+        <item quantity="many">%1$d ramek więcej, takich samych jak powyżej</item>
+        <item quantity="other">%1$d ramki więcej, takie same jak powyżej</item>
+    </plurals>
+    <string name="crash_frame_copied">Skopiowano ramkę</string>
+    <string name="crash_unreadable">Nie udało się odczytać tej awarii. Skopiuj ją i dołącz do zgłoszenia w niezmienionej postaci.</string>
     <string name="force_launcher_icons">Nie pozwalaj aplikacjom ukrywać ikon w launcherze</string>
     <string name="force_launcher_icons_summary">Od wersji Android 10 aplikacja, która ukrywa własną ikonę w launcherze, dostaje z powrotem ikonę otwierającą jej stronę informacji o aplikacji. Wyłącz to, aby mogła pozostać ukryta — Twój launcher może pokazywać starą listę, dopóki się nie zrestartuje. Nie dotyczy to aplikacji, które nigdy nie miały ikony w launcherze, w tym większości modułów.</string>
     <string name="action_force_stop_failed">Nie udało się zatrzymać %1$s.</string>

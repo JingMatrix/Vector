@@ -37,6 +37,12 @@
         <item quantity="many">%1$d кадрів</item>
         <item quantity="other">%1$d кадра</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">ще %1$d рядок</item>
+        <item quantity="few">ще %1$d рядки</item>
+        <item quantity="many">ще %1$d рядків</item>
+        <item quantity="other">ще %1$d рядка</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Служба недоступна</string>
     <string name="logs_state_daemon_body">Поки Vector не працює, про журнал нічого не відомо. Із тієї самої причини смужка стану на головній не зелена.</string>
@@ -77,6 +83,9 @@
     <string name="logs_source_more">Показувати й рядки самого фреймворку</string>
     <string name="logs_source_less">Показувати лише рядки модулів</string>
     <string name="logs_verbose_summary">Увімкніть це перед тим, як повідомляти про помилку. Застосунки можуть читати власні журнали, тож постійно ввімкнене журналювання — один зі шляхів, якими застосунок помічає Vector.</string>
+    <string name="logs_trace_title">Трасування стека</string>
+    <string name="logs_traces_inline">Відкривати трасування на місці</string>
+    <string name="logs_traces_inline_summary">Трасування розгортається під своїм рядком. Вимкніть, щоб відкривати його на окремому екрані.</string>
     <string name="logs_save_summary">Записує обидва журнали в обраний вами zip</string>
     <string name="logs_rotate_summary">Закриває поточну частину й починає нову</string>
     <string name="logs_part">частина %1$d/%2$d</string>

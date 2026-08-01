@@ -377,6 +377,20 @@
     <string name="crash_recorded_title">Pengelola berhenti tak terduga</string>
     <string name="crash_recorded_summary">Jejak lengkapnya ikut terbawa dalam ekspor log, di folder crash_manager.</string>
     <string name="crash_recorded_clear">Buang</string>
+    <string name="crash_what">Apa</string>
+    <string name="crash_message">Pesan</string>
+    <string name="crash_where">Di mana</string>
+    <string name="crash_when">Kapan</string>
+    <string name="crash_where_unknown">Tidak ada di kode Vector sendiri</string>
+    <string name="crash_when_value">%1$s di %2$s</string>
+    <string name="crash_open_trace">Lihat jejaknya</string>
+    <string name="crash_trace">Crash</string>
+    <string name="crash_caused_by">Disebabkan oleh</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">%1$d bingkai lagi, sama seperti di atas</item>
+    </plurals>
+    <string name="crash_frame_copied">Bingkai disalin</string>
+    <string name="crash_unreadable">Crash ini tidak terbaca. Salin dan lampirkan apa adanya ke laporan.</string>
     <string name="force_launcher_icons">Cegah aplikasi menyembunyikan ikon launcher-nya</string>
     <string name="force_launcher_icons_summary">Sejak Android 10, aplikasi yang menyembunyikan ikon launcher-nya sendiri diberi ikon pengganti yang membuka halaman info aplikasinya. Matikan ini agar aplikasi tersebut tetap tersembunyi — launcher Anda mungkin baru menyusul setelah dimulai ulang. Aplikasi yang memang tidak pernah punya ikon launcher, termasuk sebagian besar modul, tidak terpengaruh.</string>
     <string name="action_force_stop_failed">%1$s tidak bisa dihentikan.</string>

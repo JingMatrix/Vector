@@ -31,6 +31,9 @@
     <plurals name="logs_frames">
         <item quantity="other">%1$d bingkai</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="other">%1$d baris lagi</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">Daemon tidak dapat dihubungi</string>
     <string name="logs_state_daemon_body">Tidak ada yang diketahui tentang log selama Vector belum berjalan. Alasan yang sama membuat pita status di Beranda tidak hijau.</string>
@@ -71,6 +74,9 @@
     <string name="logs_source_more">Sertakan juga baris milik framework</string>
     <string name="logs_source_less">Tampilkan hanya baris modul</string>
     <string name="logs_verbose_summary">Nyalakan ini sebelum melaporkan bug. Aplikasi bisa membaca lognya sendiri, jadi membiarkannya menyala adalah satu cara sebuah aplikasi mengenali Vector.</string>
+    <string name="logs_trace_title">Jejak tumpukan</string>
+    <string name="logs_traces_inline">Buka jejak di tempat</string>
+    <string name="logs_traces_inline_summary">Jejak tumpukan terbuka di bawah barisnya. Matikan ini untuk membukanya di layar tersendiri.</string>
     <string name="logs_save_summary">Menulis kedua log ke zip pilihan Anda</string>
     <string name="logs_rotate_summary">Menutup bagian yang sekarang dan membuka yang baru</string>
     <string name="logs_part">bagian %1$d/%2$d</string>

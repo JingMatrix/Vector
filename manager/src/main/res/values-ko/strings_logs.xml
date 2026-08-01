@@ -31,6 +31,9 @@
     <plurals name="logs_frames">
         <item quantity="other">스택 %1$d단</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="other">%1$d줄 더</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">데몬에 연결할 수 없음</string>
     <string name="logs_state_daemon_body">Vector가 실행 중이 아니면 로그에 대해 알 수 있는 것이 없습니다. 홈의 상태 띠가 초록색이 아닌 이유도 같습니다.</string>
@@ -71,6 +74,9 @@
     <string name="logs_source_more">프레임워크 자체의 줄도 포함</string>
     <string name="logs_source_less">모듈의 줄만 표시</string>
     <string name="logs_verbose_summary">버그를 신고하기 전에 켜세요. 앱은 자기 로그를 읽을 수 있으므로, 계속 켜 두면 앱이 Vector를 알아챌 통로가 됩니다.</string>
+    <string name="logs_trace_title">스택 트레이스</string>
+    <string name="logs_traces_inline">트레이스를 제자리에서 열기</string>
+    <string name="logs_traces_inline_summary">스택 트레이스가 해당 줄 아래에 펼쳐집니다. 끄면 별도 화면에서 엽니다.</string>
     <string name="logs_save_summary">두 로그를 원하는 zip에 기록합니다</string>
     <string name="logs_rotate_summary">지금 조각을 닫고 새 조각을 엽니다</string>
     <string name="logs_part">%2$d개 중 %1$d번째 조각</string>

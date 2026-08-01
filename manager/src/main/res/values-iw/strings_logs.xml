@@ -37,6 +37,12 @@
         <item quantity="many">%1$d מסגרות</item>
         <item quantity="other">%1$d מסגרות</item>
     </plurals>
+    <plurals name="logs_more_lines">
+        <item quantity="one">שורה אחת נוספת</item>
+        <item quantity="two">שתי שורות נוספות</item>
+        <item quantity="many">%1$d שורות נוספות</item>
+        <item quantity="other">%1$d שורות נוספות</item>
+    </plurals>
 
     <string name="logs_state_daemon_title">אין גישה לשירות</string>
     <string name="logs_state_daemon_body">כל עוד Vector לא פועל, לא ידוע דבר על היומן. מאותה סיבה פס המצב בבית אינו ירוק.</string>
@@ -77,6 +83,9 @@
     <string name="logs_source_more">לכלול גם את השורות של המסגרת עצמה</string>
     <string name="logs_source_less">להציג רק שורות של מודולים</string>
     <string name="logs_verbose_summary">הפעילו את זה לפני דיווח על תקלה. אפליקציות יכולות לקרוא את היומנים של עצמן, ולכן השארה במצב מופעל היא אחת הדרכים שבהן אפליקציה יכולה לזהות את Vector.</string>
+    <string name="logs_trace_title">מעקב מחסנית</string>
+    <string name="logs_traces_inline">פתיחת מעקבים במקום</string>
+    <string name="logs_traces_inline_summary">המעקב נפתח מתחת לשורה שלו. כבו את זה כדי לפתוח אותו במסך נפרד.</string>
     <string name="logs_save_summary">כותב את שני היומנים לקובץ zip לבחירתכם</string>
     <string name="logs_rotate_summary">סוגר את החלק הנוכחי ופותח חדש</string>
     <string name="logs_part">חלק %1$d/%2$d</string>

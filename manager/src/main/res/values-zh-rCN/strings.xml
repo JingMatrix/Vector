@@ -374,6 +374,20 @@
     <string name="crash_recorded_title">管理器意外退出</string>
     <string name="crash_recorded_summary">完整的堆栈信息会随日志导出一起保存，位于其中的 crash_manager 文件夹。</string>
     <string name="crash_recorded_clear">丢弃</string>
+    <string name="crash_what">什么</string>
+    <string name="crash_message">消息</string>
+    <string name="crash_where">在哪里</string>
+    <string name="crash_when">何时</string>
+    <string name="crash_where_unknown">不在 Vector 自己的代码中</string>
+    <string name="crash_when_value">%1$s，线程 %2$s</string>
+    <string name="crash_open_trace">查看调用栈</string>
+    <string name="crash_trace">崩溃</string>
+    <string name="crash_caused_by">起因</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">还有 %1$d 层调用栈，与上面相同</item>
+    </plurals>
+    <string name="crash_frame_copied">已复制该层调用栈</string>
+    <string name="crash_unreadable">无法读取这次崩溃。请原样复制并附在报告里。</string>
     <string name="force_launcher_icons">阻止应用隐藏自己的桌面图标</string>
     <string name="force_launcher_icons_summary">从 Android 10 起，隐藏了自己桌面图标的应用会被补上一个图标，点击它会打开该应用的应用信息页面。关闭此项可以让它继续保持隐藏——桌面可能要等重启之后才会更新。本来就没有桌面图标的应用不受影响，大多数模块都属于此类。</string>
     <string name="action_force_stop_failed">无法停止 %1$s。</string>
