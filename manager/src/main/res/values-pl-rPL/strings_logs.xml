@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Logs screen.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without colliding
+  with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <string name="logs_title">Dzienniki</string>
+    <!-- Top bar actions -->
+    <string name="logs_word_wrap">Zawijaj długie linie</string>
+    <string name="logs_save">Zapisz raport o błędzie…</string>
+    <string name="logs_rotate">Rozpocznij nowy dziennik…</string>
+    <!-- Search and filter -->
+    <string name="logs_search_hint">Przeszukaj ten dziennik</string>
+    <string name="logs_filter">Filtruj według poziomu i tagu</string>
+    <string name="logs_filter_levels">Poziom</string>
+    <string name="logs_filter_tags">Tag</string>
+    <string name="logs_filter_clear">Wyczyść filtr</string>
+    <string name="logs_filter_scanning">Odczytywanie całego pliku, aby filtr mógł zobaczyć to, co znajduje się poza ekranem.</string>
+    <!-- Level names, used by the filter chips and by TalkBack on each row -->
+    <string name="logs_level_verbose">Szczegółowe</string>
+    <string name="logs_level_debug">Debugowanie</string>
+    <string name="logs_level_info">Informacje</string>
+    <string name="logs_level_warn">Ostrzeżenie</string>
+    <string name="logs_level_error">Błąd</string>
+    <string name="logs_level_fatal">Krytyczny</string>
+    <string name="logs_level_other">Inny</string>
+    <!-- The counter under the search field -->
+    <!-- Example: "lines 1 200–3 200 of 30 412" -->
+    <string name="logs_window">Linie %1$d–%2$d z %3$d</string>
+    <plurals name="logs_matches">
+        <item quantity="one">%1$d pasująca linia</item>
+        <item quantity="few">%1$d pasujące linie</item>
+        <item quantity="many">%1$d pasujące linii</item>
+        <item quantity="other">%1$d pasujące linii</item>
+    </plurals>
+    <string name="logs_dropped">Ten dziennik jest dłuższy niż indeksuje przeglądarka. Najstarsze %1$d linii nie jest wyświetlanych; zapisz raport o błędzie, aby je zachować.</string>
+    <string name="logs_line_truncated">Wycinek linii</string>
+    <plurals name="logs_frames">
+        <item quantity="one">%1$d ramka</item>
+        <item quantity="few">%1$d ramek</item>
+        <item quantity="many">%1$d ramki</item>
+        <item quantity="other">%1$d ramki</item>
+    </plurals>
+    <!-- The four distinct nothing-to-show states -->
+    <string name="logs_state_daemon_title">Deamon jest niedostępny</string>
+    <string name="logs_state_daemon_body">Nic nie wiadomo o dzienniku, dopóki Vector nie działa. Z tego samego powodu pasek stanu na ekranie głównym nie jest zielony.</string>
+    <string name="logs_state_nofile_title">Niema jeszcze pliku dziennika</string>
+    <string name="logs_state_nofile_body">Daemon działa, ale nie otworzył tego dziennika. W przypadku dziennika szczegółowego zwykle oznacza to, że szczegółowe rejestrowanie jest wyłączone.</string>
+    <string name="logs_state_empty_title">Ten dziennik jest pusty</string>
+    <string name="logs_state_empty_body">Plik istnieje i nic nie zostało do niego zapisane. W przypadku dziennika modułu oznacza to, że system nie generuje żadnych wpisów.</string>
+    <string name="logs_state_nomatches_title">Nic nie pasuje</string>
+    <string name="logs_state_nomatches_body">Plik zawiera dane, ale obecny filtr wyklucza całą jego zawartość.</string>
+    <string name="logs_state_failed_title">Nie można odczytać dziennika</string>
+    <string name="logs_state_failed_body">Demon przekazał plik, którego nie można odczytać: %1$s</string>
+    <string name="logs_loading">Indeksowanie…</string>
+    <!-- Verbose logging -->
+    <string name="logs_verbose_switch">Zdecydowanie rejestrowanie</string>
+    <string name="logs_verbose_enforced">Uruchomiony daemon wymusza to niezależnie od tego.</string>
+    <!-- Navigation within a long log -->
+    <string name="logs_jump_oldest">Przejdź do najstarszej linii</string>
+    <string name="logs_jump_newest">Przejdź do najnowszej linii</string>
+    <!-- Per-row actions -->
+    <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
+    <!-- Starting a new log: the consequence, named -->
+    <string name="logs_rotate_title">Rozpocząć nowy dziennik?</string>
+    <string name="logs_rotate_body">Nic nie jest usuwane. Daemon zamyka bieżącą część i rozpoczyna nową; zamknięta część pozostaje na dysku — dostępna po przesunięciu — dopóki nie wypadnie z dziesięciu najnowszych, a zapisany raport o błędzie nadal ją zawiera.</string>
+    <string name="logs_rotate_confirm">Rozpocznij nowy dziennik</string>
+    <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
+    <string name="logs_rotate_failed">Deamon odmówił rozpoczęcia nowego dziennika</string>
+    <string name="logs_cancel">Anuluj</string>
+    <!-- Saving -->
+    <string name="logs_save_name">vector-logs-%1$s.zip</string>
+    <string name="logs_saving">Zbieranie dzienników, zrzutów awarii i dmesg…</string>
+    <string name="logs_saved">Raport o błędzie zapisany</string>
+    <string name="logs_save_failed">Nie udało się zapisać raportu o błędzie</string>
+    <string name="logs_save_failed_reason">Nie udało się zapisać raportu o błędzie: %1$s</string>
+    <string name="logs_share">Udostępnij</string>
+    <string name="logs_filter_clear_tag">Wyczyść filtr tagów</string>
+    <string name="logs_settings">Ustawienia dziennika</string>
+    <string name="logs_source_more">Uwzględnij własne linie frameworka</string>
+    <string name="logs_source_less">Pokaż tylko linie modułów</string>
+    <string name="logs_verbose_summary">Włącz tę opcję przed zgłoszeniem błędu. Aplikacje potrafią odczytywać własne dzienniki więc pozostawienie tej opcji włączonej to jeden ze sposobów na wykrycie Vectora.</string>
+    <string name="logs_save_summary">Zapisuje oba dzienniki do wybranego pliku ZIP</string>
+    <string name="logs_rotate_summary">Zamyka bieżącą część i rozpoczyna nową</string>
+    <string name="logs_part">Część %1$d/%2$d</string>
+    <string name="logs_part_older">Starsza część</string>
+    <string name="logs_part_newer">Nowsza część</string>
+</resources>
