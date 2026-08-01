@@ -107,13 +107,23 @@ class ScopeViewModel(
     private val draftScope = MutableStateFlow<Set<ScopeTarget>>(emptySet())
 
     /**
-     * Every target the reader has ticked or unticked on this visit, whichever way it ended up.
+     * Every target whose tick this visit has actually changed and could otherwise be filtered away
+     * — one at a time from [toggle], in a batch from [clearAllVisible].
+     *
+     * [selectAllVisible] changes ticks too and deliberately marks nothing: a row it ticks is in the
+     * draft, and the draft already exempts a row from every filter. Only unticking can drop a row
+     * out of the list, so only unticking has anything to record here.
      *
      * Only the list's own filters read it, and only to keep a row present. Unticking is an edit
      * like any other and the row has to survive it — an app that vanishes the moment it is
      * unticked cannot be re-ticked, so a slip becomes permanent for as long as the reader does not
      * think to go and turn a filter on. It never shrinks: a row put in play stays in play until
      * the screen is left, which is the point.
+     *
+     * Which is also why nothing may go in that was not really changed. A row the reader merely
+     * *saw* would be exempted from the system, game and module filters for the rest of the visit,
+     * and since this never shrinks there would be no way back: turning system apps off again would
+     * hide nothing.
      */
     private val touched = MutableStateFlow<Set<ScopeTarget>>(emptySet())
 
@@ -249,9 +259,10 @@ class ScopeViewModel(
                 val order = view.sort
                 val reverse = view.reverse
                 val recommended = view.state.recommended.packages.toSet()
-                // A static scope is the module's whole answer, so the list *is* that set. Showing
-                // the other few hundred apps beneath uncheckable checkboxes offered a choice that
-                // does not exist. This one stays absolute: there is no choice to preserve.
+                // A static scope fixes which apps may be *listed*, so the list is exactly that set.
+                // The daemon refuses every target beyond it, so a row for one of the other few
+                // hundred apps would offer a choice that does not exist. Absolute, unlike the
+                // filters below: this is not a view of the list the reader chose, it is the list.
                 val locked = view.state.recommended.staticScope
                 // The row the daemon hooks whether or not the table names it. Matched on the user
                 // as well as the package: the same module in a work profile is another copy with
@@ -604,16 +615,22 @@ class ScopeViewModel(
     }
 
     fun clearAllVisible() {
+        val draft = draftScope.value
+        // The rows this call really unticks, which is only the visible part of the draft — the rest
+        // of the list is already clear and nothing is being done to it.
         val cleared =
             filteredApps.value
                 .filterNot { it.isImplicitInScope }
                 .map { ScopeTarget(it.packageName, it.userId) }
-                .toSet()
+                .filterTo(mutableSetOf()) { it in draft }
         // Unticking everything visible must not empty the list as well. Without this, clearing a
         // list of system apps removes the rows along with the ticks and leaves the reader looking
-        // at nothing, with no way to put any of it back.
+        // at nothing, with no way to put any of it back. Marking the whole visible list instead of
+        // the part that changed would buy that at the price of the filters: [touched] never
+        // shrinks, so every row that happened to be on screen would stay on screen however the
+        // filters were set for the rest of the visit.
         touched.value = touched.value + cleared
-        draftScope.value = draftScope.value - cleared
+        draftScope.value = draft - cleared
     }
 
     /** Replace the draft with exactly what the module asked for. */
