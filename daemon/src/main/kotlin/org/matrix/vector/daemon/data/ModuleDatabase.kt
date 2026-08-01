@@ -219,11 +219,19 @@ object ModuleDatabase {
       // manager could not cancel a notification posted as "android" in any case.
       //
       // It lives here, at the data layer, rather than in ManagerService because this function is
-      // the single point every activation passes through: the manager's toggle, the socket CLI, a
-      // backup restore and setModuleScope's implicit enable. Putting it one level up would cover
-      // the manager alone and leave the other three lying to the user. Reaching out of the
-      // database for it is the same reach requestCacheUpdate() above already makes, and for the
-      // same reason — a row changed, and something outside has to be told.
+      // where the activations that go through the module table converge: the manager's toggle
+      // (ManagerService.enableModule), the socket CLI's `modules enable`, a manager backup restore
+      // — which replays what it read one setModuleEnabled at a time — and setModuleScope's
+      // implicit enable below. Putting it one level up would cover the manager alone and leave the
+      // other three lying to the user. Reaching out of the database for it is the same reach
+      // requestCacheUpdate() above already makes, and for the same reason — a row changed, and
+      // something outside has to be told.
+      //
+      // Not *every* activation, though, and the exception is worth knowing: the socket CLI's
+      // `db restore` copies a whole database file over the live one and calls nothing here, so a
+      // module the restored file has enabled keeps a stale "not activated yet" notice in the shade
+      // until something touches it again. That is a root-shell command that replaces the
+      // configuration wholesale, and the notice is one of several things it does not reconcile.
       NotificationManager.cancelModuleUpdated(packageName)
     }
     return changed

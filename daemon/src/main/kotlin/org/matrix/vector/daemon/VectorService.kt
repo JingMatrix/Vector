@@ -272,6 +272,13 @@ object VectorService : IDaemonService.Stub() {
           // stayed blocked after it was uninstalled. Nothing else ever removes it: the CLI does not
           // know the key and the manager offers no way back, so a module blocked by a mis-tap could
           // never ask again on that device, and reinstalling it did not help.
+          //
+          // Asked of every package that goes for good, not only of modules, and deliberately so:
+          // `moduleName` here is whatever the broadcast named, and once a package is fully removed
+          // its metadata is gone, so this branch cannot tell a module from anything else —
+          // `isXposedModule` is decided below, and only for one that was still in our database. A
+          // package that was never blocked costs the one read of the "lspd" config row that
+          // [unblockScopeRequests] starts with, and nothing else.
           if (isRemovedForAllUsers) unblockScopeRequests(moduleName)
           if (isRemovedForAllUsers && ModuleDatabase.removeModule(moduleName)) {
             // If it was in our DB and we successfully removed it, we treat it as an Xposed module.
@@ -363,7 +370,6 @@ object VectorService : IDaemonService.Stub() {
     val data = intent.data ?: return
     val extras = intent.extras ?: return
     val callbackBinder = extras.getBinder("callback") ?: return
-    if (!callbackBinder.isBinderAlive) return
 
     val authority = data.encodedAuthority ?: return
     val parts = authority.split(":", limit = 2)
@@ -373,6 +379,14 @@ object VectorService : IDaemonService.Stub() {
 
     val scopePackageName = data.path?.substring(1) ?: return // remove leading '/'
     val action = data.getQueryParameter("action") ?: return
+
+    // A prompt outlives the process that asked for it: it sits for an hour, and the app the module
+    // is running inside can be killed at any point in that hour. For approve, deny and the timeout
+    // there is then nobody left to tell, so those are dropped where they always were. "Never ask
+    // again" is not like them — it is the user's decision about the module, not an answer owed to a
+    // caller who is still listening — so it is honoured whether or not anyone is there to hear it,
+    // and the claim below still takes the prompt down.
+    if (!callbackBinder.isBinderAlive && action != "block") return
 
     // One prompt reaches this receiver from four places — its three buttons and its delete intent
     // — and a swipe or the one-hour timeout fires the delete intent whether or not a button was
@@ -388,6 +402,33 @@ object VectorService : IDaemonService.Stub() {
 
     val iCallback = IXposedScopeCallback.Stub.asInterface(callbackBinder)
     runCatching {
+          // Answered before the requested package is looked up at all, because "never ask again" is
+          // a decision about the *module* and not about the package this particular prompt happened
+          // to name. It used to sit in the when below, under the lookup, so a prompt naming a
+          // package that no longer resolves — uninstalled or disabled while the prompt was up,
+          // hidden by a profile owner, or never installed for this user — returned at "Package not
+          // found" and never reached blockScopeRequests: the user said stop asking, the prompt came
+          // down, and the module was free to ask again a second later.
+          if (action == "block") {
+            blockScopeRequests(packageName)
+            // The preference only stops the *next* request. A module that asked for three packages
+            // has a prompt up for each, so without this the user says "never ask again" and is left
+            // looking at two more questions, both still approvable. Each withdrawn request is
+            // answered in its own right, because each of them was asked in its own right; what that
+            // costs a module whose listener expects one call is written out on
+            // withdrawScopeRequests.
+            NotificationManager.withdrawScopeRequests(packageName).forEach { pending ->
+              runCatching { pending.onScopeRequestFailed("Request blocked by configuration") }
+            }
+            // Last, and caught, because this is the only call here that reaches into the module's
+            // process: it may be gone by now, and neither the preference write nor the withdrawal
+            // above must be lost to a dead binder. They can fail in their own ways — the write goes
+            // through a SQLite transaction — which is why the whole branch runs inside runCatching
+            // as well.
+            runCatching { iCallback.onScopeRequestFailed("Request blocked by configuration") }
+            return@runCatching
+          }
+
           val appInfo = packageManager?.getPackageInfoCompat(scopePackageName, 0, userId)
           if (appInfo == null) {
             // Leaving the whole function here skipped the cancel below, which used to be merely
@@ -412,18 +453,6 @@ object VectorService : IDaemonService.Stub() {
             }
             "deny" -> iCallback.onScopeRequestFailed("Request denied by user")
             "delete" -> iCallback.onScopeRequestFailed("Request timeout")
-            "block" -> {
-              blockScopeRequests(packageName)
-              iCallback.onScopeRequestFailed("Request blocked by configuration")
-              // The preference only stops the *next* request. A module that asked for three
-              // packages has a prompt up for each, so without this the user says "never ask again"
-              // and is left looking at two more questions, both still approvable. Each withdrawn
-              // request is answered in its own right, because each of them was asked in its own
-              // right.
-              NotificationManager.withdrawScopeRequests(packageName).forEach { pending ->
-                runCatching { pending.onScopeRequestFailed("Request blocked by configuration") }
-              }
-            }
           }
         }
         // onScopeRequestFailed declares @NonNull, and Throwable.message is frequently null.

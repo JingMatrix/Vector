@@ -15,6 +15,7 @@ import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import io.github.libxposed.service.IXposedScopeCallback
 import java.util.UUID
@@ -36,6 +37,26 @@ private const val STATUS_NOTIF_ID = BuildConfig.MANAGER_INJECTED_UID
  * definite answer eventually instead of a callback that never fires.
  */
 private const val SCOPE_REQUEST_TIMEOUT_MS = 60L * 60 * 1000
+
+/**
+ * How many prompts one module may have waiting for an answer at once.
+ *
+ * `IXposedService.requestScope` takes an unbounded list and there is now one prompt per package in
+ * it, none of them deduplicated beyond exact string equality and none checked for existence before
+ * it goes up. Nothing else bounds them: these are enqueued as "android", which
+ * NotificationManagerService exempts from its per-package limit, and they are IMPORTANCE_HIGH, so a
+ * module asking for a thousand packages gets a thousand heads-up prompts that each sit for
+ * [SCOPE_REQUEST_TIMEOUT_MS]. That was hidden before this branch only because every prompt of a
+ * module shared one tag and so replaced the one before it — which is the bug this branch fixed.
+ *
+ * Sixteen because it is far above anything an honest module asks for in one go, and low enough that
+ * the worst a module can do to the shade is a screenful. It bounds what is *unanswered*, not what
+ * may be asked over time: answering a prompt frees its place at once, so a module that asks a few
+ * questions and waits for them never meets it. A module that does meet it is told so per package
+ * rather than left waiting, because a callback that never fires is the failure this whole path
+ * exists to avoid.
+ */
+private const val MAX_OPEN_SCOPE_REQUESTS_PER_MODULE = 16
 
 object NotificationManager {
   val openManagerAction = UUID.randomUUID().toString()
@@ -200,25 +221,83 @@ object NotificationManager {
    * And "never ask again" has to be able to take down the module's *other* prompts, which it can
    * only do if something remembers they are up.
    *
-   * Bounded because this daemon runs for as long as the device does and a module may ask as often
-   * as it likes. Sixty-four is far more than can plausibly be on screen at once, and evicting the
-   * oldest only makes a long-abandoned prompt unanswerable, which is what it already is.
+   * Bounded twice, and neither bound may be silent. Nothing in here is ever "long abandoned": every
+   * prompt carries [SCOPE_REQUEST_TIMEOUT_MS], whose expiry fires the delete intent and claims the
+   * entry, so an entry that is still here is a live question in front of the user. Losing one
+   * without answering it is therefore not harmless — [claim] would refuse its buttons, so Approve
+   * would write nothing, "never ask again" would block nothing and the module would be told
+   * nothing, all while the notification stayed on screen for up to an hour. So [post] hands back
+   * whatever it had to give up, and the caller takes it off the screen and fails its callback.
+   *
+   * [MAX_OPEN_SCOPE_REQUESTS_PER_MODULE] is the bound that does the work, and it refuses the *new*
+   * prompt rather than dropping an old one, because the questions already in front of the user are
+   * the ones worth keeping. [MAX_ENTRIES] is only a backstop against an unbounded number of
+   * modules in a daemon that runs as long as the device does; it sits far above the per-module
+   * ceiling precisely so that one module's burst cannot reach as far as another module's prompts,
+   * which is what a shared sixty-four entries let it do.
    */
   private object OutstandingScopeRequests {
-    private const val MAX_ENTRIES = 64
-    private val open = LinkedHashMap<String, IXposedScopeCallback>()
+    private const val MAX_ENTRIES = 512
 
+    /** One live question, and when it was asked; see [countOf] for what the time is for. */
+    private class Open(val callback: IXposedScopeCallback, val postedAt: Long)
+
+    private val open = LinkedHashMap<String, Open>()
+
+    /** A prompt that left [open] unanswered: it has to come off the screen and be told so. */
+    class Abandoned(val tag: String, val callback: IXposedScopeCallback)
+
+    /**
+     * How many prompts [modulePkg] still has open, under any user. The ':' matters here for the
+     * same reason it does in [claimAllOf].
+     *
+     * Anything older than [SCOPE_REQUEST_TIMEOUT_MS] is not counted, because by then the platform
+     * has taken the prompt down whatever else happened to it. An entry is removed when its prompt
+     * is answered or dismissed, and both of those reach us — but neither is guaranteed: an enqueue
+     * the platform drops, or a cancellation that never fires the delete intent, leaves a question
+     * nobody will ever answer holding one of the module's places. Without the age, a module could
+     * be locked out of asking for the rest of the boot by prompts that are not on screen. The entry
+     * itself is left alone: if its buttons somehow still arrive, they should still work.
+     */
+    private fun countOf(modulePkg: String): Int {
+      val stillOnScreen = SystemClock.elapsedRealtime() - SCOPE_REQUEST_TIMEOUT_MS
+      return open.count { (tag, entry) ->
+        tag.startsWith("$modulePkg:") && entry.postedAt > stillOnScreen
+      }
+    }
+
+    /**
+     * Registers the prompt for [tag] before it goes up.
+     *
+     * @return the prompts that had to be given up to make room, which the caller must abandon with
+     *   no lock held, or null when [tag] is the one that must not go up at all because its module
+     *   is already holding [MAX_OPEN_SCOPE_REQUESTS_PER_MODULE] unanswered prompts.
+     */
     @Synchronized
-    fun post(tag: String, callback: IXposedScopeCallback) {
+    fun post(tag: String, callback: IXposedScopeCallback): List<Abandoned>? {
       // Re-posting under a tag replaces what was there: a prompt going up is unanswered by
-      // definition, whatever became of the last one that asked the same thing.
-      open.remove(tag)
-      open[tag] = callback
-      while (open.size > MAX_ENTRIES) open.remove(open.keys.first())
+      // definition, whatever became of the last one that asked the same thing. The one it replaces
+      // is dropped without an answer on purpose — it is the same question, of the same module,
+      // still on screen under the same tag, and telling the module its request failed would fire
+      // the listener it is about to be asked with. For the same reason it does not count as a new
+      // prompt against the ceiling: the shade gains nothing.
+      val replaced = open.remove(tag) != null
+      // A package name cannot contain a ':', so the first segment of the tag is the module the
+      // ceiling belongs to. Per module rather than per (module, user), because all of these are
+      // enqueued into the same shade whichever user the module runs as.
+      val modulePkg = tag.substringBefore(':')
+      if (!replaced && countOf(modulePkg) >= MAX_OPEN_SCOPE_REQUESTS_PER_MODULE) return null
+      open[tag] = Open(callback, SystemClock.elapsedRealtime())
+      val abandoned = mutableListOf<Abandoned>()
+      while (open.size > MAX_ENTRIES) {
+        val oldest = open.keys.first()
+        abandoned += Abandoned(oldest, open.remove(oldest)!!.callback)
+      }
+      return abandoned
     }
 
     /** Takes the right to answer one prompt; null when something already has. */
-    @Synchronized fun claim(tag: String): IXposedScopeCallback? = open.remove(tag)
+    @Synchronized fun claim(tag: String): IXposedScopeCallback? = open.remove(tag)?.callback
 
     /** Takes every prompt [modulePkg] still has up, in one go, so nothing can answer them after. */
     @Synchronized
@@ -226,7 +305,7 @@ object NotificationManager {
       // The ':' matters: without it "com.foo" would claim the prompts of "com.foobar" as well.
       val mine = open.filterKeys { it.startsWith("$modulePkg:") }
       mine.keys.forEach { open.remove(it) }
-      return mine
+      return mine.mapValues { it.value.callback }
     }
   }
 
@@ -245,14 +324,50 @@ object NotificationManager {
    *
    * What makes "never ask again" mean what it says. A module that asked for three packages now has
    * a prompt for each of them; answering the user's "stop asking" by leaving two more questions on
-   * screen — both still approvable — would be answering it with the opposite. They are claimed
-   * before they are cancelled, so a delete intent arriving from the cancel cannot answer them a
-   * second time.
+   * screen — both still approvable — would be answering it with the opposite.
+   *
+   * They are claimed before they are cancelled, and that order is load-bearing, though not for the
+   * reason this comment used to give: a cancel we ask for ourselves never fires the delete intent.
+   * `cancelNotificationWithTag` ends in NotificationManagerService's `cancelNotification` with its
+   * `sendDelete` argument hard-coded false and the reason `REASON_APP_CANCEL`; only a user's swipe
+   * (`onNotificationClear`) and the `setTimeoutAfter` expiry (`REASON_TIMEOUT`) pass `sendDelete`
+   * true. What the ordering really defends against is the window the cancel itself opens: it is a
+   * binder round trip into system_server that only *schedules* the removal on a handler, so these
+   * prompts keep live Approve, Deny and "never ask again" buttons for a while after we have asked
+   * for them to go — a tap already in flight, or a swipe or the hourly timeout landing at the same
+   * moment, would otherwise answer a request we are in the middle of withdrawing. Claiming first
+   * makes every one of those arrive at a closed door.
+   *
+   * Each withdrawn request is handed back on its own, so the caller reports one failure per
+   * package. That is the honest reading — the module named each package separately and each was
+   * asked in its own right — but it is worth knowing what it costs: `requestScope` supplies one
+   * callback for the whole list, so those failures all land on the same binder, and the shipped
+   * client library does not collapse them. Its `OnScopeEventListener` wrapper calls the listener
+   * every time and merely drops its map entry afterwards, so a module written to the singular
+   * javadoc ("invoked when the request is completed") runs its handler once per package rather than
+   * once per call. Reporting the withdrawal once would be the other defensible choice, but it would
+   * have to pick one of the packages to name and would leave the rest with no answer at all, which
+   * is exactly the failure this map exists to prevent.
    */
   fun withdrawScopeRequests(modulePkg: String): List<IXposedScopeCallback> {
     val withdrawn = OutstandingScopeRequests.claimAllOf(modulePkg)
     withdrawn.keys.forEach { cancelByTag(it) }
     return withdrawn.values.toList()
+  }
+
+  /**
+   * Takes a prompt off the screen and tells its module that request is over, for the cases where
+   * nobody asked us to: it was given up to make room, or it never made it onto the screen at all.
+   *
+   * Both halves are binder calls — one into the notification manager, one into the module — so this
+   * is deliberately reached with no lock of [OutstandingScopeRequests] held. The callback is
+   * `oneway`, but the module it points at can be dead by now, and that must not stop the rest of a
+   * batch from being cleaned up.
+   */
+  private fun abandonScopeRequest(dropped: OutstandingScopeRequests.Abandoned, reason: String) {
+    cancelByTag(dropped.tag)
+    runCatching { dropped.callback.onScopeRequestFailed(reason) }
+        .onFailure { Log.w(TAG, "Could not tell ${dropped.tag} that its request was dropped", it) }
   }
 
   fun requestModuleScope(
@@ -261,6 +376,34 @@ object NotificationManager {
       scopePkg: String,
       callback: IXposedScopeCallback
   ) {
+    val tag = scopeTag(modulePkg, moduleUserId, scopePkg)
+    // Registered before the notification is built, let alone posted: the buttons are live from the
+    // moment the platform accepts it, and a prompt the receiver does not know about is one whose
+    // answer it drops. Registering is also what enforces the ceiling, so there is no point
+    // rendering an icon for a prompt that is not going up.
+    val abandoned = OutstandingScopeRequests.post(tag, callback)
+    if (abandoned == null) {
+      Log.w(
+          TAG,
+          "$modulePkg is already waiting on $MAX_OPEN_SCOPE_REQUESTS_PER_MODULE scope prompts;" +
+              " not asking about $scopePkg")
+      // Refused, not ignored. The module is told about this package rather than left holding a
+      // callback that can never fire, and the message names the package so a module developer can
+      // see which of their list did not make it.
+      runCatching {
+            callback.onScopeRequestFailed(
+                "Too many scope requests are already waiting for an answer from the user," +
+                    " so $scopePkg was not asked about")
+          }
+          .onFailure { Log.w(TAG, "Could not tell $modulePkg its request was refused", it) }
+      return
+    }
+    abandoned.forEach {
+      Log.w(TAG, "Giving up the scope prompt ${it.tag}: too many are open across all modules")
+      abandonScopeRequest(
+          it, "Scope request dropped: too many are waiting for an answer on this device")
+    }
+
     val context = FakeContext()
     val userName = userManager?.getUserName(moduleUserId) ?: moduleUserId.toString()
 
@@ -328,12 +471,22 @@ object NotificationManager {
             .apply { extras.putString("android.substName", BuildConfig.FRAMEWORK_NAME) }
 
     createChannels()
-    val tag = scopeTag(modulePkg, moduleUserId, scopePkg)
-    // Registered before it is posted, not after: the buttons are live from the moment the platform
-    // accepts the notification, and a prompt the receiver does not know about is one whose answer
-    // it drops.
-    OutstandingScopeRequests.post(tag, callback)
-    runCatching { nm?.enqueueNotificationWithTag("android", opPkg, tag, tag.hashCode(), notif, 0) }
+    val enqueued =
+        runCatching {
+              val service = checkNotNull(nm) { "the notification manager is not available" }
+              service.enqueueNotificationWithTag("android", opPkg, tag, tag.hashCode(), notif, 0)
+            }
+            .onFailure { Log.e(TAG, "Failed to post the scope prompt $tag", it) }
+            .isSuccess
+    if (!enqueued) {
+      // The registration above outlives a failed enqueue, and it would then hold one of the
+      // module's places against a prompt that is not on screen and that nothing can ever answer —
+      // a module could wedge itself out of asking again on the strength of prompts the user never
+      // saw. Give the place back and tell the module instead.
+      OutstandingScopeRequests.claim(tag)?.let { pending ->
+        runCatching { pending.onScopeRequestFailed("Could not show the scope request") }
+      }
+    }
   }
 
   fun notifyModuleUpdated(
