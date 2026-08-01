@@ -19,6 +19,8 @@ package org.matrix.vector.manager.data.log
  *    carry no prefix at all, and *nothing* marks them as continuations — a stack trace's frames
  *    happen to be indented, but a `Caused by:` and `zygisk-core64`'s mount-argument report are
  *    flush left. They belong to the entry above them, not to nothing. See [isContinuationLine].
+ *    The exception is a message past the logger's payload, which the *writer* splits into several
+ *    entries before liblog ever sees it; [isSplitChunk] puts those back together.
  * 3. **Not every line is an entry.** `----part N start----` / `-----part N end----` mark the
  *    daemon rotating to a fresh file, and the watchdog writes its own banners. Those are real
  *    information about the log rather than noise, so they survive as [LogRow.Marker] instead of
@@ -154,6 +156,55 @@ private const val MIN_PREFIX = 26
  * bytes — which is how a filtered view comes to drop the half of a trace the unfiltered one keeps.
  */
 fun isContinuationLine(text: String): Boolean = !isRawBanner(text)
+
+/**
+ * Whether [row] is the tail of a message the writer had to cut in two, rather than an entry.
+ *
+ * Rule 2 holds only up to a point. `android.util.Log.e(tag, msg, tr)` does not hand liblog a
+ * message longer than the logger's payload — `printlns` in AOSP's `Log.java` walks the string and
+ * emits it as *several* entries, breaking at the last newline that fits. Each of those is a real
+ * entry with its own prefix, written by its own `writev`, and logd stores them separately: a 5.7 KB
+ * crash arrives as one entry ending mid-trace and another beginning `\tat …`, both stamped the same
+ * millisecond. The manager's own [org.matrix.vector.manager.logE] splits the same way and for the
+ * same reason, since liblog would otherwise truncate the tail.
+ *
+ * So this is not a guess at structure — it is the *undo* of a split the writer did not choose, and
+ * it is the one place the "a prefixed line is an entry" rule is knowingly overruled. It is kept
+ * narrow to earn that: same tag, same process, same thread, same level, immediately adjacent, and a
+ * message that reads as a tail rather than a beginning. Four writers would have to collide inside
+ * one thread, at one level, on one tag, with the second opening on whitespace, before this joined
+ * two things that were never one.
+ *
+ * Timestamps are deliberately **not** compared. The chunks leave `printlns` microseconds apart and
+ * the format keeps milliseconds, so they usually match — usually is not a rule, and a boundary that
+ * happened to straddle a tick would strand exactly the long trace this exists for.
+ *
+ * Being wrong costs a divider between two rows that stay legible either way; nothing is discarded.
+ */
+fun isSplitChunk(previous: LogRow.Entry, row: LogRow.Entry): Boolean =
+    previous.tag == row.tag &&
+        previous.pid == row.pid &&
+        previous.tid == row.tid &&
+        previous.level == row.level &&
+        looksLikeSplitChunk(row.message)
+
+/**
+ * Whether a message opens the way a continuation does rather than the way a message does.
+ *
+ * `printlns` breaks on a newline, so a tail begins with whatever line followed the break: inside a
+ * stack trace that is an indented frame, or a `Caused by:`/`Suppressed:` written flush left. A
+ * writer starting its *own* message with whitespace is close enough to unheard of to be worth
+ * trading against joining the traces this exists for.
+ *
+ * The other case — `printlns` hard-splitting a single line too long to break — is deliberately not
+ * recognised. Its tail begins mid-token, which is indistinguishable from a message, and stack
+ * frames never reach that length anyway.
+ */
+fun looksLikeSplitChunk(message: String): Boolean =
+    message.isNotEmpty() &&
+        (message[0].isWhitespace() ||
+            message.startsWith("Caused by: ") ||
+            message.startsWith("Suppressed: "))
 
 /**
  * The lines the daemon writes to the file itself, outside any entry.

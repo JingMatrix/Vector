@@ -94,14 +94,25 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         var lastDate: String? = null
         var traceOwner = -1
         var continuation: ArrayList<String>? = null
+        // Set when a line folded into the entry above had been cut. The flag belongs on the row a
+        // reader can see, and after a join the cut line may no longer be one of them.
+        var continuationCut = false
 
         fun flushContinuation() {
             val lines = continuation
             if (traceOwner >= 0 && lines != null) {
-                rows[traceOwner] = (rows[traceOwner] as LogRow.Entry).copy(continuation = lines)
+                val owner = rows[traceOwner] as LogRow.Entry
+                rows[traceOwner] =
+                    owner.copy(continuation = lines, truncated = owner.truncated || continuationCut)
             }
             continuation = null
+            continuationCut = false
             traceOwner = -1
+        }
+
+        fun addContinuation(text: String, cut: Boolean) {
+            (continuation ?: ArrayList<String>(8).also { continuation = it }).add(text)
+            if (cut) continuationCut = true
         }
 
         forEachLine(index, lines, null) { lineIndex, text, truncated ->
@@ -110,8 +121,14 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
             // of its own, and asking only whether a line could be a continuation swallows the whole
             // log into whichever entry happens to be first.
             val row = parseLogLine(lineIndex, text, truncated)
-            if (traceOwner >= 0 && row !is LogRow.Entry && isContinuationLine(text)) {
-                (continuation ?: ArrayList<String>(8).also { continuation = it }).add(text)
+            val owner = if (traceOwner >= 0) rows[traceOwner] as LogRow.Entry else null
+            if (owner != null && row !is LogRow.Entry && isContinuationLine(text)) {
+                addContinuation(text, truncated)
+            } else if (owner != null && row is LogRow.Entry && isSplitChunk(owner, row)) {
+                // A tail the writer was forced to cut off. Its prefix is dropped and its message
+                // rejoins the entry above, which is where it was written; the lines after it need
+                // no special case, because [traceOwner] never moved.
+                addContinuation(row.message, truncated)
             } else {
                 flushContinuation()
                 when (row) {
@@ -147,6 +164,12 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
      * A line that is *neither* is also where the walk has to stop: it is a marker the scanner could
      * not read, and stepping over it would hand the window a start belonging to some earlier
      * entry.
+     *
+     * An entry that [looksLikeSplitChunk] is stepped over too, since [readRows] is about to fold it
+     * into the entry above and stopping on it would open the page on half a trace again. Only the
+     * message is examined, not [isSplitChunk]'s full test: the entry this one would be compared
+     * against is further back than the line above, and walking one line too far only widens the
+     * window, which is free — whereas stopping one line too early is the bug.
      */
     fun entryStart(index: LogIndex, line: Int): Int {
         if (line >= index.lineCount) return line
@@ -156,8 +179,10 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
             val first = firstByte(index, at)
             if (first != SPACE && first != TAB) {
                 val text = lineText(index, at)
-                if (parseLogLine(at, text) is LogRow.Entry) break
-                if (!isContinuationLine(text)) break
+                val row = parseLogLine(at, text)
+                if (row is LogRow.Entry) {
+                    if (!looksLikeSplitChunk(row.message)) break
+                } else if (!isContinuationLine(text)) break
             }
             at--
             steps++
@@ -182,18 +207,25 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
         val tags = HashMap<String, Int>()
         val levels = HashMap<LogLevel, Int>()
         var previousMatched = false
-        // Whether the last row was an entry, which is what lets an unprefixed line be read as part
-        // of its message here exactly as [readRows] reads it. Without it the two passes disagree,
-        // and a filtered view drops the half of a trace the unfiltered one keeps.
-        var inEntry = false
+        // The last row that was an entry, which is what lets a line be read as part of its message
+        // here exactly as [readRows] reads it — both the unprefixed kind and the split-off tail.
+        // Without it the two passes disagree, and a filtered view drops the half of a trace the
+        // unfiltered one keeps. It is the row rather than a flag because [isSplitChunk] compares
+        // against the entry itself.
+        var lastEntry: LogRow.Entry? = null
 
         forEachLine(index, null, onProgress) { lineIndex, text, truncated ->
             // Parsed before the continuation test, for the reason given in [readRows]: a line that
             // carries a prefix is an entry whatever precedes it.
             val row = parseLogLine(lineIndex, text, truncated)
-            if (inEntry && row !is LogRow.Entry && isContinuationLine(text)) {
+            val owner = lastEntry
+            val joins =
+                owner != null &&
+                    if (row is LogRow.Entry) isSplitChunk(owner, row) else isContinuationLine(text)
+            if (joins) {
                 // Frames follow their entry into the filtered view; a stack trace whose header
-                // matched and whose body vanished is a filter actively hiding the answer.
+                // matched and whose body vanished is a filter actively hiding the answer. A joined
+                // tail counts for neither facet, because the row it belongs to was counted once.
                 if (previousMatched) matches?.add(lineIndex)
                 return@forEachLine
             }
@@ -201,7 +233,7 @@ class LogFile(pfd: ParcelFileDescriptor) : Closeable {
                 tags[row.tag] = (tags[row.tag] ?: 0) + 1
                 levels[row.level] = (levels[row.level] ?: 0) + 1
             }
-            inEntry = row is LogRow.Entry
+            lastEntry = row as? LogRow.Entry
             previousMatched = query.matches(row)
             if (previousMatched) matches?.add(lineIndex)
         }

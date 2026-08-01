@@ -522,7 +522,14 @@ private fun traceText(entry: LogRow.Entry): String =
         (listOf(entry.message) + entry.continuation).joinToString("\n")
     else entry.continuation.joinToString("\n")
 
-/** Rebuilds the line exactly as the daemon wrote it, for the clipboard. */
+/**
+ * Rebuilds the entry as the daemon wrote it, for the clipboard.
+ *
+ * One prefix, then the message and everything under it. Where the writer had to cut a long message
+ * into several entries the second prefix does not come back, because what is being copied is the
+ * message that was written rather than the transport that carried it — and a stack trace with a
+ * timestamp wedged into the middle of it is one nobody can paste anywhere useful.
+ */
 private fun rawText(entry: LogRow.Entry): String = buildString {
     append("[ ")
     append(entry.date)
