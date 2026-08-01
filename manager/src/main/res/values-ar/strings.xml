@@ -316,6 +316,7 @@
     <string name="update_channel_release">إصدار مستقر</string>
     <string name="update_install">تثبيت</string>
     <string name="update_downloading">تم تنزيل %1$s من %2$s</string>
+    <string name="update_cancel_download">إلغاء التنزيل</string>
     <string name="update_flashing">جارٍ التثبيت…</string>
     <string name="update_done">تم التثبيت</string>
     <string name="update_reboot">إعادة التشغيل</string>

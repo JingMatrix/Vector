@@ -261,6 +261,7 @@
     <string name="update_channel_release">Bản chính thức</string>
     <string name="update_install">Cài đặt</string>
     <string name="update_downloading">Đã tải %1$s trên %2$s</string>
+    <string name="update_cancel_download">Huỷ tải xuống</string>
     <string name="update_flashing">Đang cài…</string>
     <string name="update_done">Đã cài</string>
     <string name="update_reboot">Khởi động lại</string>

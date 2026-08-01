@@ -261,6 +261,7 @@
     <string name="update_channel_release">正式版</string>
     <string name="update_install">インストール</string>
     <string name="update_downloading">%2$s 中 %1$s をダウンロード中</string>
+    <string name="update_cancel_download">ダウンロードをキャンセル</string>
     <string name="update_flashing">インストール中…</string>
     <string name="update_done">インストールしました</string>
     <string name="update_reboot">再起動</string>

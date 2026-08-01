@@ -272,6 +272,7 @@
     <string name="update_channel_release">Kararlı sürüm</string>
     <string name="update_install">Kur</string>
     <string name="update_downloading">%2$s içinden %1$s indirildi</string>
+    <string name="update_cancel_download">İndirmeyi iptal et</string>
     <string name="update_flashing">Kuruluyor…</string>
     <string name="update_done">Kuruldu</string>
     <string name="update_reboot">Yeniden başlat</string>

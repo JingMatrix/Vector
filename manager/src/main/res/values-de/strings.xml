@@ -272,6 +272,7 @@
     <string name="update_channel_release">Release</string>
     <string name="update_install">Installieren</string>
     <string name="update_downloading">%1$s von %2$s geladen</string>
+    <string name="update_cancel_download">Download abbrechen</string>
     <string name="update_flashing">Wird installiert…</string>
     <string name="update_done">Installiert</string>
     <string name="update_reboot">Neu starten</string>

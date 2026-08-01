@@ -275,6 +275,7 @@
     <string name="update_channel_release">Релиз</string>
     <string name="update_install">Установить</string>
     <string name="update_downloading">Загружено %1$s из %2$s</string>
+    <string name="update_cancel_download">Отменить загрузку</string>
     <string name="update_flashing">Установка…</string>
     <string name="update_done">Установлено</string>
     <string name="update_reboot">Перезагрузить</string>

@@ -262,6 +262,7 @@
     <string name="update_channel_release">正式版</string>
     <string name="update_install">安装</string>
     <string name="update_downloading">正在下载 %1$s / %2$s</string>
+    <string name="update_cancel_download">取消下载</string>
     <string name="update_flashing">正在安装…</string>
     <string name="update_done">已安装</string>
     <string name="update_reboot">重启</string>

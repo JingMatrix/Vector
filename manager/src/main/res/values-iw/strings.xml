@@ -298,6 +298,7 @@
     <string name="update_channel_release">גרסה יציבה</string>
     <string name="update_install">התקנה</string>
     <string name="update_downloading">הורדו %1$s מתוך %2$s</string>
+    <string name="update_cancel_download">ביטול ההורדה</string>
     <string name="update_flashing">מתקין…</string>
     <string name="update_done">הותקן</string>
     <string name="update_reboot">הפעלה מחדש</string>

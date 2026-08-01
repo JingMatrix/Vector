@@ -261,6 +261,7 @@
     <string name="update_channel_release">정식 버전</string>
     <string name="update_install">설치</string>
     <string name="update_downloading">%2$s 중 %1$s 내려받는 중</string>
+    <string name="update_cancel_download">내려받기 취소</string>
     <string name="update_flashing">설치하는 중…</string>
     <string name="update_done">설치했습니다</string>
     <string name="update_reboot">다시 시작</string>

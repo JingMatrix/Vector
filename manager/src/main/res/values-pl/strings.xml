@@ -294,6 +294,7 @@
     <string name="update_channel_release">Wydanie stabilne</string>
     <string name="update_install">Zainstaluj</string>
     <string name="update_downloading">Pobrano %1$s z %2$s</string>
+    <string name="update_cancel_download">Anuluj pobieranie</string>
     <string name="update_flashing">Instalowanie…</string>
     <string name="update_done">Zainstalowano</string>
     <string name="update_reboot">Uruchom ponownie</string>

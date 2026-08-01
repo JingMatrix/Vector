@@ -265,6 +265,7 @@
     <string name="update_channel_release">Rilis stabil</string>
     <string name="update_install">Pasang</string>
     <string name="update_downloading">Mengunduh %1$s dari %2$s</string>
+    <string name="update_cancel_download">Batalkan unduhan</string>
     <string name="update_flashing">Memasang…</string>
     <string name="update_done">Terpasang</string>
     <string name="update_reboot">Mulai ulang</string>

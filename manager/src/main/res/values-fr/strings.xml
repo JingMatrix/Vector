@@ -272,6 +272,7 @@
     <string name="update_channel_release">Version stable</string>
     <string name="update_install">Installer</string>
     <string name="update_downloading">%1$s téléchargés sur %2$s</string>
+    <string name="update_cancel_download">Annuler le téléchargement</string>
     <string name="update_flashing">Installation…</string>
     <string name="update_done">Installé</string>
     <string name="update_reboot">Redémarrer</string>

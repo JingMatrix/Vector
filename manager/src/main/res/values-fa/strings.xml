@@ -272,6 +272,7 @@
     <string name="update_channel_release">نسخهٔ پایدار</string>
     <string name="update_install">نصب</string>
     <string name="update_downloading">‏%1$s از %2$s بارگیری شد</string>
+    <string name="update_cancel_download">لغو بارگیری</string>
     <string name="update_flashing">در حال نصب…</string>
     <string name="update_done">نصب شد</string>
     <string name="update_reboot">راه‌اندازی دوباره</string>

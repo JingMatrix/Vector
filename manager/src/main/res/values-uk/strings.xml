@@ -294,6 +294,7 @@
     <string name="update_channel_release">Стабільний випуск</string>
     <string name="update_install">Встановити</string>
     <string name="update_downloading">Завантажено %1$s з %2$s</string>
+    <string name="update_cancel_download">Скасувати завантаження</string>
     <string name="update_flashing">Встановлення…</string>
     <string name="update_done">Встановлено</string>
     <string name="update_reboot">Перезавантажити</string>
