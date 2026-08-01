@@ -393,6 +393,7 @@
     <string name="update_channel_release">Release</string>
     <string name="update_install">Install</string>
     <string name="update_downloading">Downloading %1$s of %2$s</string>
+    <string name="update_cancel_download">Cancel download</string>
     <string name="update_flashing">Installing…</string>
     <string name="update_done">Installed</string>
     <string name="update_reboot">Restart</string>

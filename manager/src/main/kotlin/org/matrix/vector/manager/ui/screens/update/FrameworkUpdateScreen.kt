@@ -191,6 +191,7 @@ fun FrameworkUpdateScreen(
                 rootLabel = root.label(),
                 flash = flash,
                 onFlash = { viewModel.flash() },
+                onCancelDownload = viewModel::cancelDownload,
                 onReboot = { scope.launch { viewModel.reboot() } },
                 onDismiss = viewModel::acknowledge,
             )
@@ -300,6 +301,7 @@ private fun UpdateBar(
     rootLabel: String?,
     flash: FlashStep,
     onFlash: () -> Unit,
+    onCancelDownload: () -> Unit,
     onReboot: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -312,15 +314,28 @@ private fun UpdateBar(
     ) {
         when (flash) {
             is FlashStep.Downloading -> {
-                Text(
-                    text =
-                        stringResource(
-                            R.string.update_downloading,
-                            formatSize(flash.bytes),
-                            formatSize(flash.total),
-                        ),
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                // The one step of a flash that comes with a way out. A release zip is tens of
+                // megabytes and the reader may be paying for them; more to the point, a download
+                // left to finish goes straight on to flash the build they have just decided
+                // against, and until this row had a button on it the only way to stop that was to
+                // force stop the app. The button names the download rather than saying "Cancel",
+                // because the installer that follows genuinely cannot be called off and a bare
+                // "Cancel" sitting on this bar would read as an offer to do that too.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text =
+                            stringResource(
+                                R.string.update_downloading,
+                                formatSize(flash.bytes),
+                                formatSize(flash.total),
+                            ),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = onCancelDownload) {
+                        Text(stringResource(R.string.update_cancel_download))
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
                 if (flash.total > 0) {
                     LinearProgressIndicator(

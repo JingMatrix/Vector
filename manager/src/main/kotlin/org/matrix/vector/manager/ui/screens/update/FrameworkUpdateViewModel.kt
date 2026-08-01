@@ -218,6 +218,17 @@ class FrameworkUpdateViewModel : ViewModel() {
     }
 
     /**
+     * Calls off the download, and only the download.
+     *
+     * The flash behind it has no equivalent and is not meant to: once the daemon has started an
+     * installer there is nothing left to call off, and the wait for its exit code is the one thing
+     * the installer's own scope exists to protect. A transfer is the other case entirely — it can
+     * be tens of megabytes on a connection the reader is paying for, and one that runs to the end
+     * after they have changed their mind goes straight on to flash the build they turned down.
+     */
+    fun cancelDownload() = installer.cancelDownload()
+
+    /**
      * Clears a flash that has finished, one way or the other.
      *
      * A result stays up until it is read, which is the whole point of the installer outliving the
