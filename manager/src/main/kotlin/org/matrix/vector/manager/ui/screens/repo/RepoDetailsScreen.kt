@@ -5,7 +5,8 @@ import org.matrix.vector.manager.ui.components.ConfirmInstall
 import org.matrix.vector.manager.ui.components.ToggleRow
 import org.matrix.vector.manager.ui.components.SheetHeading
 import org.matrix.vector.manager.ui.components.sheetRowColors
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.MoreVert
@@ -64,7 +65,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -271,7 +272,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
                 }
             }
 
-            TabRow(selectedTabIndex = pagerState.currentPage) {
+            PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
                 tabs.forEachIndexed { index, label ->
                     Tab(
                         selected = pagerState.currentPage == index,
@@ -327,7 +328,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
 
     if (optionsOpen) {
         val muted by viewModel.updatesMuted.collectAsStateWithLifecycle()
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
         ModalBottomSheet(onDismissRequest = { optionsOpen = false }, sheetState = sheetState) {
             LocalizedOverlay {
                 Column(Modifier.padding(bottom = 24.dp)) {
@@ -850,10 +851,9 @@ private fun InfoRow(
 ) {
     ListItem(
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
-        headlineContent = { Text(label) },
         supportingContent = { Text(value) },
         leadingContent = { Icon(icon, contentDescription = null) },
-    )
+    ) { Text(label) }
     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 }
 
@@ -873,7 +873,6 @@ LocalizedOverlay {
         release.apks.forEach { asset ->
             ListItem(
                 modifier = Modifier.clickable { onPick(asset) },
-                headlineContent = { Text(asset.name.orEmpty()) },
                 supportingContent = {
                     val size = Formatter.formatShortFileSize(context, asset.size)
                     val downloads =
@@ -887,7 +886,7 @@ LocalizedOverlay {
                     Text(listOfNotNull(size, downloads).joinToString("  ·  "))
                 },
                 colors = sheetRowColors,
-            )
+            ) { Text(asset.name.orEmpty()) }
         }
         Spacer(Modifier.navigationBarsPadding().height(16.dp))
     }

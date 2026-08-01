@@ -3,6 +3,8 @@
 .cache
 *.iml
 .gradle
+# Where the Kotlin plugin keeps its per-build session marker; a build leaves one behind.
+.kotlin
 /local.properties
 /.idea
 .DS_Store

@@ -96,7 +96,7 @@ jobs:
       - name: Setup ninja
         uses: seanmiddleditch/gha-setup-ninja@v6
         with:
-          version: 1.12.1
+          version: 1.13.2
 
       - name: Setup ccache
         uses: actions/cache@v6

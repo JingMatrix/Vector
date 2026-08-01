@@ -55,7 +55,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,7 +96,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.data.model.RepoVersion
 import org.matrix.vector.manager.data.model.StoreEntry
@@ -358,7 +359,7 @@ fun ModulesScreen(
             }
 
             if (tabs.size > 1) {
-                TabRow(selectedTabIndex = pagerState.currentPage) {
+                PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
                     tabs.forEachIndexed { index, tab ->
                         Tab(
                             selected = pagerState.currentPage == index,
@@ -1310,7 +1311,7 @@ private fun ModuleUpdatesSheet(
     onStart: (List<ModuleUpdateQueue.Item>) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     val colors = MaterialTheme.colorScheme
     val context = LocalContext.current
 
@@ -1366,7 +1367,6 @@ private fun ModuleUpdatesSheet(
                                         chosen = if (checked) chosen + name else chosen - name
                                     },
                                 ),
-                            headlineContent = { Text(row.entry.module.title) },
                             supportingContent = {
                                 Text(
                                     text =
@@ -1415,7 +1415,7 @@ private fun ModuleUpdatesSheet(
                                     }
                                 },
                             colors = sheetRowColors,
-                        )
+                        ) { Text(row.entry.module.title) }
                     }
                 }
                 Spacer(Modifier.height(12.dp))

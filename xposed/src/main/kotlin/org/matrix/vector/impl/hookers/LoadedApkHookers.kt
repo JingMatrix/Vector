@@ -53,8 +53,10 @@ private object PackageContextHelper {
         val packageName: String
         val processName: String
         if (isFirstPackage) {
-            packageName = boundPackage!!
-            processName = boundProcess!!
+            // Both are smart-cast here: `isFirstPackage` is a local val that already carries the
+            // null checks, so K2 tracks them through it and the assertions are redundant.
+            packageName = boundPackage
+            processName = boundProcess
         } else {
             packageName = apkPackageName
             processName = boundPackage ?: apkPackageName

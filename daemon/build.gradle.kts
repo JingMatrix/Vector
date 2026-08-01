@@ -11,12 +11,15 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-val defaultManagerPackageName: String by rootProject.extra
-val injectedPackageName: String by rootProject.extra
-val injectedPackageUid: Int by rootProject.extra
-val versionCodeProvider: Provider<String> by rootProject.extra
-val versionNameProvider: Provider<String> by rootProject.extra
-val versionHashProvider: Provider<String> by rootProject.extra
+val defaultManagerPackageName = rootProject.extra["defaultManagerPackageName"] as String
+val injectedPackageName = rootProject.extra["injectedPackageName"] as String
+val injectedPackageUid = rootProject.extra["injectedPackageUid"] as Int
+@Suppress("UNCHECKED_CAST")
+val versionCodeProvider = rootProject.extra["versionCodeProvider"] as Provider<String>
+@Suppress("UNCHECKED_CAST")
+val versionNameProvider = rootProject.extra["versionNameProvider"] as Provider<String>
+@Suppress("UNCHECKED_CAST")
+val versionHashProvider = rootProject.extra["versionHashProvider"] as Provider<String>
 
 plugins {
   alias(libs.plugins.agp.app)

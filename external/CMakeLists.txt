@@ -23,5 +23,9 @@ option(FMT_INSTALL OFF)
 add_subdirectory(dobby)
 add_subdirectory(fmt)
 add_subdirectory(lsplant/lsplant/src/main/jni)
-target_compile_options(lsplant_static PUBLIC -Wno-gnu-anonymous-struct)
+target_compile_options(lsplant_static PUBLIC -Wno-gnu-anonymous-struct
+	# lsplant.cc's `operator""_uarr()` is a string literal operator template, which is a GNU
+	# extension clang warns about under -Wpedantic. Upstream code we do not own, and the
+	# warning was printed once per ABI on every build.
+	-Wno-gnu-string-literal-operator-template)
 target_compile_definitions(fmt-header-only INTERFACE FMT_USE_LOCALE=0 FMT_USE_FLOAT=0 FMT_USE_DOUBLE=0 FMT_USE_LONG_DOUBLE=0 FMT_USE_BITINT=0)

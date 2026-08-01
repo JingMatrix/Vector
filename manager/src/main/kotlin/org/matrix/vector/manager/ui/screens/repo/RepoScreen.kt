@@ -7,7 +7,8 @@ import androidx.compose.material.icons.rounded.LowPriority
 import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import org.matrix.vector.manager.ui.components.ChoiceRow
 import org.matrix.vector.manager.ui.components.SheetHeading
 import androidx.compose.foundation.clickable
@@ -272,11 +273,11 @@ private fun StoreFilterSheet(
     onChannelChange: (StoreChannel) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
-    // stop — the only thing a drag on a sheet can do other than dismiss it. Material adds that stop
-    // only when the content is taller than half the screen, so short sheets still open at their own
-    // height and nothing gains a useless drag.
-    val sheetState = rememberModalBottomSheetState()
+    // Every value left enabled rather than dropping PartiallyExpanded, which would remove the
+    // half-height stop — the only thing a drag on a sheet can do other than dismiss it. Material
+    // caps that stop at the sheet's own height, so short sheets still open at their own height and
+    // nothing gains a useless drag.
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LocalizedOverlay {

@@ -37,7 +37,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -84,12 +85,12 @@ fun LanguageSheet(onOpen: (String) -> Unit, onDismiss: () -> Unit) {
     val current by settings.appLocale.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val locales = remember { availableLocales() }
-    // The default state, deliberately. `skipPartiallyExpanded` removes the half-height stop, which
-    // is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than
-    // half the screen would open at full height and could not be made smaller. Left alone, Material
-    // adds the stop only when the content is actually taller than half the screen, so short sheets
-    // still open at their own height and nothing gains a useless drag.
-    val sheetState = rememberModalBottomSheetState()
+    // Every value stays enabled, deliberately. Dropping PartiallyExpanded removes the half-height
+    // stop, which is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet
+    // taller than half the screen would open at full height and could not be made smaller. Left
+    // alone, Material caps that stop at the sheet's own height, so short sheets still open at
+    // their own height and nothing gains a useless drag.
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
 LocalizedOverlay {

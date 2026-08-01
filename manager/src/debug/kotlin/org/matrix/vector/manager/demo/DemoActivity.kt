@@ -149,9 +149,8 @@ private fun ScenarioList(onPick: (DemoScenario) -> Unit) {
             items(DEMO_SCENARIOS, key = { it.id }) { scenario ->
                 ListItem(
                     modifier = Modifier.clickable { onPick(scenario) },
-                    headlineContent = { Text(scenario.title) },
                     supportingContent = { Text(scenario.summary) },
-                )
+                ) { Text(scenario.title) }
             }
         }
     }

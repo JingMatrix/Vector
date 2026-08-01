@@ -68,12 +68,12 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
  * (3052)" and cannot be told apart on the device. That is not hypothetical — it cost a real
  * investigation to establish which of the two was installed.
  *
- * **The commit always comes first, and what follows always says where.** Both readers of this string
- * want the commit and nothing else — the manager compares it against the SHA a release was cut from
- * to answer "am I running this build", and the status page sets it in a type the rest is not given
- * — and for both it is now simply the head of the string. No rule has to work out which part is
- * which, so none can get it wrong when a repository or a machine turns out to have a hyphen in its
- * name.
+ * **The commit always comes first, and what follows always says where.** Both readers of this
+ * string want the commit and nothing else — the manager compares it against the SHA a release was
+ * cut from to answer "am I running this build", and the status page sets it in a type the rest is
+ * not given — and for both it is now simply the head of the string. No rule has to work out which
+ * part is which, so none can get it wrong when a repository or a machine turns out to have a hyphen
+ * in its name.
  *
  * The separator says which kind of "where" follows, because they mean opposite things about whether
  * the commit describes the binary:
@@ -85,31 +85,33 @@ abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParamete
  * Both halves are the *head* ones, and neither is read from the environment GitHub sets by default,
  * because on a pull request both defaults name something other than the code that was built:
  *
- * `GITHUB_REPOSITORY` is the repository that *ran* the workflow. A pull request from a fork is built
- * here, so it would stamp `JingMatrix/Vector` onto a branch that has never been near it — which is
- * exactly the artifact the name most needs to distinguish.
+ * `GITHUB_REPOSITORY` is the repository that *ran* the workflow. A pull request from a fork is
+ * built here, so it would stamp `JingMatrix/Vector` onto a branch that has never been near it —
+ * which is exactly the artifact the name most needs to distinguish.
  *
  * `HEAD` is worse. For a pull request the runner checks out an ephemeral merge of the branch into
- * the base, so `git rev-parse HEAD` names a commit that exists in no repository, cannot be looked up
- * by anyone who reads it off a device, and is gone once the run is. The commit that was pushed is
- * the one that identifies the build.
+ * the base, so `git rev-parse HEAD` names a commit that exists in no repository, cannot be looked
+ * up by anyone who reads it off a device, and is gone once the run is. The commit that was pushed
+ * is the one that identifies the build.
  *
  * So the workflow passes both in: `VECTOR_BUILD_REPOSITORY` and `VECTOR_BUILD_COMMIT`, each taken
- * from `github.event.pull_request.head.*` when there is a pull request and from the ordinary default
- * when there is not — outside a pull request the two agree anyway. Absent either, this falls back to
- * what the environment says and to `HEAD`, which covers a workflow too old to set them.
+ * from `github.event.pull_request.head.*` when there is a pull request and from the ordinary
+ * default when there is not — outside a pull request the two agree anyway. Absent either, this
+ * falls back to what the environment says and to `HEAD`, which covers a workflow too old to set
+ * them.
  *
- * *Locally*, the bare `93d66473`, or `93d66473+thinkpad` when the tree has uncommitted changes. That
- * build corresponds to no commit at all, so naming the commit alone would name something the binary
- * does not match — and whoever is looking at it is far better served by the machine it was built on
- * than by the word "dirty", since a device that has a hand-built framework on it usually has exactly
- * one candidate author.
+ * *Locally*, the bare `93d66473`, or `93d66473+thinkpad` when the tree has uncommitted changes.
+ * That build corresponds to no commit at all, so naming the commit alone would name something the
+ * binary does not match — and whoever is looking at it is far better served by the machine it was
+ * built on than by the word "dirty", since a device that has a hand-built framework on it usually
+ * has exactly one candidate author.
  *
- * `+` rather than `-` for that one, in semver's sense of build metadata: after a `-` is a repository
- * that holds this exact commit, and after a `+` is a change that is in no repository at all. That is
- * the one distinction a reader of the stamp cannot afford to lose — a modified build matches no
- * release, and read as a CI build it would claim to be the release it was merely started from.
- * Neither character can occur inside a host name or an `owner/repo`, so the two shapes stay apart.
+ * `+` rather than `-` for that one, in semver's sense of build metadata: after a `-` is a
+ * repository that holds this exact commit, and after a `+` is a change that is in no repository at
+ * all. That is the one distinction a reader of the stamp cannot afford to lose — a modified build
+ * matches no release, and read as a CI build it would claim to be the release it was merely started
+ * from. Neither character can occur inside a host name or an `owner/repo`, so the two shapes stay
+ * apart.
  *
  * The dirty check is deliberately not applied on CI. The workflow's own "Write key" step appends
  * the signing credentials to the tracked `gradle.properties` before Gradle starts, so every master
@@ -124,8 +126,8 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
         /**
          * `owner/repo` when GitHub Actions is building this, empty otherwise.
          *
-         * Threaded in as parameters rather than read with `System.getenv` inside [obtain], which the
-         * configuration cache does not see and therefore does not invalidate on.
+         * Threaded in as parameters rather than read with `System.getenv` inside [obtain], which
+         * the configuration cache does not see and therefore does not invalidate on.
          */
         val buildRepository: Property<String>
 
@@ -139,8 +141,8 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
      * Runs [command] and returns its trimmed output, or null if it failed or said nothing.
      *
      * `exec` *throws* when the executable cannot be started at all, which `isIgnoreExitValue` does
-     * not cover — `hostname` is not on every machine — so the whole call is wrapped rather than just
-     * its exit code inspected.
+     * not cover — `hostname` is not on every machine — so the whole call is wrapped rather than
+     * just its exit code inspected.
      */
     private fun capture(vararg command: String): String? =
         runCatching {
@@ -172,7 +174,8 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
     }
 
     override fun obtain(): String {
-        // Abbreviated by git rather than by hand, so a CI build and a local build of the same commit
+        // Abbreviated by git rather than by hand, so a CI build and a local build of the same
+        // commit
         // read identically however long this repository's abbreviation happens to be.
         val head = capture("git", "rev-parse", "--short", "HEAD") ?: return "unknown"
 
@@ -187,43 +190,71 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
         // not, and a slightly odd length beats reporting the merge commit or nothing at all.
         val pushed = parameters.buildCommit.getOrElse("").takeIf { it.isNotBlank() }
         val short =
-            pushed?.let { capture("git", "rev-parse", "--short", it) ?: it.take(head.length) } ?: head
+            pushed?.let { capture("git", "rev-parse", "--short", it) ?: it.take(head.length) }
+                ?: head
         return short + "-" + repository.replace('/', '-')
     }
 }
 
+// Plain vals plus an explicit `extra.set`, rather than the `by extra(...)` delegate: Gradle 9.6
+// deprecated that syntax and drops it in Gradle 10, and every one of these declarations printed a
+// deprecation warning of its own. The subprojects read them out of `rootProject.extra` by name, so
+// the string here and the property name have to stay in step by hand now.
+//
 // This defers the execution of the git commands and allows Gradle to cache the results.
-val versionCodeProvider by extra(providers.of(GitCommitCountValueSource::class.java) {})
-val versionHashProvider by
-    extra(
-        providers.of(GitCommitHashValueSource::class.java) {
-            // Set on every GitHub Actions runner and on nothing else, so the presence of either is
-            // the test for "this is a CI build". The workflow's own variables win because they name
-            // the branch that was pushed; GitHub's defaults name the run that built it.
-            parameters.buildRepository.set(
-                providers
-                    .environmentVariable("VECTOR_BUILD_REPOSITORY")
-                    .orElse(providers.environmentVariable("GITHUB_REPOSITORY"))
-                    .orElse("")
-            )
-            parameters.buildCommit.set(
-                providers.environmentVariable("VECTOR_BUILD_COMMIT").orElse("")
-            )
-        }
-    )
-val versionNameProvider by extra(providers.of(GitLatestTagValueSource::class.java) {})
+val versionCodeProvider = providers.of(GitCommitCountValueSource::class.java) {}
+val versionHashProvider =
+    providers.of(GitCommitHashValueSource::class.java) {
+        // Set on every GitHub Actions runner and on nothing else, so the presence of either is
+        // the test for "this is a CI build". The workflow's own variables win because they name
+        // the branch that was pushed; GitHub's defaults name the run that built it.
+        parameters.buildRepository.set(
+            providers
+                .environmentVariable("VECTOR_BUILD_REPOSITORY")
+                .orElse(providers.environmentVariable("GITHUB_REPOSITORY"))
+                .orElse("")
+        )
+        parameters.buildCommit.set(providers.environmentVariable("VECTOR_BUILD_COMMIT").orElse(""))
+    }
+val versionNameProvider = providers.of(GitLatestTagValueSource::class.java) {}
 
-val injectedPackageName by extra("com.android.shell")
-val injectedPackageUid by extra(2000)
-val defaultManagerPackageName by extra("org.matrix.vector.manager")
+val injectedPackageName = "com.android.shell"
+val injectedPackageUid = 2000
+val defaultManagerPackageName = "org.matrix.vector.manager"
 
-val androidTargetSdkVersion by extra(37)
-val androidMinSdkVersion by extra(27)
-val androidBuildToolsVersion by extra("37.0.0")
-val androidCompileSdkVersion by extra(37)
-val androidCompileNdkVersion by extra("29.0.13113456")
-val androidSourceCompatibility by extra(JavaVersion.VERSION_21)
-val androidTargetCompatibility by extra(JavaVersion.VERSION_21)
+val androidTargetSdkVersion = 37
+val androidMinSdkVersion = 27
+val androidBuildToolsVersion = "37.0.0"
+val androidCompileSdkVersion = 37
+val androidCompileNdkVersion = "29.0.14206865"
+val androidSourceCompatibility = JavaVersion.VERSION_21
+val androidTargetCompatibility = JavaVersion.VERSION_21
+
+extra.set("versionCodeProvider", versionCodeProvider)
+
+extra.set("versionHashProvider", versionHashProvider)
+
+extra.set("versionNameProvider", versionNameProvider)
+
+extra.set("injectedPackageName", injectedPackageName)
+
+extra.set("injectedPackageUid", injectedPackageUid)
+
+extra.set("defaultManagerPackageName", defaultManagerPackageName)
+
+extra.set("androidTargetSdkVersion", androidTargetSdkVersion)
+
+extra.set("androidMinSdkVersion", androidMinSdkVersion)
+
+extra.set("androidBuildToolsVersion", androidBuildToolsVersion)
+
+extra.set("androidCompileSdkVersion", androidCompileSdkVersion)
+
+extra.set("androidCompileNdkVersion", androidCompileNdkVersion)
+
+extra.set("androidSourceCompatibility", androidSourceCompatibility)
+
+extra.set("androidTargetCompatibility", androidTargetCompatibility)
 
 subprojects {
     plugins.withType(AndroidBasePlugin::class.java) {
@@ -253,6 +284,19 @@ subprojects {
                     listOf(
                         "-DVERSION_CODE=${versionCodeProvider.get()}",
                         "-DVERSION_NAME='\"${versionNameProvider.get()}\"'",
+                        // parallel_hashmap reaches for <emmintrin.h> whenever __SSE2__ is defined,
+                        // and that header's static inline intrinsics arrive twice on the x86 ABIs:
+                        // dex_builder.ixx and dex_helper.ixx each include phmap in their global
+                        // module fragment, so importing dex_builder gives clang two definitions
+                        // with the same mangled name. clang 21 (NDK r29) rejects that outright,
+                        // where clang 20 merged them. Turning phmap's SSE2 group scan off costs
+                        // nothing on arm, which never had it, and is set for every native module
+                        // rather than for dex_builder alone because phmap's layout depends on the
+                        // flag -- our own hook_bridge.cpp instantiates the same templates, and two
+                        // group sizes in one .so would be an ODR violation the linker cannot see.
+                        "-DPHMAP_HAVE_SSE2=0",
+                        // phmap refuses to configure with SSSE3 but no SSE2, so both go together.
+                        "-DPHMAP_HAVE_SSSE3=0",
                     )
 
                 val args =
@@ -300,6 +344,33 @@ subprojects {
         extensions.configure(JavaPluginExtension::class.java) {
             sourceCompatibility = androidSourceCompatibility
             targetCompatibility = androidTargetCompatibility
+        }
+    }
+
+    // Java that is not ours to modernise, and that javac otherwise comments on twice per build --
+    // once per build type, in both the debug and the release halves of `zipAll`.
+    //
+    // `:external:apache` and `:external:axml` compile vendored upstream sources (commons-lang and
+    // ManifestEditor); `:services:*` compile the libxposed submodule and the AIDL stubs AGP
+    // generates, neither of which we write. `:legacy` is the de.robv API surface itself: XResources
+    // exists precisely to override `getColor`, `getDrawable` and the rest of the deprecated
+    // Resources methods, so every one of those overrides is deliberate and none can be dropped
+    // while the legacy API is supported.
+    //
+    // `-nowarn` alone is not enough. The "Note: Some input files use or override a deprecated API"
+    // line is a *mandatory* warning summary, emitted precisely because the lint is off, and only
+    // `-XDsuppressNotes` silences it.
+    val vendoredJava =
+        setOf(
+            ":external:apache",
+            ":external:axml",
+            ":legacy",
+            ":services:daemon-service",
+            ":services:manager-service",
+        )
+    if (path in vendoredJava) {
+        tasks.withType(JavaCompile::class.java).configureEach {
+            options.compilerArgs.addAll(listOf("-nowarn", "-XDsuppressNotes"))
         }
     }
 }

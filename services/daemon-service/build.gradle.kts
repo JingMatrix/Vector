@@ -7,8 +7,8 @@ android {
 
     sourceSets {
         named("main") {
-            java.srcDirs("src/main/java", "../libxposed/service/src/main")
-            aidl.srcDirs("src/main/aidl", "../libxposed/interface/src/main/aidl")
+            java.directories.addAll(listOf("src/main/java", "../libxposed/service/src/main"))
+            aidl.directories.addAll(listOf("src/main/aidl", "../libxposed/interface/src/main/aidl"))
         }
     }
 

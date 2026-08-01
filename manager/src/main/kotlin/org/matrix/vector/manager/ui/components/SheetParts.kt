@@ -116,12 +116,11 @@ fun ToggleRow(
                 role = Role.Switch,
                 onValueChange = onCheckedChange,
             ),
-        headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
         leadingContent = { Icon(icon, contentDescription = null) },
         trailingContent = { Switch(checked = checked, onCheckedChange = null) },
         colors = sheetRowColors,
-    )
+    ) { Text(title) }
 }
 
 /**
@@ -178,11 +177,10 @@ fun SheetAction(
 ) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
-        headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
         leadingContent = {
             Icon(icon, contentDescription = null, tint = tint ?: LocalContentColor.current)
         },
         colors = sheetRowColors,
-    )
+    ) { Text(title) }
 }

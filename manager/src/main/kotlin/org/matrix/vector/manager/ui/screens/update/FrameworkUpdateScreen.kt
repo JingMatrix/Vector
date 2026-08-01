@@ -14,7 +14,8 @@ import java.text.DateFormat
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ListItem
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -609,7 +610,7 @@ private fun VersionsSheet(
     onSelect: (FrameworkRelease) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     val colors = MaterialTheme.colorScheme
     val locale = currentLocale()
 
@@ -630,13 +631,6 @@ private fun VersionsSheet(
                                 onSelect(release)
                                 onDismiss()
                             },
-                        // One line each, always. What names the build is the same shape in every
-                        // row — "Vector v2.0 canary 3060", then its date and channel — and a row
-                        // that wraps because of what is beside it reads as a different kind of
-                        // entry when it is not.
-                        headlineContent = {
-                            Text(release.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        },
                         supportingContent = {
                             Text(
                                 listOfNotNull(
@@ -707,7 +701,13 @@ private fun VersionsSheet(
                             }
                         },
                         colors = sheetRowColors,
-                    )
+                    ) {
+                        // One line each, always. What names the build is the same shape in every
+                        // row — "Vector v2.0 canary 3060", then its date and channel — and a row
+                        // that wraps because of what is beside it reads as a different kind of
+                        // entry when it is not.
+                        Text(release.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }

@@ -18,7 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Folder
-import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Terminal
@@ -169,7 +169,7 @@ fun TroubleshootScreen(
 
             item {
                 Step(
-                    icon = Icons.Rounded.OpenInNew,
+                    icon = Icons.AutoMirrored.Rounded.OpenInNew,
                     title = stringResource(R.string.report_step_zygisk),
                     body = stringResource(R.string.report_step_zygisk_body),
                     titleAction = {

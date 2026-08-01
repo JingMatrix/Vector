@@ -6,14 +6,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.DoneAll
-import androidx.compose.material.icons.rounded.PlaylistAdd
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.RemoveDone
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.SaveAlt
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.matrix.vector.manager.ui.components.ChoiceRow
 import org.matrix.vector.manager.ui.components.SheetAction
@@ -592,7 +593,7 @@ private fun ScopeSelectMenu(
             ToggleRow(
                 title = stringResource(R.string.scope_include_new_apps),
                 subtitle = stringResource(R.string.scope_include_new_apps_summary),
-                icon = Icons.Rounded.PlaylistAdd,
+                icon = Icons.AutoMirrored.Rounded.PlaylistAdd,
                 checked = includeNewApps,
                 onCheckedChange = onIncludeNewApps,
             )
@@ -776,7 +777,7 @@ private fun ScopeSheet(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LocalizedOverlay {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 24.dp)) {
@@ -919,7 +920,6 @@ private fun AppRow(
                     Modifier.border(width = 2.dp, color = ring, shape = CircleShape).padding(4.dp),
             )
         },
-        headlineContent = { Text(app.appName) },
         supportingContent = {
             Column {
                 Text(
@@ -952,7 +952,7 @@ private fun AppRow(
             ListItemDefaults.colors(
                 containerColor = Color.Transparent
             ),
-    )
+    ) { Text(app.appName) }
     if (menuOpen) {
         PackageActionSheet(
             packageName = app.packageName,

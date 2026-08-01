@@ -54,6 +54,9 @@ class AppRepository(
                 packages.mapNotNull { pkg ->
                     val appInfo = pkg.applicationInfo ?: return@mapNotNull null
                     val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                    // FLAG_IS_GAME was replaced by the category in API 26 and is deprecated, but an
+                    // app built before that still ships it and sets no category, so both are read.
+                    @Suppress("DEPRECATION")
                     val isGame =
                         appInfo.category == ApplicationInfo.CATEGORY_GAME ||
                             (appInfo.flags and ApplicationInfo.FLAG_IS_GAME) != 0

@@ -30,7 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -176,12 +177,11 @@ fun PackageActionSheet(
     }
 
     val colors = MaterialTheme.colorScheme
-    // Left at the default, without skipPartiallyExpanded: that flag removes the half-height stop,
-    // which is the only thing a drag on a sheet can *do* other than dismiss it, so a sheet taller
-    // than half the screen would open at full height and could not be made smaller. Material adds
-    // the stop only when the content is actually taller than half the screen, so short sheets
-    // still open at their own height and nothing gains a useless drag.
-    val sheetState = rememberModalBottomSheetState()
+    // Every value left enabled, rather than dropping PartiallyExpanded: that stop is the only
+    // thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than half the
+    // screen would open at full height and could not be made smaller. Material caps the stop at
+    // the sheet's own height, so short sheets still open at that height and gain no useless drag.
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
 
     // `Dispatchers.Main` because [onResult] reaches a snackbar on the screen underneath, and
     // because that is the thread the composition scope this replaces used to resume on.

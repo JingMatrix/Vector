@@ -170,7 +170,11 @@ object ModuleDetection {
      * string-resource id.
      */
     private fun legacyDescription(info: ApplicationInfo, packageManager: PackageManager): String {
-        val raw = info.metaData?.get(LEGACY_DESCRIPTION) ?: return ""
+        // `Bundle.get` is deprecated in favour of the type-specific getters, which is exactly what
+        // this read cannot use: the value's type is the module author's choice and is not known
+        // until it has been read. Asking for the wrong one costs a logged warning and a stack trace
+        // out of Bundle for every module that picked the other kind, so the untyped read stays.
+        @Suppress("DEPRECATION") val raw = info.metaData?.get(LEGACY_DESCRIPTION) ?: return ""
         return when (raw) {
             is String -> raw.trim()
             is Int ->

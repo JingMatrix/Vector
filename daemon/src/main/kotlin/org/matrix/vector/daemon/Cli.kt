@@ -357,7 +357,7 @@ class DatabaseCommand {
     if (!force) {
       print(
           "Are you sure you want to RESET the database? All modules and scopes will be lost. (y/N): ")
-      val input = readLine()
+      val input = readlnOrNull()
       if (input?.lowercase() != "y") {
         println("Operation cancelled.")
         return 0

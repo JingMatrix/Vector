@@ -9,8 +9,8 @@ coil = "3.5.0"
 # Material 3 Expressive is not in any stable material3 release; the expressive
 # APIs graduate through the 1.5.0 alpha line. Pinned explicitly OVER the Compose
 # BOM, which resolves material3 to 1.4.0.
-m3 = "1.5.0-alpha24"
-nav3 = "1.1.4"
+m3 = "1.5.0-alpha25"
+nav3 = "1.1.5"
 navigationevent = "1.1.2"
 # Governs every androidx.compose.* artifact below; none of them pin a version.
 compose-bom = "2026.06.01"
@@ -22,14 +22,13 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
-lsplugin-apksign = { id = "org.lsposed.lsplugin.apksign", version = "1.4" }
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.19.0" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version = "1.13.0" }
-androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.2.0" }
 # Needed to make the in-app browser honour the app's own light/dark choice.
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version = "1.16.0" }
 

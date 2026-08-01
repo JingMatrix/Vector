@@ -1,5 +1,7 @@
-val versionCodeProvider: Provider<String> by rootProject.extra
-val versionNameProvider: Provider<String> by rootProject.extra
+@Suppress("UNCHECKED_CAST")
+val versionCodeProvider = rootProject.extra["versionCodeProvider"] as Provider<String>
+@Suppress("UNCHECKED_CAST")
+val versionNameProvider = rootProject.extra["versionNameProvider"] as Provider<String>
 
 plugins {
     alias(libs.plugins.agp.lib)
@@ -20,7 +22,11 @@ android {
         buildConfigField("long", "VERSION_CODE", versionCodeProvider.get())
     }
 
-    sourceSets { named("main") { java.srcDirs("src/main/kotlin", "libxposed/api/src/main/java") } }
+    sourceSets {
+        named("main") {
+            java.directories.addAll(listOf("src/main/kotlin", "libxposed/api/src/main/java"))
+        }
+    }
 }
 
 dependencies {

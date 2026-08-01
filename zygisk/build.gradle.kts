@@ -9,12 +9,15 @@ plugins {
 
 ktfmt { kotlinLangStyle() }
 
-val versionCodeProvider: Provider<String> by rootProject.extra
-val versionNameProvider: Provider<String> by rootProject.extra
-val versionHashProvider: Provider<String> by rootProject.extra
-val injectedPackageName: String by rootProject.extra
-val injectedPackageUid: Int by rootProject.extra
-val defaultManagerPackageName: String by rootProject.extra
+@Suppress("UNCHECKED_CAST")
+val versionCodeProvider = rootProject.extra["versionCodeProvider"] as Provider<String>
+@Suppress("UNCHECKED_CAST")
+val versionNameProvider = rootProject.extra["versionNameProvider"] as Provider<String>
+@Suppress("UNCHECKED_CAST")
+val versionHashProvider = rootProject.extra["versionHashProvider"] as Provider<String>
+val injectedPackageName = rootProject.extra["injectedPackageName"] as String
+val injectedPackageUid = rootProject.extra["injectedPackageUid"] as Int
+val defaultManagerPackageName = rootProject.extra["defaultManagerPackageName"] as String
 
 android {
     namespace = "org.matrix.vector"

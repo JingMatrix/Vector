@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.AddToHomeScreen
+import androidx.compose.material.icons.automirrored.rounded.AddToHomeScreen
 import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.InstallMobile
 import androidx.compose.material.icons.rounded.Notifications
@@ -307,7 +307,7 @@ private fun OpeningVectorCard(
             Spacer(Modifier.height(8.dp))
 
             RouteRow(
-                icon = Icons.Rounded.AddToHomeScreen,
+                icon = Icons.AutoMirrored.Rounded.AddToHomeScreen,
                 label = stringResource(R.string.launcher_shortcut),
                 done = presence.shortcutPinned,
                 action = stringResource(R.string.launcher_shortcut_create),

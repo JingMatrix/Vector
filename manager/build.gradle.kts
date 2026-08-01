@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ktfmt)
-    alias(libs.plugins.lsplugin.apksign)
 }
 
 ktfmt { kotlinLangStyle() }
@@ -16,7 +15,7 @@ ktfmt { kotlinLangStyle() }
 kotlin {
     compilerOptions {
         // Material 3 Expressive has not landed in a stable material3 release; the
-        // expressive surface is gated behind these annotations even in 1.5.0-alpha24.
+        // expressive surface is gated behind these annotations even in 1.5.0-alpha25.
         // Opting in once here beats sprinkling @OptIn through every screen.
         optIn.addAll(
             "androidx.compose.material3.ExperimentalMaterial3Api",
@@ -30,16 +29,29 @@ kotlin {
 // The daemon compiles this module's signing certificate into SignInfo.kt and verifies
 // the manager.apk it serves against it at runtime, so :manager must be signed with the
 // same key as the rest of the module or InstallerVerifier rejects it.
-apksign {
-    storeFileProperty = "androidStoreFile"
-    storePasswordProperty = "androidStorePassword"
-    keyAliasProperty = "androidKeyAlias"
-    keyPasswordProperty = "androidKeyPassword"
+//
+// This is what org.lsposed.lsplugin.apksign did, written out: the same four Gradle properties, a
+// store file resolved against the root project, the same signing config on every build type, and
+// the same fall back to the debug key when there is no keystore -- which is every build that is
+// not CI's, since the workflow appends these properties to gradle.properties itself. The plugin
+// read them through Project.getProperties, deprecated in Gradle 9 and gone in Gradle 10, and 1.4
+// is its last release, so the deprecation warning it printed four times per build had no version
+// to upgrade to.
+val keystore = providers.gradleProperty("androidStoreFile").map { rootProject.file(it) }.orNull
+val signed = keystore?.exists() == true
+
+if (!signed) {
+    // `info` rather than a print: a local build has no keystore by design and says so on every
+    // single run, which is noise in the one place a real warning has to be noticed.
+    logger.info(
+        "No keystore at ${keystore?.absolutePath ?: "androidStoreFile"}; signing with debug"
+    )
 }
 
-val defaultManagerPackageName: String by rootProject.extra
-val injectedPackageName: String by rootProject.extra
-val versionHashProvider: Provider<String> by rootProject.extra
+val defaultManagerPackageName = rootProject.extra["defaultManagerPackageName"] as String
+val injectedPackageName = rootProject.extra["injectedPackageName"] as String
+@Suppress("UNCHECKED_CAST")
+val versionHashProvider = rootProject.extra["versionHashProvider"] as Provider<String>
 
 android {
     namespace = defaultManagerPackageName
@@ -85,7 +97,7 @@ android {
     // ic_launcher.xml references @drawable/ic_statue_monochrome, which lives in the
     // daemon's resources. Any name collision between the two resource sets becomes a
     // build error, so keep additions on the daemon side namespaced.
-    sourceSets { getByName("main") { res.srcDir("../daemon/src/main/res") } }
+    sourceSets { getByName("main") { res.directories.add("../daemon/src/main/res") } }
 
     packaging {
         resources {
@@ -102,11 +114,25 @@ android {
 
     dependenciesInfo.includeInApk = false
 
+    if (signed) {
+        signingConfigs.create("apksign") {
+            storeFile = keystore
+            storePassword = providers.gradleProperty("androidStorePassword").orNull
+            keyAlias = providers.gradleProperty("androidKeyAlias").orNull
+            keyPassword = providers.gradleProperty("androidKeyPassword").orNull
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles("proguard-rules.pro")
+        }
+        // Every build type, not just release: the daemon reads this config back off whichever
+        // variant it is building to embed the certificate, so debug has to carry one too.
+        configureEach {
+            signingConfig = signingConfigs.getByName(if (signed) "apksign" else "debug")
         }
     }
 }

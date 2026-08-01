@@ -17,7 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -88,7 +88,7 @@ fun CanaryScreen(
                 actions = {
                     IconButton(onClick = { onOpenUrl(GitHubRepository.CANARY_URL) }) {
                         Icon(
-                            Icons.Rounded.OpenInNew,
+                            Icons.AutoMirrored.Rounded.OpenInNew,
                             contentDescription = stringResource(R.string.canary_open_actions),
                         )
                     }
@@ -124,7 +124,7 @@ fun CanaryScreen(
                                     onClick = { onOpenUrl(GitHubRepository.CANARY_URL) }
                                 ) {
                                     Icon(
-                                        Icons.Rounded.OpenInNew,
+                                        Icons.AutoMirrored.Rounded.OpenInNew,
                                         contentDescription = null,
                                         modifier = Modifier.size(18.dp),
                                     )

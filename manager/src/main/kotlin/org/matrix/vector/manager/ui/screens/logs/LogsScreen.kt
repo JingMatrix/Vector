@@ -42,7 +42,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material.icons.rounded.UnfoldMore
-import androidx.compose.material.icons.rounded.Label
+import androidx.compose.material.icons.automirrored.rounded.Label
 import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material.icons.rounded.VerticalAlignBottom
 import androidx.compose.material.icons.rounded.VerticalAlignTop
@@ -71,7 +71,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -640,7 +641,7 @@ private fun ActiveFilterRow(
                 label = { Text(tag, style = VectorLogLine, maxLines = 1) },
                 avatar = {
                     Icon(
-                        Icons.Rounded.Label,
+                        Icons.AutoMirrored.Rounded.Label,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                     )
@@ -694,11 +695,11 @@ private fun LogSettingsSheet(
     val enabled by viewModel.verboseEnabled.collectAsStateWithLifecycle()
     val enforced by viewModel.verboseEnforced.collectAsStateWithLifecycle()
     val inlineTraces by viewModel.tracesInline.collectAsStateWithLifecycle()
-    // Left at the default rather than passing skipPartiallyExpanded, which removes the half-height
-    // stop — the only thing a drag on a sheet can do other than dismiss it. Material adds that stop
-    // only when the content is taller than half the screen, so short sheets still open at their own
-    // height and nothing gains a useless drag.
-    val sheetState = rememberModalBottomSheetState()
+    // Every value left enabled rather than dropping PartiallyExpanded, which would remove the
+    // half-height stop — the only thing a drag on a sheet can do other than dismiss it. Material
+    // caps that stop at the sheet's own height, so short sheets still open at their own height and
+    // nothing gains a useless drag.
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
 LocalizedOverlay {
@@ -716,7 +717,6 @@ LocalizedOverlay {
                 // a reason to take the control away — and only an older daemon can, since the
                 // current one reports the stored preference as it stands.
                 modifier = Modifier.clickable { viewModel.setVerbose(!enabled) },
-                headlineContent = { Text(stringResource(R.string.logs_verbose_switch)) },
                 supportingContent = {
                     Column {
                         Text(
@@ -744,7 +744,7 @@ LocalizedOverlay {
                     Switch(checked = enabled, onCheckedChange = { viewModel.setVerbose(it) })
                 },
                 colors = sheetRowColors,
-            )
+            ) { Text(stringResource(R.string.logs_verbose_switch)) }
 
             ToggleRow(
                 title = stringResource(R.string.logs_traces_inline),
@@ -758,14 +758,12 @@ LocalizedOverlay {
 
             ListItem(
                 modifier = Modifier.clickable(onClick = onSave),
-                headlineContent = { Text(stringResource(R.string.logs_save)) },
                 supportingContent = { Text(stringResource(R.string.logs_save_summary)) },
                 leadingContent = { Icon(Icons.Rounded.Save, contentDescription = null) },
                 colors = sheetRowColors,
-            )
+            ) { Text(stringResource(R.string.logs_save)) }
             ListItem(
                 modifier = Modifier.clickable(onClick = onRotate),
-                headlineContent = { Text(stringResource(R.string.logs_rotate)) },
                 supportingContent = { Text(stringResource(R.string.logs_rotate_summary)) },
                 leadingContent = {
                     Icon(
@@ -775,7 +773,7 @@ LocalizedOverlay {
                     )
                 },
                 colors = sheetRowColors,
-            )
+            ) { Text(stringResource(R.string.logs_rotate)) }
         }
     }
 }
@@ -940,7 +938,7 @@ private fun LogFilterSheet(
     onTag: (String?) -> Unit,
     onClear: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
 LocalizedOverlay {
 

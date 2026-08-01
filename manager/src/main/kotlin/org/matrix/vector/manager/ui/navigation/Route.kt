@@ -3,7 +3,7 @@ package org.matrix.vector.manager.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.ReceiptLong
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
@@ -118,7 +118,7 @@ val TOP_LEVEL_DESTINATIONS: List<TopLevelDestination> =
         TopLevelDestination(
             "logs",
             TopLevelRoute.Logs,
-            Icons.Rounded.ReceiptLong,
+            Icons.AutoMirrored.Rounded.ReceiptLong,
             R.string.nav_logs,
         ),
     )

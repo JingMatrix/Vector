@@ -28,7 +28,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.CallSplit
-import androidx.compose.material.icons.rounded.AddToHomeScreen
+import androidx.compose.material.icons.automirrored.rounded.AddToHomeScreen
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Close
@@ -411,7 +411,7 @@ private fun LauncherPrompt(
 ) {
     VectorAlertDialog(
         onDismissRequest = onLater,
-        icon = { Icon(Icons.Rounded.AddToHomeScreen, contentDescription = null) },
+        icon = { Icon(Icons.AutoMirrored.Rounded.AddToHomeScreen, contentDescription = null) },
         title = { Text(stringResource(R.string.launcher_prompt_title)) },
         text = { Text(stringResource(R.string.launcher_prompt_body)) },
         confirmButton = {
