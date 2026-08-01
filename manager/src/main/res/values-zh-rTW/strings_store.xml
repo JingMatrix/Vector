@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">搜尋模組儲存庫</string>
     <string name="store_filter">排序與篩選</string>
     <string name="store_sort_recent">最近更新</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">可更新的優先</string>
     <string name="store_channel_stable">僅正式版</string>
     <string name="store_channel_prerelease">包含預先發行版</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">%1$d 個模組</item>
     </plurals>
@@ -18,28 +25,29 @@
     </plurals>
     <string name="store_all_current">已安裝的都是最新版</string>
     <string name="store_offline">正在顯示已儲存的目錄</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">可更新至 %1$s</string>
     <string name="store_badge_reinstall">重新安裝 %1$s</string>
     <string name="store_badge_installed">已安裝</string>
     <string name="store_badge_prerelease">預先發行</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">更新於 %1$s</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">無法連線模組儲存庫，此裝置上也尚未儲存任何內容。</string>
     <string name="store_no_match">沒有符合該搜尋條件的模組。</string>
     <string name="store_empty">儲存庫沒有回傳任何模組。</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">說明</string>
     <string name="store_tab_releases">版本</string>
     <string name="store_tab_information">資訊</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">此模組未提供說明文件。</string>
     <string name="store_detail_partial">正在顯示模組列表已知的內容。說明文件與較舊的版本需要連線才能取得。</string>
     <string name="store_releases_none">此模組未在該管道發行過版本。</string>
     <string name="store_release_notes">版本說明</string>
     <string name="store_open_release">在 GitHub 開啟</string>
     <string name="store_open_module">開啟模組頁面</string>
-
+    <!-- Install -->
     <string name="store_install">安裝</string>
     <string name="store_update">更新</string>
     <string name="store_reinstall">重新安裝</string>
@@ -47,21 +55,24 @@
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d 次下載</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">安裝 %1$s？</string>
     <string name="store_confirm_body">將從模組儲存庫下載 %1$s（%2$s），並以 %3$s 的身分安裝。</string>
     <string name="store_confirm_trust">模組會在它所掛鉤的應用程式中以框架的權限執行。請只安裝你信任其作者的模組。</string>
     <string name="store_confirm_silent">Vector 會自行完成安裝，系統不會再詢問。</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">正在下載 %1$s / %2$s</string>
     <string name="store_installing">正在安裝…</string>
     <string name="store_confirming">正在等待系統提示…</string>
     <string name="store_install_failed">無法安裝 %1$s</string>
     <string name="store_install_failed_reason">無法安裝 %1$s：%2$s</string>
     <string name="store_cancel">取消</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">簡介</string>
     <string name="store_info_scope">掛鉤對象</string>
+    <string name="store_info_scope_installed">掛鉤目標（依已安裝的副本）</string>
     <string name="store_info_scope_undeclared">未宣告。此模組沒有說明它會掛鉤哪些應用程式。</string>
     <string name="store_info_homepage">首頁</string>
     <string name="store_info_source">原始碼</string>
@@ -69,12 +80,9 @@
     <string name="store_info_stars">星號</string>
     <string name="store_info_updated">最近發行</string>
     <string name="store_info_created">首次發行</string>
-
     <string name="store_release_notes_hide">收合版本說明</string>
     <string name="store_installed_first">已安裝的優先</string>
-
     <string name="store_group_sort">排序</string>
     <string name="store_group_priority">優先</string>
     <string name="store_group_channel">通道</string>
-    <string name="store_info_scope_installed">掛鉤目標（依已安裝的副本）</string>
 </resources>
