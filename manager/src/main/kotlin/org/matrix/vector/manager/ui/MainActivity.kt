@@ -59,9 +59,11 @@ class MainActivity : ComponentActivity() {
         // on exactly the launch that mattered and left the previous tap's destination to be applied
         // instead — one module's notification opened another module's scope editor.
         //
-        // Applying it twice is prevented where it can be judged properly, in the shell, by looking
-        // at where the reader already is.
-        DeepLink.offer(intent)
+        // What separates the two is not the bundle but the destination, so that judgement belongs
+        // to DeepLink, which remembers the one it last applied; `intent` here is a field the
+        // platform keeps answering with the intent this activity was *created* with, so a rotation
+        // offers a destination the reader may have left behind hours ago.
+        DeepLink.offerFromCreate(intent)
 
         setContent { LocalizedContent { VectorTheme { SplashGate { VectorApp() } } } }
     }
@@ -69,12 +71,43 @@ class MainActivity : ComponentActivity() {
     /**
      * A second launch while the manager is already up.
      *
-     * `launchMode` is `singleTop`, so tapping a notification reuses this activity instead of
-     * starting another one and the new intent arrives here rather than at [onCreate]. Without this
-     * the app would stay on whatever it was already showing and the notification would look broken.
+     * Installed normally, `launchMode` is `singleTop`, so tapping a notification reuses this
+     * activity instead of starting another one and the new intent arrives here rather than at
+     * [onCreate]. Without this the app would stay on whatever it was already showing and the
+     * notification would look broken.
+     *
+     * Parasitically that is not guaranteed and this may never run. `ParasiticManagerSystemHooker`
+     * answers the resolution with a copy of the com.android.shell host activity's `ActivityInfo`,
+     * overriding only its process name, theme and flags, so the launch mode the system works from
+     * is the host's rather than this manifest's, and the daemon's `openManager` adds only
+     * `FLAG_ACTIVITY_NEW_TASK`. That is why nothing about the deep link is decided by which of the
+     * two callbacks ran: [DeepLink] judges the destination instead, and both paths lead there.
+     *
+     * [setIntent] is not bookkeeping. The platform leaves `getIntent()` answering the intent this
+     * activity was created with — `Activity.onNewIntent`'s own documentation says so and points at
+     * this call — so without it every later recreation would re-offer the *first* notification's
+     * module, long after a second one moved the reader somewhere else.
      */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        DeepLink.offer(intent)
+        setIntent(intent)
+        DeepLink.offerFromNewIntent(intent)
+    }
+
+    /**
+     * Ends the deep link's memory along with the screen it was applied to.
+     *
+     * [DeepLink] is an object, so what it last applied outlives this activity and would go on
+     * suppressing a repeat of that destination in a process the platform merely kept cached — so
+     * backing out of the manager and then tapping a second notice about the same module would open
+     * Home. Once the activity is finishing there is no stack left to protect, which is the only
+     * thing that memory is for.
+     *
+     * Gated on [isFinishing] because a configuration change destroys this activity too, and
+     * forgetting there would let the recreation's replayed intent straight through.
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) DeepLink.forget()
     }
 }
