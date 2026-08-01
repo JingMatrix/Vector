@@ -19,6 +19,7 @@ import org.matrix.vector.manager.data.model.Release
 import org.matrix.vector.manager.data.model.ReleaseAsset
 import org.matrix.vector.manager.data.model.RepoVersion
 import org.matrix.vector.manager.data.model.StoreInstall
+import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.data.repository.InstallStep
 import org.matrix.vector.manager.data.repository.ModuleInstaller
 import org.matrix.vector.manager.data.repository.RepoRepository
@@ -105,7 +106,7 @@ class RepoDetailsViewModel(
                 ServiceLocator.moduleDetection.inspect(
                     appInfo,
                     packageManager,
-                    info.longVersionCode,
+                    info.versionCodeCompat,
                     info.lastUpdateTime,
                 )
             _installedScope.value = manifest.scope

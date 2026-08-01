@@ -51,49 +51,75 @@ object Dex2OatServer {
 
   private external fun getSockPath(): String
 
-  private val selinuxObserver =
-      object :
-          FileObserver(
-              listOf(File("/sys/fs/selinux/enforce"), File("/sys/fs/selinux/policy")),
-              CLOSE_WRITE) {
-        override fun onEvent(event: Int, path: String?) {
-          synchronized(this) {
-            if (compatibility == DEX2OAT_CRASHED) {
-              stopWatching()
-              return
-            }
+  /** The nodes whose writes mean the SELinux state this daemon depends on may have moved. */
+  private val SELINUX_NODES = listOf("/sys/fs/selinux/enforce", "/sys/fs/selinux/policy")
 
-            val enforcing =
-                runCatching {
-                      Files.newInputStream(Paths.get("/sys/fs/selinux/enforce")).use {
-                        it.read() == '1'.code
-                      }
-                    }
-                    .getOrDefault(false)
-
-            when {
-              !enforcing -> {
-                if (compatibility == DEX2OAT_OK) doMount(false)
-                compatibility = DEX2OAT_SELINUX_PERMISSIVE
-              }
-              hasSePolicyErrors() -> {
-                if (compatibility == DEX2OAT_OK) doMount(false)
-                compatibility = DEX2OAT_SEPOLICY_INCORRECT
-              }
-              compatibility != DEX2OAT_OK -> {
-                doMount(true)
-                if (notMounted()) {
-                  doMount(false)
-                  compatibility = DEX2OAT_MOUNT_FAILED
-                  stopWatching()
-                } else {
-                  compatibility = DEX2OAT_OK
-                }
-              }
+  /**
+   * Watches [SELINUX_NODES] on every release this daemon runs on.
+   *
+   * `FileObserver(List<File>, int)` is API 29 and the minimum here is 27, where the only
+   * constructors are the single-path ones -- deprecated in 29 precisely because they were replaced
+   * by these. So below 29 this is one observer per node, and `stopWatching` has to reach all of
+   * them, which is why the two live behind an object rather than being a `FileObserver` itself.
+   */
+  private object SelinuxObserver {
+    private val observers: List<FileObserver> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          listOf(
+              object : FileObserver(SELINUX_NODES.map(::File), FileObserver.CLOSE_WRITE) {
+                override fun onEvent(event: Int, path: String?) = onSelinuxEvent()
+              })
+        } else {
+          SELINUX_NODES.map { node ->
+            @Suppress("DEPRECATION")
+            object : FileObserver(node, FileObserver.CLOSE_WRITE) {
+              override fun onEvent(event: Int, path: String?) = onSelinuxEvent()
             }
           }
         }
+
+    fun startWatching() = observers.forEach(FileObserver::startWatching)
+
+    fun stopWatching() = observers.forEach(FileObserver::stopWatching)
+  }
+
+  private fun onSelinuxEvent() {
+    synchronized(this) {
+      if (compatibility == DEX2OAT_CRASHED) {
+        SelinuxObserver.stopWatching()
+        return
       }
+
+      val enforcing =
+          runCatching {
+                Files.newInputStream(Paths.get("/sys/fs/selinux/enforce")).use {
+                  it.read() == '1'.code
+                }
+              }
+              .getOrDefault(false)
+
+      when {
+        !enforcing -> {
+          if (compatibility == DEX2OAT_OK) doMount(false)
+          compatibility = DEX2OAT_SELINUX_PERMISSIVE
+        }
+        hasSePolicyErrors() -> {
+          if (compatibility == DEX2OAT_OK) doMount(false)
+          compatibility = DEX2OAT_SEPOLICY_INCORRECT
+        }
+        compatibility != DEX2OAT_OK -> {
+          doMount(true)
+          if (notMounted()) {
+            doMount(false)
+            compatibility = DEX2OAT_MOUNT_FAILED
+            SelinuxObserver.stopWatching()
+          } else {
+            compatibility = DEX2OAT_OK
+          }
+        }
+      }
+    }
+  }
 
   init {
     // Android 10 vs 11+ path differences
@@ -193,8 +219,8 @@ object Dex2OatServer {
       }
     }
 
-    selinuxObserver.startWatching()
-    selinuxObserver.onEvent(0, null)
+    SelinuxObserver.startWatching()
+    onSelinuxEvent()
 
     // Run the socket accept loop in an IO coroutine
     VectorDaemon.scope.launch { runSocketLoop() }
@@ -221,7 +247,11 @@ object Dex2OatServer {
     SELinux.setFileContext(HOOKER64, xposedFile)
 
     runCatching {
-          LocalServerSocket(sockPath).use { server ->
+          // Closed by hand rather than with `use`: LocalServerSocket only implements Closeable
+          // from API 28, and this daemon runs from 27. The client socket below has implemented it
+          // since 17, so that one keeps `use`.
+          val server = LocalServerSocket(sockPath)
+          try {
             setSockCreateContext(null)
             while (true) {
               // This blocks until the C++ wrapper connects
@@ -235,6 +265,8 @@ object Dex2OatServer {
                 }
               }
             }
+          } finally {
+            server.close()
           }
         }
         .onFailure {

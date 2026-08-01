@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.matrix.vector.manager.data.model.AppInfo
 import org.matrix.vector.manager.data.model.ModuleDetectionCache
+import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logW
 
@@ -73,7 +74,7 @@ class AppRepository(
                         isRecommended = false,
                         lastUpdateTime = pkg.lastUpdateTime,
                         firstInstallTime = pkg.firstInstallTime,
-                        versionCode = pkg.longVersionCode,
+                        versionCode = pkg.versionCodeCompat,
                         applicationInfo = appInfo,
                     )
                 }

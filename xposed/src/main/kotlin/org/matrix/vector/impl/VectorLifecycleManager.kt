@@ -15,6 +15,12 @@ object VectorLifecycleManager {
 
     val activeModules: MutableSet<XposedModule> = ConcurrentHashMap.newKeySet()
 
+    /**
+     * The API declares `onPackageLoaded` as API 29 and up, so this carries the same requirement
+     * rather than leaving the callers to remember it. `LoadedApkCreateAppFactoryHooker` is the only
+     * one, and it already dispatches from inside a Q check.
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun dispatchPackageLoaded(
         packageName: String,
         appInfo: ApplicationInfo,

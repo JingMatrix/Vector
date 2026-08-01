@@ -26,6 +26,7 @@ import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.model.XposedApi
+import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
@@ -514,7 +515,7 @@ class ModulesViewModel(
                     detection.inspect(
                         appInfo,
                         packageManager,
-                        pkg.longVersionCode,
+                        pkg.versionCodeCompat,
                         pkg.lastUpdateTime,
                     )
                 if (!manifest.isModule) return@mapNotNull null
@@ -524,7 +525,7 @@ class ModulesViewModel(
                     userId = appInfo.uid / PER_USER_RANGE,
                     appName = appInfo.loadLabel(packageManager).toString(),
                     versionName = pkg.versionName ?: "",
-                    versionCode = pkg.longVersionCode,
+                    versionCode = pkg.versionCodeCompat,
                     description = manifest.description,
                     minVersion = manifest.minApiVersion,
                     targetVersion = manifest.targetApiVersion,

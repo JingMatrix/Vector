@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.data.repository
 
-import android.content.pm.PackageInfo
-import android.os.Build
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.stream.JsonReader
@@ -21,6 +19,7 @@ import okhttp3.Response
 import org.matrix.vector.manager.data.model.OnlineModule
 import org.matrix.vector.manager.data.model.RepoVersion
 import org.matrix.vector.manager.data.model.StoreCatalog
+import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logI
@@ -181,7 +180,7 @@ class RepoRepository(
                 .getOrNull() ?: return
         val versions = HashMap<String, RepoVersion>(packages.size)
         for (info in packages) {
-            val version = RepoVersion(info.longVersionCodeCompat(), info.versionName.orEmpty())
+            val version = RepoVersion(info.versionCodeCompat, info.versionName.orEmpty())
             // The daemon reports every user, so the same package arrives more than once. The
             // highest version wins, because that is the one an update would have to beat.
             val known = versions[info.packageName]
@@ -290,11 +289,6 @@ class RepoRepository(
             .filter { !it.releases.isNullOrEmpty() }
             .distinctBy { it.name }
             .toList()
-
-    @Suppress("DEPRECATION")
-    private fun PackageInfo.longVersionCodeCompat(): Long =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) longVersionCode
-        else versionCode.toLong()
 
     private companion object {
         /**

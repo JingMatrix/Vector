@@ -3,12 +3,14 @@ package org.matrix.vector.manager.demo
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.ResolveInfo
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import org.lsposed.lspd.IFrameworkInstallCallback
 import org.lsposed.lspd.ILSPManagerService
 import org.lsposed.lspd.models.Application
 import org.lsposed.lspd.models.UserInfo
 import rikka.parcelablelist.ParcelableListSlice
+import org.matrix.vector.manager.data.model.versionCodeCompat
 
 /**
  * The daemon, as a script.
@@ -162,8 +164,8 @@ class FakeManagerService(
         // daemon's own objects.
         val rewritten =
             actual.list.map { info ->
-                val baseline = baselineVersions.putIfAbsent(info.packageName, info.longVersionCode)
-                if (baseline != null && baseline != info.longVersionCode) {
+                val baseline = baselineVersions.putIfAbsent(info.packageName, info.versionCodeCompat)
+                if (baseline != null && baseline != info.versionCodeCompat) {
                     // This one has genuinely changed under us since the scenario started, which
                     // for a demo means the manager just installed it. Reporting the truth from
                     // here is what makes this a test rather than a picture: the row has to stop
@@ -173,7 +175,7 @@ class FakeManagerService(
                     return@map info
                 }
                 info.also {
-                    it.longVersionCode = 1
+                    it.setVersionCodeCompat(1)
                     it.versionName = "0.1-demo"
                 }
             }
@@ -294,4 +296,17 @@ class FakeManagerService(
 
     override fun setIncludeNewApps(packageName: String?, enable: Boolean): Boolean =
         real?.setIncludeNewApps(packageName, enable) ?: false
+}
+
+/**
+ * The write half of [versionCodeCompat], which exists only here.
+ *
+ * `setLongVersionCode` is API 28 and the app's minimum is 27, so below that the deprecated `int`
+ * field is the field. Nothing in the real manager ever writes a version code -- only this fake,
+ * which rewrites the daemon's answers to script the demo.
+ */
+@Suppress("DEPRECATION")
+private fun PackageInfo.setVersionCodeCompat(value: Long) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) longVersionCode = value
+    else versionCode = value.toInt()
 }
