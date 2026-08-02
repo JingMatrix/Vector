@@ -75,7 +75,8 @@ public class XResources extends XResourcesSuperClass {
 	private static final WeakHashMap<XmlResourceParser, XMLInstanceDetails> sXmlInstanceDetails = new WeakHashMap<>();
 
 	private static final String EXTRA_XML_INSTANCE_DETAILS = "xmlInstanceDetails";
-	private static final ThreadLocal<LinkedList<MethodHookParam>> sIncludedLayouts = ThreadLocal.withInitial(() -> new LinkedList<>());
+	// No lambda, and no anonymous ThreadLocal either. See the note above [includedLayouts].
+	private static final ThreadLocal<LinkedList<MethodHookParam>> sIncludedLayouts = new ThreadLocal<>();
 
 	private static final HashMap<String, Long> sResDirLastModified = new HashMap<>();
 	private static final HashMap<String, String> sResDirPackageNames = new HashMap<>();
@@ -92,9 +93,51 @@ public class XResources extends XResourcesSuperClass {
 
 		if (resDir != null) {
 			synchronized (sReplacementsCacheMap) {
-				mReplacementsCache = sReplacementsCacheMap.computeIfAbsent(resDir, k -> new byte[128]);
+				// Not computeIfAbsent: its mapping function would be a lambda, which this class may
+				// not create. See the note above [includedLayouts]. Under this lock the two spellings
+				// describe the same operation.
+				byte[] cache = sReplacementsCacheMap.get(resDir);
+				if (cache == null) {
+					cache = new byte[128];
+					sReplacementsCacheMap.put(resDir, cache);
+				}
+				mReplacementsCache = cache;
 			}
 		}
+	}
+
+	/**
+	 * The thread's stack of `LayoutInflater.parseInclude` calls, created on first use.
+	 *
+	 * Written the long way on purpose. `ThreadLocal.withInitial(() -> ...)`, and an anonymous
+	 * `ThreadLocal` overriding `initialValue`, would each add a class that names `XResources`, and
+	 * this class may not be named by classes it does not control.
+	 *
+	 * The reason is its super class. {@link xposed.dummy.XResourcesSuperClass} is in no dex; it is
+	 * generated at runtime, because it has to inherit from whichever `Resources` subclass the
+	 * platform actually provides. A type whose super class does not yet exist cannot be resolved,
+	 * and a resolution failure is remembered: the runtime marks the class erroneous and re-throws
+	 * for every later attempt. So the fragility is not local. It travels along references — anything
+	 * naming `XResources` is unusable in the same window, and stays unusable afterwards.
+	 *
+	 * A whole-program optimiser extends that reach in a way the source cannot show. Each lambda
+	 * becomes a class of its own, and classes of the same shape are then merged, so two lambdas
+	 * written in unrelated files can end up as one class. A lambda here is therefore not a private
+	 * detail of this file: it is a reference to `XResources` placed inside a class that arbitrary
+	 * code may instantiate, and every such instantiation inherits the window above.
+	 *
+	 * Keep rules cannot express this — they govern names and members, not which classes an optimiser
+	 * invents. So the rule is stated here, next to what it protects, and checked where it is really
+	 * decided: `checkXResourcesIsolationRelease` reads the optimised dex and fails the build if any
+	 * class outside resource hooking has come to name one of these types.
+	 */
+	private static LinkedList<MethodHookParam> includedLayouts() {
+		LinkedList<MethodHookParam> layouts = sIncludedLayouts.get();
+		if (layouts == null) {
+			layouts = new LinkedList<>();
+			sIncludedLayouts.set(layouts);
+		}
+		return layouts;
 	}
 
 	/** Dummy, will never be called (objects are transferred to this class only). */
@@ -220,12 +263,12 @@ public class XResources extends XResourcesSuperClass {
 		final XC_MethodHook parseIncludeHook = new XC_MethodHook() {
 			@Override
 			protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-				sIncludedLayouts.get().push(param);
+				includedLayouts().push(param);
 			}
 
 			@Override
 			protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-				sIncludedLayouts.get().pop();
+				includedLayouts().pop();
 
 				if (param.hasThrowable())
 					return;
@@ -962,7 +1005,7 @@ public class XResources extends XResourcesSuperClass {
 								sXmlInstanceDetails.put(result, details);
 
 								// if we were called inside LayoutInflater.parseInclude, store the details for it
-								MethodHookParam top = sIncludedLayouts.get().peek();
+								MethodHookParam top = includedLayouts().peek();
 								if (top != null)
 									top.setObjectExtra(EXTRA_XML_INSTANCE_DETAILS, details);
 							}

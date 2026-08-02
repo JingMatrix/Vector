@@ -24,6 +24,8 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 
 [libraries]
+# Build-only: reads the optimised DEX in checkXResourcesIsolation.
+smali-dexlib2 = { group = "com.android.tools.smali", name = "smali-dexlib2", version = "3.0.9" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.19.0" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
