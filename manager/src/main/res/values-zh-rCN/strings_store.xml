@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">搜索模块仓库</string>
     <string name="store_filter">排序与筛选</string>
     <string name="store_sort_recent">最近更新</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">可更新的优先</string>
     <string name="store_channel_stable">仅正式版</string>
     <string name="store_channel_prerelease">包含预发布版</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">%1$d 个模块</item>
     </plurals>
@@ -17,51 +24,53 @@
         <item quantity="other">%1$d 个可更新</item>
     </plurals>
     <string name="store_all_current">已安装的都是最新版</string>
-    <string name="store_offline">正在显示已保存的目录</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">可更新至 %1$s</string>
     <string name="store_badge_reinstall">重新安装 %1$s</string>
     <string name="store_badge_installed">已安装</string>
     <string name="store_badge_prerelease">预发布</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">更新于 %1$s</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">无法连接模块仓库，此设备上也还没有保存过任何内容。</string>
     <string name="store_no_match">没有符合该搜索条件的模块。</string>
     <string name="store_empty">仓库没有返回任何模块。</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">说明</string>
     <string name="store_tab_releases">版本</string>
     <string name="store_tab_information">信息</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">此模块没有提供说明文档。</string>
     <string name="store_detail_partial">正在显示模块列表已知的内容。说明文档和更早的版本需要联网才能获取。</string>
     <string name="store_releases_none">此模块在该通道上没有发布过版本。</string>
     <string name="store_release_notes">更新说明</string>
     <string name="store_open_release">在 GitHub 中打开</string>
     <string name="store_open_module">打开模块页面</string>
-
+    <!-- Install -->
     <string name="store_install">安装</string>
-    <string name="store_update">更新</string>
     <string name="store_reinstall">重新安装</string>
     <string name="store_choose_asset">选择要安装的文件</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d 次下载</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">安装 %1$s？</string>
     <string name="store_confirm_body">将从模块仓库下载 %1$s（%2$s），并以 %3$s 的身份安装。</string>
     <string name="store_confirm_trust">模块会在它所挂钩的应用中以框架的权限运行。请只安装你信任其作者的模块。</string>
     <string name="store_confirm_silent">Vector 会自行完成安装，系统不会再询问。</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">正在下载 %1$s / %2$s</string>
     <string name="store_installing">正在安装…</string>
     <string name="store_confirming">正在等待系统提示…</string>
     <string name="store_install_failed">无法安装 %1$s</string>
     <string name="store_install_failed_reason">无法安装 %1$s：%2$s</string>
     <string name="store_cancel">取消</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">简介</string>
     <string name="store_info_scope">挂钩对象</string>
+    <string name="store_info_scope_installed">挂钩目标（据已安装的副本）</string>
     <string name="store_info_scope_undeclared">未声明。此模块没有说明它会挂钩哪些应用。</string>
     <string name="store_info_homepage">主页</string>
     <string name="store_info_source">源代码</string>
@@ -69,12 +78,9 @@
     <string name="store_info_stars">星标</string>
     <string name="store_info_updated">最近发布</string>
     <string name="store_info_created">首次发布</string>
-
     <string name="store_release_notes_hide">收起更新说明</string>
     <string name="store_installed_first">已安装的优先</string>
-
     <string name="store_group_sort">排序</string>
     <string name="store_group_priority">优先</string>
     <string name="store_group_channel">通道</string>
-    <string name="store_info_scope_installed">挂钩目标（据已安装的副本）</string>
 </resources>
