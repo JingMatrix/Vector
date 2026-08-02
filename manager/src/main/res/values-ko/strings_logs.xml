@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">데몬이 새 로그 시작을 거부했습니다</string>
     <string name="logs_cancel">취소</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">로그, tombstone, dmesg를 모으는 중…</string>
     <string name="logs_saved">버그 신고를 저장했습니다</string>
     <string name="logs_save_failed">버그 신고를 저장하지 못했습니다</string>

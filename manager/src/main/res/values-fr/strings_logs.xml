@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">Le démon a refusé de commencer un nouveau journal</string>
     <string name="logs_cancel">Annuler</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Collecte des journaux, des tombstones et de dmesg…</string>
     <string name="logs_saved">Rapport de bug enregistré</string>
     <string name="logs_save_failed">Impossible d\'enregistrer le rapport de bug</string>

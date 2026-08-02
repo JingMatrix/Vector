@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">常駐程式拒絕開始新的日誌</string>
     <string name="logs_cancel">取消</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">正在收集日誌、tombstone 與 dmesg…</string>
     <string name="logs_saved">問題報告已儲存</string>
     <string name="logs_save_failed">無法儲存問題報告</string>

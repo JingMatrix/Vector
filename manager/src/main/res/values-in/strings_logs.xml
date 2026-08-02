@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">Daemon menolak memulai log baru</string>
     <string name="logs_cancel">Batal</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Mengumpulkan log, tombstone, dan dmesg…</string>
     <string name="logs_saved">Laporan bug tersimpan</string>
     <string name="logs_save_failed">Laporan bug tidak bisa disimpan</string>

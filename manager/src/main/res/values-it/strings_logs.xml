@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">Il daemon si è rifiutato di cominciare un nuovo log</string>
     <string name="logs_cancel">Annulla</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Raccolta di log, tombstone e dmesg…</string>
     <string name="logs_saved">Segnalazione di bug salvata</string>
     <string name="logs_save_failed">Impossibile salvare la segnalazione di bug</string>

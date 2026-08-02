@@ -100,9 +100,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
+import org.matrix.vector.manager.data.log.logArchiveName
 import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
@@ -154,11 +153,8 @@ fun LogsScreen(
         ) { uri: Uri? ->
             if (uri != null) viewModel.saveTo(uri)
         }
-    val fileNameTemplate = stringResource(R.string.logs_save_name)
     fun launchSave() {
-        saveLauncher.launch(
-            String.format(fileNameTemplate, LocalDateTime.now().format(FILE_STAMP))
-        )
+        saveLauncher.launch(logArchiveName("zip"))
     }
 
     val savingLabel = stringResource(R.string.logs_saving)
@@ -1011,8 +1007,6 @@ LocalizedOverlay {
     }
 }
 }
-
-private val FILE_STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
 
 private fun shareZip(context: Context, uri: Uri) {
     val intent =

@@ -518,8 +518,12 @@ object FileSystem {
   fun getLogs(zipFd: ParcelFileDescriptor) {
     runCatching {
           ZipOutputStream(java.io.FileOutputStream(zipFd.fileDescriptor)).use { os ->
+            // The commit, not just the version code: the code is the commit count on master, so
+            // every branch build at the same depth wears the number of an official build it was
+            // never made from. Without it an attached archive cannot be tied to a binary.
             val comment =
-                "Vector ${BuildConfig.BUILD_TYPE} ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+                "Vector ${BuildConfig.BUILD_TYPE} ${BuildConfig.VERSION_NAME} " +
+                    "(${BuildConfig.VERSION_CODE}) ${BuildConfig.VERSION_HASH}"
             os.setComment(comment)
             os.setLevel(java.util.zip.Deflater.BEST_COMPRESSION)
 

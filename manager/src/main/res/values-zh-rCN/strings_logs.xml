@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">守护进程拒绝开始新的日志</string>
     <string name="logs_cancel">取消</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">正在收集日志、tombstone 和 dmesg…</string>
     <string name="logs_saved">问题报告已保存</string>
     <string name="logs_save_failed">无法保存问题报告</string>

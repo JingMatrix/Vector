@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">سرویس از آغاز گزارش تازه سر باز زد</string>
     <string name="logs_cancel">انصراف</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">در حال گردآوری گزارش‌ها، tombstone و dmesg…</string>
     <string name="logs_saved">گزارش اشکال ذخیره شد</string>
     <string name="logs_save_failed">ذخیرهٔ گزارش اشکال ممکن نشد</string>

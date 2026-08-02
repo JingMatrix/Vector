@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">Tiến trình nền từ chối bắt đầu nhật ký mới</string>
     <string name="logs_cancel">Huỷ</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Đang thu thập nhật ký, tombstone và dmesg…</string>
     <string name="logs_saved">Đã lưu báo cáo lỗi</string>
     <string name="logs_save_failed">Không lưu được báo cáo lỗi</string>

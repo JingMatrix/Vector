@@ -63,7 +63,6 @@
     <string name="logs_rotate_failed">השירות סירב להתחיל יומן חדש</string>
     <string name="logs_cancel">ביטול</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">אוסף יומנים, קובצי tombstone ו-dmesg…</string>
     <string name="logs_saved">דיווח התקלה נשמר</string>
     <string name="logs_save_failed">לא ניתן היה לשמור את דיווח התקלה</string>

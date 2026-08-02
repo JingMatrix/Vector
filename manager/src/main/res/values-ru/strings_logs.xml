@@ -53,7 +53,6 @@
     <string name="logs_rotate_done">Новый журнал начат</string>
     <string name="logs_rotate_failed">Служба отказалась начать новый журнал</string>
     <string name="logs_cancel">Отмена</string>
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Сбор журналов, tombstone и dmesg…</string>
     <string name="logs_saved">Отчёт об ошибке сохранён</string>
     <string name="logs_save_failed">Не удалось сохранить отчёт об ошибке</string>

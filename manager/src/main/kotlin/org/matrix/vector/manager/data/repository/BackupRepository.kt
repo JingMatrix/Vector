@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.lsposed.lspd.models.Application
+import org.matrix.vector.manager.data.log.archiveBuildStamp
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
@@ -28,6 +29,10 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
     @Serializable
     private data class BackupFile(
         val version: Int = FORMAT_VERSION,
+        // Which build wrote this. gzip's own comment field is not reachable through
+        // GZIPOutputStream, and this document is ours, so it says so itself -- `zcat file | head`
+        // answers "where did this come from" without a restore.
+        val build: String = archiveBuildStamp(),
         val createdAt: Long,
         val modules: List<BackupModule>,
     )

@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">Der Daemon hat es abgelehnt, ein neues Protokoll zu beginnen</string>
     <string name="logs_cancel">Abbrechen</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Protokolle, Tombstones und dmesg werden gesammelt…</string>
     <string name="logs_saved">Fehlerbericht gespeichert</string>
     <string name="logs_save_failed">Der Fehlerbericht konnte nicht gespeichert werden</string>

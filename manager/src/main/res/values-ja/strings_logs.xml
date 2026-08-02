@@ -54,7 +54,6 @@
     <string name="logs_rotate_failed">デーモンが新しいログの開始を拒否しました</string>
     <string name="logs_cancel">キャンセル</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">ログ・tombstone・dmesg を集めています…</string>
     <string name="logs_saved">不具合報告を保存しました</string>
     <string name="logs_save_failed">不具合報告を保存できませんでした</string>

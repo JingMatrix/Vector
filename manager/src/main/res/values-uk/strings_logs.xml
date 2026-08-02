@@ -63,7 +63,6 @@
     <string name="logs_rotate_failed">Служба відмовилася починати новий журнал</string>
     <string name="logs_cancel">Скасувати</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Збирання журналів, tombstone і dmesg…</string>
     <string name="logs_saved">Звіт про помилку збережено</string>
     <string name="logs_save_failed">Не вдалося зберегти звіт про помилку</string>

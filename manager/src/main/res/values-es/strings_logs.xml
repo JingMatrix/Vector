@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">El daemon se negó a empezar un registro nuevo</string>
     <string name="logs_cancel">Cancelar</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Recogiendo registros, tombstones y dmesg…</string>
     <string name="logs_saved">Informe de error guardado</string>
     <string name="logs_save_failed">No se pudo guardar el informe de error</string>

@@ -1,5 +1,4 @@
 package org.matrix.vector.manager.ui.screens.report
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -43,14 +42,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.github.GitHubRepository
+import org.matrix.vector.manager.data.log.logArchiveName
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.ui.components.SnackbarTone
@@ -184,17 +182,7 @@ fun TroubleshootScreen(
                     title = stringResource(R.string.report_step_logs),
                     body = stringResource(R.string.report_step_logs_body),
                 ) {
-                    Button(
-                        onClick = {
-                            saveLauncher.launch(
-                                String.format(
-                                    stringResourceOf(context, R.string.logs_save_name),
-                                    LocalDateTime.now()
-                                        .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")),
-                                )
-                            )
-                        }
-                    ) {
+                    Button(onClick = { saveLauncher.launch(logArchiveName("zip")) }) {
                         Icon(
                             Icons.Rounded.Save,
                             contentDescription = null,
@@ -320,8 +308,6 @@ private fun Step(
     }
 }
 
-private fun stringResourceOf(context: Context, id: Int): String = context.getString(id)
-
 /**
  * Copies the daemon's log folder somewhere the user can attach it, using root.
  *
@@ -338,8 +324,7 @@ private fun stringResourceOf(context: Context, id: Int): String = context.getStr
  * going to be attached to an issue.
  */
 private fun exportWithRoot(): Result<String> = runCatching {
-    val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
-    val target = "/sdcard/Download/vector-logs-$stamp.tar.gz"
+    val target = "/sdcard/Download/${logArchiveName("tar.gz")}"
     val process =
         ProcessBuilder("su", "-c", "tar -czf $target -C /data/adb/lspd log && chmod 644 $target")
             .redirectErrorStream(true)

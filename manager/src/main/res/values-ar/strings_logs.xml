@@ -69,7 +69,6 @@
     <string name="logs_rotate_failed">رفضت الخدمة بدء سجل جديد</string>
     <string name="logs_cancel">إلغاء</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">جارٍ جمع السجلات وملفات tombstone وdmesg…</string>
     <string name="logs_saved">حُفظ البلاغ</string>
     <string name="logs_save_failed">تعذّر حفظ البلاغ</string>

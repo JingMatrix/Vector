@@ -57,7 +57,6 @@
     <string name="logs_rotate_failed">Art alan süreci yeni günlük başlatmayı reddetti</string>
     <string name="logs_cancel">Vazgeç</string>
 
-    <string name="logs_save_name">vector-logs-%1$s.zip</string>
     <string name="logs_saving">Günlükler, tombstone\'lar ve dmesg toplanıyor…</string>
     <string name="logs_saved">Hata raporu kaydedildi</string>
     <string name="logs_save_failed">Hata raporu kaydedilemedi</string>
