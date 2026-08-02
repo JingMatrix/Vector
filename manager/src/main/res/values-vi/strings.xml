@@ -408,10 +408,12 @@
     <string name="launcher_turn_on">Bật</string>
     <string name="launcher_install">Cài như một ứng dụng</string>
     <string name="launcher_install_action">Cài đặt</string>
+    <string name="launcher_install_reinstall">Cài lại</string>
     <string name="launcher_install_done">Đã cài Vector. Hãy mở nó từ trình khởi chạy.</string>
     <string name="launcher_install_failed">Không thể cài Vector.</string>
     <string name="launcher_install_conflict">Đã có một bản Vector ký bằng khóa khác được cài. Phải gỡ bản đó trước thì bản này mới vào được.</string>
     <string name="launcher_install_remove">Gỡ bản đó</string>
+    <string name="launcher_install_diverged">Bản đã cài là một bản dựng Vector khác — không phải bản đang chạy ở đây. Cài lại sẽ thay thế nó.</string>
     <string name="launcher_route_available">Có sẵn</string>
     <string name="launcher_note">Bạn cũng có thể quay số %1$s, hoặc mở Vector từ nút tác vụ trong %2$s.</string>
     <string name="launcher_root_generic">trình quản lý root của bạn</string>

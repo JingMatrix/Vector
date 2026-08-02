@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.github.CommunityFeed
 import org.matrix.vector.manager.data.github.GitHubRepository
+import org.matrix.vector.manager.data.model.ManagerCopy
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
@@ -75,7 +76,15 @@ data class ManagerPresence(
     val parasitic: Boolean = true,
     val shortcutSupported: Boolean = false,
     val shortcutPinned: Boolean = false,
-    val installed: Boolean = false,
+    /**
+     * Which copy of the manager is installed beside this one, if any.
+     *
+     * Three answers rather than a boolean because a copy of another build is both at once: it is a
+     * route back in, so nothing here should press for another, and it is not this build, so the row
+     * offering the install has something left to offer. See [ManagerCopy] for why the version code
+     * alone cannot separate the last two.
+     */
+    val manager: ManagerCopy = ManagerCopy.Absent,
     /**
      * The status notification is a way in, not only a status.
      *
@@ -124,7 +133,11 @@ data class ManagerPresence(
      */
     val unreachable: Boolean
         get() =
-            notificationKnown && parasitic && !shortcutPinned && !installed && !notificationEnabled
+            notificationKnown &&
+                parasitic &&
+                !shortcutPinned &&
+                !manager.installed &&
+                !notificationEnabled
 }
 
 data class DeviceInfo(
@@ -202,12 +215,15 @@ class HomeViewModel(
         _presence.update {
             // Everything here is answered locally, so it stays synchronous and the first frame is
             // already right. The notification and the root implementation come from the daemon and
-            // are folded in as they arrive, leaving whatever was last known in the meantime.
+            // are folded in as they arrive, leaving whatever was last known in the meantime. Which
+            // build the installed manager is belongs to that second group and only half of it is
+            // asked for here: the package either exists or it does not, and the installer repeats
+            // what it last compared rather than comparing again on this thread.
             it.copy(
                 parasitic = LaunchShortcut.isParasitic(context),
                 shortcutSupported = LaunchShortcut.isSupported(context),
                 shortcutPinned = LaunchShortcut.isPinned(context),
-                installed = ServiceLocator.managerInstaller.isInstalled(),
+                manager = ServiceLocator.managerInstaller.installedManager(),
             )
         }
         viewModelScope.launch {
@@ -222,6 +238,12 @@ class HomeViewModel(
             refreshToggles()
             val root = daemon.getRootImplementation().getOrNull()
             if (root != null) _presence.update { it.copy(rootImplementation = root) }
+            // Last, because nothing above waits on it and it is the one read here that can run to
+            // seconds and to tens of megabytes: an installed copy wearing this build's own version
+            // code is only settled by hashing both APKs. Until it lands the row shows that copy's
+            // last known verdict, which for a copy nothing has touched since is still right.
+            val manager = ServiceLocator.managerInstaller.refreshInstalledManager()
+            _presence.update { it.copy(manager = manager) }
         }
     }
 

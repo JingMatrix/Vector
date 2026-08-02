@@ -417,10 +417,12 @@
     <string name="launcher_turn_on">Activer</string>
     <string name="launcher_install">Installer comme application</string>
     <string name="launcher_install_action">Installer</string>
+    <string name="launcher_install_reinstall">Réinstaller</string>
     <string name="launcher_install_done">Vector est installé. Ouvrez-le depuis votre lanceur.</string>
     <string name="launcher_install_failed">Vector n\'a pas pu être installé.</string>
     <string name="launcher_install_conflict">Une copie de Vector signée avec une autre clé est déjà installée. Il faut la supprimer avant que celle-ci puisse tenir.</string>
     <string name="launcher_install_remove">La supprimer</string>
+    <string name="launcher_install_diverged">La copie installée est un build différent de Vector — pas celui qui tourne ici. La réinstaller la remplace.</string>
     <string name="launcher_route_available">Disponible</string>
     <string name="launcher_note">Vous pouvez aussi composer %1$s, ou ouvrir Vector depuis le bouton d\'action de %2$s.</string>
     <string name="launcher_root_generic">votre gestionnaire root</string>

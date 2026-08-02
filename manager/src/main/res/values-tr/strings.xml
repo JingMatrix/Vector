@@ -417,10 +417,12 @@
     <string name="launcher_turn_on">Aç</string>
     <string name="launcher_install">Uygulama olarak kur</string>
     <string name="launcher_install_action">Kur</string>
+    <string name="launcher_install_reinstall">Yeniden kur</string>
     <string name="launcher_install_done">Vector kuruldu. Başlatıcınızdan açabilirsiniz.</string>
     <string name="launcher_install_failed">Vector kurulamadı.</string>
     <string name="launcher_install_conflict">Farklı bir anahtarla imzalanmış bir Vector kopyası zaten kurulu. Bunun sığması için önce o kaldırılmalı.</string>
     <string name="launcher_install_remove">Kaldır</string>
+    <string name="launcher_install_diverged">Kurulu kopya Vector\'ün farklı bir derlemesi — burada çalışan değil. Yeniden kurmak onu değiştirir.</string>
     <string name="launcher_route_available">Kullanılabilir</string>
     <string name="launcher_note">Ayrıca %1$s numarasını çevirebilir ya da Vector\'ü %2$s içindeki eylem düğmesinden açabilirsiniz.</string>
     <string name="launcher_root_generic">root yöneticiniz</string>

@@ -412,10 +412,12 @@
     <string name="launcher_turn_on">Nyalakan</string>
     <string name="launcher_install">Pasang sebagai aplikasi</string>
     <string name="launcher_install_action">Pasang</string>
+    <string name="launcher_install_reinstall">Pasang ulang</string>
     <string name="launcher_install_done">Vector sudah terpasang. Buka dari launcher Anda.</string>
     <string name="launcher_install_failed">Vector tidak bisa dipasang.</string>
     <string name="launcher_install_conflict">Sudah ada salinan Vector yang ditandatangani dengan kunci berbeda. Salinan itu harus dihapus sebelum yang ini bisa masuk.</string>
     <string name="launcher_install_remove">Hapus</string>
+    <string name="launcher_install_diverged">Salinan yang terpasang adalah build Vector yang berbeda — bukan yang berjalan di sini. Memasang ulang akan menggantinya.</string>
     <string name="launcher_route_available">Tersedia</string>
     <string name="launcher_note">Anda juga bisa memutar %1$s, atau membuka Vector dari tombol aksi di %2$s.</string>
     <string name="launcher_root_generic">pengelola root Anda</string>

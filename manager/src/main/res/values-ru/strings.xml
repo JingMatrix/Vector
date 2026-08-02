@@ -417,10 +417,12 @@
     <string name="launcher_turn_on">Включить</string>
     <string name="launcher_install">Установить как приложение</string>
     <string name="launcher_install_action">Установить</string>
+    <string name="launcher_install_reinstall">Переустановить</string>
     <string name="launcher_install_done">Vector установлен. Откройте его из лаунчера.</string>
     <string name="launcher_install_failed">Не удалось установить Vector.</string>
     <string name="launcher_install_conflict">Уже установлена копия Vector, подписанная другим ключом. Её нужно удалить, прежде чем встанет эта.</string>
     <string name="launcher_install_remove">Удалить её</string>
+    <string name="launcher_install_diverged">Установленная копия — другая сборка Vector, не та, что запущена здесь. Переустановка заменит её.</string>
     <string name="launcher_route_available">Доступно</string>
     <string name="launcher_note">Ещё можно набрать %1$s или открыть Vector кнопкой действия в %2$s.</string>
     <string name="launcher_root_generic">вашем root-менеджере</string>

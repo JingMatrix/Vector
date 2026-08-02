@@ -408,10 +408,12 @@
     <string name="launcher_turn_on">オンにする</string>
     <string name="launcher_install">アプリとしてインストール</string>
     <string name="launcher_install_action">インストール</string>
+    <string name="launcher_install_reinstall">再インストール</string>
     <string name="launcher_install_done">Vector をインストールしました。ランチャーから開けます。</string>
     <string name="launcher_install_failed">Vector をインストールできませんでした。</string>
     <string name="launcher_install_conflict">別の鍵で署名された Vector が既にインストールされています。こちらを入れるには先に削除してください。</string>
     <string name="launcher_install_remove">削除する</string>
+    <string name="launcher_install_diverged">インストール済みのものは別のビルドの Vector です。ここで動作しているものではありません。再インストールすると置き換わります。</string>
     <string name="launcher_route_available">利用できます</string>
     <string name="launcher_note">%1$s をダイヤルするか、%2$s のアクションボタンからも開けます。</string>
     <string name="launcher_root_generic">root マネージャー</string>

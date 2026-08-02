@@ -439,10 +439,12 @@
     <string name="launcher_turn_on">הפעלה</string>
     <string name="launcher_install">התקנה כאפליקציה</string>
     <string name="launcher_install_action">התקנה</string>
+    <string name="launcher_install_reinstall">התקנה מחדש</string>
     <string name="launcher_install_done">Vector הותקן. אפשר לפתוח אותו ממסך הבית.</string>
     <string name="launcher_install_failed">לא ניתן היה להתקין את Vector.</string>
     <string name="launcher_install_conflict">כבר מותקן עותק של Vector החתום במפתח אחר. צריך להסיר אותו לפני שהעותק הזה ייכנס.</string>
     <string name="launcher_install_remove">הסרה</string>
+    <string name="launcher_install_diverged">העותק המותקן הוא בנייה אחרת של Vector — לא זו שרצה כאן. התקנה מחדש מחליפה אותו.</string>
     <string name="launcher_route_available">זמין</string>
     <string name="launcher_note">אפשר גם לחייג %1$s, או לפתוח את Vector מכפתור הפעולה ב-%2$s.</string>
     <string name="launcher_root_generic">מנהל ההרשאות שלכם</string>

@@ -453,10 +453,12 @@
     <string name="launcher_turn_on">تشغيل</string>
     <string name="launcher_install">التثبيت كتطبيق</string>
     <string name="launcher_install_action">تثبيت</string>
+    <string name="launcher_install_reinstall">إعادة التثبيت</string>
     <string name="launcher_install_done">تم تثبيت Vector. افتحه من المشغّل.</string>
     <string name="launcher_install_failed">تعذّر تثبيت Vector.</string>
     <string name="launcher_install_conflict">توجد نسخة من Vector موقَّعة بمفتاح مختلف مثبَّتة بالفعل. لا بد من إزالتها قبل أن تُقبل هذه.</string>
     <string name="launcher_install_remove">إزالتها</string>
+    <string name="launcher_install_diverged">النسخة المثبَّتة بناء مختلف من Vector — ليست التي تعمل هنا. إعادة التثبيت تستبدلها.</string>
     <string name="launcher_route_available">متاح</string>
     <string name="launcher_note">يمكنك أيضًا طلب %1$s، أو فتح Vector من زر الإجراء في %2$s.</string>
     <string name="launcher_root_generic">مدير الروت لديك</string>

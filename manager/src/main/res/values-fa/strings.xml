@@ -417,10 +417,12 @@
     <string name="launcher_turn_on">روشن کردن</string>
     <string name="launcher_install">نصب به‌عنوان برنامه</string>
     <string name="launcher_install_action">نصب</string>
+    <string name="launcher_install_reinstall">نصب دوباره</string>
     <string name="launcher_install_done">Vector نصب شد. آن را از لانچر باز کنید.</string>
     <string name="launcher_install_failed">نصب Vector ممکن نشد.</string>
     <string name="launcher_install_conflict">نسخه‌ای از Vector که با کلیدی دیگر امضا شده از پیش نصب است. پیش از آنکه این یکی جا بگیرد باید حذف شود.</string>
     <string name="launcher_install_remove">حذف آن</string>
+    <string name="launcher_install_diverged">نسخهٔ نصب‌شده ساختی دیگر از Vector است — همانی نیست که اینجا اجرا می‌شود. نصب دوباره جای آن را می‌گیرد.</string>
     <string name="launcher_route_available">در دسترس</string>
     <string name="launcher_note">می‌توانید %1$s را هم شماره‌گیری کنید، یا Vector را از دکمهٔ کنش در %2$s باز کنید.</string>
     <string name="launcher_root_generic">مدیر روت شما</string>

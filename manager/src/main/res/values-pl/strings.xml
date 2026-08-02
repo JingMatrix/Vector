@@ -435,10 +435,12 @@
     <string name="launcher_turn_on">Włącz</string>
     <string name="launcher_install">Zainstaluj jako aplikację</string>
     <string name="launcher_install_action">Zainstaluj</string>
+    <string name="launcher_install_reinstall">Zainstaluj ponownie</string>
     <string name="launcher_install_done">Vector jest zainstalowany. Otwórz go z launchera.</string>
     <string name="launcher_install_failed">Nie udało się zainstalować Vectora.</string>
     <string name="launcher_install_conflict">Jest już zainstalowana kopia Vectora podpisana innym kluczem. Trzeba ją usunąć, zanim ta się zmieści.</string>
     <string name="launcher_install_remove">Usuń ją</string>
+    <string name="launcher_install_diverged">Zainstalowana kopia to inna kompilacja Vectora — nie ta, która tu działa. Ponowna instalacja ją zastąpi.</string>
     <string name="launcher_route_available">Dostępne</string>
     <string name="launcher_note">Możesz też wybrać %1$s albo otworzyć Vectora przyciskiem akcji w %2$s.</string>
     <string name="launcher_root_generic">Twoim menedżerze roota</string>

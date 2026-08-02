@@ -65,6 +65,7 @@ import java.util.Locale
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.data.log.CrashRecorder
+import org.matrix.vector.manager.data.model.ManagerCopy
 import org.matrix.vector.manager.data.model.XposedApi
 import org.matrix.vector.manager.data.log.CrashReport
 import org.matrix.vector.manager.data.model.buildStamp
@@ -330,8 +331,17 @@ private fun OpeningVectorCard(
             RouteRow(
                 icon = Icons.Rounded.InstallMobile,
                 label = stringResource(R.string.launcher_install),
-                done = presence.installed,
-                action = stringResource(R.string.launcher_install_action),
+                // A copy of a different build counts as not done, and has to: a done row is a
+                // check and nothing else, so marking it done would leave no way to replace it and
+                // no spinner while it was being replaced. The row's own button then reads as a
+                // reinstall rather than an install, which is what tells the two apart.
+                done = presence.manager == ManagerCopy.Present,
+                action =
+                    stringResource(
+                        if (presence.manager == ManagerCopy.Diverged)
+                            R.string.launcher_install_reinstall
+                        else R.string.launcher_install_action
+                    ),
                 // The APK comes from the daemon, so there is nothing to install without one.
                 enabled = daemonAlive,
                 busy = install is ManagerInstallStep.Installing,
@@ -346,6 +356,18 @@ private fun OpeningVectorCard(
                     stringResource(R.string.launcher_shortcut_unsupported),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.onSurfaceVariant,
+                )
+            }
+            // Said in the reader's own terms rather than left to a button reading "Reinstall" over
+            // an already installed app, which on its own only looks redundant. Toned like the
+            // framework's own "same number, different build" note and not like a failure: the
+            // install worked, and what is installed opens — it is simply not this build.
+            if (presence.manager == ManagerCopy.Diverged) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.launcher_install_diverged),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.tertiary,
                 )
             }
             if (install is ManagerInstallStep.Failed) {

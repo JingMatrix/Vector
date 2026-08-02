@@ -409,10 +409,12 @@
     <string name="launcher_turn_on">開啟</string>
     <string name="launcher_install">安裝為應用程式</string>
     <string name="launcher_install_action">安裝</string>
+    <string name="launcher_install_reinstall">重新安裝</string>
     <string name="launcher_install_done">Vector 已安裝，可以從啟動器開啟。</string>
     <string name="launcher_install_failed">無法安裝 Vector。</string>
     <string name="launcher_install_conflict">裝置上已有一份以其他金鑰簽署的 Vector。必須先解除安裝，這一份才裝得進去。</string>
     <string name="launcher_install_remove">解除安裝</string>
+    <string name="launcher_install_diverged">已安裝的那份是另一組建的 Vector——並非此處執行的這份。重新安裝即可替換它。</string>
     <string name="launcher_route_available">已可用</string>
     <string name="launcher_note">你也可以撥號 %1$s，或者從 %2$s 的操作按鈕開啟 Vector。</string>
     <string name="launcher_root_generic">你的 root 管理員</string>
