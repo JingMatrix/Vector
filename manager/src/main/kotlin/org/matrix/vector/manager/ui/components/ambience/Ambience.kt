@@ -24,7 +24,8 @@ enum class AmbienceKind(val key: String, val labelRes: Int) {
     /** A carved maze with one wanderer in it. Tap to move it, swipe for a new maze. */
     Maze("maze", R.string.ambience_maze),
     /**
-     * Signal traces carrying several pulses at once. Tap to fire one, swipe to re-route.
+     * Signal traces carrying several pulses at once. Tap to fire one, swipe sideways to re-route
+     * the board, up and down to change how fast the signals run.
      *
      * Kept beside [Maze] rather than replaced by it because they are opposites and both are worth
      * having: a circuit is a designed path many signals share, a maze is an undesigned one a single
@@ -88,8 +89,8 @@ interface AmbienceRenderer {
     /**
      * How fast it moves, as a multiple of its resting speed.
      *
-     * Only meaningful where there is continuous motion — the maze wanderer and the circuit pulses
-     * move on their own schedule, so they ignore it.
+     * Only meaningful where there is continuous motion — the maze wanderer walks at the one pace
+     * that lets a decision be watched being made, so it ignores this.
      */
     var speed: Float
         get() = 1f
