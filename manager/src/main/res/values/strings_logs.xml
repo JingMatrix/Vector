@@ -23,15 +23,6 @@
     <string name="logs_filter_clear">Clear filter</string>
     <string name="logs_filter_scanning">Reading the whole file so the filter can see past what is on screen.</string>
 
-    <!-- Level names, used by the filter chips and by TalkBack on each row -->
-    <string name="logs_level_verbose">Verbose</string>
-    <string name="logs_level_debug">Debug</string>
-    <string name="logs_level_info">Info</string>
-    <string name="logs_level_warn">Warning</string>
-    <string name="logs_level_error">Error</string>
-    <string name="logs_level_fatal">Fatal</string>
-    <string name="logs_level_other">Other</string>
-
     <!-- The counter under the search field -->
     <!-- Example: "lines 1 200–3 200 of 30 412" -->
     <string name="logs_window">Lines %1$d–%2$d of %3$d</string>
@@ -44,6 +35,11 @@
     <plurals name="logs_frames">
         <item quantity="one">%1$d frame</item>
         <item quantity="other">%1$d frames</item>
+    </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d more line</item>
+        <item quantity="other">%1$d more lines</item>
     </plurals>
 
     <!-- The four distinct nothing-to-show states -->
@@ -91,6 +87,9 @@
     <string name="logs_source_more">Include the framework\'s own lines</string>
     <string name="logs_source_less">Show module lines only</string>
     <string name="logs_verbose_summary">Turn this on before reporting a bug. Apps can read their own logs, so leaving it on is one way an app can spot Vector.</string>
+    <string name="logs_trace_title">Stack trace</string>
+    <string name="logs_traces_inline">Open traces in place</string>
+    <string name="logs_traces_inline_summary">A stack trace unfolds under its line. Turn this off to open it on its own screen instead.</string>
     <string name="logs_save_summary">Writes both logs to a zip you choose</string>
     <string name="logs_rotate_summary">Closes the current part and starts a fresh one</string>
     <string name="logs_part">part %1$d/%2$d</string>
