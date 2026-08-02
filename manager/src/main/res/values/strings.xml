@@ -15,6 +15,17 @@
     <string name="nav_store">Store</string>
     <string name="nav_logs">Logs</string>
 
+    <!-- Rearranging the panels, and the ball that can stand in for the bar -->
+    <string name="panels_done">Done</string>
+    <!-- Example: "Hide Store". The name is one of the four panels above. -->
+    <string name="panels_hide">Hide %1$s</string>
+    <string name="panels_show">Show %1$s</string>
+    <!-- Spoken actions while rearranging: a drag cannot be made with touch exploration on -->
+    <string name="panels_move_earlier">Move earlier</string>
+    <string name="panels_move_later">Move later</string>
+    <string name="panels_ball_open">Open navigation</string>
+    <string name="panels_ball_close">Close navigation</string>
+
     <!-- Framework status -->
     <string name="status_active">Active</string>
     <string name="status_degraded">Needs attention</string>
@@ -32,6 +43,24 @@
     <string name="crash_recorded_title">The manager closed unexpectedly</string>
     <string name="crash_recorded_summary">The full trace travels in the log export, under crash_manager.</string>
     <string name="crash_recorded_clear">Discard</string>
+    <string name="crash_what">What</string>
+    <string name="crash_message">Message</string>
+    <string name="crash_where">Where</string>
+    <string name="crash_when">When</string>
+    <!-- Shown for "Where" when no frame in the trace belongs to Vector's own code. -->
+    <string name="crash_where_unknown">Nowhere in Vector\'s own code</string>
+    <!-- %1$s is a timestamp, %2$s a thread name, e.g. "2026-07-29 11:42:03 +0200 on main". -->
+    <string name="crash_when_value">%1$s on %2$s</string>
+    <string name="crash_open_trace">See the trace</string>
+    <string name="crash_trace">Crash</string>
+    <string name="crash_caused_by">Caused by</string>
+    <!-- The frames printStackTrace replaced with "... N more" because it had printed them already. -->
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d more frame, the same as above</item>
+        <item quantity="other">%1$d more frames, the same as above</item>
+    </plurals>
+    <string name="crash_frame_copied">Frame copied</string>
+    <string name="crash_unreadable">This crash could not be read. Copy it and attach it to the report as it is.</string>
 
     <!-- System status detail -->
     <string name="system_status">System status</string>
@@ -97,16 +126,6 @@
     <string name="home_discussions">Discussions</string>
     <string name="home_review_prs">Review a change</string>
 
-    <!-- Optional GitHub sign-in. Never required; everything renders signed out. -->
-    <string name="github_sign_in">Sign in to GitHub</string>
-    <string name="github_sign_in_why">Optional. Raises the hourly limit on activity updates, and lets Vector show what is waiting on you. Read-only — no permissions are requested.</string>
-    <string name="github_sign_in_code">Enter this code at %1$s</string>
-    <string name="github_open_browser">Open browser</string>
-    <string name="github_copy_code">Copy code</string>
-    <string name="github_signed_in_as">Signed in as %1$s</string>
-    <string name="github_sign_out">Sign out</string>
-    <string name="github_cancel">Cancel</string>
-    <string name="github_unreachable">GitHub could not be reached. Everything else still works.</string>
     <!-- Joins a commit's author with its co-authors, e.g. "Leaf-lsgtky &amp; Qing" -->
     <string name="home_with_coauthor">%1$s &amp; %2$s</string>
     <string name="home_with_coauthors">%1$s &amp; %2$d others</string>
@@ -127,24 +146,6 @@
         <item quantity="one">%1$d day quiet</item>
         <item quantity="other">%1$d days quiet</item>
     </plurals>
-
-    <!-- Relative time -->
-
-    <string name="time_yesterday">yesterday</string>
-    <plurals name="time_days_ago">
-        <item quantity="one">%1$d day ago</item>
-        <item quantity="other">%1$d days ago</item>
-    </plurals>
-    <plurals name="time_weeks_ago">
-        <item quantity="one">%1$d week ago</item>
-        <item quantity="other">%1$d weeks ago</item>
-    </plurals>
-    <plurals name="time_months_ago">
-        <item quantity="one">%1$d month ago</item>
-        <item quantity="other">%1$d months ago</item>
-    </plurals>
-
-    <!-- Commit kinds, shown as small chips on the timeline -->
 
     <!-- Home appearance sheet. Settings live beside what they change, not in one heap. -->
     <string name="appearance_title">Appearance</string>
@@ -208,7 +209,6 @@
     <string name="modules_incompatible_legacy">Needs Xposed API %1$d, which this framework does not provide.</string>
     <string name="modules_api_behind">Built for libxposed API %1$d. API %2$d changed the interface, so this module may not work fully.</string>
     <string name="modules_no_daemon">Vector is not running, so the module list is unavailable. Open system status from Home to see why.</string>
-    <string name="module_toggle_failed">Could not change %1$s. The framework refused the change.</string>
 
     <!-- Built-in web viewer -->
     <string name="web_open_external">Open in browser</string>
@@ -221,9 +221,15 @@
     <string name="ambience_matrix">Code rain</string>
     <string name="ambience_none">Still</string>
 
+    <!-- Settings: where the panels live. Nothing on Android teaches a long press on a bar. -->
+    <string name="settings_navigation">Navigation</string>
+    <string name="settings_floating_nav">Floating navigation</string>
+    <string name="settings_floating_nav_summary">Replaces the bar with a small ball you can drag anywhere. Hold it to fan the panels out, or tap it to keep them open.</string>
+    <string name="settings_rearrange_panels">Rearrange panels</string>
+    <string name="settings_rearrange_panels_summary">Change their order, or hide the ones you never open.</string>
+
     <!-- Settings: activity feed -->
     <string name="settings_activity">Activity feed</string>
-    <string name="settings_window">History shown on Home</string>
     <plurals name="settings_window_months">
         <item quantity="one">Last %1$d month</item>
         <item quantity="other">Last %1$d months</item>
@@ -302,7 +308,6 @@
     <string name="action_uninstall_failed">Could not uninstall %1$s.</string>
 
     <!-- Generic -->
-    <string name="settings">Settings</string>
     <string name="back">Back</string>
     <string name="retry">Retry</string>
     <string name="app_name" translatable="false">Vector</string>
@@ -381,7 +386,6 @@
     <string name="report_see_guide">Full guide in issue</string>
     <string name="report_root_refused">Root refused. Allow Vector in your root manager, then try again%1$s</string>
     <string name="home_custom_build">Custom build — ahead of master</string>
-    <string name="github_device_code">GitHub device code</string>
     <string name="language_title">Language</string>
     <string name="language_system">System default</string>
     <string name="language_system_summary">Follow the language your phone is set to</string>
@@ -409,7 +413,6 @@
     <string name="update_failed_start">The installer could not be started.</string>
     <string name="update_failed_download">The update could not be downloaded.</string>
     <string name="update_failed_exit">The installer failed (exit %1$d).</string>
-    <string name="update_available">Update available</string>
     <string name="store_mute_updates">Ignore updates for this module</string>
     <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
     <string name="store_options">Options</string>
