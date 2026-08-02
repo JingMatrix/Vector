@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">Szukaj w katalogu</string>
     <string name="store_filter">Sortuj i filtruj</string>
     <string name="store_sort_recent">Ostatnio zaktualizowane</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">Najpierw aktualizacje</string>
     <string name="store_channel_stable">Tylko wydania stabilne</string>
     <string name="store_channel_prerelease">Uwzględnij wydania wstępne</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="one">%1$d moduł</item>
         <item quantity="few">%1$d moduły</item>
@@ -23,31 +30,30 @@
         <item quantity="other">%1$d aktualizacji</item>
     </plurals>
     <string name="store_all_current">wszystko, co masz, jest aktualne</string>
-    <string name="store_offline">Pokazano zapisany katalog</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">Aktualizuj do %1$s</string>
     <string name="store_badge_reinstall">Zainstaluj ponownie %1$s</string>
     <string name="store_badge_installed">Zainstalowany</string>
     <string name="store_badge_prerelease">Wydanie wstępne</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">Zaktualizowano %1$s</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">Nie udało się połączyć z katalogiem modułów, a na tym urządzeniu nic jeszcze nie zapisano.</string>
     <string name="store_no_match">Żaden moduł nie pasuje do tego wyszukiwania.</string>
     <string name="store_empty">Katalog nie zwrócił żadnych modułów.</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">Opis</string>
     <string name="store_tab_releases">Wydania</string>
     <string name="store_tab_information">Informacje</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">Ten moduł nie zawiera opisu.</string>
     <string name="store_detail_partial">Pokazano to, co lista modułów już wiedziała. Opis i starsze wydania wymagają połączenia.</string>
     <string name="store_releases_none">Ten moduł nie opublikował żadnych wydań na tym kanale.</string>
     <string name="store_release_notes">Informacje o wydaniu</string>
     <string name="store_open_release">Otwórz na GitHubie</string>
     <string name="store_open_module">Otwórz stronę modułu</string>
-
+    <!-- Install -->
     <string name="store_install">Zainstaluj</string>
-    <string name="store_update">Aktualizuj</string>
     <string name="store_reinstall">Zainstaluj ponownie</string>
     <string name="store_choose_asset">Wybierz plik do zainstalowania</string>
     <plurals name="store_asset_downloads">
@@ -56,21 +62,24 @@
         <item quantity="many">%1$d pobrań</item>
         <item quantity="other">%1$d pobrania</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">Zainstalować %1$s?</string>
     <string name="store_confirm_body">%1$s (%2$s) zostanie pobrany z katalogu modułów i zainstalowany jako %3$s.</string>
     <string name="store_confirm_trust">Moduł działa z uprawnieniami szkieletu wewnątrz aplikacji, pod które się podpina. Instaluj tylko wtedy, gdy ufasz jego autorowi.</string>
     <string name="store_confirm_silent">Vector instaluje to sam i system już o nic nie zapyta.</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">Pobrano %1$s z %2$s</string>
     <string name="store_installing">Instalowanie…</string>
     <string name="store_confirming">Czekanie na pytanie systemu…</string>
     <string name="store_install_failed">Nie udało się zainstalować %1$s</string>
     <string name="store_install_failed_reason">Nie udało się zainstalować %1$s: %2$s</string>
     <string name="store_cancel">Anuluj</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">Podsumowanie</string>
     <string name="store_info_scope">Podpięcia</string>
+    <string name="store_info_scope_installed">Podpięcia, według zainstalowanej kopii</string>
     <string name="store_info_scope_undeclared">Nie zadeklarowano. Ten moduł nie mówi, pod jakie aplikacje się podpina.</string>
     <string name="store_info_homepage">Strona domowa</string>
     <string name="store_info_source">Kod źródłowy</string>
@@ -78,12 +87,9 @@
     <string name="store_info_stars">Gwiazdki</string>
     <string name="store_info_updated">Ostatnie wydanie</string>
     <string name="store_info_created">Pierwsza publikacja</string>
-
     <string name="store_release_notes_hide">Ukryj informacje</string>
     <string name="store_installed_first">Najpierw zainstalowane</string>
-
     <string name="store_group_sort">Sortowanie</string>
     <string name="store_group_priority">Priorytet</string>
     <string name="store_group_channel">Kanał</string>
-    <string name="store_info_scope_installed">Podpięcia, według zainstalowanej kopii</string>
 </resources>
