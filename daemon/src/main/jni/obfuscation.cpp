@@ -119,30 +119,30 @@ static void ensureInitialized(JNIEnv *env) {
     });
 }
 
+// Through the lsplant wrappers rather than raw JNI: each one clears a pending exception and logs
+// the Java stack behind it, which is what a failed lookup here would otherwise cost. Returning a
+// null jclass while leaving NoClassDefFoundError pending -- as the raw form did -- hands the next
+// JNI call undefined behaviour. They also return scoped references, so the local refs this loop
+// used to leak per entry are released on the spot.
 static jobject stringMapToJavaHashMap(JNIEnv *env, const std::map<std::string, std::string> &map) {
-    jclass mapClass = env->FindClass("java/util/HashMap");
-    if (mapClass == nullptr) return nullptr;
+    auto map_class = lsplant::JNI_FindClass(env, "java/util/HashMap");
+    if (!map_class) return nullptr;
 
-    jmethodID init = env->GetMethodID(mapClass, "<init>", "()V");
-    jobject hashMap = env->NewObject(mapClass, init);
-    jmethodID put = env->GetMethodID(mapClass, "put",
-                                     "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    auto init = lsplant::JNI_GetMethodID(env, map_class, "<init>", "()V");
+    auto put = lsplant::JNI_GetMethodID(env, map_class, "put",
+                                        "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+    if (!init || !put) return nullptr;
+
+    auto hash_map = lsplant::JNI_NewObject(env, map_class, init);
+    if (!hash_map) return nullptr;
 
     for (const auto &[key, value] : map) {
-        jstring keyJava = env->NewStringUTF(key.c_str());
-        jstring valueJava = env->NewStringUTF(value.c_str());
-
-        env->CallObjectMethod(hashMap, put, keyJava, valueJava);
-
-        env->DeleteLocalRef(keyJava);
-        env->DeleteLocalRef(valueJava);
+        auto key_java = lsplant::JNI_NewStringUTF(env, key);
+        auto value_java = lsplant::JNI_NewStringUTF(env, value);
+        lsplant::JNI_CallObjectMethod(env, hash_map, put, key_java, value_java);
     }
 
-    jobject hashMapGlobal = env->NewGlobalRef(hashMap);
-    env->DeleteLocalRef(hashMap);
-    env->DeleteLocalRef(mapClass);
-
-    return hashMapGlobal;
+    return lsplant::JNI_NewGlobalRef(env, hash_map);
 }
 
 extern "C" JNIEXPORT jobject JNICALL

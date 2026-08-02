@@ -145,27 +145,46 @@ protected:
      *
      * A utility for internal communication between the native and Java layers.
      *
+     * A Java method that throws does not unwind into C++: the exception is left *pending* on this
+     * thread, and until it is cleared almost every JNI function is illegal to call. With CheckJNI
+     * on, the next one aborts the process; without it, the exception stays pending until control
+     * returns to Java and is then thrown somewhere with nothing to do with us — typically inside
+     * the starting application, where no stack frame points back here. So the exception is reported
+     * where it happened, with the Java stack that only exists at this moment, and whether the call
+     * arrived is something the caller can act on.
+     *
      * @tparam Args Argument types for the method call.
      * @param env The JNI environment.
      * @param method_name The name of the static method.
      * @param method_sig The JNI signature of the method.
      * @param args The arguments to pass to the method.
+     * @return Whether the method was found and returned without throwing.
      */
     template <typename... Args>
-    void FindAndCall(JNIEnv *env, std::string_view method_name, std::string_view method_sig,
+    bool FindAndCall(JNIEnv *env, std::string_view method_name, std::string_view method_sig,
                      Args &&...args) const {
         if (!entry_class_) {
             LOGE("Cannot call method '{}', entry class is null", method_name.data());
-            return;
+            return false;
         }
         jmethodID mid = lsplant::JNI_GetStaticMethodID(env, entry_class_, method_name, method_sig);
-        if (mid) {
-            env->CallStaticVoidMethod(entry_class_, mid,
-                                      lsplant::UnwrapScope(std::forward<Args>(args))...);
-        } else {
+        if (!mid) {
             LOGE("Static method '{}' with signature '{}' not found", method_name.data(),
                  method_sig.data());
+            return false;
         }
+        env->CallStaticVoidMethod(entry_class_, mid,
+                                  lsplant::UnwrapScope(std::forward<Args>(args))...);
+        // ClearException, not ExceptionDescribe: the latter writes the trace to stderr, and a
+        // process forked from the zygote has nowhere for stderr to go, so the trace is simply lost.
+        // This asks Java to render it and logs the result under our own tag, which is the only
+        // place the stack still exists to be read.
+        if (auto trace = lsplant::ClearException(env)) {
+            LOGE("Java entry '{}' threw:\n{}", method_name.data(),
+                 lsplant::JUTFString(env, trace.get()).get());
+            return false;
+        }
+        return true;
     }
 
     // --- Virtual methods for platform-specific implementations ---

@@ -361,12 +361,19 @@ void VectorModule::postAppSpecialize(const zygisk::AppSpecializeArgs *args) {
     this->SetupEntryClass(env_);
 
     // Hand off control to the Java side of the framework.
-    this->FindAndCall(
+    bool entered = this->FindAndCall(
         env_, "forkCommon", "(ZZLjava/lang/String;Ljava/lang/String;Landroid/os/IBinder;)V",
         JNI_FALSE, JNI_FALSE, args->nice_name, args->app_data_dir, binder.get(), is_manager_app_);
 
-    LOGV("Injected Vector framework into '{}'.", nice_name_str.get());
-    SetAllowUnload(false);  // We are injected, PREVENT module unloading.
+    if (entered) {
+        LOGV("Injected Vector framework into '{}'.", nice_name_str.get());
+    } else {
+        LOGE("Framework entry failed in '{}'; this process runs without Xposed.",
+             nice_name_str.get());
+    }
+    // Unconditionally: the ART and JNI hooks were installed before the entry ran, and their
+    // trampolines point into this library. Letting it be unloaded now would leave them dangling.
+    SetAllowUnload(false);
 }
 
 void VectorModule::preServerSpecialize(zygisk::ServerSpecializeArgs *args) {
@@ -448,13 +455,18 @@ void VectorModule::postServerSpecialize(const zygisk::ServerSpecializeArgs *args
     this->SetupEntryClass(env_);
 
     auto system_name = lsplant::ScopedLocalRef(env_, env_->NewStringUTF("system"));
-    this->FindAndCall(env_, "forkCommon",
-                      "(ZZLjava/lang/String;Ljava/lang/String;Landroid/os/IBinder;)V", JNI_TRUE,
-                      is_late_inject, system_name.get(), nullptr, manager_binder.get(),
-                      is_manager_app_);
+    bool entered = this->FindAndCall(
+        env_, "forkCommon", "(ZZLjava/lang/String;Ljava/lang/String;Landroid/os/IBinder;)V",
+        JNI_TRUE, is_late_inject, system_name.get(), nullptr, manager_binder.get(),
+        is_manager_app_);
 
-    LOGI("Injected Vector framework into system_server.");
-    SetAllowUnload(false);  // We are injected, PREVENT module unloading.
+    if (entered) {
+        LOGI("Injected Vector framework into system_server.");
+    } else {
+        LOGE("Framework entry failed in system_server; it runs without Xposed.");
+    }
+    // See postAppSpecialize: the hooks outlive a failed entry, so the library must stay.
+    SetAllowUnload(false);
 }
 
 void VectorModule::SetAllowUnload(bool unload) {

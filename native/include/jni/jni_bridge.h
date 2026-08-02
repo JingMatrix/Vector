@@ -71,7 +71,9 @@ inline bool RegisterNativeMethodsInternal(JNIEnv *env, std::string_view class_na
         LOGF("JNI class not found: {}", class_name.data());
         return false;
     }
-    return env->RegisterNatives(clazz.get(), methods, method_count) == JNI_OK;
+    // Wrapped: a failed registration throws NoSuchMethodError, and returning false while that
+    // exception is still pending would hand the next JNI call undefined behaviour.
+    return lsplant::JNI_RegisterNatives(env, clazz, methods, method_count) == JNI_OK;
 }
 
 // A helper cast for the native method function pointers.

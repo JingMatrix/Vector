@@ -1,5 +1,9 @@
 #include "logcat.h"
 
+#include <utils/jni_helper.hpp>
+
+#include "logging.h"
+
 #include <android/log.h>
 #include <jni.h>
 #include <sys/system_properties.h>
@@ -241,8 +245,14 @@ void Logcat::Run() {
 
 extern "C" JNIEXPORT void JNICALL
 Java_org_matrix_vector_daemon_env_LogcatMonitor_runLogcat(JNIEnv* env, jobject thiz) {
-    jclass clazz = env->GetObjectClass(thiz);
-    jmethodID method = env->GetMethodID(clazz, "refreshFd", "(Z)I");
+    auto clazz = lsplant::JNI_GetObjectClass(env, thiz);
+    auto method = lsplant::JNI_GetMethodID(env, clazz, "refreshFd", "(Z)I");
+    if (!method) {
+        // The wrapper has already logged and cleared the NoSuchMethodError. Running with a null
+        // method id would abort inside the first refresh instead of saying why.
+        LOGE("LogcatMonitor.refreshFd is missing; not starting the log reader");
+        return;
+    }
     Logcat daemon(env, thiz, method);
     daemon.Run();
 }

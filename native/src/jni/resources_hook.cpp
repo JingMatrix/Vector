@@ -123,17 +123,20 @@ VECTOR_DEF_NATIVE_METHOD(jboolean, ResourcesHook, initXResourcesNative) {
     std::string x_resources_jni_name = "L" + x_resources_class_name + ";";
     std::replace(x_resources_jni_name.begin(), x_resources_jni_name.end(), '.', '/');
 
-    methodXResourcesTranslateResId = env->GetStaticMethodID(
-        classXResources, "translateResId",
-        fmt::format("(I{}Landroid/content/res/Resources;)I", x_resources_jni_name).c_str());
+    // Wrapped, like the lookup below: a missing method throws NoSuchMethodError, and the raw form
+    // returned JNI_FALSE to Java with that exception still pending, so the caller saw a throw where
+    // it had asked for a boolean.
+    methodXResourcesTranslateResId = lsplant::JNI_GetStaticMethodID(
+        env, classXResources, "translateResId",
+        fmt::format("(I{}Landroid/content/res/Resources;)I", x_resources_jni_name));
     if (!methodXResourcesTranslateResId) {
         LOGE("Failed to find method: XResources.translateResId");
         return JNI_FALSE;
     }
 
-    methodXResourcesTranslateAttrId = env->GetStaticMethodID(
-        classXResources, "translateAttrId",
-        fmt::format("(Ljava/lang/String;{})I", x_resources_jni_name).c_str());
+    methodXResourcesTranslateAttrId = lsplant::JNI_GetStaticMethodID(
+        env, classXResources, "translateAttrId",
+        fmt::format("(Ljava/lang/String;{})I", x_resources_jni_name));
     if (!methodXResourcesTranslateAttrId) {
         LOGE("Failed to find method: XResources.translateAttrId");
         return JNI_FALSE;
@@ -173,9 +176,10 @@ VECTOR_DEF_NATIVE_METHOD(jobject, ResourcesHook, buildDummyClassLoader, jobject 
 
     // Cache the class and constructor for InMemoryDexClassLoader.
     static auto in_memory_classloader =
-        (jclass)env->NewGlobalRef(env->FindClass("dalvik/system/InMemoryDexClassLoader"));
-    static jmethodID initMid = env->GetMethodID(in_memory_classloader, "<init>",
-                                                "(Ljava/nio/ByteBuffer;Ljava/lang/ClassLoader;)V");
+        lsplant::JNI_NewGlobalRef(env, lsplant::JNI_FindClass(env, "dalvik/system/InMemoryDexClassLoader"));
+    static jmethodID initMid = lsplant::JNI_GetMethodID(
+        env, in_memory_classloader, "<init>", "(Ljava/nio/ByteBuffer;Ljava/lang/ClassLoader;)V");
+    if (!in_memory_classloader || !initMid) return nullptr;
 
     DexBuilder dex_file;
 
@@ -195,10 +199,14 @@ VECTOR_DEF_NATIVE_METHOD(jobject, ResourcesHook, buildDummyClassLoader, jobject 
     slicer::MemView image{dex_file.CreateImage()};
 
     // Wrap the memory buffer in a Java ByteBuffer.
-    auto dex_buffer = env->NewDirectByteBuffer(const_cast<void *>(image.ptr()), image.size());
+    auto dex_buffer = lsplant::JNI_NewDirectByteBuffer(env, const_cast<void *>(image.ptr()),
+                                                       image.size());
+    if (!dex_buffer) return nullptr;
 
-    // Create and return a new InMemoryDexClassLoader instance.
-    return env->NewObject(in_memory_classloader, initMid, dex_buffer, parent);
+    // Create and return a new InMemoryDexClassLoader instance. Released from its scope because it
+    // is handed straight back to Java.
+    return lsplant::JNI_NewObject(env, in_memory_classloader, initMid, dex_buffer, parent)
+        .release();
 }
 
 /**
