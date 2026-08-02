@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Store — the online module repository.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
 <resources>
+    <!-- The list -->
     <string name="store_search_hint">Поиск по репозиторию</string>
     <string name="store_filter">Сортировка и фильтр</string>
     <string name="store_sort_recent">Недавно обновлённые</string>
@@ -8,6 +16,7 @@
     <string name="store_updates_first">Сначала обновления</string>
     <string name="store_channel_stable">Только стабильные выпуски</string>
     <string name="store_channel_prerelease">Включая предварительные</string>
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="one">%1$d модуль</item>
         <item quantity="few">%1$d модуля</item>
@@ -21,26 +30,30 @@
         <item quantity="other">%1$d обновлений</item>
     </plurals>
     <string name="store_all_current">всё установленное актуально</string>
-    <string name="store_offline">Показан сохранённый каталог</string>
+    <!-- Rows -->
     <string name="store_badge_update">Обновить до %1$s</string>
     <string name="store_badge_reinstall">Переустановить %1$s</string>
     <string name="store_badge_installed">Установлен</string>
     <string name="store_badge_prerelease">Предварительный</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">Обновлён %1$s</string>
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">Не удалось связаться с репозиторием модулей, а на этом устройстве пока ничего не сохранено.</string>
     <string name="store_no_match">Ни один модуль не подходит под этот запрос.</string>
     <string name="store_empty">Репозиторий не вернул ни одного модуля.</string>
+    <!-- Detail tabs -->
     <string name="store_tab_readme">Описание</string>
     <string name="store_tab_releases">Выпуски</string>
     <string name="store_tab_information">Сведения</string>
+    <!-- Detail -->
     <string name="store_readme_missing">У этого модуля нет описания.</string>
     <string name="store_detail_partial">Показано то, что уже было известно из списка модулей. Для описания и старых выпусков нужно соединение.</string>
     <string name="store_releases_none">В этом канале у модуля нет выпусков.</string>
     <string name="store_release_notes">Что нового</string>
     <string name="store_open_release">Открыть на GitHub</string>
     <string name="store_open_module">Открыть страницу модуля</string>
+    <!-- Install -->
     <string name="store_install">Установить</string>
-    <string name="store_update">Обновить</string>
     <string name="store_reinstall">Переустановить</string>
     <string name="store_choose_asset">Выберите файл для установки</string>
     <plurals name="store_asset_downloads">
@@ -49,18 +62,24 @@
         <item quantity="many">%1$d загрузок</item>
         <item quantity="other">%1$d загрузок</item>
     </plurals>
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">Установить %1$s?</string>
     <string name="store_confirm_body">%1$s (%2$s) будет загружен из репозитория модулей и установлен как %3$s.</string>
     <string name="store_confirm_trust">Модуль работает с правами фреймворка внутри приложений, которые он перехватывает. Устанавливайте его, только если доверяете автору.</string>
     <string name="store_confirm_silent">Vector установит его сам, система больше не спросит.</string>
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">Загружено %1$s из %2$s</string>
     <string name="store_installing">Установка…</string>
     <string name="store_confirming">Ожидание системного запроса…</string>
     <string name="store_install_failed">Не удалось установить %1$s</string>
     <string name="store_install_failed_reason">Не удалось установить %1$s: %2$s</string>
     <string name="store_cancel">Отмена</string>
+    <!-- Information tab -->
     <string name="store_info_summary">Кратко</string>
     <string name="store_info_scope">Перехватывает</string>
+    <string name="store_info_scope_installed">Перехваты, по данным установленной копии</string>
     <string name="store_info_scope_undeclared">Не указано. Модуль не сообщает, какие приложения он перехватывает.</string>
     <string name="store_info_homepage">Сайт</string>
     <string name="store_info_source">Исходный код</string>
@@ -70,9 +89,7 @@
     <string name="store_info_created">Первый выпуск</string>
     <string name="store_release_notes_hide">Скрыть описание</string>
     <string name="store_installed_first">Сначала установленные</string>
-
     <string name="store_group_sort">Сортировка</string>
     <string name="store_group_priority">Приоритет</string>
     <string name="store_group_channel">Канал</string>
-    <string name="store_info_scope_installed">Перехваты, по данным установленной копии</string>
 </resources>
