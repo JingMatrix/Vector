@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">Katalogda ara</string>
     <string name="store_filter">Sırala ve süz</string>
     <string name="store_sort_recent">Yakında güncellenenler</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">Önce güncellemeler</string>
     <string name="store_channel_stable">Yalnızca kararlı sürümler</string>
     <string name="store_channel_prerelease">Ön sürümleri de içer</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="one">%1$d modül</item>
         <item quantity="other">%1$d modül</item>
@@ -19,28 +26,29 @@
         <item quantity="other">%1$d güncelleme</item>
     </plurals>
     <string name="store_all_current">elinizdeki her şey güncel</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">%1$s sürümüne güncelle</string>
     <string name="store_badge_reinstall">%1$s sürümünü yeniden kur</string>
     <string name="store_badge_installed">Kurulu</string>
     <string name="store_badge_prerelease">Ön sürüm</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">%1$s tarihinde güncellendi</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">Modül kataloğuna ulaşılamadı ve bu cihazda henüz kayıtlı bir şey yok.</string>
     <string name="store_no_match">Bu aramayla eşleşen modül yok.</string>
     <string name="store_empty">Katalog hiç modül döndürmedi.</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">Benioku</string>
     <string name="store_tab_releases">Sürümler</string>
     <string name="store_tab_information">Bilgi</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">Bu modül bir benioku dosyası içermiyor.</string>
     <string name="store_detail_partial">Modül listesinin zaten bildikleri gösteriliyor. Benioku ve eski sürümler için bağlantı gerekiyor.</string>
     <string name="store_releases_none">Bu modül bu kanalda hiç sürüm yayımlamamış.</string>
     <string name="store_release_notes">Sürüm notları</string>
     <string name="store_open_release">GitHub\'da aç</string>
     <string name="store_open_module">Modül sayfasını aç</string>
-
+    <!-- Install -->
     <string name="store_install">Kur</string>
     <string name="store_reinstall">Yeniden kur</string>
     <string name="store_choose_asset">Kurulacak dosyayı seçin</string>
@@ -48,21 +56,24 @@
         <item quantity="one">%1$d indirme</item>
         <item quantity="other">%1$d indirme</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">%1$s kurulsun mu?</string>
     <string name="store_confirm_body">%1$s (%2$s) modül kataloğundan indirilip %3$s olarak kurulacak.</string>
     <string name="store_confirm_trust">Bir modül, hook taktığı uygulamaların içinde çatının ayrıcalıklarıyla çalışır. Yalnızca yazarına güveniyorsanız kurun.</string>
     <string name="store_confirm_silent">Vector bunu kendisi kurar ve sistem bir daha sormaz.</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">%2$s içinden %1$s indiriliyor</string>
     <string name="store_installing">Kuruluyor…</string>
     <string name="store_confirming">Sistem sorusu bekleniyor…</string>
     <string name="store_install_failed">%1$s kurulamadı</string>
     <string name="store_install_failed_reason">%1$s kurulamadı: %2$s</string>
     <string name="store_cancel">Vazgeç</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">Özet</string>
     <string name="store_info_scope">Hook\'lar</string>
+    <string name="store_info_scope_installed">Kancalar, kurulu kopyaya göre</string>
     <string name="store_info_scope_undeclared">Bildirilmemiş. Bu modül hangi uygulamalara hook taktığını söylemiyor.</string>
     <string name="store_info_homepage">Ana sayfa</string>
     <string name="store_info_source">Kaynak kodu</string>
@@ -70,12 +81,9 @@
     <string name="store_info_stars">Yıldızlar</string>
     <string name="store_info_updated">Son sürüm</string>
     <string name="store_info_created">İlk yayım</string>
-
     <string name="store_release_notes_hide">Notları gizle</string>
     <string name="store_installed_first">Önce kurulu olanlar</string>
-
     <string name="store_group_sort">Sıralama</string>
     <string name="store_group_priority">Öncelik</string>
     <string name="store_group_channel">Kanal</string>
-    <string name="store_info_scope_installed">Kancalar, kurulu kopyaya göre</string>
 </resources>
