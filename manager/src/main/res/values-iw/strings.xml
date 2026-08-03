@@ -243,10 +243,29 @@
         <item quantity="other">כל %1$d המודולים וכל מה שהגדירו יימחקו. אי אפשר לבטל את זה.</item>
     </plurals>
     <string name="canary_open_actions">פתיחה ב-GitHub</string>
-    <string name="canary_open_run">פתיחת ההרצה הזאת</string>
-    <string name="canary_install">התקנה</string>
-    <string name="canary_expired">התוצרים של הגרסה הזאת פגו.</string>
     <string name="canary_none">עדיין לא פורסמו גרסאות canary.</string>
+    <string name="canary_what_title">מהי גרסת canary</string>
+    <string name="canary_what_body">המצב הנוכחי של master, שנבנה ונבדק על ידי CI בלבד. תיקונים מגיעים לכאן ימים או שבועות לפני שהם מגיעים לגרסה יציבה.</string>
+    <string name="canary_keep_body">‏%1$d החדשות ביותר נשמרות, וכל עמוד גרסה מאפשר לעבור ביניהן או לחזור לגרסה היציבה האחרונה. שום דבר כאן אינו חד־כיווני.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">מאז הגרסה שלכם נוסף קומיט אחד.</item>
+        <item quantity="two">מאז הגרסה שלכם נוספו שני קומיטים.</item>
+        <item quantity="many">מאז הגרסה שלכם נוספו %1$d קומיטים.</item>
+        <item quantity="other">מאז הגרסה שלכם נוספו %1$d קומיטים.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">תוקן מאז הגרסה שלכם</item>
+        <item quantity="two">תוקנו מאז הגרסה שלכם — שתי תקלות</item>
+        <item quantity="many">תוקנו מאז הגרסה שלכם — %1$d תקלות</item>
+        <item quantity="other">תוקנו מאז הגרסה שלכם — %1$d תקלות</item>
+    </plurals>
+    <string name="canary_current">אתם מריצים את גרסת ה־canary החדשה ביותר. עד הפרסום הבא של CI אין מה לבדוק.</string>
+    <string name="canary_ahead">הגרסה שלכם חדשה מכל גרסאות ה־canary שפורסמו, ולכן לא נבנתה מאף אחת מהן.</string>
+    <string name="canary_diverged">הגרסה שלכם נושאת את מספרה של גרסת ה־canary החדשה ביותר אך לא נבנתה ממנה. התקינו אותה כדי לדעת בוודאות מה אתם בודקים.</string>
+    <string name="canary_after_release">אתם על גרסה יציבה חדשה יותר מכל גרסאות ה־canary כאן. גרסת ה־canary הבאה תיבנה על גביה.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">מצאתם משהו?</string>
+    <string name="canary_report_body">גרסת canary שמתנהגת לא כשורה היא בדיוק הסיבה להריץ אותה — דיווח הוא מה שהופך אותה לתיקון. קחו את קובץ ה־ZIP מסוג Debug אם אתם מחפשים תקלה: הוא מתעד הרבה יותר, וזה בדיוק מה שדיווח צריך.</string>
     <string name="home_contributors_by_commits">הכי הרבה קומיטים</string>
     <string name="home_contributors_by_recent">העדכניים ביותר</string>
     <string name="scope_recommended_only">מה שהמודול מבקש</string>

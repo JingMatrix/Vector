@@ -219,10 +219,23 @@
         <item quantity="other">Semua %1$d modul dan segala yang mereka atur akan dihapus. Ini tidak bisa dibatalkan.</item>
     </plurals>
     <string name="canary_open_actions">Buka di GitHub</string>
-    <string name="canary_open_run">Buka eksekusi ini</string>
-    <string name="canary_install">Pasang</string>
-    <string name="canary_expired">Artefak build ini sudah kedaluwarsa.</string>
     <string name="canary_none">Belum ada build canary yang diterbitkan.</string>
+    <string name="canary_what_title">Apa itu canary</string>
+    <string name="canary_what_body">Kondisi master saat ini, dibangun dan diperiksa oleh CI dan tidak lebih. Perbaikan tiba di sini berhari-hari atau berminggu-minggu sebelum sampai ke rilis.</string>
+    <string name="canary_keep_body">%1$d terbaru disimpan, dan halaman build mana pun bisa memindahkan Anda di antaranya atau kembali ke rilis terakhir. Tidak ada yang searah di sini.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="other">%1$d commit telah masuk sejak build Anda.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="other">Diperbaiki sejak build Anda — %1$d masalah</item>
+    </plurals>
+    <string name="canary_current">Anda menjalankan canary terbaru. Tidak ada yang perlu diuji sampai CI menerbitkan lagi.</string>
+    <string name="canary_ahead">Build Anda lebih baru daripada semua canary yang diterbitkan, jadi tidak dibangun dari salah satunya.</string>
+    <string name="canary_diverged">Build Anda membawa nomor canary terbaru tetapi tidak dibangun darinya. Pasang canary itu agar yakin apa yang Anda uji.</string>
+    <string name="canary_after_release">Anda memakai rilis yang lebih baru daripada semua canary di sini. Canary berikutnya akan dibangun di atasnya.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Menemukan sesuatu?</string>
+    <string name="canary_report_body">Canary yang bermasalah justru itulah gunanya dijalankan — laporanlah yang mengubahnya menjadi perbaikan. Ambil ZIP Debug jika Anda sedang memburu bug: log-nya jauh lebih banyak, dan itulah yang dibutuhkan sebuah laporan.</string>
     <string name="home_contributors_by_commits">Commit terbanyak</string>
     <string name="home_contributors_by_recent">Paling baru</string>
     <string name="scope_recommended_only">Yang diminta modul</string>

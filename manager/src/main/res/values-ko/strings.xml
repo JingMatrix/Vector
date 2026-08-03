@@ -215,10 +215,23 @@
         <item quantity="other">모듈 %1$d개와 그 모듈들이 설정한 모든 내용이 삭제됩니다. 되돌릴 수 없습니다.</item>
     </plurals>
     <string name="canary_open_actions">GitHub에서 열기</string>
-    <string name="canary_open_run">이 실행 열기</string>
-    <string name="canary_install">설치</string>
-    <string name="canary_expired">이 빌드의 산출물이 만료되었습니다.</string>
     <string name="canary_none">아직 공개된 canary 빌드가 없습니다.</string>
+    <string name="canary_what_title">canary란</string>
+    <string name="canary_what_body">master의 현재 상태로, CI가 빌드하고 확인한 것이 전부입니다. 수정은 릴리스에 도달하기 며칠에서 몇 주 전에 이곳에 먼저 도착합니다.</string>
+    <string name="canary_keep_body">최신 %1$d개가 보관되며, 어느 빌드 페이지에서든 그 사이를 오가거나 마지막 릴리스로 돌아갈 수 있습니다. 여기에 되돌릴 수 없는 선택은 없습니다.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="other">내 빌드 이후 커밋 %1$d개가 들어왔습니다.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="other">내 빌드 이후 수정됨 — %1$d건</item>
+    </plurals>
+    <string name="canary_current">최신 canary를 사용 중입니다. CI가 다시 공개할 때까지 시험할 것이 없습니다.</string>
+    <string name="canary_ahead">내 빌드가 공개된 모든 canary보다 최신이므로, 그중 어느 것으로도 빌드되지 않았습니다.</string>
+    <string name="canary_diverged">내 빌드는 최신 canary와 같은 번호이지만 그것으로 빌드되지 않았습니다. 무엇을 시험하는지 확실히 하려면 해당 canary를 설치하세요.</string>
+    <string name="canary_after_release">여기 있는 모든 canary보다 최신인 릴리스를 사용 중입니다. 다음 canary는 그 위에 만들어집니다.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">무언가 발견하셨나요?</string>
+    <string name="canary_report_body">canary가 말썽을 부리는 것이야말로 그것을 쓰는 이유입니다. 신고가 있어야 수정으로 이어집니다. 버그를 쫓는 중이라면 Debug ZIP을 받으세요. 훨씬 많은 기록을 남기며, 신고에 필요한 것이 바로 그것입니다.</string>
     <string name="home_contributors_by_commits">커밋 많은 순</string>
     <string name="home_contributors_by_recent">최근 순</string>
     <string name="scope_recommended_only">모듈이 요청한 것</string>

@@ -215,10 +215,23 @@
         <item quantity="other">這 %1$d 個模組及其全部設定都將被移除，且無法復原。</item>
     </plurals>
     <string name="canary_open_actions">在 GitHub 開啟</string>
-    <string name="canary_open_run">檢視這次建置</string>
-    <string name="canary_install">安裝</string>
-    <string name="canary_expired">這次建置的產物已過期。</string>
     <string name="canary_none">尚未發行任何 Canary 版本。</string>
+    <string name="canary_what_title">什麼是 Canary</string>
+    <string name="canary_what_body">master 分支的目前狀態，只經過 CI 建置與檢查。修正會先出現在這裡，比進入正式版早數天甚至數週。</string>
+    <string name="canary_keep_body">最新的 %1$d 個會保留下來，任何建置頁面都能帶你在它們之間切換，或退回上一個正式版。這裡沒有單向的選擇。</string>
+    <plurals name="canary_since_commits">
+        <item quantity="other">自你的版本以來已有 %1$d 次提交。</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="other">自你的版本以來已修正 %1$d 個問題</item>
+    </plurals>
+    <string name="canary_current">你正在執行最新的 Canary。在 CI 再次發行之前沒有可測試的內容。</string>
+    <string name="canary_ahead">你的版本比所有已發行的 Canary 都新，因此並非由其中任何一個建置而來。</string>
+    <string name="canary_diverged">你的版本與最新 Canary 編號相同，但並非由它建置。安裝它才能確定你測試的究竟是什麼。</string>
+    <string name="canary_after_release">你使用的正式版比這裡所有 Canary 都新。下一個 Canary 將在它之上建置。</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">發現問題了嗎？</string>
+    <string name="canary_report_body">Canary 出問題正是執行它的意義所在——是回報讓它變成修正。如果你正在追查缺陷，請選擇 Debug 壓縮檔：它記錄的資訊多得多，也正是回報所需要的。</string>
     <string name="home_contributors_by_commits">提交最多</string>
     <string name="home_contributors_by_recent">最近提交</string>
     <string name="scope_recommended_only">模組要求的應用程式</string>

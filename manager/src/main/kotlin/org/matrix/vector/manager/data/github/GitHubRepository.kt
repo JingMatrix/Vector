@@ -705,57 +705,66 @@ class GitHubRepository(
             .getOrNull()
 
     /**
-     * The canary builds, newest first.
+     * The issues that have been closed as done, newest first.
      *
-     * These are **prereleases**, not Actions artifacts, and that is the whole point. GitHub gates an
-     * artifact download behind an account even for a public repository — `actions/artifacts/<id>/zip`
-     * answers 401 to an anonymous caller, while a release asset answers 206 — so sourcing canaries
-     * from artifacts would mean asking every would-be tester for an OAuth grant to work around a
-     * storage decision. CI attaches the same zips to a rolling `canary-<versionCode>` prerelease,
-     * and this reads that, so nobody signs in to anything.
+     * **Asked of the issue tracker rather than derived from the commits, and that is not a
+     * shortcut.** An issue linked through GitHub's *Development* panel — the usual way here — is
+     * closed by the merge itself and leaves no trace in any commit message, so reading the history
+     * would report only the minority that happened to be written up as `Fixes #816`. The link that
+     * did the closing lives in `PullRequest.closingIssuesReferences`, which exists only in GraphQL,
+     * and GraphQL answers 403 without an account. This endpoint answers the neighbouring question
+     * anonymously, and the answer is the one worth showing: not which commit closed what, but what
+     * has been fixed since the reader's build.
      *
-     * Filtered to the canary tag rather than taking every prerelease: a hand-cut release candidate
-     * is also a prerelease, and it is not a nightly.
+     * Closed is not fixed: `not_planned` and `duplicate` are also closures, and were a fifth of one
+     * page here. Only `completed` is counted.
+     *
+     * One page, unpaginated. A hundred items reaches back several weeks on this repository, which
+     * covers the span between any two builds a reader could be choosing between; older than that
+     * and the number stops mattering because the reader is being told to update, not to test.
      */
-    suspend fun canaryBuilds(freshness: Freshness = Freshness.Revalidate): List<CanaryBuild> =
+    suspend fun closedIssues(freshness: Freshness = Freshness.Revalidate): List<ClosedIssue> =
         withContext(Dispatchers.IO) {
-            val body = releaseListJson(freshness) ?: return@withContext emptyList()
+            val url = "$API/$REPO/issues?state=closed&per_page=100&sort=updated&direction=desc"
+            val body =
+                runCatching { get(url, freshness) }
+                    .onFailure { e -> logW("canary: closed issue list unavailable", e) }
+                    .getOrNull() ?: return@withContext emptyList()
 
-            runCatching { json.decodeFromString<List<GhRelease>>(body) }
-                .onFailure { e -> logE("update: canary release list unreadable", e) }
+            runCatching { json.decodeFromString<List<GhIssue>>(body) }
+                .onFailure { e -> logE("canary: closed issue list unreadable", e) }
                 .getOrDefault(emptyList())
-                .filter { it.prerelease && it.tagName.startsWith(CANARY_TAG_PREFIX) }
-                .take(CANARY_KEEP)
-                .map { release ->
-                    CanaryBuild(
-                        id = release.id,
-                        versionCode = release.versionCode() ?: 0,
-                        title = release.name ?: release.tagName,
-                        branch = release.tagName,
-                        shortSha = release.targetCommitish.take(7),
-                        epochSeconds = parseIso8601(release.publishedAt.orEmpty()),
-                        htmlUrl = release.htmlUrl,
-                        artifacts =
-                            release.assets.map {
-                                CanaryArtifact(
-                                    id = it.id,
-                                    name = it.name,
-                                    sizeInBytes = it.size,
-                                    expired = false,
-                                    downloadUrl = it.downloadUrl,
-                                )
-                            },
+                .filter { !it.isPullRequest && it.stateReason == "completed" }
+                .mapNotNull { issue ->
+                    val closed = parseIso8601(issue.closedAt ?: return@mapNotNull null)
+                    ClosedIssue(
+                        number = issue.number,
+                        title = issue.title,
+                        closedAtEpoch = closed.takeIf { it > 0 } ?: return@mapNotNull null,
+                        htmlUrl = issue.htmlUrl,
                     )
                 }
+                .sortedByDescending { it.closedAtEpoch }
         }
 
     /**
      * Every published build, both channels, newest first.
      *
-     * One fetch for both because they come from the same endpoint, and because deciding which
-     * channel a reader is on needs to see both: a canary that has aged out of the rolling five is
-     * still recognisable as a canary by being *newer than the newest stable release*, and that
-     * comparison is impossible with only one of the two lists in hand.
+     * The canaries here are **prereleases**, not Actions artifacts, and that is the whole point.
+     * GitHub gates an artifact download behind an account even for a public repository —
+     * `actions/artifacts/<id>/zip` answers 401 to an anonymous caller, while a release asset answers
+     * 206 — so sourcing canaries from artifacts would mean asking every would-be tester for an OAuth
+     * grant to work around a storage decision. CI attaches the same zips to a rolling
+     * `canary-<versionCode>` prerelease, and this reads those, so nobody signs in to anything.
+     *
+     * A canary is recognised by its tag rather than by being a prerelease: a hand-cut release
+     * candidate is also a prerelease, and it is not a nightly.
+     *
+     * One fetch for both channels because they come from the same endpoint, because deciding which
+     * channel a reader is on needs to see both — a canary that has aged out of the rolling five is
+     * still recognisable by being *newer than the newest stable release*, and that comparison is
+     * impossible with only one of the two lists in hand — and because the canary list is this same
+     * answer filtered, not a second question.
      */
     suspend fun frameworkReleases(freshness: Freshness = Freshness.Revalidate):
         List<FrameworkRelease> =
@@ -788,7 +797,6 @@ class GitHubRepository(
                                         id = it.id,
                                         name = it.name,
                                         sizeInBytes = it.size,
-                                        expired = false,
                                         downloadUrl = it.downloadUrl,
                                     )
                                 },
@@ -945,7 +953,14 @@ class GitHubRepository(
 
         /** CI keeps five; a few extra are fetched so a stable release among them costs nothing. */
         private const val CANARY_FETCH = 12
-        private const val CANARY_KEEP = 5
+
+        /**
+         * How many canaries CI keeps, which the canary screen states as reassurance.
+         *
+         * Read from here rather than written into the sentence, so the promise the screen makes
+         * and the number the workflow prunes to cannot drift apart silently.
+         */
+        const val CANARY_KEEP = 5
 
         private const val API = "https://api.github.com/repos"
         private const val API_ROOT = "https://api.github.com"
@@ -981,6 +996,7 @@ class GitHubRepository(
         private const val REVALIDATE_MINUTES = 30L
 
         private val PR_SUFFIX = Regex("""\(#(\d+)\)\s*$""")
+
 
         private val LAST_PAGE = Regex("""[?&]page=(\d+)>;\s*rel="last"""")
 

@@ -239,6 +239,7 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
             onNavigateBack = { navigator.back() },
             onOpenUrl = { url -> navigator.go(Web(url)) },
             onInstall = { versionCode -> navigator.go(FrameworkUpdate(versionCode)) },
+            onOpenReport = { navigator.go(Troubleshoot) },
         )
     }
     entry<FrameworkUpdate> { route ->

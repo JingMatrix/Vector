@@ -215,10 +215,23 @@
         <item quantity="other">Toàn bộ %1$d mô-đun và mọi thứ chúng đã cấu hình sẽ bị xoá. Không thể hoàn tác.</item>
     </plurals>
     <string name="canary_open_actions">Mở trên GitHub</string>
-    <string name="canary_open_run">Mở lần chạy này</string>
-    <string name="canary_install">Cài đặt</string>
-    <string name="canary_expired">Sản phẩm của bản dựng này đã hết hạn.</string>
     <string name="canary_none">Chưa có bản canary nào được phát hành.</string>
+    <string name="canary_what_title">Bản canary là gì</string>
+    <string name="canary_what_body">Trạng thái hiện tại của master, được dựng và kiểm tra bởi CI chứ không gì khác. Các bản sửa lỗi đến đây trước hàng ngày hoặc hàng tuần so với một bản phát hành.</string>
+    <string name="canary_keep_body">%1$d bản mới nhất được giữ lại, và bất kỳ trang bản dựng nào cũng đưa bạn qua lại giữa chúng hoặc trở về bản phát hành gần nhất. Ở đây không có gì là một chiều.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="other">Đã có %1$d commit kể từ bản dựng của bạn.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="other">Đã sửa kể từ bản dựng của bạn — %1$d vấn đề</item>
+    </plurals>
+    <string name="canary_current">Bạn đang chạy bản canary mới nhất. Không có gì để thử cho tới khi CI phát hành tiếp.</string>
+    <string name="canary_ahead">Bản dựng của bạn mới hơn mọi bản canary đã phát hành, nên nó không được dựng từ bản nào trong số đó.</string>
+    <string name="canary_diverged">Bản dựng của bạn mang số hiệu của bản canary mới nhất nhưng không được dựng từ nó. Hãy cài bản đó để chắc chắn bạn đang thử gì.</string>
+    <string name="canary_after_release">Bạn đang dùng một bản phát hành mới hơn mọi bản canary ở đây. Bản canary kế tiếp sẽ được dựng trên nó.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Phát hiện điều gì chăng?</string>
+    <string name="canary_report_body">Một bản canary trục trặc chính là lý do để chạy nó — báo cáo mới là thứ biến nó thành bản sửa lỗi. Hãy lấy tệp ZIP Debug nếu bạn đang truy một lỗi: nó ghi log nhiều hơn hẳn, và đó là thứ một báo cáo cần.</string>
     <string name="home_contributors_by_commits">Nhiều commit nhất</string>
     <string name="home_contributors_by_recent">Gần đây nhất</string>
     <string name="scope_recommended_only">Những gì mô-đun yêu cầu</string>

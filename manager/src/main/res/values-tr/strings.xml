@@ -223,10 +223,25 @@
         <item quantity="other">%1$d modülün tamamı ve yapılandırdıkları her şey kaldırılacak. Bu geri alınamaz.</item>
     </plurals>
     <string name="canary_open_actions">GitHub\'da aç</string>
-    <string name="canary_open_run">Bu çalıştırmayı aç</string>
-    <string name="canary_install">Kur</string>
-    <string name="canary_expired">Bu derlemenin çıktıları süresi dolmuş.</string>
     <string name="canary_none">Henüz yayımlanmış canary sürümü yok.</string>
+    <string name="canary_what_title">Canary nedir</string>
+    <string name="canary_what_body">master dalının şu anki hâli; yalnızca CI tarafından derlenip denetlenir. Düzeltmeler buraya, bir sürüme ulaşmasından günler ya da haftalar önce iner.</string>
+    <string name="canary_keep_body">En yeni %1$d tanesi saklanır ve herhangi bir yapı sayfası sizi bunlar arasında ya da son sürüme geri götürür. Burada hiçbir şey tek yönlü değildir.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">Sizin yapınızdan bu yana %1$d commit geldi.</item>
+        <item quantity="other">Sizin yapınızdan bu yana %1$d commit geldi.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Sizin yapınızdan bu yana düzeltildi</item>
+        <item quantity="other">Sizin yapınızdan bu yana düzeltildi — %1$d sorun</item>
+    </plurals>
+    <string name="canary_current">En yeni canary sürümünü kullanıyorsunuz. CI yeniden yayımlayana kadar test edilecek bir şey yok.</string>
+    <string name="canary_ahead">Yapınız yayımlanmış her canary sürümünden yeni; dolayısıyla hiçbirinden derlenmemiş.</string>
+    <string name="canary_diverged">Yapınız en yeni canary sürümünün numarasını taşıyor ama ondan derlenmemiş. Ne test ettiğinizden emin olmak için onu kurun.</string>
+    <string name="canary_after_release">Buradaki her canary sürümünden yeni bir sürümdesiniz. Sonraki canary bunun üzerine kurulacak.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Bir şey mi buldunuz?</string>
+    <string name="canary_report_body">Hatalı davranan bir canary, onu çalıştırmanın asıl sebebidir — bildirim, onu bir düzeltmeye dönüştüren şeydir. Bir hatanın peşindeyseniz Debug ZIP dosyasını alın: çok daha fazlasını günlüğe yazar ve bir bildirimin ihtiyacı olan da budur.</string>
     <string name="home_contributors_by_commits">En çok commit</string>
     <string name="home_contributors_by_recent">En yeni</string>
     <string name="scope_recommended_only">Modülün istedikleri</string>

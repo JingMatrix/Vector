@@ -223,10 +223,25 @@
         <item quantity="other">Tutti i %1$d moduli e tutto ciò che hanno configurato verranno rimossi. Non si può annullare.</item>
     </plurals>
     <string name="canary_open_actions">Apri su GitHub</string>
-    <string name="canary_open_run">Apri questa esecuzione</string>
-    <string name="canary_install">Installa</string>
-    <string name="canary_expired">Gli artefatti di questa build sono scaduti.</string>
     <string name="canary_none">Nessuna build canary pubblicata finora.</string>
+    <string name="canary_what_title">Che cos\'è una canary</string>
+    <string name="canary_what_body">Lo stato attuale di master, compilato e verificato dalla CI e da nient\'altro. Le correzioni arrivano qui giorni o settimane prima di raggiungere una versione stabile.</string>
+    <string name="canary_keep_body">Vengono conservate le %1$d più recenti, e qualsiasi pagina di build ti sposta tra loro o ti riporta all\'ultima versione. Qui nulla è a senso unico.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">È arrivato %1$d commit dopo la tua build.</item>
+        <item quantity="other">Sono arrivati %1$d commit dopo la tua build.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Risolto dopo la tua build</item>
+        <item quantity="other">Risolto dopo la tua build — %1$d segnalazioni</item>
+    </plurals>
+    <string name="canary_current">Stai usando la canary più recente. Non c\'è nulla da provare finché la CI non pubblica di nuovo.</string>
+    <string name="canary_ahead">La tua build è più recente di ogni canary pubblicata, quindi non è stata creata da nessuna di esse.</string>
+    <string name="canary_diverged">La tua build porta il numero della canary più recente ma non deriva da essa. Installala per sapere con certezza cosa stai provando.</string>
+    <string name="canary_after_release">Sei su una versione più recente di ogni canary elencata qui. La prossima canary sarà costruita su di essa.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Hai trovato qualcosa?</string>
+    <string name="canary_report_body">Una canary che si comporta male è esattamente il motivo per cui la si usa: è la segnalazione a trasformarla in una correzione. Prendi lo ZIP Debug se stai cercando un bug: registra molto di più, ed è ciò che serve per una segnalazione.</string>
     <string name="home_contributors_by_commits">Più commit</string>
     <string name="home_contributors_by_recent">Più recenti</string>
     <string name="scope_recommended_only">Quello che chiede il modulo</string>

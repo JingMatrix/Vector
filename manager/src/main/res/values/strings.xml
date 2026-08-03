@@ -362,11 +362,32 @@
         <item quantity="one">The module and everything it has configured will be removed. This cannot be undone.</item>
         <item quantity="other">All %1$d modules and everything they have configured will be removed. This cannot be undone.</item>
     </plurals>
+    <!-- Canary builds: choosing which nightly to test, and why it is worth an evening -->
     <string name="canary_open_actions">Open on GitHub</string>
-    <string name="canary_open_run">Open this run</string>
-    <string name="canary_install">Install</string>
-    <string name="canary_expired">The artifacts of this build have expired.</string>
     <string name="canary_none">No canary builds published yet.</string>
+    <string name="canary_what_title">What a canary is</string>
+    <string name="canary_what_body">The current state of master, built and checked by CI and nothing else. Fixes land here days or weeks before they reach a release.</string>
+    <!-- %1$d is how many canaries CI keeps -->
+    <string name="canary_keep_body">The newest %1$d are kept, and any build page can move you between them or back to the last release. Nothing here is a one-way door.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">%1$d commit has landed since your build.</item>
+        <item quantity="other">%1$d commits have landed since your build.</item>
+    </plurals>
+    <!-- Heads the list of issues closed since the reader's build -->
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Fixed since your build</item>
+        <item quantity="other">Fixed since your build — %1$d issues</item>
+    </plurals>
+    <string name="canary_current">You are running the newest canary. Nothing to test until CI publishes again.</string>
+    <string name="canary_ahead">Your build is newer than every published canary, so it was not built from any of them.</string>
+    <!-- Same version number as the newest canary, but built from a different commit -->
+    <string name="canary_diverged">Your build carries the newest canary\'s number but was not built from it. Install it to be sure what you are testing.</string>
+    <!-- On a release published after the last canary — normal for a day or two after a release -->
+    <string name="canary_after_release">You are on a release newer than every canary here. The next canary will be built on top of it.</string>
+    <!-- The build number, shown in monospace: "canary 3049" -->
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Found something?</string>
+    <string name="canary_report_body">A canary that misbehaves is the whole point of running one — a report is what turns it into a fix. Take the Debug zip if you are chasing a bug: it logs far more, and it is what a report needs.</string>
     <string name="home_contributors_by_commits">Most commits</string>
     <string name="home_contributors_by_recent">Most recent</string>
     <string name="scope_recommended_only">What the module asks for</string>

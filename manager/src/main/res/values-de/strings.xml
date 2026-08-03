@@ -223,10 +223,25 @@
         <item quantity="other">Alle %1$d Module und alles, was sie eingerichtet haben, werden entfernt. Das lässt sich nicht rückgängig machen.</item>
     </plurals>
     <string name="canary_open_actions">Auf GitHub öffnen</string>
-    <string name="canary_open_run">Diesen Lauf öffnen</string>
-    <string name="canary_install">Installieren</string>
-    <string name="canary_expired">Die Artefakte dieses Builds sind abgelaufen.</string>
     <string name="canary_none">Noch keine Canary-Builds veröffentlicht.</string>
+    <string name="canary_what_title">Was ein Canary ist</string>
+    <string name="canary_what_body">Der aktuelle Stand von master, gebaut und geprüft allein von der CI. Korrekturen landen hier Tage oder Wochen, bevor sie eine Veröffentlichung erreichen.</string>
+    <string name="canary_keep_body">Die neuesten %1$d bleiben erhalten, und jede Build-Seite bringt dich zwischen ihnen hin und her oder zurück zur letzten Veröffentlichung. Nichts hier ist eine Einbahnstraße.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">Seit deinem Build ist %1$d Commit hinzugekommen.</item>
+        <item quantity="other">Seit deinem Build sind %1$d Commits hinzugekommen.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Seit deinem Build behoben</item>
+        <item quantity="other">Seit deinem Build behoben — %1$d Meldungen</item>
+    </plurals>
+    <string name="canary_current">Du nutzt das neueste Canary. Bis die CI erneut veröffentlicht, gibt es nichts zu testen.</string>
+    <string name="canary_ahead">Dein Build ist neuer als jedes veröffentlichte Canary und wurde daher aus keinem davon gebaut.</string>
+    <string name="canary_diverged">Dein Build trägt die Nummer des neuesten Canary, wurde aber nicht daraus gebaut. Installiere es, um sicher zu sein, was du testest.</string>
+    <string name="canary_after_release">Du nutzt eine Veröffentlichung, die neuer ist als jedes Canary hier. Das nächste Canary baut darauf auf.</string>
+    <string name="canary_build">Canary %1$d</string>
+    <string name="canary_report_title">Etwas gefunden?</string>
+    <string name="canary_report_body">Ein Canary, das sich danebenbenimmt, ist genau der Zweck der Sache — erst eine Meldung macht daraus eine Korrektur. Nimm das Debug-ZIP, wenn du einem Fehler nachgehst: es protokolliert weit mehr, und genau das braucht eine Meldung.</string>
     <string name="home_contributors_by_commits">Meiste Commits</string>
     <string name="home_contributors_by_recent">Zuletzt aktiv</string>
     <string name="scope_recommended_only">Was das Modul verlangt</string>

@@ -215,10 +215,23 @@
         <item quantity="other">%1$d 個のモジュールと、それらが設定した内容がすべて削除されます。元には戻せません。</item>
     </plurals>
     <string name="canary_open_actions">GitHub で開く</string>
-    <string name="canary_open_run">この実行を開く</string>
-    <string name="canary_install">インストール</string>
-    <string name="canary_expired">このビルドの成果物は期限切れです。</string>
     <string name="canary_none">canary ビルドはまだ公開されていません。</string>
+    <string name="canary_what_title">canary とは</string>
+    <string name="canary_what_body">master の現在の状態で、CI がビルドして確認しただけのものです。修正はリリースに届く数日から数週間前に、まずここへ来ます。</string>
+    <string name="canary_keep_body">最新の %1$d 件が保持され、どのビルドのページからでもそれらの間を行き来したり、最後のリリースへ戻ったりできます。ここに片道の選択はありません。</string>
+    <plurals name="canary_since_commits">
+        <item quantity="other">お使いのビルド以降に %1$d 件のコミットが入りました。</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="other">お使いのビルド以降に修正 — %1$d 件</item>
+    </plurals>
+    <string name="canary_current">最新の canary を使用中です。CI が次を公開するまで試すものはありません。</string>
+    <string name="canary_ahead">お使いのビルドは公開済みのどの canary よりも新しく、そのいずれからもビルドされていません。</string>
+    <string name="canary_diverged">お使いのビルドは最新 canary と同じ番号ですが、そこからビルドされたものではありません。何を試しているのか確かめるには、その canary を導入してください。</string>
+    <string name="canary_after_release">ここにあるどの canary よりも新しいリリースを使用中です。次の canary はこの上に構築されます。</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">何か見つかりましたか？</string>
+    <string name="canary_report_body">canary の不具合こそ、それを使う理由そのものです。報告があって初めて修正になります。バグを追っているなら Debug の ZIP を選んでください。記録される情報がはるかに多く、報告に必要なのはそれです。</string>
     <string name="home_contributors_by_commits">コミット数順</string>
     <string name="home_contributors_by_recent">最近の順</string>
     <string name="scope_recommended_only">モジュールが要求したもの</string>

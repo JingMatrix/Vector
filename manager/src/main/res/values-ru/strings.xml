@@ -220,10 +220,29 @@
         <item quantity="other">Все %1$d модулей и все их настройки будут удалены. Это необратимо.</item>
     </plurals>
     <string name="canary_open_actions">Открыть на GitHub</string>
-    <string name="canary_open_run">Открыть эту сборку</string>
-    <string name="canary_install">Установить</string>
-    <string name="canary_expired">Артефакты этой сборки устарели.</string>
     <string name="canary_none">Canary-сборки пока не публиковались.</string>
+    <string name="canary_what_title">Что такое canary</string>
+    <string name="canary_what_body">Текущее состояние master, собранное и проверенное только CI. Исправления попадают сюда за дни или недели до того, как дойдут до релиза.</string>
+    <string name="canary_keep_body">Хранятся %1$d самых свежих, и с любой страницы сборки можно перейти между ними или вернуться к последнему релизу. Здесь нет пути в один конец.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">С момента вашей сборки добавился %1$d коммит.</item>
+        <item quantity="few">С момента вашей сборки добавилось %1$d коммита.</item>
+        <item quantity="many">С момента вашей сборки добавилось %1$d коммитов.</item>
+        <item quantity="other">С момента вашей сборки добавилось %1$d коммитов.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Исправлено с момента вашей сборки</item>
+        <item quantity="few">Исправлено с момента вашей сборки — %1$d проблемы</item>
+        <item quantity="many">Исправлено с момента вашей сборки — %1$d проблем</item>
+        <item quantity="other">Исправлено с момента вашей сборки — %1$d проблем</item>
+    </plurals>
+    <string name="canary_current">У вас самая свежая canary-сборка. Пока CI не опубликует следующую, тестировать нечего.</string>
+    <string name="canary_ahead">Ваша сборка новее всех опубликованных canary, то есть собрана не из них.</string>
+    <string name="canary_diverged">Ваша сборка носит номер свежайшей canary, но собрана не из неё. Установите её, чтобы точно знать, что вы тестируете.</string>
+    <string name="canary_after_release">У вас релиз новее всех canary в этом списке. Следующая canary будет собрана поверх него.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Что-то нашли?</string>
+    <string name="canary_report_body">Сбой в canary — именно то, ради чего её и запускают: отчёт превращает его в исправление. Если вы ищете ошибку, берите Debug-архив: он пишет намного больше, и это как раз то, что нужно для отчёта.</string>
     <string name="home_contributors_by_commits">По числу коммитов</string>
     <string name="home_contributors_by_recent">По давности</string>
     <string name="scope_recommended_only">То, что просит модуль</string>

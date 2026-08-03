@@ -255,10 +255,33 @@
         <item quantity="other">ستُحذف %1$d وحدة وكل ما أعدّته. لا يمكن التراجع عن ذلك.</item>
     </plurals>
     <string name="canary_open_actions">فتح على GitHub</string>
-    <string name="canary_open_run">فتح هذا التشغيل</string>
-    <string name="canary_install">تثبيت</string>
-    <string name="canary_expired">انتهت صلاحية مخرجات هذا الإصدار.</string>
     <string name="canary_none">لم يُنشر أي إصدار canary بعد.</string>
+    <string name="canary_what_title">ما هي نسخة canary</string>
+    <string name="canary_what_body">الحالة الراهنة لفرع master، بُنيت وفُحصت بواسطة CI وحدها. تصل الإصلاحات إلى هنا قبل أيام أو أسابيع من وصولها إلى إصدار مستقر.</string>
+    <string name="canary_keep_body">يُحتفظ بأحدث %1$d منها، وأي صفحة بناء تنقلك بينها أو تعيدك إلى آخر إصدار مستقر. لا شيء هنا طريق باتجاه واحد.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="zero">لم يصل أي إيداع منذ نسختك.</item>
+        <item quantity="one">وصل إيداع واحد منذ نسختك.</item>
+        <item quantity="two">وصل إيداعان منذ نسختك.</item>
+        <item quantity="few">وصلت %1$d إيداعات منذ نسختك.</item>
+        <item quantity="many">وصل %1$d إيداعًا منذ نسختك.</item>
+        <item quantity="other">وصل %1$d إيداع منذ نسختك.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="zero">أُصلح منذ نسختك</item>
+        <item quantity="one">أُصلح منذ نسختك</item>
+        <item quantity="two">أُصلحت مشكلتان منذ نسختك</item>
+        <item quantity="few">أُصلحت %1$d مشكلات منذ نسختك</item>
+        <item quantity="many">أُصلحت %1$d مشكلة منذ نسختك</item>
+        <item quantity="other">أُصلحت %1$d مشكلة منذ نسختك</item>
+    </plurals>
+    <string name="canary_current">أنت تشغّل أحدث نسخة canary. لا شيء لاختباره حتى تنشر CI نسخة جديدة.</string>
+    <string name="canary_ahead">نسختك أحدث من كل نسخ canary المنشورة، لذا لم تُبنَ من أي منها.</string>
+    <string name="canary_diverged">تحمل نسختك رقم أحدث نسخة canary لكنها لم تُبنَ منها. ثبّتها لتتأكد مما تختبره.</string>
+    <string name="canary_after_release">أنت على إصدار مستقر أحدث من كل نسخ canary هنا. ستُبنى نسخة canary التالية فوقه.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">هل وجدت شيئًا؟</string>
+    <string name="canary_report_body">سوء تصرّف نسخة canary هو تحديدًا سبب تشغيلها — والتبليغ هو ما يحوّله إلى إصلاح. خذ ملف ZIP من نوع Debug إن كنت تتعقّب علة: فهو يسجّل أكثر بكثير، وهو ما يحتاجه أي تبليغ.</string>
     <string name="home_contributors_by_commits">الأكثر إيداعًا</string>
     <string name="home_contributors_by_recent">الأحدث</string>
     <string name="scope_recommended_only">ما تطلبه الوحدة</string>

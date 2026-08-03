@@ -223,10 +223,25 @@
         <item quantity="other">هر %1$d ماژول و هر آنچه پیکربندی کرده‌اند حذف می‌شود. این کار برگشت‌پذیر نیست.</item>
     </plurals>
     <string name="canary_open_actions">باز کردن در GitHub</string>
-    <string name="canary_open_run">باز کردن این اجرا</string>
-    <string name="canary_install">نصب</string>
-    <string name="canary_expired">فرآورده‌های این ساخت منقضی شده‌اند.</string>
     <string name="canary_none">هنوز هیچ ساخت canary منتشر نشده است.</string>
+    <string name="canary_what_title">canary چیست</string>
+    <string name="canary_what_body">وضعیت کنونی master، که تنها به‌دست CI ساخته و بررسی شده است. رفع‌ اشکال‌ها روزها یا هفته‌ها پیش از رسیدن به یک نسخهٔ پایدار، اینجا می‌آیند.</string>
+    <string name="canary_keep_body">‏%1$d مورد تازه‌تر نگه داشته می‌شود و هر صفحهٔ ساخت شما را میان آن‌ها یا به آخرین نسخه بازمی‌گرداند. هیچ‌چیز اینجا یک‌طرفه نیست.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">از زمان ساخت شما %1$d کامیت رسیده است.</item>
+        <item quantity="other">از زمان ساخت شما %1$d کامیت رسیده است.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">از زمان ساخت شما رفع شد</item>
+        <item quantity="other">از زمان ساخت شما رفع شد — %1$d مشکل</item>
+    </plurals>
+    <string name="canary_current">تازه‌ترین canary را اجرا می‌کنید. تا انتشار بعدی CI چیزی برای آزمودن نیست.</string>
+    <string name="canary_ahead">ساخت شما از هر canary منتشرشده تازه‌تر است، پس از هیچ‌کدام ساخته نشده است.</string>
+    <string name="canary_diverged">ساخت شما شمارهٔ تازه‌ترین canary را دارد اما از آن ساخته نشده است. برای اطمینان از آنچه می‌آزمایید، آن را نصب کنید.</string>
+    <string name="canary_after_release">روی نسخه‌ای هستید که از همهٔ canaryهای اینجا تازه‌تر است. canary بعدی روی همین ساخته می‌شود.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">چیزی پیدا کردید؟</string>
+    <string name="canary_report_body">بدرفتاری یک canary دقیقاً دلیل اجرای آن است — گزارش است که آن را به یک اصلاح تبدیل می‌کند. اگر دنبال یک اشکال هستید ZIP نسخهٔ Debug را بردارید: بسیار بیشتر ثبت می‌کند و همان چیزی است که گزارش لازم دارد.</string>
     <string name="home_contributors_by_commits">بیشترین کامیت</string>
     <string name="home_contributors_by_recent">تازه‌ترین</string>
     <string name="scope_recommended_only">آنچه ماژول می‌خواهد</string>

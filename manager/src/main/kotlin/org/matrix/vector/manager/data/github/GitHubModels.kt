@@ -247,30 +247,60 @@ data class GhReleaseAsset(
     @SerialName("browser_download_url") val downloadUrl: String? = null,
 )
 
-/** A successful CI run, as the canary screen renders it. */
-data class CanaryBuild(
-    val id: Long,
-    /**
-     * The build this is, and the key the installer selects by.
-     *
-     * CI tags every canary `canary-<versionCode>`, so the number is in the tag and needs no second
-     * request. It is what [FrameworkRelease.versionCode] holds for the same release, which is how a
-     * row here can hand the installer a build rather than a URL.
-     */
-    val versionCode: Long,
+/**
+ * A closed issue, as GitHub's issue list reports it.
+ *
+ * **This is how the canary screen knows what got fixed, and it has to be.** A commit message only
+ * names an issue when somebody wrote `Fixes #816` into it; this repository's issues are usually
+ * linked through the web UI's *Development* panel instead, which closes them on merge and writes
+ * nothing into the history at all. The link itself is only readable through GraphQL —
+ * `PullRequest.closingIssuesReferences` — and GraphQL answers 403 to an anonymous caller, which
+ * this app is by design. So what is asked instead is the question REST will answer without an
+ * account: which issues closed, and when.
+ */
+data class ClosedIssue(
+    val number: Int,
     val title: String,
-    val branch: String,
-    val shortSha: String,
-    val epochSeconds: Long,
+    val closedAtEpoch: Long,
     val htmlUrl: String?,
-    val artifacts: List<CanaryArtifact>,
 )
+
+@Serializable
+data class GhIssue(
+    val number: Int,
+    val title: String = "",
+    @SerialName("closed_at") val closedAt: String? = null,
+    /**
+     * Why it closed: `completed`, `not_planned` or `duplicate`.
+     *
+     * Only the first is a fix. Counting the others would tell a reader that eleven issues were
+     * dealt with since their build when five of them were triage.
+     */
+    @SerialName("state_reason") val stateReason: String? = null,
+    @SerialName("html_url") val htmlUrl: String? = null,
+) {
+    /**
+     * Whether this is really a pull request.
+     *
+     * The issues endpoint returns both — a pull request *is* an issue to GitHub — and in one page
+     * of this repository's closed items more than half were pull requests. Told apart by the URL
+     * rather than by the presence of the `pull_request` object, which would mean decoding a nested
+     * payload none of whose fields are wanted.
+     */
+    val isPullRequest: Boolean
+        get() = htmlUrl?.contains("/pull/") == true
+}
 
 /**
  * A published build of the framework, canary or stable, with the zip to flash.
  *
  * One type for both channels because the install path is identical — the difference is only which
  * of them a given reader is allowed to be offered.
+ *
+ * One type for the canary list as well, which used to read the same endpoint through a shape of its
+ * own. Two models over one response meant the canary page fetched what the update page was already
+ * holding, and could say nothing about a build that this type does not carry — no notes, no commit,
+ * and so no way to mark the one that is running.
  */
 data class FrameworkRelease(
     val tag: String,
@@ -302,6 +332,15 @@ data class FrameworkRelease(
     /** The one to offer by default when nothing has been chosen. */
     val defaultZip: CanaryArtifact?
         get() = zips.firstOrNull { it.variant == ZipVariant.Release } ?: zips.firstOrNull()
+
+    /**
+     * The commit, abbreviated the way git abbreviates it, or null when the release names a branch.
+     *
+     * Seven characters because that is what `git rev-parse --short` gives on a repository this
+     * size, and what the commit rail already prints — the two are read side by side.
+     */
+    val shortSha: String?
+        get() = commit?.take(7)
 }
 
 /**
@@ -321,7 +360,6 @@ data class CanaryArtifact(
     val id: Long,
     val name: String,
     val sizeInBytes: Long,
-    val expired: Boolean,
     val downloadUrl: String?,
 ) {
     val variant: ZipVariant

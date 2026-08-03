@@ -239,10 +239,29 @@
         <item quantity="other">Wszystkie %1$d modułu i wszystko, co skonfigurowały, zostanie usunięte. Tego nie da się cofnąć.</item>
     </plurals>
     <string name="canary_open_actions">Otwórz na GitHubie</string>
-    <string name="canary_open_run">Otwórz to uruchomienie</string>
-    <string name="canary_install">Zainstaluj</string>
-    <string name="canary_expired">Artefakty tej kompilacji wygasły.</string>
     <string name="canary_none">Nie opublikowano jeszcze żadnej kompilacji canary.</string>
+    <string name="canary_what_title">Czym jest canary</string>
+    <string name="canary_what_body">Bieżący stan gałęzi master, zbudowany i sprawdzony wyłącznie przez CI. Poprawki trafiają tutaj dni lub tygodnie przed tym, jak dotrą do wydania.</string>
+    <string name="canary_keep_body">Zachowywane są %1$d najnowsze, a każda strona kompilacji pozwala przechodzić między nimi lub wrócić do ostatniego wydania. Nic tutaj nie jest drogą w jedną stronę.</string>
+    <plurals name="canary_since_commits">
+        <item quantity="one">Od Twojej kompilacji pojawił się %1$d commit.</item>
+        <item quantity="few">Od Twojej kompilacji pojawiły się %1$d commity.</item>
+        <item quantity="many">Od Twojej kompilacji pojawiło się %1$d commitów.</item>
+        <item quantity="other">Od Twojej kompilacji pojawiło się %1$d commitów.</item>
+    </plurals>
+    <plurals name="canary_fixed_since">
+        <item quantity="one">Naprawione od Twojej kompilacji</item>
+        <item quantity="few">Naprawione od Twojej kompilacji — %1$d zgłoszenia</item>
+        <item quantity="many">Naprawione od Twojej kompilacji — %1$d zgłoszeń</item>
+        <item quantity="other">Naprawione od Twojej kompilacji — %1$d zgłoszeń</item>
+    </plurals>
+    <string name="canary_current">Używasz najnowszej kompilacji canary. Do kolejnej publikacji CI nie ma czego testować.</string>
+    <string name="canary_ahead">Twoja kompilacja jest nowsza niż wszystkie opublikowane canary, więc nie powstała z żadnej z nich.</string>
+    <string name="canary_diverged">Twoja kompilacja nosi numer najnowszej canary, ale nie z niej powstała. Zainstaluj ją, aby mieć pewność, co testujesz.</string>
+    <string name="canary_after_release">Masz wydanie nowsze niż wszystkie canary z tej listy. Następna canary powstanie na jego podstawie.</string>
+    <string name="canary_build">canary %1$d</string>
+    <string name="canary_report_title">Znalazłeś coś?</string>
+    <string name="canary_report_body">Canary, która zawodzi, to właśnie powód, by ją uruchamiać — dopiero zgłoszenie zmienia to w poprawkę. Jeśli tropisz błąd, weź archiwum Debug: zapisuje znacznie więcej, a tego właśnie wymaga zgłoszenie.</string>
     <string name="home_contributors_by_commits">Najwięcej commitów</string>
     <string name="home_contributors_by_recent">Najnowsi</string>
     <string name="scope_recommended_only">To, o co prosi moduł</string>
