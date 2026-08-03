@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">카탈로그 검색</string>
     <string name="store_filter">정렬과 필터</string>
     <string name="store_sort_recent">최근 업데이트순</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">업데이트 있는 것부터</string>
     <string name="store_channel_stable">정식 릴리스만</string>
     <string name="store_channel_prerelease">사전 릴리스도 포함</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">모듈 %1$d개</item>
     </plurals>
@@ -17,49 +24,53 @@
         <item quantity="other">업데이트 %1$d건</item>
     </plurals>
     <string name="store_all_current">가진 것 모두 최신입니다</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">%1$s(으)로 업데이트</string>
     <string name="store_badge_reinstall">%1$s 다시 설치</string>
     <string name="store_badge_installed">설치됨</string>
     <string name="store_badge_prerelease">사전 릴리스</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">%1$s 업데이트</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">모듈 카탈로그에 연결하지 못했고, 이 기기에 저장된 것도 아직 없습니다.</string>
     <string name="store_no_match">그 검색어와 일치하는 모듈이 없습니다.</string>
     <string name="store_empty">카탈로그가 모듈을 하나도 돌려주지 않았습니다.</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">설명</string>
     <string name="store_tab_releases">릴리스</string>
     <string name="store_tab_information">정보</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">이 모듈에는 설명 문서가 없습니다.</string>
     <string name="store_detail_partial">모듈 목록이 이미 알고 있던 내용을 표시합니다. 설명과 예전 릴리스는 연결이 필요합니다.</string>
     <string name="store_releases_none">이 모듈은 이 채널에 릴리스를 공개한 적이 없습니다.</string>
     <string name="store_release_notes">릴리스 노트</string>
     <string name="store_open_release">GitHub에서 열기</string>
     <string name="store_open_module">모듈 페이지 열기</string>
-
+    <!-- Install -->
     <string name="store_install">설치</string>
     <string name="store_reinstall">다시 설치</string>
     <string name="store_choose_asset">설치할 파일 고르기</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">다운로드 %1$d회</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">%1$s을(를) 설치할까요?</string>
     <string name="store_confirm_body">%1$s(%2$s)을(를) 모듈 카탈로그에서 내려받아 %3$s(으)로 설치합니다.</string>
     <string name="store_confirm_trust">모듈은 후킹한 앱 안에서 프레임워크의 권한으로 실행됩니다. 만든 사람을 신뢰할 때만 설치하세요.</string>
     <string name="store_confirm_silent">Vector가 직접 설치하므로 시스템이 다시 묻지 않습니다.</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">%2$s 중 %1$s 내려받는 중</string>
     <string name="store_installing">설치하는 중…</string>
     <string name="store_confirming">시스템 확인을 기다리는 중…</string>
     <string name="store_install_failed">%1$s을(를) 설치하지 못했습니다</string>
     <string name="store_install_failed_reason">%1$s을(를) 설치하지 못했습니다: %2$s</string>
     <string name="store_cancel">취소</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">요약</string>
     <string name="store_info_scope">후킹 대상</string>
+    <string name="store_info_scope_installed">후킹 대상, 설치된 사본 기준</string>
     <string name="store_info_scope_undeclared">밝히지 않음. 이 모듈은 어떤 앱을 후킹하는지 말하지 않습니다.</string>
     <string name="store_info_homepage">홈페이지</string>
     <string name="store_info_source">소스 코드</string>
@@ -67,12 +78,9 @@
     <string name="store_info_stars">스타</string>
     <string name="store_info_updated">최근 릴리스</string>
     <string name="store_info_created">처음 공개</string>
-
     <string name="store_release_notes_hide">노트 접기</string>
     <string name="store_installed_first">설치된 것부터</string>
-
     <string name="store_group_sort">정렬</string>
     <string name="store_group_priority">우선순위</string>
     <string name="store_group_channel">채널</string>
-    <string name="store_info_scope_installed">후킹 대상, 설치된 사본 기준</string>
 </resources>
