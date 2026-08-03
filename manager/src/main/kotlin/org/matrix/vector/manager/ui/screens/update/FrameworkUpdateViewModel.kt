@@ -81,18 +81,36 @@ class FrameworkUpdateViewModel : ViewModel() {
      * The release the screen is about.
      *
      * Defaults to whatever is worth offering — the update if there is one, otherwise the newest
-     * known build, which is usually the installed one — and follows an explicit choice once made.
-     * Held as a version code rather than the object so a refresh that returns fresh instances does
-     * not silently drop the selection.
+     * build on this reader's channel, which is usually the installed one — and follows an explicit
+     * choice once made. Held as a version code rather than the object so a refresh that returns
+     * fresh instances does not silently drop the selection.
+     *
+     * The pin is resolved against the whole catalogue, both channels, while the defaults stay on
+     * the reader's own. Asking is not the same as being offered: someone on a release build who
+     * opened the canary list and pressed install on a row has named the build they want, and
+     * looking that number up in the release-only list finds nothing and quietly hands them the
+     * stable release instead.
      */
     val selected: StateFlow<FrameworkRelease?> =
         combine(update, explicit) { state, pinned ->
-                val list = state.history
-                pinned?.let { code -> list.firstOrNull { it.versionCode == code } }
+                pinned?.let { code -> state.catalog.firstOrNull { it.versionCode == code } }
                     ?: state.available
-                    ?: list.firstOrNull()
+                    ?: state.history.firstOrNull()
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * The builds the version picker lists.
+     *
+     * The reader's own channel, unless the page is sitting on a canary — then all of them. A page
+     * opened from the canary list is a page about prereleases, and a picker that answered it with
+     * the stable list would offer no way back to the build the reader had just been looking at.
+     */
+    val history: StateFlow<List<FrameworkRelease>> =
+        combine(update, selected) { state, release ->
+                if (release?.isCanary == true) state.catalog else state.history
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Where the selected release sits relative to what is running. */
     val direction: StateFlow<ReleaseDirection> =
@@ -120,7 +138,7 @@ class FrameworkUpdateViewModel : ViewModel() {
      * The canary list arrives here naming the build it was showing. It holds no [FrameworkRelease]
      * — it reads the same prereleases through a different shape — but CI tags every canary
      * `canary-<versionCode>`, so the number is the one thing both sides already agree on. Pinning
-     * it before the list has loaded is fine: [selected] resolves the number against the history
+     * it before the list has loaded is fine: [selected] resolves the number against the catalogue
      * whenever that arrives.
      */
     fun select(versionCode: Long) {

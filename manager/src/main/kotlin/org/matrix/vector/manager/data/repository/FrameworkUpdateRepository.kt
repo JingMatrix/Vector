@@ -23,8 +23,10 @@ import org.matrix.vector.manager.data.model.buildStamp
  *   aged out of the rolling five prereleases and would otherwise look like a release build. It also
  *   correctly classifies a locally built development copy, which is ahead of everything published.
  *
- * A reader on a release build is only ever offered releases. That is the whole point of the
- * distinction: a nightly is not something to be nudged towards.
+ * A reader on a release build is never *offered* a canary. That is the whole point of the
+ * distinction: a nightly is not something to be nudged towards. It is not a ban on installing one —
+ * the canary list exists to be acted on, and [FrameworkUpdateState.catalog] keeps both channels so
+ * a build asked for by name can still be found. Only the unasked-for offer is filtered.
  */
 class FrameworkUpdateRepository(private val github: GitHubRepository) {
 
@@ -45,19 +47,21 @@ class FrameworkUpdateRepository(private val github: GitHubRepository) {
             releases.any { it.isCanary && it.versionCode == installedVersionCode } ||
                 (newestStable != null && installedVersionCode > newestStable.versionCode)
 
-        // A canary reader sees whichever is newer; a release reader never sees a canary at all.
-        val candidates = if (onCanary) releases else releases.filterNot { it.isCanary }
-        val newest = candidates.maxByOrNull { it.versionCode }
+        // A canary reader is offered whichever is newer; a release reader is offered no canary.
+        val newest = releases.filter { onCanary || !it.isCanary }.maxByOrNull { it.versionCode }
 
         _state.value =
             FrameworkUpdateState(
                 installedVersionCode = installedVersionCode,
                 installedCommit = installedCommit,
                 available = newest?.takeIf { it.versionCode > installedVersionCode },
-                // Every release on the channel, not only the newest: the same list that answers
-                // "is there anything newer" also answers "what could I go back to" — a question
-                // people ask after a build breaks something for them.
-                history = candidates.sortedByDescending { it.versionCode },
+                // Every published build, not only the newest and not only this channel's: the same
+                // list that answers "is there anything newer" also answers "what could I go back
+                // to" — a question people ask after a build breaks something for them — and "which
+                // build was that row on the canary page", which is a question only the other
+                // channel can answer.
+                catalog = releases.sortedByDescending { it.versionCode },
+                onCanary = onCanary,
             )
     }
 }
@@ -79,9 +83,24 @@ data class FrameworkUpdateState(
      */
     val installedCommit: String? = null,
     val available: FrameworkRelease? = null,
-    /** Every release on this channel, newest first — including ones older than the installed one. */
-    val history: List<FrameworkRelease> = emptyList(),
+    /**
+     * Every published build, both channels, newest first — including ones older than the installed
+     * one, and, for a reader on a release build, the canaries they are not being offered.
+     *
+     * Kept whole because a canary the reader picked off the canary page has to be resolvable by
+     * version code. Filtering it out here is what made that tap land on the newest *release*
+     * instead: the number named a build the screen had thrown away, so the selection fell through
+     * to the channel's default and a reader who asked for a nightly was shown the stable release
+     * they were already running.
+     */
+    val catalog: List<FrameworkRelease> = emptyList(),
+    /** Whether the running build is itself a canary, by the rule the repository documents. */
+    val onCanary: Boolean = false,
 ) {
+    /** What this reader is offered unasked: their own channel, newest first. */
+    val history: List<FrameworkRelease>
+        get() = catalog.filter { onCanary || !it.isCanary }
+
     val hasUpdate: Boolean
         get() = available != null
 }

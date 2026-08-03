@@ -102,7 +102,7 @@ fun FrameworkUpdateScreen(
     viewModel: FrameworkUpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
     // Before the list has loaded, which is the point: the pin is a number, and it is resolved
-    // against the history whenever that arrives.
+    // against the catalogue whenever that arrives.
     LaunchedEffect(openOnVersionCode) { openOnVersionCode?.let(viewModel::select) }
     val update by viewModel.update.collectAsStateWithLifecycle()
     val flash by viewModel.flash.collectAsStateWithLifecycle()
@@ -110,6 +110,7 @@ fun FrameworkUpdateScreen(
     val chosenZip by viewModel.chosenZip.collectAsStateWithLifecycle()
     val root by viewModel.root.collectAsStateWithLifecycle()
     val selected by viewModel.selected.collectAsStateWithLifecycle()
+    val history by viewModel.history.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var versionsOpen by remember { mutableStateOf(false) }
@@ -120,7 +121,7 @@ fun FrameworkUpdateScreen(
 
     if (versionsOpen) {
         VersionsSheet(
-            history = update.history,
+            history = history,
             update = update,
             selected = selected,
             onSelect = viewModel::select,
@@ -160,7 +161,7 @@ fun FrameworkUpdateScreen(
                     }
                 },
                 actions = {
-                    if (update.history.size > 1) {
+                    if (history.size > 1) {
                         IconButton(onClick = { versionsOpen = true }) {
                             Icon(
                                 Icons.Rounded.History,
