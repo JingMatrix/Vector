@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Logs screen.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without colliding
+  with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
 <resources>
-
     <string name="logs_title">Dzienniki</string>
-
+    <!-- Top bar actions -->
     <string name="logs_word_wrap">Zawijaj długie wiersze</string>
     <string name="logs_save">Zapisz zgłoszenie błędu…</string>
     <string name="logs_rotate">Zacznij nowy dziennik…</string>
-
+    <!-- Search and filter -->
     <string name="logs_search_hint">Szukaj w tym dzienniku</string>
     <string name="logs_filter">Filtruj wg poziomu i znacznika</string>
     <string name="logs_filter_levels">Poziom</string>
     <string name="logs_filter_tags">Znacznik</string>
     <string name="logs_filter_clear">Wyczyść filtr</string>
     <string name="logs_filter_scanning">Wczytywanie całego pliku, aby filtr sięgał poza to, co widać na ekranie.</string>
-
+    <!-- The counter under the search field -->
+    <!-- Example: "lines 1 200–3 200 of 30 412" -->
     <string name="logs_window">Wiersze %1$d–%2$d z %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d pasujący wiersz</item>
@@ -29,13 +36,14 @@
         <item quantity="many">%1$d ramek</item>
         <item quantity="other">%1$d ramki</item>
     </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
     <plurals name="logs_more_lines">
         <item quantity="one">%1$d wiersz więcej</item>
         <item quantity="few">%1$d wiersze więcej</item>
         <item quantity="many">%1$d wierszy więcej</item>
         <item quantity="other">%1$d wiersza więcej</item>
     </plurals>
-
+    <!-- The four distinct nothing-to-show states -->
     <string name="logs_state_daemon_title">Usługa jest nieosiągalna</string>
     <string name="logs_state_daemon_body">Dopóki Vector nie działa, o dzienniku nic nie wiadomo. Z tego samego powodu pasek stanu na stronie startowej nie jest zielony.</string>
     <string name="logs_state_nofile_title">Nie ma jeszcze pliku dziennika</string>
@@ -47,28 +55,27 @@
     <string name="logs_state_failed_title">Nie udało się odczytać dziennika</string>
     <string name="logs_state_failed_body">Usługa przekazała plik, którego nie dało się odczytać: %1$s</string>
     <string name="logs_loading">Indeksowanie…</string>
-
+    <!-- Verbose logging -->
     <string name="logs_verbose_switch">Szczegółowe zapisywanie</string>
     <string name="logs_verbose_enforced">Działająca usługa i tak wymusza tę opcję.</string>
-
+    <!-- Navigation within a long log -->
     <string name="logs_jump_oldest">Przejdź do najstarszego wiersza</string>
     <string name="logs_jump_newest">Przejdź do najnowszego wiersza</string>
-
+    <!-- Per-row actions -->
     <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
-
+    <!-- Starting a new log: the consequence, named -->
     <string name="logs_rotate_title">Zacząć nowy dziennik?</string>
     <string name="logs_rotate_body">Nic nie zostanie usunięte. Usługa zamyka bieżącą część i otwiera nową; zamknięta część zostaje na dysku — o jedno przesunięcie stąd — dopóki nie wypadnie z dziesięciu najnowszych, a zapisane zgłoszenie błędu nadal ją zawiera.</string>
     <string name="logs_rotate_confirm">Zacznij nowy dziennik</string>
     <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
     <string name="logs_rotate_failed">Usługa odmówiła rozpoczęcia nowego dziennika</string>
     <string name="logs_cancel">Anuluj</string>
-
+    <!-- Saving -->
     <string name="logs_saving">Zbieranie dzienników, tombstone\'ów i dmesg…</string>
     <string name="logs_saved">Zapisano zgłoszenie błędu</string>
     <string name="logs_save_failed">Nie udało się zapisać zgłoszenia błędu</string>
     <string name="logs_save_failed_reason">Nie udało się zapisać zgłoszenia błędu: %1$s</string>
     <string name="logs_share">Udostępnij</string>
-
     <string name="logs_filter_clear_tag">Wyczyść filtr znacznika</string>
     <string name="logs_settings">Ustawienia dzienników</string>
     <string name="logs_source_more">Pokaż też wiersze samego szkieletu</string>
