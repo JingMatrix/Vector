@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Store — the online module repository.
 
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
     <string name="store_search_hint">Tìm trong kho mô-đun</string>
     <string name="store_filter">Sắp xếp và lọc</string>
     <string name="store_sort_recent">Cập nhật gần đây</string>
@@ -9,7 +16,7 @@
     <string name="store_updates_first">Có bản cập nhật trước</string>
     <string name="store_channel_stable">Chỉ bản phát hành ổn định</string>
     <string name="store_channel_prerelease">Kèm bản phát hành thử</string>
-
+    <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">%1$d mô-đun</item>
     </plurals>
@@ -17,49 +24,53 @@
         <item quantity="other">%1$d bản cập nhật</item>
     </plurals>
     <string name="store_all_current">mọi thứ bạn có đều là mới nhất</string>
-
+    <!-- Rows -->
     <string name="store_badge_update">Cập nhật lên %1$s</string>
     <string name="store_badge_reinstall">Cài lại %1$s</string>
     <string name="store_badge_installed">Đã cài</string>
     <string name="store_badge_prerelease">Phát hành thử</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
     <string name="store_updated_on">Cập nhật %1$s</string>
-
+    <!-- Empty states, which must never render identically -->
     <string name="store_unreachable">Không kết nối được kho mô-đun, và trên thiết bị này cũng chưa lưu gì.</string>
     <string name="store_no_match">Không có mô-đun nào khớp với tìm kiếm đó.</string>
     <string name="store_empty">Kho mô-đun không trả về mô-đun nào.</string>
-
+    <!-- Detail tabs -->
     <string name="store_tab_readme">Giới thiệu</string>
     <string name="store_tab_releases">Phát hành</string>
     <string name="store_tab_information">Thông tin</string>
-
+    <!-- Detail -->
     <string name="store_readme_missing">Mô-đun này không kèm tài liệu giới thiệu.</string>
     <string name="store_detail_partial">Đang hiện những gì danh sách mô-đun đã biết. Tài liệu giới thiệu và các bản phát hành cũ cần có kết nối.</string>
     <string name="store_releases_none">Mô-đun này chưa phát hành gì trên kênh đó.</string>
     <string name="store_release_notes">Ghi chú phát hành</string>
     <string name="store_open_release">Mở trên GitHub</string>
     <string name="store_open_module">Mở trang của mô-đun</string>
-
+    <!-- Install -->
     <string name="store_install">Cài đặt</string>
     <string name="store_reinstall">Cài lại</string>
     <string name="store_choose_asset">Chọn tệp để cài</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d lượt tải</item>
     </plurals>
-
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">Cài %1$s?</string>
     <string name="store_confirm_body">%1$s (%2$s) sẽ được tải từ kho mô-đun và cài dưới tên %3$s.</string>
     <string name="store_confirm_trust">Mô-đun chạy với quyền của framework bên trong những ứng dụng nó hook. Chỉ cài khi bạn tin tác giả của nó.</string>
     <string name="store_confirm_silent">Vector tự cài và hệ thống sẽ không hỏi lại.</string>
-
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">Đang tải %1$s trên %2$s</string>
     <string name="store_installing">Đang cài…</string>
     <string name="store_confirming">Đang chờ hộp thoại hệ thống…</string>
     <string name="store_install_failed">Không cài được %1$s</string>
     <string name="store_install_failed_reason">Không cài được %1$s: %2$s</string>
     <string name="store_cancel">Huỷ</string>
-
+    <!-- Information tab -->
     <string name="store_info_summary">Tóm tắt</string>
     <string name="store_info_scope">Hook</string>
+    <string name="store_info_scope_installed">Hook, theo bản đã cài</string>
     <string name="store_info_scope_undeclared">Không khai báo. Mô-đun này không nói nó hook những ứng dụng nào.</string>
     <string name="store_info_homepage">Trang chủ</string>
     <string name="store_info_source">Mã nguồn</string>
@@ -67,12 +78,9 @@
     <string name="store_info_stars">Sao</string>
     <string name="store_info_updated">Phát hành gần nhất</string>
     <string name="store_info_created">Lần công bố đầu tiên</string>
-
     <string name="store_release_notes_hide">Ẩn ghi chú</string>
     <string name="store_installed_first">Đã cài trước</string>
-
     <string name="store_group_sort">Sắp xếp</string>
     <string name="store_group_priority">Ưu tiên</string>
     <string name="store_group_channel">Kênh</string>
-    <string name="store_info_scope_installed">Hook, theo bản đã cài</string>
 </resources>
