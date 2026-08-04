@@ -60,7 +60,7 @@
     <string name="logs_rotate_body">Nic nie zostanie usunięte. Usługa zamyka bieżącą część i otwiera nową; zamknięta część zostaje na dysku — o jedno przesunięcie stąd — dopóki nie wypadnie z dziesięciu najnowszych, a zapisane zgłoszenie błędu nadal ją zawiera.</string>
     <string name="logs_rotate_confirm">Zacznij nowy dziennik</string>
     <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
-    <string name="logs_rotate_failed">Usługa odmówiła rozpoczęcia nowego dziennika</string>
+    <string name="logs_rotate_unreachable">Nie udało się połączyć z usługą, aby rozpocząć nowy dziennik</string>
     <string name="logs_cancel">Anuluj</string>
 
     <string name="logs_saving">Zbieranie dzienników, tombstone\'ów i dmesg…</string>

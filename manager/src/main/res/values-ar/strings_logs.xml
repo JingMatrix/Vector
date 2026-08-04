@@ -66,7 +66,7 @@
     <string name="logs_rotate_body">لا يُحذف شيء. تُغلق الخدمة الجزء الحالي وتبدأ جزءًا جديدًا؛ ويبقى الجزء المغلق على القرص — على بعد سحبة — حتى يخرج من العشرة الأحدث، ويظل البلاغ المحفوظ يتضمّنه.</string>
     <string name="logs_rotate_confirm">بدء سجل جديد</string>
     <string name="logs_rotate_done">بدأ سجل جديد</string>
-    <string name="logs_rotate_failed">رفضت الخدمة بدء سجل جديد</string>
+    <string name="logs_rotate_unreachable">تعذّر الوصول إلى الخدمة لبدء سجل جديد</string>
     <string name="logs_cancel">إلغاء</string>
 
     <string name="logs_saving">جارٍ جمع السجلات وملفات tombstone وdmesg…</string>

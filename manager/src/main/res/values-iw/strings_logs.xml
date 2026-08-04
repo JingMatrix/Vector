@@ -60,7 +60,7 @@
     <string name="logs_rotate_body">שום דבר לא נמחק. השירות סוגר את החלק הנוכחי ופותח חדש; החלק הסגור נשאר באחסון — במרחק החלקה אחת — עד שהוא יוצא מעשרת האחרונים, ודיווח תקלה שנשמר עדיין כולל אותו.</string>
     <string name="logs_rotate_confirm">התחלת יומן חדש</string>
     <string name="logs_rotate_done">התחיל יומן חדש</string>
-    <string name="logs_rotate_failed">השירות סירב להתחיל יומן חדש</string>
+    <string name="logs_rotate_unreachable">לא ניתן היה להגיע לשירות כדי להתחיל יומן חדש</string>
     <string name="logs_cancel">ביטול</string>
 
     <string name="logs_saving">אוסף יומנים, קובצי tombstone ו-dmesg…</string>

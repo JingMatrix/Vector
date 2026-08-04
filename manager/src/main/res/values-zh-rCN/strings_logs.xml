@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">不会删除任何内容。守护进程会关闭当前分段并新建一个；已关闭的分段仍保留在磁盘上——滑动即可查看——直到它不再属于最近的十个分段，保存的问题报告也仍会包含它。</string>
     <string name="logs_rotate_confirm">开始新的日志</string>
     <string name="logs_rotate_done">已开始新的日志</string>
-    <string name="logs_rotate_failed">守护进程拒绝开始新的日志</string>
+    <string name="logs_rotate_unreachable">无法连接守护进程以开始新的日志</string>
     <string name="logs_cancel">取消</string>
 
     <string name="logs_saving">正在收集日志、tombstone 和 dmesg…</string>

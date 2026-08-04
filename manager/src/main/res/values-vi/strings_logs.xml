@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">Không xoá gì cả. Tiến trình nền đóng phần hiện tại và mở một phần mới; phần đã đóng vẫn nằm trên bộ nhớ — chỉ một cái vuốt — cho tới khi rơi khỏi mười phần gần nhất, và báo cáo lỗi đã lưu vẫn có nó.</string>
     <string name="logs_rotate_confirm">Bắt đầu nhật ký mới</string>
     <string name="logs_rotate_done">Đã bắt đầu một nhật ký mới</string>
-    <string name="logs_rotate_failed">Tiến trình nền từ chối bắt đầu nhật ký mới</string>
+    <string name="logs_rotate_unreachable">Không thể kết nối tiến trình nền để bắt đầu nhật ký mới</string>
     <string name="logs_cancel">Huỷ</string>
 
     <string name="logs_saving">Đang thu thập nhật ký, tombstone và dmesg…</string>

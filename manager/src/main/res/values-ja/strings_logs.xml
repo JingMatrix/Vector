@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">何も削除されません。デーモンは現在の区切りを閉じて新しいものを始めます。閉じた区切りは、直近 10 件から外れるまでは端末に残り — スワイプで見られます — 保存した不具合報告にも引き続き含まれます。</string>
     <string name="logs_rotate_confirm">新しいログを始める</string>
     <string name="logs_rotate_done">新しいログを始めました</string>
-    <string name="logs_rotate_failed">デーモンが新しいログの開始を拒否しました</string>
+    <string name="logs_rotate_unreachable">デーモンに接続できず、新しいログを開始できませんでした</string>
     <string name="logs_cancel">キャンセル</string>
 
     <string name="logs_saving">ログ・tombstone・dmesg を集めています…</string>

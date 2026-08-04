@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">Hiçbir şey silinmez. Art alan süreci mevcut parçayı kapatıp yenisini açar; kapanan parça, en yeni on parçanın dışına düşene dek diskte kalır — bir kaydırma kadar uzakta — ve kaydedilen hata raporuna da girmeye devam eder.</string>
     <string name="logs_rotate_confirm">Yeni bir günlük başlat</string>
     <string name="logs_rotate_done">Yeni bir günlük başlatıldı</string>
-    <string name="logs_rotate_failed">Art alan süreci yeni günlük başlatmayı reddetti</string>
+    <string name="logs_rotate_unreachable">Yeni günlük başlatmak için art alan sürecine ulaşılamadı</string>
     <string name="logs_cancel">Vazgeç</string>
 
     <string name="logs_saving">Günlükler, tombstone\'lar ve dmesg toplanıyor…</string>

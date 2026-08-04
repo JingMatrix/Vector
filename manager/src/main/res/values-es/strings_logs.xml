@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">No se borra nada. El daemon cierra la parte actual y abre una nueva; la parte cerrada se queda en el disco —a un deslizamiento de aquí— hasta que salga de las diez más recientes, y un informe de error guardado la sigue incluyendo.</string>
     <string name="logs_rotate_confirm">Empezar un registro nuevo</string>
     <string name="logs_rotate_done">Se ha empezado un registro nuevo</string>
-    <string name="logs_rotate_failed">El daemon se negó a empezar un registro nuevo</string>
+    <string name="logs_rotate_unreachable">No se pudo contactar con el daemon para empezar un registro nuevo</string>
     <string name="logs_cancel">Cancelar</string>
 
     <string name="logs_saving">Recogiendo registros, tombstones y dmesg…</string>

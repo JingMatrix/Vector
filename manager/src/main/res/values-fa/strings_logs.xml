@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">چیزی حذف نمی‌شود. سرویس بخش کنونی را می‌بندد و بخشی تازه می‌گشاید؛ بخش بسته‌شده — به فاصلهٔ یک کشیدن — روی حافظه می‌ماند تا از ده بخش تازه بیرون برود، و گزارش اشکال ذخیره‌شده همچنان آن را دربر می‌گیرد.</string>
     <string name="logs_rotate_confirm">آغاز گزارش تازه</string>
     <string name="logs_rotate_done">گزارش تازه‌ای آغاز شد</string>
-    <string name="logs_rotate_failed">سرویس از آغاز گزارش تازه سر باز زد</string>
+    <string name="logs_rotate_unreachable">دسترسی به سرویس برای آغاز گزارش تازه ممکن نشد</string>
     <string name="logs_cancel">انصراف</string>
 
     <string name="logs_saving">در حال گردآوری گزارش‌ها، tombstone و dmesg…</string>

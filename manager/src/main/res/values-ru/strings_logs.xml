@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">Ничего не удаляется. Служба закрывает текущую часть и начинает новую; закрытая часть остаётся на диске — в одном свайпе отсюда — пока не выйдет за пределы последних десяти, и попадает в сохранённый отчёт об ошибке.</string>
     <string name="logs_rotate_confirm">Начать новый журнал</string>
     <string name="logs_rotate_done">Новый журнал начат</string>
-    <string name="logs_rotate_failed">Служба отказалась начать новый журнал</string>
+    <string name="logs_rotate_unreachable">Не удалось связаться со службой, чтобы начать новый журнал</string>
     <string name="logs_cancel">Отмена</string>
     <string name="logs_saving">Сбор журналов, tombstone и dmesg…</string>
     <string name="logs_saved">Отчёт об ошибке сохранён</string>

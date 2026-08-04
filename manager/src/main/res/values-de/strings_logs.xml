@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">Es wird nichts gelöscht. Der Daemon schließt den aktuellen Teil und beginnt einen neuen; der geschlossene Teil bleibt auf dem Speicher — eine Wischgeste entfernt — bis er aus den zehn neuesten herausfällt, und ein gespeicherter Fehlerbericht enthält ihn weiterhin.</string>
     <string name="logs_rotate_confirm">Neues Protokoll beginnen</string>
     <string name="logs_rotate_done">Ein neues Protokoll wurde begonnen</string>
-    <string name="logs_rotate_failed">Der Daemon hat es abgelehnt, ein neues Protokoll zu beginnen</string>
+    <string name="logs_rotate_unreachable">Der Daemon war nicht erreichbar, um ein neues Protokoll zu beginnen</string>
     <string name="logs_cancel">Abbrechen</string>
 
     <string name="logs_saving">Protokolle, Tombstones und dmesg werden gesammelt…</string>

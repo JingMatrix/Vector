@@ -60,7 +60,7 @@
     <string name="logs_rotate_body">Нічого не видаляється. Служба закриває поточну частину й починає нову; закрита частина лишається на диску — за один змах звідси — доки не випаде з десяти найновіших, і збережений звіт про помилку все одно її містить.</string>
     <string name="logs_rotate_confirm">Почати новий журнал</string>
     <string name="logs_rotate_done">Розпочато новий журнал</string>
-    <string name="logs_rotate_failed">Служба відмовилася починати новий журнал</string>
+    <string name="logs_rotate_unreachable">Не вдалося звернутися до служби, щоб почати новий журнал</string>
     <string name="logs_cancel">Скасувати</string>
 
     <string name="logs_saving">Збирання журналів, tombstone і dmesg…</string>

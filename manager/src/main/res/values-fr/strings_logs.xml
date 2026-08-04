@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">Rien n\'est supprimé. Le démon ferme la partie en cours et en ouvre une neuve ; la partie fermée reste sur le disque — à un glissement d\'ici — jusqu\'à sortir des dix plus récentes, et un rapport de bug enregistré la contient toujours.</string>
     <string name="logs_rotate_confirm">Commencer un nouveau journal</string>
     <string name="logs_rotate_done">Un nouveau journal a été commencé</string>
-    <string name="logs_rotate_failed">Le démon a refusé de commencer un nouveau journal</string>
+    <string name="logs_rotate_unreachable">Impossible de joindre le démon pour commencer un nouveau journal</string>
     <string name="logs_cancel">Annuler</string>
 
     <string name="logs_saving">Collecte des journaux, des tombstones et de dmesg…</string>

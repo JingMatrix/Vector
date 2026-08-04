@@ -54,7 +54,7 @@
     <string name="logs_rotate_body">Non viene cancellato niente. Il daemon chiude la parte attuale e ne apre una nuova; la parte chiusa resta su disco — a uno scorrimento da qui — finché non esce dalle dieci più recenti, e una segnalazione di bug salvata la include ancora.</string>
     <string name="logs_rotate_confirm">Comincia un nuovo log</string>
     <string name="logs_rotate_done">È stato cominciato un nuovo log</string>
-    <string name="logs_rotate_failed">Il daemon si è rifiutato di cominciare un nuovo log</string>
+    <string name="logs_rotate_unreachable">Impossibile raggiungere il daemon per cominciare un nuovo log</string>
     <string name="logs_cancel">Annulla</string>
 
     <string name="logs_saving">Raccolta di log, tombstone e dmesg…</string>

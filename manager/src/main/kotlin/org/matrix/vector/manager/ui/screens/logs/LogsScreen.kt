@@ -266,7 +266,7 @@ fun LogsScreen(
 
     if (confirmRotate) {
         val rotated = stringResource(R.string.logs_rotate_done)
-        val rotateFailed = stringResource(R.string.logs_rotate_failed)
+        val rotateFailed = stringResource(R.string.logs_rotate_unreachable)
         VectorAlertDialog(
             onDismissRequest = { confirmRotate = false },
             title = { Text(stringResource(R.string.logs_rotate_title)) },

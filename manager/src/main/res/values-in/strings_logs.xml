@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">Tidak ada yang dihapus. Daemon menutup bagian yang sekarang dan membuka yang baru; bagian yang ditutup tetap ada di penyimpanan — sejauh satu usapan — sampai ia keluar dari sepuluh yang terbaru, dan laporan bug yang tersimpan tetap menyertakannya.</string>
     <string name="logs_rotate_confirm">Mulai log baru</string>
     <string name="logs_rotate_done">Log baru telah dimulai</string>
-    <string name="logs_rotate_failed">Daemon menolak memulai log baru</string>
+    <string name="logs_rotate_unreachable">Tidak dapat menghubungi daemon untuk memulai log baru</string>
     <string name="logs_cancel">Batal</string>
 
     <string name="logs_saving">Mengumpulkan log, tombstone, dan dmesg…</string>

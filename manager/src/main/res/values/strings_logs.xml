@@ -71,7 +71,7 @@
     <string name="logs_rotate_body">Nothing is deleted. The daemon closes the current part and starts a fresh one; the closed part stays on disk — a swipe away — until it ages out of the ten most recent, and a saved bug report still includes it.</string>
     <string name="logs_rotate_confirm">Start a new log</string>
     <string name="logs_rotate_done">A new log has been started</string>
-    <string name="logs_rotate_failed">The daemon refused to start a new log</string>
+    <string name="logs_rotate_unreachable">Could not reach the daemon to start a new log</string>
     <string name="logs_cancel">Cancel</string>
 
     <!-- Saving -->

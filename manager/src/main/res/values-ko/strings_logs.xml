@@ -51,7 +51,7 @@
     <string name="logs_rotate_body">아무것도 지워지지 않습니다. 데몬이 지금 조각을 닫고 새 조각을 엽니다. 닫힌 조각은 최근 열 개에서 밀려날 때까지 기기에 남고 — 밀어서 볼 수 있습니다 — 저장한 버그 신고에도 그대로 들어갑니다.</string>
     <string name="logs_rotate_confirm">새 로그 시작</string>
     <string name="logs_rotate_done">새 로그를 시작했습니다</string>
-    <string name="logs_rotate_failed">데몬이 새 로그 시작을 거부했습니다</string>
+    <string name="logs_rotate_unreachable">데몬에 연결할 수 없어 새 로그를 시작하지 못했습니다</string>
     <string name="logs_cancel">취소</string>
 
     <string name="logs_saving">로그, tombstone, dmesg를 모으는 중…</string>
