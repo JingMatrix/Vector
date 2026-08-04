@@ -20,7 +20,7 @@ import org.matrix.vector.daemon.system.PER_USER_RANGE
 import org.matrix.vector.daemon.utils.InstallerVerifier
 import org.matrix.vector.daemon.utils.ObfuscationManager
 
-private const val TAG = "VectorAppService"
+private const val TAG = "VectorFrameworkService"
 
 // Hardcoded transaction code from BridgeService
 const val BRIDGE_TRANSACTION_CODE =
@@ -30,7 +30,17 @@ const val DEX_TRANSACTION_CODE =
 const val OBFUSCATION_MAP_TRANSACTION_CODE =
     ('_'.code shl 24) or ('O'.code shl 16) or ('B'.code shl 8) or 'F'.code
 
-object ApplicationService : IFrameworkService.Stub() {
+/**
+ * What an injected process asks the framework for — this project's `IFrameworkService`.
+ *
+ * Also the daemon's register of which process is running which module, because answering
+ * `getModules` is what makes a process a hot reload target for each module returned. See
+ * `IFrameworkService.aidl` for who may call what and how a caller is authenticated.
+ *
+ * Was called `ApplicationService`, which named neither the interface it implements nor anything it
+ * does: nothing here is about an `Application`.
+ */
+object FrameworkService : IFrameworkService.Stub() {
 
   data class ProcessKey(val uid: Int, val pid: Int)
 
@@ -271,7 +281,7 @@ object ApplicationService : IFrameworkService.Stub() {
 
   override fun getLegacyModules() = getAllModules().filter { it.code.legacy }
 
-  override fun isLogMuted(): Boolean = !ManagerService.isVerboseLog
+  override fun isLogMuted(): Boolean = !ManagerService.isVerboseLogEnabled()
 
   override fun getPrefsPath(packageName: String): String {
     val info = ensureRegistered()

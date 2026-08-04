@@ -8,7 +8,13 @@ import org.matrix.vector.ipc.IRemotePreferenceCallback;
  * <p>Not to be confused with {@code io.github.libxposed.service.IXposedService}, which is the same
  * module's service as seen from its <b>app</b>. The two deliberately differ: an app may write its
  * remote files, a hooked process may only read them, because a hooked process runs as the app it
- * was injected into rather than as the module.</p>
+ * was injected into rather than as the module. The daemon implements this one in
+ * {@code InjectedModuleService} and that one in {@code ModuleAppService}, so which is which is
+ * legible from the class name rather than from the import list.</p>
+ *
+ * <p><b>Transaction ids are implicit, as in {@link IFrameworkService}.</b> This binder reaches an
+ * injected process inside a {@link LoadedModule}, so it only ever crosses between a daemon and a
+ * framework dex from the same zip. Append new methods; do not insert.</p>
  */
 interface IModuleService {
     /** The framework capability bits, as {@code XposedInterface#getFrameworkProperties}. */

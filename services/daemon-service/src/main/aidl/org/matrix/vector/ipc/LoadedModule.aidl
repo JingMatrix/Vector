@@ -37,6 +37,15 @@ parcelable LoadedModule {
     /** The generation of code to load. */
     ModuleCode code;
 
+    /**
+     * The module app's own ApplicationInfo, as PackageManager reported it to the daemon.
+     *
+     * <p>Carried rather than looked up because the process receiving it usually cannot: it runs as
+     * the app it was injected into, and system_server is served before PackageManager is published
+     * at all. Reaches the module as {@code XposedInterface#getModuleApplicationInfo}, whose name
+     * carries the fact worth keeping: it describes the <b>module</b> and never the process it is
+     * running in.</p>
+     */
     ApplicationInfo applicationInfo;
 
     /** What {@code XposedInterface}'s remote preferences and remote files calls go through. */

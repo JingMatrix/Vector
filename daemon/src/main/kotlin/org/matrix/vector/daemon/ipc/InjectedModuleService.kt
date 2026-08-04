@@ -17,6 +17,13 @@ import org.matrix.vector.daemon.system.PER_USER_RANGE
 
 private const val TAG = "VectorInjectedModuleService"
 
+/**
+ * A module's service as an **injected process** sees it — this project's `IModuleService`.
+ *
+ * The counterpart to [ModuleAppService], and see `IModuleService.aidl` for why the two differ: this
+ * side may only read the module's remote files, because the process holding it runs as the app it
+ * was injected into rather than as the module.
+ */
 class InjectedModuleService(private val packageName: String) : IModuleService.Stub() {
 
   // Tracks active RemotePreferenceCallbacks linked by config group. Preferences are stored per
@@ -75,7 +82,7 @@ class InjectedModuleService(private val packageName: String) : IModuleService.St
         .getOrElse { throw RemoteException(it.message) }
   }
 
-  // Called by ModuleService when the module app has changed the group for one Android user.
+  // Called by ModuleAppService when the module app has changed the group for one Android user.
   fun onUpdateRemotePreferences(group: String, userId: Int, diff: Bundle) {
     val groupCallbacks = callbacks[group] ?: return
     for (subscriber in groupCallbacks) {

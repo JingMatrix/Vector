@@ -14,7 +14,7 @@ src/main/
 └── kotlin/org/matrix/vector/daemon/
     ├── data/                 # SQLite schema, immutable state cache, and file operations
     ├── env/                  # UNIX domain socket servers and native process monitors
-    ├── ipc/                  # AIDL endpoints (Application, Manager, Module, SystemServer)
+    ├── ipc/                  # AIDL endpoints (Framework, Manager, ModuleApp, InjectedModule, SystemServer)
     ├── system/               # System binder delegates and Notification UI
     ├── utils/                # Context forgery, signature verification, and JNI bridges
     ├── Cli.kt                # Command-line interface definitions
@@ -47,15 +47,15 @@ When a standard user application spawns, it requests framework access from the d
 * The target application queries the `activity` service. The Zygisk module inside `system_server` intercepts this query.
 * The `system_server` forwards the application's UID, PID, process name, and a newly created heartbeat `BBinder` to the daemon using the previously stored `VectorService` reference.
 * The daemon verifies the request against its `ConfigCache` to determine if the application is within the scope of any enabled modules.
-* If approved, the daemon returns an `ApplicationService` binder, which the `system_server` passes back to the target application.
+* If approved, the daemon returns an `FrameworkService` binder, which the `system_server` passes back to the target application.
 * The daemon links a `DeathRecipient` to the heartbeat binder to automatically clean up internal tracking maps when the application process dies.
-* The target application uses the `ApplicationService` binder to fetch its specific module list, framework DEX, and obfuscation map.
+* The target application uses the `FrameworkService` binder to fetch its specific module list, framework DEX, and obfuscation map.
 
 ### 3. Libxposed Module Injection
 Unlike target applications which request access, the daemon actively pushes its API binder to module processes. This mechanism is strictly limited to modules utilizing the modern libxposed API.
 
 * The daemon registers an `IUidObserver` with the Activity Manager to monitor process lifecycles.
-* When a UID becomes active, `ModuleService` checks if the UID belongs to an enabled libxposed module.
+* When a UID becomes active, `ModuleAppService` checks if the UID belongs to an enabled libxposed module.
 * The daemon retrieves an `IXposedService` binder. To deliver it, the daemon calls `IActivityManager.getContentProviderExternal`, targeting a synthetic authority constructed from the module's package name.
 * The daemon executes `IContentProvider.call` with the action `SEND_BINDER` and a `Bundle` containing the binder. This injects the binder into the module's process space before `Application.onCreate` executes, providing access to API verification, scope requests, and remote preferences.
 

@@ -31,9 +31,20 @@ import org.matrix.vector.daemon.system.ProcessFreezer
 import org.matrix.vector.daemon.system.PER_USER_RANGE
 import org.matrix.vector.daemon.system.activityManager
 
-private const val TAG = "VectorModuleService"
+private const val TAG = "VectorModuleAppService"
 
-class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stub() {
+/**
+ * A module's service as its own **app** sees it — libxposed's `IXposedService`.
+ *
+ * One of two services a module gets, and the name says which. [InjectedModuleService] is the other:
+ * the same module seen from inside a process it was injected into. They deliberately differ in what
+ * they allow — a module app may write its remote files, a hooked process may only read them,
+ * because a hooked process runs as the app it was injected into rather than as the module — so
+ * which one a reader is looking at has to be legible from the class name.
+ *
+ * See `IModuleService.aidl` for the other side of that distinction.
+ */
+class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.Stub() {
 
   companion object {
     // Per-target serialization lives on the target itself; this only keeps one slow target from
@@ -47,7 +58,8 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
     private const val RELOAD_TIMEOUT_SECONDS = 30L
 
     private val uidSet = ConcurrentHashMap.newKeySet<Int>()
-    private val serviceMap = Collections.synchronizedMap(WeakHashMap<LoadedModule, ModuleService>())
+    private val serviceMap =
+        Collections.synchronizedMap(WeakHashMap<LoadedModule, ModuleAppService>())
 
     fun uidClear() {
       uidSet.clear()
@@ -57,7 +69,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
       if (uidSet.add(uid)) {
         val module = ConfigCache.getModuleByUid(uid)
         if (module?.code?.legacy == false) {
-          val service = serviceMap.getOrPut(module) { ModuleService(module) }
+          val service = serviceMap.getOrPut(module) { ModuleAppService(module) }
           service.sendBinder(uid)
         }
       }
@@ -70,9 +82,9 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
     // Drives the same cycle as a service request, so onHotReloading can still refuse it.
     fun autoHotReload(module: LoadedModule) {
       if (!module.code.autoHotReload) return
-      val service = serviceMap.getOrPut(module) { ModuleService(module) }
-      ApplicationService.staleHotReloadTargets(module.packageName).forEach { target ->
-        if (target.hotReloadable && ApplicationService.beginHotReload(target)) {
+      val service = serviceMap.getOrPut(module) { ModuleAppService(module) }
+      FrameworkService.staleHotReloadTargets(module.packageName).forEach { target ->
+        if (target.hotReloadable && FrameworkService.beginHotReload(target)) {
           Log.d(TAG, "Auto hot reloading ${module.packageName} in ${target.processName}")
           hotReloadExecutor.execute { service.runHotReload(target, null, null) }
         }
@@ -219,7 +231,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
 
   override fun getRunningTargets(): List<HookedProcess> {
     val userId = ensureModule()
-    return ApplicationService.getHotReloadTargets(loadedModule.packageName, userId)
+    return FrameworkService.getHotReloadTargets(loadedModule.packageName, userId)
   }
 
   override fun hotReloadModule(targetId: Long, data: Bundle?, callback: IHotReloadCallback?) {
@@ -233,7 +245,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
     // raised for anything else on this path - a module-thrown SecurityException in particular has
     // to reach the caller as a FAILED result, not as "invalid target id".
     val target =
-        ApplicationService.getHotReloadTarget(targetId, loadedModule.packageName, userId)
+        FrameworkService.getHotReloadTarget(targetId, loadedModule.packageName, userId)
             ?: throw SecurityException("Target $targetId is not a target of ${loadedModule.packageName}")
 
     if (!target.hotReloadable) {
@@ -242,7 +254,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
       return
     }
 
-    if (!ApplicationService.beginHotReload(target)) {
+    if (!FrameworkService.beginHotReload(target)) {
       report(callback, IXposedService.HOT_RELOAD_IN_PROGRESS, "A reload is already running")
       return
     }
@@ -254,7 +266,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
   }
 
   private fun runHotReload(
-      target: ApplicationService.HotReloadTarget,
+      target: FrameworkService.HotReloadTarget,
       data: Bundle?,
       callback: IHotReloadCallback?,
   ) {
@@ -266,7 +278,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
     var outcome: HotReloadOutcome? = null
 
     try {
-      val binder = ApplicationService.getHotReloadBinder(target)
+      val binder = FrameworkService.getHotReloadBinder(target)
       if (binder == null) {
         status = IXposedService.HOT_RELOAD_UNSUPPORTED
         message = "Process ${target.processName} has no hot reload entry point"
@@ -306,7 +318,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
       // RELOADING for the life of the process, and every later request would answer IN_PROGRESS.
       if (!answered.await(RELOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
         status =
-            if (ApplicationService.isProcessRegistered(target)) IXposedService.HOT_RELOAD_FAILED
+            if (FrameworkService.isProcessRegistered(target)) IXposedService.HOT_RELOAD_FAILED
             else IXposedService.HOT_RELOAD_PROCESS_DIED
         message =
             if (status == IXposedService.HOT_RELOAD_PROCESS_DIED) {
@@ -343,7 +355,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
       // Deliberately not keyed on DeadObjectException: a frozen-but-alive target answers a
       // transaction with exactly that, so the exception type says nothing about whether the process
       // is gone. The heartbeat registry does - it is driven by a DeathRecipient.
-      val gone = !ApplicationService.isProcessRegistered(target)
+      val gone = !FrameworkService.isProcessRegistered(target)
       status =
           if (gone) IXposedService.HOT_RELOAD_PROCESS_DIED else IXposedService.HOT_RELOAD_FAILED
       message =
@@ -352,7 +364,7 @@ class ModuleService(private val loadedModule: LoadedModule) : IXposedService.Stu
       Log.e(TAG, "Hot reload of ${loadedModule.packageName} failed", t)
     } finally {
       refreeze?.invoke()
-      ApplicationService.endHotReload(target, stateFor(status), loadedVersion)
+      FrameworkService.endHotReload(target, stateFor(status), loadedVersion)
       report(callback, status, message)
     }
   }
