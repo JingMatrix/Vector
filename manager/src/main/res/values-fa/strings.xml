@@ -283,7 +283,6 @@
     <string name="update_none">به‌روزرسانی‌ای در دسترس نیست.</string>
     <string name="update_no_notes">این انتشار یادداشتی منتشر نکرده است.</string>
     <string name="update_no_root">هیچ پیاده‌سازی روتی یافت نشد، پس چیزی نمی‌توان نصب کرد.</string>
-    <string name="update_root_too_old">پیاده‌سازی روت روی این دستگاه برای نصب بسیار قدیمی است.</string>
     <string name="update_root_multiple">دو پیاده‌سازی روت یافت شد. Vector حدس نمی‌زند کدام‌یک ماژول را مدیریت می‌کند.</string>
     <string name="update_failed_start">نصب‌کننده اجرا نشد.</string>
     <string name="update_failed_download">به‌روزرسانی بارگیری نشد.</string>

@@ -675,10 +675,12 @@ interface IManagerService {
     /**
      * Which root implementation is managing this device, as one of the {@code ROOT_*} constants.
      *
-     * <p>Detected once and cached, because detecting it forks each candidate binary and reads its
-     * version. A binary that exists but exits non-zero is not counted - a leftover {@code magisk}
-     * from a previous root manager answers "Cannot connect to daemon", and counting it would turn a
-     * working KernelSU device into {@link #ROOT_MULTIPLE}.</p>
+     * <p>Presence only: whether the zygisk loader will run on this device is the loader's own
+     * decision, taken before the daemon exists, so a daemon that is answering has already passed
+     * it. Detected once and cached, because detecting it forks each candidate binary. A binary that
+     * exists but exits non-zero is not counted - a leftover {@code magisk} from a previous root
+     * manager answers "Cannot connect to daemon", and counting it would turn a working KernelSU
+     * device into {@link #ROOT_MULTIPLE}.</p>
      */
     int getRootImplementation();
 
@@ -741,42 +743,20 @@ interface IManagerService {
     const int ROOT_NONE = 1;
 
     /**
-     * One was found, below the version floor the zygisk loader requires.
-     *
-     * <p>Kept apart from {@link #ROOT_NONE} because the two need different sentences: one asks the
-     * reader to install a root manager, the other to update the one they have.</p>
-     */
-    const int ROOT_TOO_OLD = 2;
-
-    /**
      * More than one was found.
      *
      * <p>Not a failure in any of them - a device with two root implementations installed, where
      * flashing through either would be guessing which one owns the module tree on the reader's
      * behalf.</p>
      */
-    const int ROOT_MULTIPLE = 3;
+    const int ROOT_MULTIPLE = 2;
 
-    /** Magisk, at or above the version floor the zygisk loader requires. */
-    const int ROOT_MAGISK = 4;
+    /** Magisk. */
+    const int ROOT_MAGISK = 3;
 
-    /**
-     * KernelSU.
-     *
-     * <p>No version floor is applied, and that is sound rather than a shrug. {@code ksud -V} prints
-     * a build hash rather than a version code, so there is nothing to compare - the version lives
-     * behind KernelSU's own prctl interface, which a shell cannot reach. Presence is therefore the
-     * whole test, and the check that cannot be made here has already been made one layer down: the
-     * zygisk loader refuses to load on a KernelSU below its floor, so a daemon that is running at
-     * all is running under one new enough.</p>
-     */
-    const int ROOT_KERNELSU = 5;
+    /** KernelSU. */
+    const int ROOT_KERNELSU = 4;
 
-    /**
-     * APatch, at or above the version floor the zygisk loader requires - or one whose version
-     * string this daemon could not parse, which is reported as present rather than as absent.
-     * Refusing to flash because our own parser did not recognise a version would be refusing on the
-     * evidence of our code rather than on the state of the device.
-     */
-    const int ROOT_APATCH = 6;
+    /** APatch. */
+    const int ROOT_APATCH = 5;
 }

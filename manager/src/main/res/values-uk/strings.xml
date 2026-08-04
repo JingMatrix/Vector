@@ -303,7 +303,6 @@
     <string name="update_none">Оновлень немає.</string>
     <string name="update_no_notes">До цього випуску немає опису.</string>
     <string name="update_no_root">Не знайдено жодної реалізації root, тож немає чим прошивати.</string>
-    <string name="update_root_too_old">Реалізація root на цьому пристрої застара для прошивання.</string>
     <string name="update_root_multiple">Знайдено дві реалізації root. Vector не гадатиме, яка з них керує модулем.</string>
     <string name="update_failed_start">Не вдалося запустити встановлювач.</string>
     <string name="update_failed_download">Не вдалося завантажити оновлення.</string>

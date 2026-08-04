@@ -274,7 +274,6 @@
     <string name="update_none">没有可用更新。</string>
     <string name="update_no_notes">此版本未发布说明。</string>
     <string name="update_no_root">未找到 root 实现，无法刷入。</string>
-    <string name="update_root_too_old">此设备上的 root 实现过旧，无法用于刷入。</string>
     <string name="update_root_multiple">检测到两种 root 实现。Vector 不会猜测由哪一个管理模块。</string>
     <string name="update_failed_start">无法启动安装程序。</string>
     <string name="update_failed_download">无法下载此更新。</string>

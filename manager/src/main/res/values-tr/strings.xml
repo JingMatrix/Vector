@@ -283,7 +283,6 @@
     <string name="update_none">Kullanılabilir güncelleme yok.</string>
     <string name="update_no_notes">Bu sürüm için not yayımlanmamış.</string>
     <string name="update_no_root">Hiçbir root uygulaması bulunamadı, dolayısıyla kurulacak bir şey yok.</string>
-    <string name="update_root_too_old">Bu cihazdaki root uygulaması kurulum için fazla eski.</string>
     <string name="update_root_multiple">İki root uygulaması bulundu. Vector modülü hangisinin yönettiğini tahmin etmez.</string>
     <string name="update_failed_start">Kurulum programı başlatılamadı.</string>
     <string name="update_failed_download">Güncelleme indirilemedi.</string>

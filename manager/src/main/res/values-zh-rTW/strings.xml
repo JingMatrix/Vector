@@ -274,7 +274,6 @@
     <string name="update_none">沒有可用更新。</string>
     <string name="update_no_notes">此版本未發布說明。</string>
     <string name="update_no_root">找不到 root 實作，無法刷入。</string>
-    <string name="update_root_too_old">此裝置上的 root 實作過舊，無法用於刷入。</string>
     <string name="update_root_multiple">偵測到兩種 root 實作。Vector 不會猜測由哪一個管理模組。</string>
     <string name="update_failed_start">無法啟動安裝程式。</string>
     <string name="update_failed_download">無法下載此更新。</string>

@@ -307,7 +307,6 @@
     <string name="update_none">אין עדכון זמין.</string>
     <string name="update_no_notes">הגרסה הזאת לא פרסמה הערות.</string>
     <string name="update_no_root">לא נמצא שום מימוש הרשאות root, ולכן אין דרך להתקין.</string>
-    <string name="update_root_too_old">מימוש ה-root במכשיר הזה ישן מכדי להתקין דרכו.</string>
     <string name="update_root_multiple">נמצאו שני מימושי root. ‏Vector לא ינחש איזה מהם מנהל את המודול.</string>
     <string name="update_failed_start">לא ניתן היה להפעיל את תוכנית ההתקנה.</string>
     <string name="update_failed_download">לא ניתן היה להוריד את העדכון.</string>

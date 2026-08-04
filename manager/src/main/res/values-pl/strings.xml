@@ -303,7 +303,6 @@
     <string name="update_none">Brak dostępnych aktualizacji.</string>
     <string name="update_no_notes">To wydanie nie opublikowało informacji.</string>
     <string name="update_no_root">Nie znaleziono żadnej implementacji roota, więc nie ma czym wgrać.</string>
-    <string name="update_root_too_old">Implementacja roota na tym urządzeniu jest za stara, aby przez nią wgrywać.</string>
     <string name="update_root_multiple">Znaleziono dwie implementacje roota. Vector nie będzie zgadywał, która zarządza modułem.</string>
     <string name="update_failed_start">Nie udało się uruchomić instalatora.</string>
     <string name="update_failed_download">Nie udało się pobrać aktualizacji.</string>

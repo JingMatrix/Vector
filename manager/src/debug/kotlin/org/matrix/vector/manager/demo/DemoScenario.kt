@@ -165,13 +165,6 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
         DemoScenario(
-            id = "root-too-old",
-            title = "Root implementation too old",
-            summary = "Installed but not usable. Distinct from having none.",
-            rootImplementation = IManagerService.ROOT_TOO_OLD,
-            install = DemoScenario.InstallScript.NO_ROOT,
-        ),
-        DemoScenario(
             id = "root-ksu",
             title = "KernelSU",
             summary = "The install path quotes the implementation it found.",

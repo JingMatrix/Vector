@@ -430,7 +430,6 @@
     <string name="update_none">No update available.</string>
     <string name="update_no_notes">This release published no notes.</string>
     <string name="update_no_root">No root implementation was found, so nothing can be flashed.</string>
-    <string name="update_root_too_old">The root implementation on this device is too old to flash through.</string>
     <string name="update_root_unknown">This framework build does not report which root implementation is installed.</string>
     <string name="update_root_multiple">Two root implementations were found. Vector will not guess which one owns the module.</string>
     <string name="update_failed_start">The installer could not be started.</string>

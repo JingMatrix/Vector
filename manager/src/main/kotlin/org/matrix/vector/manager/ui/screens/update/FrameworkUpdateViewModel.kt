@@ -35,18 +35,14 @@ data class RootState(val code: Int = IManagerService.ROOT_UNKNOWN) {
     /**
      * The sentence to show when flashing is not possible.
      *
-     * Null when it is, and four different strings when it is not — "nothing installed", "too old",
-     * "two of them" and "this daemon does not say" need four different actions from the reader, and
+     * Null when it is, and three different strings when it is not — "nothing installed", "two of
+     * them" and "this daemon does not say" need three different actions from the reader, and
      * collapsing them into one "unsupported" would tell someone with two root managers to go
      * install a root manager.
      */
     @androidx.compose.runtime.Composable
     fun label(): String? =
         when (code) {
-            IManagerService.ROOT_TOO_OLD ->
-                androidx.compose.ui.res.stringResource(
-                    org.matrix.vector.manager.R.string.update_root_too_old
-                )
             IManagerService.ROOT_MULTIPLE ->
                 androidx.compose.ui.res.stringResource(
                     org.matrix.vector.manager.R.string.update_root_multiple

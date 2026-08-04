@@ -285,7 +285,6 @@
     <string name="update_none">Обновлений нет.</string>
     <string name="update_no_notes">К этому выпуску нет описания.</string>
     <string name="update_no_root">Не найдено ни одной реализации root — прошить нечем.</string>
-    <string name="update_root_too_old">Реализация root на этом устройстве слишком старая для прошивки.</string>
     <string name="update_root_multiple">Найдены две реализации root. Vector не станет гадать, какая из них управляет модулем.</string>
     <string name="update_failed_start">Не удалось запустить установщик.</string>
     <string name="update_failed_download">Не удалось загрузить обновление.</string>

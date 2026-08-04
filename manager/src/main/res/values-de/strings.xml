@@ -283,7 +283,6 @@
     <string name="update_none">Kein Update verfügbar.</string>
     <string name="update_no_notes">Zu dieser Version wurden keine Notizen veröffentlicht.</string>
     <string name="update_no_root">Keine Root-Implementierung gefunden — es lässt sich nichts flashen.</string>
-    <string name="update_root_too_old">Die Root-Implementierung auf diesem Gerät ist zu alt zum Flashen.</string>
     <string name="update_root_multiple">Zwei Root-Implementierungen gefunden. Vector rät nicht, welche das Modul verwaltet.</string>
     <string name="update_failed_start">Das Installationsprogramm ließ sich nicht starten.</string>
     <string name="update_failed_download">Das Update konnte nicht geladen werden.</string>

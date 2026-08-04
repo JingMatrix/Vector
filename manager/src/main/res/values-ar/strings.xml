@@ -323,7 +323,6 @@
     <string name="update_none">لا يوجد تحديث متاح.</string>
     <string name="update_no_notes">لم يَنشر هذا الإصدار أي ملاحظات.</string>
     <string name="update_no_root">لم يُعثر على أي تطبيق للروت، فلا شيء يمكن التثبيت من خلاله.</string>
-    <string name="update_root_too_old">تطبيق الروت على هذا الجهاز أقدم من أن يُثبَّت من خلاله.</string>
     <string name="update_root_multiple">عُثر على تطبيقَي روت. لن يخمّن Vector أيهما يدير الوحدة.</string>
     <string name="update_failed_start">تعذّر بدء برنامج التثبيت.</string>
     <string name="update_failed_download">تعذّر تنزيل التحديث.</string>

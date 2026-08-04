@@ -273,7 +273,6 @@
     <string name="update_none">Không có bản cập nhật nào.</string>
     <string name="update_no_notes">Bản phát hành này không có ghi chú.</string>
     <string name="update_no_root">Không tìm thấy bản cài root nào nên không nạp được gì.</string>
-    <string name="update_root_too_old">Bản cài root trên thiết bị này quá cũ để nạp.</string>
     <string name="update_root_multiple">Tìm thấy hai bản cài root. Vector sẽ không đoán bản nào đang quản lý mô-đun.</string>
     <string name="update_failed_start">Không khởi chạy được trình cài đặt.</string>
     <string name="update_failed_download">Không tải được bản cập nhật.</string>

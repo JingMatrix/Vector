@@ -283,7 +283,6 @@
     <string name="update_none">Nessun aggiornamento disponibile.</string>
     <string name="update_no_notes">Questa versione non ha pubblicato note.</string>
     <string name="update_no_root">Non è stata trovata nessuna implementazione di root, quindi non c\'è niente su cui installare.</string>
-    <string name="update_root_too_old">L\'implementazione di root su questo dispositivo è troppo vecchia per installarci sopra.</string>
     <string name="update_root_multiple">Sono state trovate due implementazioni di root. Vector non tira a indovinare quale gestisca il modulo.</string>
     <string name="update_failed_start">Non è stato possibile avviare il programma di installazione.</string>
     <string name="update_failed_download">Non è stato possibile scaricare l\'aggiornamento.</string>

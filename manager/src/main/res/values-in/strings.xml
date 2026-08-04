@@ -277,7 +277,6 @@
     <string name="update_none">Tidak ada pembaruan.</string>
     <string name="update_no_notes">Rilis ini tidak menerbitkan catatan.</string>
     <string name="update_no_root">Tidak ditemukan implementasi root, jadi tidak ada yang bisa dipasang.</string>
-    <string name="update_root_too_old">Implementasi root di perangkat ini terlalu lama untuk dipakai memasang.</string>
     <string name="update_root_multiple">Ditemukan dua implementasi root. Vector tidak akan menebak yang mana yang mengurus modulnya.</string>
     <string name="update_failed_start">Pemasang tidak bisa dijalankan.</string>
     <string name="update_failed_download">Pembaruan tidak bisa diunduh.</string>
