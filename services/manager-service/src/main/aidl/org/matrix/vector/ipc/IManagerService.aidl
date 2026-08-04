@@ -683,17 +683,6 @@ interface IManagerService {
     int getRootImplementation();
 
     /**
-     * What the root implementation calls itself, for the manager to quote - {@code Magisk 27.0},
-     * {@code KernelSU (64e3761d)}, {@code APatch 10762}.
-     *
-     * <p>Not always one version: for {@link #ROOT_MULTIPLE} it is every implementation that
-     * answered, comma-joined, since the point of that state is that there is more than one.</p>
-     *
-     * @return null when nothing was detected, or when something was detected and would not say
-     */
-    @nullable String getRootImplementationVersion();
-
-    /**
      * Flashes the framework's own root-module zip through whatever root implementation is managing
      * the device.
      *

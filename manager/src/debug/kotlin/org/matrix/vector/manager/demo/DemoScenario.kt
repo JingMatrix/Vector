@@ -38,7 +38,6 @@ data class DemoScenario(
     val libxposedApiVersion: Int = -1,
     val frameworkVersionCode: Long = -1,
     val rootImplementation: Int = IManagerService.ROOT_MAGISK,
-    val rootVersion: String? = "28.1",
     val install: InstallScript = InstallScript.SUCCEEDS,
 
     /**
@@ -156,7 +155,6 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             title = "No root implementation",
             summary = "Nothing to flash through. The install path must refuse, not fail.",
             rootImplementation = IManagerService.ROOT_NONE,
-            rootVersion = null,
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
         DemoScenario(
@@ -164,7 +162,6 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             title = "Two root implementations fighting",
             summary = "Flashing through either would be a guess, and must be named as such.",
             rootImplementation = IManagerService.ROOT_MULTIPLE,
-            rootVersion = null,
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
         DemoScenario(
@@ -172,7 +169,6 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             title = "Root implementation too old",
             summary = "Installed but not usable. Distinct from having none.",
             rootImplementation = IManagerService.ROOT_TOO_OLD,
-            rootVersion = "20.4",
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
         DemoScenario(
@@ -180,14 +176,12 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             title = "KernelSU",
             summary = "The install path quotes the implementation it found.",
             rootImplementation = IManagerService.ROOT_KERNELSU,
-            rootVersion = "12045",
         ),
         DemoScenario(
             id = "root-apatch",
             title = "APatch",
             summary = "As above, third implementation.",
             rootImplementation = IManagerService.ROOT_APATCH,
-            rootVersion = "10763",
         ),
         DemoScenario(
             id = "update-available",

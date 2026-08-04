@@ -104,7 +104,6 @@ class FakeManagerService(
      */
     override fun getBuildStamp(): String? = real?.buildStamp
 
-    override fun getRootImplementationVersion(): String? = scenario.rootVersion
 
     /**
      * A flash, without a flash.

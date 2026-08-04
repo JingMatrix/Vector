@@ -65,9 +65,6 @@ object RootImplementation {
   val implementation: Int
     get() = detected.implementation
 
-  val version: String?
-    get() = detected.version
-
   private fun detect(): Detection {
     val magisk = detectMagisk()
     val ksu = detectKernelSu()

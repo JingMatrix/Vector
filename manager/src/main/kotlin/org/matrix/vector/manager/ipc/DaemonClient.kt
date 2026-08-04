@@ -349,10 +349,6 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
 
     suspend fun getRootImplementation(): Result<Int> = runIpc { it.rootImplementation }
 
-    suspend fun getRootImplementationVersion(): Result<String?> = runIpc {
-        it.rootImplementationVersion
-    }
-
     /**
      * Starts a flash and returns as soon as the daemon has accepted it.
      *

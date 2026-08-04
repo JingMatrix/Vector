@@ -21,7 +21,7 @@ import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 
 /** Which root implementation is in charge, and whether it can be flashed through. */
-data class RootState(val code: Int = IManagerService.ROOT_UNKNOWN, val version: String? = null) {
+data class RootState(val code: Int = IManagerService.ROOT_UNKNOWN) {
 
     // Named implementations only. ROOT_UNKNOWN is also what a binder proxy returns for a
     // transaction the daemon does not implement, so it has to refuse rather than guess at an
@@ -175,16 +175,15 @@ class FrameworkUpdateViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            // Two logs for the four requests these blocks make. They all fail from the same
-            // unreachable binder, so only the two that decide what the screen says are recorded;
-            // the root version and the build stamp take their default in silence.
+            // One log for the requests these blocks make. They all fail from the same unreachable
+            // binder, so only the one that decides what the screen says is recorded; the build
+            // stamp takes its default in silence.
             val code =
                 daemon.getRootImplementation().getOrElse { e ->
                     logW("update: root implementation unreadable, screen will say it is unknown", e)
                     IManagerService.ROOT_UNKNOWN
                 }
-            val version = daemon.getRootImplementationVersion().getOrNull()
-            _root.value = RootState(code, version)
+            _root.value = RootState(code)
         }
         viewModelScope.launch {
             val installed =
