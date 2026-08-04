@@ -4,7 +4,7 @@ import android.content.pm.ApplicationInfo
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 
 /**
  * Exempts the parasitic manager's host package from GrapheneOS's "Restrict dynamic code loading"

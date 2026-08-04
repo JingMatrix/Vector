@@ -4,7 +4,7 @@ package org.matrix.vector.manager.data.model
  * A build stamp, taken apart: which commit a build came from, and where it was built.
  *
  * The framework and the manager both report one — `BuildConfig.VERSION_HASH`, and
- * `getFrameworkCommit()` across the binder — because the version code cannot tell two builds apart:
+ * `getBuildStamp()` across the binder — because the version code cannot tell two builds apart:
  * it is the commit count on origin/master, so every branch build at the same depth wears the same
  * number as the official build it was never made from.
  *

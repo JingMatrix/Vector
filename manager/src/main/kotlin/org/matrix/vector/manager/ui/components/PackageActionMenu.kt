@@ -267,11 +267,18 @@ LocalizedOverlay {
                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                         .setData(Uri.fromParts("package", packageName, null))
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                val started = daemon.startActivityAsUserWithFeature(intent, userId)
-                // The dominant failure is not an exception: the daemon returns a negative int for
-                // a null activity manager or a refused user switch.
+                // `noUserSwitch = false`, so the daemon switches to the target's profile parent
+                // and locks the screen first. That is right here: this is Settings' own details
+                // page for a package in that profile, which is not an activity that shows for
+                // whichever user is current.
+                val started = daemon.startActivityAsUser(intent, userId, noUserSwitch = false)
+                // The dominant failure is not an exception: the daemon hands back the activity
+                // manager's own start code, so a refused user switch or a screen that would not
+                // start arrives as a number rather than as a throw. Started means 0 to 99 — the
+                // band `ActivityManager.isStartResultSuccessful` tests, written out because those
+                // constants are hidden — with -100 to -1 fatal and 100 to 199 non-fatal refusals.
                 val code = started.getOrDefault(-1)
-                if (code < 0) {
+                if (code !in 0..99) {
                     logE(
                         "actions: opening app info for $packageName as user $userId failed " +
                             "(code $code)",

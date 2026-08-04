@@ -3,7 +3,7 @@ package org.matrix.vector.daemon.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.daemon.system.NotificationManager
 
 private const val TAG = "VectorModuleDatabase"
@@ -39,9 +39,9 @@ object ModuleDatabase {
   /** The one database handle. [ConfigCache], [PreferenceStore] and the CLI all borrow it. */
   val dbHelper = Database()
 
-  fun getModuleScope(packageName: String): MutableList<Application>? {
+  fun getModuleScope(packageName: String): MutableList<ScopeEntry>? {
     if (packageName == "lspd") return null
-    val result = mutableListOf<Application>()
+    val result = mutableListOf<ScopeEntry>()
     dbHelper.readableDatabase
         .query(
             "scope INNER JOIN modules ON scope.mid = modules.mid",
@@ -54,7 +54,7 @@ object ModuleDatabase {
         .use { cursor ->
           while (cursor.moveToNext()) {
             result.add(
-                Application().apply {
+                ScopeEntry().apply {
                   this.packageName = cursor.getString(0)
                   this.userId = cursor.getInt(1)
                 })
@@ -247,7 +247,7 @@ object ModuleDatabase {
     return changed
   }
 
-  fun setModuleScope(packageName: String, scope: MutableList<Application>): Boolean {
+  fun setModuleScope(packageName: String, scope: MutableList<ScopeEntry>): Boolean {
     // Last line of defence for staticScope. The manager, the socket CLI, a backup restore and a
     // module's own requestScope all end up here, so refusing here covers every one of them.
     ConfigCache.staticScopeOf(packageName)?.let { claimed ->
@@ -271,8 +271,8 @@ object ModuleDatabase {
       for (app in scope) {
         // A module is one package, one APK and one scope set for the whole device — Android cannot
         // hold two different builds under one package name, so there is nothing here to key by
-        // user. What [Application.userId] names is the *target*: which installed instance of
-        // [Application.packageName] this row points at. `ConfigCache` refuses to expand a row whose
+        // user. What [ScopeEntry.userId] names is the *target*: which installed instance of
+        // [ScopeEntry.packageName] this row points at. `ConfigCache` refuses to expand a row whose
         // user does not hold the module, which is what keeps a module installed for one user out of
         // another user's processes.
         //

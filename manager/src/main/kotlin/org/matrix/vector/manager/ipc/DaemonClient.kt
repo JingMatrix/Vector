@@ -3,10 +3,10 @@ package org.matrix.vector.manager.ipc
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import org.lsposed.lspd.IFrameworkInstallCallback
+import org.matrix.vector.ipc.IFrameworkInstallReceiver
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 
@@ -16,9 +16,9 @@ import org.matrix.vector.manager.logW
  * A Binder transaction is synchronous and the daemon on the other end can be slow, busy or gone, so
  * none of this is allowed to happen on the thread that draws.
  */
-class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
+class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
 
-    val service: ILSPManagerService?
+    val service: IManagerService?
         get() = serviceState.value
 
     val isAlive: Boolean
@@ -29,7 +29,7 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
      * unreachable or refusing daemon is a value the caller can render rather than a thrown
      * exception.
      */
-    private suspend fun <T> runIpc(block: (ILSPManagerService) -> T): Result<T> =
+    private suspend fun <T> runIpc(block: (IManagerService) -> T): Result<T> =
         withContext(Dispatchers.IO) {
             // Read the binder once: it comes from a StateFlow the daemon can change underneath us,
             // so checking one value for liveness and calling another is a race with the daemon
@@ -50,9 +50,9 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
             }
         }
 
-    suspend fun getXposedApiVersion(): Result<Int> = runIpc { it.xposedApiVersion }
+    suspend fun getLibxposedApiVersion(): Result<Int> = runIpc { it.libxposedApiVersion }
 
-    suspend fun getEnabledModules(): Result<List<String>> = runIpc { it.enabledModules().toList()
+    suspend fun getEnabledModules(): Result<List<String>> = runIpc { it.enabledModules
     }
 
     /**
@@ -98,12 +98,9 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     /**
      * Opens that screen.
      *
-     * The `lsp_no_switch_to_user` extra is not decoration. Without it, and whenever the current
-     * user is not already the target's profile parent, the daemon switches the device to that
-     * parent and locks the screen before starting the activity — right for an activity that exists
-     * in one profile only, and a startling thing to do to someone who pressed "open" on a module
-     * whose window shows for every user anyway. The flag on the resolved activity says which case
-     * this is.
+     * Whether to suppress the daemon's user switch is decided here, from the resolved activity's
+     * `FLAG_SHOW_FOR_ALL_USERS` — see [startActivityAsUser] for what the switch does and why an
+     * activity that shows for every user must not trigger one.
      *
      * Returns false when the package has no such screen, which is an answer rather than a failure.
      */
@@ -125,15 +122,12 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
         }
         return runIpc { service ->
             val code =
-                service.startActivityAsUserWithFeature(
+                service.startActivityAsUser(
                     Intent(Intent.ACTION_MAIN)
                         .setClassName(target.packageName, target.name)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra(
-                            "lsp_no_switch_to_user",
-                            (target.flags and FLAG_SHOW_FOR_ALL_USERS) != 0,
-                        ),
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                     userId,
+                    (target.flags and FLAG_SHOW_FOR_ALL_USERS) != 0,
                 )
             // The daemon hands back the activity manager's own start code, so a refusal reaches the
             // caller rather than a flat `true`: a refused user switch (-1), a disabled or
@@ -156,35 +150,32 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     }
 
     /**
-     * Modules the daemon could not load, though they are installed and enabled.
+     * Modules the daemon could not load, though they are installed and enabled, keyed by package
+     * with one of `IManagerService.MODULE_LOAD_*` as the value.
      *
      * The daemon keeps what the user asked for separately from what it can actually load, and the
      * two can disagree — an APK whose path will not resolve, a DEX the loader refuses. A module
      * listed here is still switched on; it is the loading that failed, and saying so is the only
      * way the screen can tell that apart from "switched off".
+     *
+     * A map because that is what the daemon holds and what the caller wants. It used to be a list
+     * of names plus one transaction per name to ask why, which forced the caller to seed each
+     * entry with a placeholder reason before the second round could overwrite it — so a dropped
+     * transaction reported a module as missing its APK, which nothing had established.
      */
-    suspend fun getUnloadableModules(): Result<List<String>> = runIpc {
-        it.unloadableModules.toList()
-    }
-
-    /** Why a module in that list could not be loaded; `MODULE_LOAD_OK` when it is fine. */
-    suspend fun getModuleLoadState(packageName: String): Result<Int> = runIpc {
-        it.getModuleLoadState(packageName)
+    suspend fun getModuleLoadFailures(): Result<Map<String, Int>> = runIpc { service ->
+        service.moduleLoadFailures.associate { it.packageName to it.reason }
     }
 
     suspend fun setModuleEnabled(packageName: String, enable: Boolean): Result<Boolean> = runIpc {
-        if (enable) {
-            it.enableModule(packageName)
-        } else {
-            it.disableModule(packageName)
-        }
+        it.setModuleEnabled(packageName, enable)
     }
 
-    suspend fun getFrameworkCommit(): Result<String?> = runIpc { it.frameworkCommit }
+    suspend fun getBuildStamp(): Result<String?> = runIpc { it.buildStamp }
 
-    suspend fun getXposedVersionName(): Result<String> = runIpc { it.xposedVersionName }
+    suspend fun getFrameworkVersionName(): Result<String> = runIpc { it.frameworkVersionName }
 
-    suspend fun getXposedVersionCode(): Result<Long> = runIpc { it.xposedVersionCode }
+    suspend fun getFrameworkVersionCode(): Result<Long> = runIpc { it.frameworkVersionCode }
 
     suspend fun getInstalledPackagesFromAllUsers(
         flags: Int,
@@ -194,23 +185,37 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
 
     suspend fun setModuleScope(
         packageName: String,
-        applications: List<org.lsposed.lspd.models.Application>,
+        applications: List<org.matrix.vector.ipc.ScopeEntry>,
     ): Result<Boolean> = runIpc { it.setModuleScope(packageName, applications) }
 
+    /**
+     * A module's configured scope.
+     *
+     * The AIDL answers null for the framework's own pseudo-module row, which is not a module and has
+     * no scope — and null is emphatically not an empty scope: reading a refusal as "no rows" and
+     * writing that back is how a scope gets erased. AIDL's Java backend emits no nullability
+     * annotations, so that null arrives as an unchecked platform type; it is turned into a failure
+     * here so the caller's existing error path takes it rather than a `List` that is null at
+     * runtime.
+     */
     suspend fun getModuleScope(
         packageName: String
-    ): Result<List<org.lsposed.lspd.models.Application>> = runIpc { it.getModuleScope(packageName)
+    ): Result<List<org.matrix.vector.ipc.ScopeEntry>> = runIpc {
+        it.getModuleScope(packageName)
+            ?: throw IllegalArgumentException("$packageName has no scope to read")
     }
 
-    suspend fun enableStatusNotification(): Result<Boolean> = runIpc { it.enableStatusNotification()
+    suspend fun isStatusNotificationEnabled(): Result<Boolean> = runIpc {
+        it.isStatusNotificationEnabled
     }
 
-    suspend fun setEnableStatusNotification(enabled: Boolean): Result<Unit> = runIpc { it.setEnableStatusNotification(enabled)
+    suspend fun setStatusNotificationEnabled(enabled: Boolean): Result<Unit> = runIpc {
+        it.setStatusNotificationEnabled(enabled)
     }
 
-    suspend fun isVerboseLogEnabled(): Result<Boolean> = runIpc { it.isVerboseLog }
+    suspend fun isVerboseLogEnabled(): Result<Boolean> = runIpc { it.isVerboseLogEnabled }
 
-    suspend fun setVerboseLogEnabled(enabled: Boolean): Result<Unit> = runIpc { it.isVerboseLog = enabled
+    suspend fun setVerboseLogEnabled(enabled: Boolean): Result<Unit> = runIpc { it.setVerboseLogEnabled(enabled)
     }
 
     /**
@@ -235,18 +240,20 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
      * "the daemon is unreachable" and "there is no log file yet" are different situations, the Logs
      * screen renders them differently, and a `Result<ParcelFileDescriptor>` would collapse them.
      */
-    suspend fun getLog(verbose: Boolean): Result<android.os.ParcelFileDescriptor?> = runIpc {
-        if (verbose) it.verboseLog else it.modulesLog
+    suspend fun getLiveLogPart(verbose: Boolean): Result<android.os.ParcelFileDescriptor?> = runIpc {
+        it.getLiveLogPart(verbose)
     }
 
-    suspend fun clearLogs(verbose: Boolean): Result<Boolean> = runIpc { it.clearLogs(verbose)
-    }
-
-    suspend fun getPackageInfo(
-        packageName: String,
-        flags: Int,
-        userId: Int,
-    ): Result<android.content.pm.PackageInfo> = runIpc { it.getPackageInfo(packageName, flags, userId)
+    /**
+     * Closes the part being written and opens a fresh one. Nothing is deleted.
+     *
+     * `Result<Unit>` because there is nothing truthful to answer: the daemon asks its log reader to
+     * rotate by writing a sentinel and never learns whether it acted. The call used to answer a
+     * constant `true`, which the Logs screen read as a success signal — so a rotation that never
+     * happened was reported as one that had. Success here means the daemon took the request.
+     */
+    suspend fun startNewLogPart(verbose: Boolean): Result<Unit> = runIpc {
+        it.startNewLogPart(verbose)
     }
 
     suspend fun forceStopPackage(packageName: String, userId: Int): Result<Unit> = runIpc { it.forceStopPackage(packageName, userId)
@@ -259,23 +266,16 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
 
     suspend fun isSepolicyLoaded(): Result<Boolean> = runIpc { it.isSepolicyLoaded }
 
-    suspend fun getUsers(): Result<List<org.lsposed.lspd.models.UserInfo>> = runIpc { it.users
+    suspend fun getUsers(): Result<List<org.matrix.vector.ipc.DeviceUser>> = runIpc { it.users
     }
 
-    suspend fun installExistingPackageAsUser(packageName: String, userId: Int): Result<Boolean> =
-        runIpc {
-            val INSTALL_SUCCEEDED = 1
-            it.installExistingPackageAsUser(packageName, userId) == INSTALL_SUCCEEDED
-        }
+    suspend fun isSystemServerAttached(): Result<Boolean> = runIpc { it.isSystemServerAttached }
 
-    suspend fun systemServerRequested(): Result<Boolean> = runIpc { it.systemServerRequested()
+    suspend fun isDex2OatInliningDisabled(): Result<Boolean> = runIpc {
+        it.isDex2OatInliningDisabled
     }
 
-    suspend fun dex2oatFlagsLoaded(): Result<Boolean> = runIpc { it.dex2oatFlagsLoaded() }
-
-    suspend fun getDex2OatWrapperCompatibility(): Result<Int> = runIpc {
-        it.dex2OatWrapperCompatibility
-    }
+    suspend fun getDex2OatWrapperState(): Result<Int> = runIpc { it.dex2OatWrapperState }
 
     suspend fun optimizePackage(packageName: String): Result<Boolean> = runIpc {
         it.optimizePackage(packageName)
@@ -287,26 +287,24 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
      * More than the logs: the daemon adds tombstones, ANR traces, both crash directories, a full
      * logcat and dmesg, the module database and the resolved scopes.
      */
-    suspend fun writeLogsTo(zipFd: android.os.ParcelFileDescriptor): Result<Unit> = runIpc {
-        it.getLogs(zipFd)
+    suspend fun writeBugReportTo(zipFd: android.os.ParcelFileDescriptor): Result<Unit> = runIpc {
+        it.writeBugReport(zipFd)
     }
 
-    /** Kept for the AIDL's shape: the daemon implements it as a no-op, so this asks for nothing. */
-    suspend fun restartFor(intent: android.content.Intent): Result<Unit> = runIpc {
-        it.restartFor(intent)
-    }
-
-    suspend fun startActivityAsUserWithFeature(
+    /**
+     * Starts an activity as another user.
+     *
+     * [noUserSwitch] is not decoration. Without it, and whenever the current user is not already the
+     * target's profile parent, the daemon switches the device to that parent and locks the screen
+     * before starting the activity — right for an activity that exists in one profile only, and a
+     * startling thing to do to someone who pressed "open" on a module whose window shows for every
+     * user anyway. The resolved activity's `FLAG_SHOW_FOR_ALL_USERS` says which case this is.
+     */
+    suspend fun startActivityAsUser(
         intent: android.content.Intent,
         userId: Int,
-    ): Result<Int> = runIpc { it.startActivityAsUserWithFeature(intent, userId) }
-
-    suspend fun queryIntentActivitiesAsUser(
-        intent: android.content.Intent,
-        flags: Int,
-        userId: Int,
-    ): Result<List<android.content.pm.ResolveInfo>> = runIpc { it.queryIntentActivitiesAsUser(intent, flags, userId).list
-    }
+        noUserSwitch: Boolean,
+    ): Result<Int> = runIpc { it.startActivityAsUser(intent, userId, noUserSwitch) }
 
     /** Restarts the framework without rebooting the device. Everything on screen goes with it. */
     suspend fun softReboot(): Result<Unit> = runIpc { it.softReboot() }
@@ -329,7 +327,7 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
      * True is the platform default, and is what the daemon answers on a device where nothing has
      * ever set it.
      */
-    suspend fun forcedLauncherIcons(): Result<Boolean> = runIpc { it.forcedLauncherIcons() }
+    suspend fun isForcedLauncherIcons(): Result<Boolean> = runIpc { it.isForcedLauncherIcons }
 
     suspend fun setForcedLauncherIcons(force: Boolean): Result<Unit> = runIpc {
         it.setForcedLauncherIcons(force)
@@ -358,14 +356,14 @@ class DaemonClient(private val serviceState: StateFlow<ILSPManagerService?>) {
     /**
      * Starts a flash and returns as soon as the daemon has accepted it.
      *
-     * Deliberately not wrapped into a suspend-until-finished call: the result arrives on [callback]
+     * Deliberately not wrapped into a suspend-until-finished call: the result arrives on [receiver]
      * over minutes, and a coroutine suspended across a reboot-inducing operation is a coroutine
-     * that never resumes. The caller keeps the callback alive for as long as it wants the output.
+     * that never resumes. The caller keeps the receiver alive for as long as it wants the output.
      */
     suspend fun installFrameworkZip(
         zipPath: String,
-        callback: IFrameworkInstallCallback,
-    ): Result<Unit> = runIpc { it.installFrameworkZip(zipPath, callback) }
+        receiver: IFrameworkInstallReceiver,
+    ): Result<Unit> = runIpc { it.installFrameworkZip(zipPath, receiver) }
 }
 
 /**

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.data.repository.FlashStep
 import org.matrix.vector.manager.data.repository.FrameworkUpdateState
 import org.matrix.vector.manager.di.ServiceLocator
@@ -21,16 +21,16 @@ import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 
 /** Which root implementation is in charge, and whether it can be flashed through. */
-data class RootState(val code: Int = ILSPManagerService.ROOT_UNKNOWN, val version: String? = null) {
+data class RootState(val code: Int = IManagerService.ROOT_UNKNOWN, val version: String? = null) {
 
     // Named implementations only. ROOT_UNKNOWN is also what a binder proxy returns for a
     // transaction the daemon does not implement, so it has to refuse rather than guess at an
     // installer to hand the zip to.
     val canFlash: Boolean
         get() =
-            code == ILSPManagerService.ROOT_MAGISK ||
-                code == ILSPManagerService.ROOT_KERNELSU ||
-                code == ILSPManagerService.ROOT_APATCH
+            code == IManagerService.ROOT_MAGISK ||
+                code == IManagerService.ROOT_KERNELSU ||
+                code == IManagerService.ROOT_APATCH
 
     /**
      * The sentence to show when flashing is not possible.
@@ -43,19 +43,19 @@ data class RootState(val code: Int = ILSPManagerService.ROOT_UNKNOWN, val versio
     @androidx.compose.runtime.Composable
     fun label(): String? =
         when (code) {
-            ILSPManagerService.ROOT_TOO_OLD ->
+            IManagerService.ROOT_TOO_OLD ->
                 androidx.compose.ui.res.stringResource(
                     org.matrix.vector.manager.R.string.update_root_too_old
                 )
-            ILSPManagerService.ROOT_MULTIPLE ->
+            IManagerService.ROOT_MULTIPLE ->
                 androidx.compose.ui.res.stringResource(
                     org.matrix.vector.manager.R.string.update_root_multiple
                 )
-            ILSPManagerService.ROOT_NONE ->
+            IManagerService.ROOT_NONE ->
                 androidx.compose.ui.res.stringResource(
                     org.matrix.vector.manager.R.string.update_no_root
                 )
-            ILSPManagerService.ROOT_UNKNOWN ->
+            IManagerService.ROOT_UNKNOWN ->
                 androidx.compose.ui.res.stringResource(
                     org.matrix.vector.manager.R.string.update_root_unknown
                 )
@@ -177,22 +177,22 @@ class FrameworkUpdateViewModel : ViewModel() {
         viewModelScope.launch {
             // Two logs for the four requests these blocks make. They all fail from the same
             // unreachable binder, so only the two that decide what the screen says are recorded;
-            // the root version and the framework commit take their default in silence.
+            // the root version and the build stamp take their default in silence.
             val code =
                 daemon.getRootImplementation().getOrElse { e ->
                     logW("update: root implementation unreadable, screen will say it is unknown", e)
-                    ILSPManagerService.ROOT_UNKNOWN
+                    IManagerService.ROOT_UNKNOWN
                 }
             val version = daemon.getRootImplementationVersion().getOrNull()
             _root.value = RootState(code, version)
         }
         viewModelScope.launch {
             val installed =
-                daemon.getXposedVersionCode().getOrElse { e ->
+                daemon.getFrameworkVersionCode().getOrElse { e ->
                     logW("update: installed framework version unavailable, update check skipped", e)
                     0L
                 }
-            updates.refresh(installed, daemon.getFrameworkCommit().getOrNull())
+            updates.refresh(installed, daemon.getBuildStamp().getOrNull())
         }
     }
 

@@ -18,15 +18,16 @@ import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import hidden.HiddenApiBridge
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.lsposed.lspd.util.Utils
 import org.matrix.vector.impl.core.VectorServiceClient
 
-/** The "Parasite" logic. Injects the LSPosed Manager APK into a host process (shell). */
+/** The "Parasite" logic. Injects the manager APK into a host process (shell). */
 @SuppressLint("StaticFieldLeak")
 object ParasiticManagerHooker {
     private const val CHROMIUM_WEBVIEW_FACTORY_METHOD = "create"
@@ -65,7 +66,10 @@ object ParasiticManagerHooker {
                     // contexts.
                     // We copy the APK to the host's cache as a workaround.
                     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                        val dstPath = "${appInfo.dataDir}/cache/lsposed.apk"
+                        // The pre-rename name, removed so an upgraded host is not left carrying a
+                        // stale copy of the manager in its cache forever.
+                        runCatching { File("${appInfo.dataDir}/cache/lsposed.apk").delete() }
+                        val dstPath = "${appInfo.dataDir}/cache/vector-manager.apk"
                         runCatching {
                                 FileInputStream(sourcePath).use { input ->
                                     FileOutputStream(dstPath).use { output ->
@@ -143,7 +147,7 @@ object ParasiticManagerHooker {
                     ) as Boolean
                 if (!ok) throw RuntimeException("setBinder returned false")
             }
-            .onFailure { Utils.logW("Could not send binder to LSPosed Manager", it) }
+            .onFailure { Utils.logW("Could not send binder to the manager", it) }
     }
 
     /**
@@ -174,7 +178,7 @@ object ParasiticManagerHooker {
             .onFailure { logE("Failed to evict the cached LoadedApk of $packageName", it) }
     }
 
-    private fun hookForManager(managerService: ILSPManagerService) {
+    private fun hookForManager(managerService: IManagerService) {
         // Hook 1: Swap ApplicationInfo during host binding
         XposedHelpers.findAndHookMethod(
             ActivityThread::class.java,
@@ -479,7 +483,7 @@ object ParasiticManagerHooker {
             // and there is no point opening the APK for it.
             val managerBinder = VectorServiceClient.requestManagerService() ?: return false
             VectorServiceClient.openManagerApk()!!.use { pfd ->
-                val managerService = ILSPManagerService.Stub.asInterface(managerBinder)
+                val managerService = IManagerService.Stub.asInterface(managerBinder)
 
                 if (isParasitic) {
                     managerFd = pfd.detachFd()

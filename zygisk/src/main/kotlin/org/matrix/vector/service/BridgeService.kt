@@ -8,7 +8,7 @@ import android.os.Parcel
 import hidden.HiddenApiBridge.Binder_allowBlocking
 import hidden.HiddenApiBridge.Context_getActivityToken
 import org.matrix.vector.ipc.IVectorDaemon
-import org.lsposed.lspd.util.Utils.Log
+import org.matrix.vector.util.Log
 
 /**
  * Manages manual Binder transactions for the Vector framework.

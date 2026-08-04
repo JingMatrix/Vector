@@ -18,8 +18,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.lsposed.lspd.IFrameworkInstallCallback
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IFrameworkInstallReceiver
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
@@ -37,7 +36,7 @@ sealed interface FlashStep {
     /** The installer exited zero. A reboot is what makes it take effect. */
     data object Done : FlashStep
 
-    /** [code] is the installer's exit status, or one of ILSPManagerService.INSTALL_*. */
+    /** [code] is the installer's exit status, or one of IFrameworkInstallReceiver.INSTALL_*. */
     data class Failed(val code: Int) : FlashStep
 }
 
@@ -135,7 +134,7 @@ class FrameworkInstaller(
                 .getOrElse { e ->
                     logW("update: unusable download url $url", e)
                     append("Download failed: ${e.message}")
-                    _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
+                    _state.value = FlashStep.Failed(IFrameworkInstallReceiver.INSTALL_NO_SUCH_FILE)
                     return
                 }
         transfer = call
@@ -227,7 +226,7 @@ class FrameworkInstaller(
                 if (e is CancellationException) throw e
                 logW("update: download failed", e)
                 append("Download failed: ${e.message}")
-                _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NO_SUCH_FILE)
+                _state.value = FlashStep.Failed(IFrameworkInstallReceiver.INSTALL_NO_SUCH_FILE)
                 return
             }
 
@@ -292,15 +291,15 @@ class FrameworkInstaller(
     /**
      * Runs the daemon-side install and suspends until it reports an exit code.
      *
-     * The installer's output arrives on the callback as it is produced rather than with the result,
+     * The installer's output arrives on the receiver as it is produced rather than with the result,
      * so the screen fills in during a flash that takes minutes. The exit code comes separately, on
      * a deferred nobody here abandons: it is the one moment the flash can be called finished, and a
      * wait that ended early left the bar spinning over an install that had long since succeeded.
      */
     private suspend fun awaitInstall(path: String) {
         val done = kotlinx.coroutines.CompletableDeferred<Int>()
-        val callback =
-            object : IFrameworkInstallCallback.Stub() {
+        val receiver =
+            object : IFrameworkInstallReceiver.Stub() {
                 override fun onLine(line: String?) {
                     line?.let(::append)
                 }
@@ -310,12 +309,12 @@ class FrameworkInstaller(
                 }
             }
 
-        val started = daemon.installFrameworkZip(path, callback)
+        val started = daemon.installFrameworkZip(path, receiver)
         if (started.isFailure) {
             val cause = started.exceptionOrNull()
             logE("update: daemon did not start the install of $path", cause)
             append("The daemon refused the install: ${cause?.message}")
-            _state.value = FlashStep.Failed(ILSPManagerService.INSTALL_NOT_EXECUTED)
+            _state.value = FlashStep.Failed(IFrameworkInstallReceiver.INSTALL_NOT_EXECUTED)
             return
         }
 

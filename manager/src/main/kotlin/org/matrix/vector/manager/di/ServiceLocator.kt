@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.data.repository.AppRepository
@@ -66,7 +66,7 @@ object ServiceLocator {
 
     @Volatile private var appContext: Context? = null
 
-    private val _service = MutableStateFlow<ILSPManagerService?>(null)
+    private val _service = MutableStateFlow<IManagerService?>(null)
 
     /**
      * The daemon binder, as observable state.
@@ -75,7 +75,7 @@ object ServiceLocator {
      * they were constructed — or arrives again after a reconnect — makes them re-read instead of
      * leaving them with whatever they managed to fetch before there was a daemon at all.
      */
-    val service: StateFlow<ILSPManagerService?> = _service.asStateFlow()
+    val service: StateFlow<IManagerService?> = _service.asStateFlow()
 
     val context: Context
         get() =
@@ -281,7 +281,7 @@ object ServiceLocator {
     }
 
     /** Called from `Constants.setBinder`, possibly before [attach]. */
-    fun bind(service: ILSPManagerService?) {
+    fun bind(service: IManagerService?) {
         _service.value = service
     }
 }

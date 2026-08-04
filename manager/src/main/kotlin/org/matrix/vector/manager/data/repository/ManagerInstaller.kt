@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.data.model.ManagerCopy
 import org.matrix.vector.manager.data.model.versionCodeCompat
@@ -111,7 +112,9 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
      */
     suspend fun removeConflicting(): Boolean {
         val removed =
-            daemon.uninstallPackage(BuildConfig.MANAGER_PACKAGE_NAME, ALL_USERS).getOrDefault(false)
+            daemon
+                .uninstallPackage(BuildConfig.MANAGER_PACKAGE_NAME, IManagerService.ALL_USERS)
+                .getOrDefault(false)
         if (removed) _state.value = ManagerInstallStep.Idle
         else logW("actions: could not remove the conflicting manager")
         return removed
@@ -378,8 +381,5 @@ class ManagerInstaller(private val context: Context, private val daemon: DaemonC
          * the life of the process, which is exactly what it did.
          */
         const val APK_TIMEOUT_MS = 30_000L
-
-        /** `ManagerService.uninstallPackage` reads -1 as "every user". */
-        const val ALL_USERS = -1
     }
 }

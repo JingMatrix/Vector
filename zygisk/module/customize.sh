@@ -82,7 +82,7 @@ esac
 ui_print "- Device platform: $ARCH ($ABI32 / $ABI64)"
 
 ui_print "- Extracting root module files"
-for file in module.prop action.sh service.sh uninstall.sh sepolicy.rule framework/lspd.dex cli daemon.apk daemon manager.apk; do
+for file in module.prop action.sh service.sh uninstall.sh sepolicy.rule framework/vector.dex cli daemon.apk daemon manager.apk; do
     extract "$ZIPFILE" "$file" "$MODPATH"
 done
 

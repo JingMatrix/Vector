@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.manager.data.log.archiveBuildStamp
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
@@ -136,7 +136,7 @@ class BackupRepository(private val context: Context, private val daemon: DaemonC
                     if (module.scope.isNotEmpty()) {
                         val scope =
                             module.scope.map { target ->
-                                Application().apply {
+                                ScopeEntry().apply {
                                     packageName = target.packageName
                                     userId = target.userId
                                 }

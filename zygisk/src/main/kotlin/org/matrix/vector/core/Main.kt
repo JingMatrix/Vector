@@ -3,7 +3,8 @@ package org.matrix.vector.core
 import android.os.IBinder
 import android.os.Process
 import org.matrix.vector.ipc.IFrameworkService
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Log
+import org.matrix.vector.util.Utils
 import org.matrix.vector.BuildConfig
 import org.matrix.vector.GrapheneDclHooker
 import org.matrix.vector.ParasiticManagerHooker
@@ -43,7 +44,7 @@ object Main {
         Startup.initXposed(isSystem, niceName, appDir, appService)
 
         // Configure logging levels from the service client
-        runCatching { Utils.Log.muted = VectorServiceClient.isLogMuted }
+        runCatching { Log.muted = VectorServiceClient.isLogMuted }
             .onFailure { t -> Utils.logE("Failed to configure logs from service", t) }
 
         // Check if this process is the designated Vector Manager.

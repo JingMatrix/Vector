@@ -41,13 +41,14 @@ with whatever they managed to fetch before there was a daemon.
 
 `ipc/DaemonClient` wraps every AIDL call in `runIpc`, which moves it to `Dispatchers.IO` and returns
 a `Result`. The interface is
-`services/manager-service/src/main/aidl/org/lsposed/lspd/ILSPManagerService.aidl`.
+`services/manager-service/src/main/aidl/org/matrix/vector/ipc/IManagerService.aidl`, and it is the
+source of truth for what each call means: read the method's documentation there before calling it.
 
-Two properties of Binder shape most of the mistakes made here. A proxy returns a *default* for a
-transaction the daemon does not implement rather than throwing, so `0`, `null` and empty are
-indistinguishable from real answers — which is why `ROOT_UNKNOWN` is `0` and why an older daemon
-must never be able to answer a question by accident. And a call that succeeded is not a call that
-did anything: several of these return a `boolean` the daemon uses to refuse, and dropping it turns a
+Two properties of Binder shape most of the mistakes made here, and the AIDL spells out what each
+method does about them. A proxy returns a *default* for a transaction the daemon does not implement
+rather than throwing, so `0`, `null` and empty are indistinguishable from real answers — see
+`getProtocolVersion` and `ROOT_UNKNOWN` there. And a call that succeeded is not a call that did
+anything: several of these return a `boolean` the daemon uses to refuse, and dropping it turns a
 refusal into a silent success.
 
 The daemon owns the truth. When a write and a read disagree, the read is usually coming from the

@@ -76,7 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IFrameworkInstallReceiver
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.repository.FlashStep
 import org.matrix.vector.manager.ui.screens.repo.StoreHtmlPane
@@ -480,9 +480,11 @@ private fun UpdateBar(
 @Composable
 private fun failureText(code: Int): String =
     when (code) {
-        ILSPManagerService.INSTALL_NO_ROOT -> stringResource(R.string.update_no_root)
-        ILSPManagerService.INSTALL_NOT_EXECUTED -> stringResource(R.string.update_failed_start)
-        ILSPManagerService.INSTALL_NO_SUCH_FILE -> stringResource(R.string.update_failed_download)
+        IFrameworkInstallReceiver.INSTALL_NO_ROOT -> stringResource(R.string.update_no_root)
+        IFrameworkInstallReceiver.INSTALL_NOT_EXECUTED ->
+            stringResource(R.string.update_failed_start)
+        IFrameworkInstallReceiver.INSTALL_NO_SUCH_FILE ->
+            stringResource(R.string.update_failed_download)
         else -> stringResource(R.string.update_failed_exit, code)
     }
 

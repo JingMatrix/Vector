@@ -4,7 +4,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import io.github.libxposed.service.IXposedService
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.daemon.BuildConfig
 import org.matrix.vector.daemon.CliRequest
 import org.matrix.vector.daemon.CliResponse
@@ -53,7 +53,7 @@ object CliHandler {
 
         // Asked of the configuration, not of the cache. The cache holds what could be *loaded* and
         // is rebuilt asynchronously, so the CLI used to report a module the user had just enabled
-        // as disabled, and disagree with both the manager and `ManagerService.enabledModules()`.
+        // as disabled, and disagree with both the manager and `ManagerService.getEnabledModules()`.
         val enabledModuleKeys = ModuleDatabase.enabledModules().toSet()
         //  Get all installed modules from the system
         val installed = ConfigCache.getInstalledModules()
@@ -134,7 +134,7 @@ object CliHandler {
           val user = parts.getOrNull(1)?.toIntOrNull() ?: 0
           if (scope.none { it.packageName == pkg && it.userId == user }) {
             scope.add(
-                Application().apply {
+                ScopeEntry().apply {
                   packageName = pkg
                   userId = user
                 })
@@ -147,13 +147,13 @@ object CliHandler {
         if (apps.isEmpty())
             throw IllegalArgumentException("No target apps provided for scope overwrite.")
         rejectBeyondStaticScope(apps)
-        val scope = mutableListOf<Application>()
+        val scope = mutableListOf<ScopeEntry>()
         apps.forEach { appStr ->
           val parts = appStr.split("/")
           val pkg = parts[0]
           val user = parts.getOrNull(1)?.toIntOrNull() ?: 0
           scope.add(
-              Application().apply {
+              ScopeEntry().apply {
                 packageName = pkg
                 userId = user
               })
@@ -184,8 +184,8 @@ object CliHandler {
         val key = keys[0]
         val value =
             when (key) {
-              "status-notification" -> ManagerService.enableStatusNotification()
-              "verbose-log" -> ManagerService.isVerboseLog
+              "status-notification" -> ManagerService.isStatusNotificationEnabled()
+              "verbose-log" -> ManagerService.isVerboseLogEnabled()
               else -> throw IllegalArgumentException("Unknown config key: $key")
             }
         mapOf("KEY" to key, "VALUE" to value)
@@ -198,8 +198,8 @@ object CliHandler {
                 ?: throw IllegalArgumentException("Value must be 'true' or 'false'.")
 
         when (key) {
-          "status-notification" -> ManagerService.setEnableStatusNotification(value)
-          "verbose-log" -> ManagerService.setVerboseLog(value)
+          "status-notification" -> ManagerService.setStatusNotificationEnabled(value)
+          "verbose-log" -> ManagerService.setVerboseLogEnabled(value)
           else -> throw IllegalArgumentException("Unknown config key: $key")
         }
         "Successfully set $key to $value."
@@ -271,7 +271,7 @@ object CliHandler {
     return when (request.action) {
       "clear" -> {
         val verbose = request.options["verbose"] as? Boolean ?: false
-        ManagerService.clearLogs(verbose)
+        ManagerService.startNewLogPart(verbose)
         "Logs cleared successfully."
       }
       // "stream" is handled in SystemServerService.kt to attach the FileDescriptor

@@ -168,7 +168,7 @@ androidComponents {
                         )
                 into("framework") {
                     from(dexOutPath)
-                    rename("classes.dex", "lspd.dex")
+                    rename("classes.dex", "vector.dex")
                 }
                 val injected = objects.newInstance<Injected>(tempModuleDir.get().asFile.path)
                 doLast {

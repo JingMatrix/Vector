@@ -1,6 +1,5 @@
 package org.matrix.vector.manager.demo
 
-import org.lsposed.lspd.ILSPManagerService
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 import android.os.Bundle
@@ -29,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.VectorApp
 import org.matrix.vector.manager.ui.theme.LocalizedContent
@@ -72,7 +72,7 @@ class DemoActivity : ComponentActivity() {
      * re-asserts the choice whenever something else replaces it. It settles immediately: the next
      * emission is the pinned value, which the collector then ignores.
      */
-    private var pinned: ILSPManagerService? = null
+    private var pinned: IManagerService? = null
 
     private var pinning = false
 

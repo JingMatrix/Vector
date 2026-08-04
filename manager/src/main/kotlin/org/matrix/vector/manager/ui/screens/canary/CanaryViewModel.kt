@@ -62,13 +62,13 @@ class CanaryViewModel : ViewModel() {
             // reader who has come looking for a build that works.
             val installed =
                 daemon
-                    .getXposedVersionCode()
+                    .getFrameworkVersionCode()
                     .getOrElse { e ->
                         logW("canary: framework version unavailable, using the manager's own", e)
                         0L
                     }
                     .takeIf { it > 0 } ?: BuildConfig.VERSION_CODE.toLong()
-            updates.refresh(installed, daemon.getFrameworkCommit().getOrNull())
+            updates.refresh(installed, daemon.getBuildStamp().getOrNull())
             attempted.value = true
         }
         viewModelScope.launch {

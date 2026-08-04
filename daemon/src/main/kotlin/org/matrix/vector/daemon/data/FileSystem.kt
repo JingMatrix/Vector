@@ -393,7 +393,7 @@ object FileSystem {
   fun getPreloadDex(obfuscate: Boolean): SharedMemory? {
     if (preloadDex == null) {
       runCatching {
-            FileInputStream("framework/lspd.dex").use { preloadDex = readDex(it, obfuscate) }
+            FileInputStream("framework/vector.dex").use { preloadDex = readDex(it, obfuscate) }
           }
           .onFailure { Log.e(TAG, "Failed to load framework dex", it) }
     }

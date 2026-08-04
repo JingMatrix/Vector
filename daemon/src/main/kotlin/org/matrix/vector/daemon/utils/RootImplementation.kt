@@ -4,7 +4,8 @@ import android.util.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IFrameworkInstallReceiver
+import org.matrix.vector.ipc.IManagerService
 
 private const val TAG = "VectorRootInstaller"
 
@@ -77,10 +78,10 @@ object RootImplementation {
       // Not a failure to detect — a device with two root implementations installed, where
       // flashing through either is a coin toss about which one owns the module tree.
       Log.w(TAG, "Multiple root implementations: ${found.joinToString { it.version ?: "?" }}")
-      return Detection(ILSPManagerService.ROOT_MULTIPLE, found.joinToString { it.version ?: "?" })
+      return Detection(IManagerService.ROOT_MULTIPLE, found.joinToString { it.version ?: "?" })
     }
 
-    val only = found.firstOrNull() ?: return Detection(ILSPManagerService.ROOT_NONE, null)
+    val only = found.firstOrNull() ?: return Detection(IManagerService.ROOT_NONE, null)
     Log.i(TAG, "Root implementation: ${only.version} via ${only.binary}")
     return only
   }
@@ -92,7 +93,7 @@ object RootImplementation {
     val name = run(MAGISK_PATHS, "-v")?.second?.trim()?.lineSequence()?.firstOrNull()
     val supported = code >= MIN_MAGISK
     return Detection(
-        if (supported) ILSPManagerService.ROOT_MAGISK else ILSPManagerService.ROOT_TOO_OLD,
+        if (supported) IManagerService.ROOT_MAGISK else IManagerService.ROOT_TOO_OLD,
         "Magisk ${name ?: code}",
         binary,
     )
@@ -115,7 +116,7 @@ object RootImplementation {
   private fun detectKernelSu(): Detection? {
     val (binary, raw) = run(KSUD_PATHS, "-V") ?: return null
     val build = raw.trim().substringAfter("ksud ").trim()
-    return Detection(ILSPManagerService.ROOT_KERNELSU, "KernelSU ($build)", binary)
+    return Detection(IManagerService.ROOT_KERNELSU, "KernelSU ($build)", binary)
   }
 
   /**
@@ -131,9 +132,9 @@ object RootImplementation {
     val output = raw.trim()
     val code = output.split(Regex("\\s+")).getOrNull(1)?.toIntOrNull()
     return when {
-      code == null -> Detection(ILSPManagerService.ROOT_APATCH, "APatch ($output)", binary)
-      code >= MIN_APATCH -> Detection(ILSPManagerService.ROOT_APATCH, "APatch $code", binary)
-      else -> Detection(ILSPManagerService.ROOT_TOO_OLD, "APatch $code", binary)
+      code == null -> Detection(IManagerService.ROOT_APATCH, "APatch ($output)", binary)
+      code >= MIN_APATCH -> Detection(IManagerService.ROOT_APATCH, "APatch $code", binary)
+      else -> Detection(IManagerService.ROOT_TOO_OLD, "APatch $code", binary)
     }
   }
 
@@ -167,9 +168,9 @@ object RootImplementation {
   private fun installCommand(zipPath: String): List<String>? {
     val binary = detected.binary ?: return null
     return when (implementation) {
-      ILSPManagerService.ROOT_MAGISK -> listOf(binary, "--install-module", zipPath)
-      ILSPManagerService.ROOT_KERNELSU -> listOf(binary, "module", "install", zipPath)
-      ILSPManagerService.ROOT_APATCH -> listOf(binary, "module", "install", zipPath)
+      IManagerService.ROOT_MAGISK -> listOf(binary, "--install-module", zipPath)
+      IManagerService.ROOT_KERNELSU -> listOf(binary, "module", "install", zipPath)
+      IManagerService.ROOT_APATCH -> listOf(binary, "module", "install", zipPath)
       else -> null
     }
   }
@@ -189,7 +190,7 @@ object RootImplementation {
       val message = "Refusing to flash $zipPath: not a readable file"
       Log.e(TAG, message)
       onLine(message)
-      return ILSPManagerService.INSTALL_NO_SUCH_FILE
+      return IFrameworkInstallReceiver.INSTALL_NO_SUCH_FILE
     }
 
     val command =
@@ -198,7 +199,7 @@ object RootImplementation {
               val message = "No usable root implementation to flash through (code $implementation)"
               Log.e(TAG, message)
               onLine(message)
-              return ILSPManagerService.INSTALL_NO_ROOT
+              return IFrameworkInstallReceiver.INSTALL_NO_ROOT
             }
 
     Log.i(TAG, "Flashing ${zip.name} with: ${command.joinToString(" ")}")
@@ -222,7 +223,7 @@ object RootImplementation {
         .getOrElse {
           Log.e(TAG, "Installer could not be started", it)
           onLine("Could not start the installer: ${it.message}")
-          ILSPManagerService.INSTALL_NOT_EXECUTED
+          IFrameworkInstallReceiver.INSTALL_NOT_EXECUTED
         }
   }
 }

@@ -2,7 +2,7 @@ package org.matrix.vector.manager
 
 import android.os.IBinder
 import kotlin.system.exitProcess
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.di.ServiceLocator
 
 /**
@@ -29,7 +29,7 @@ object Constants {
 
     @JvmStatic
     fun setBinder(binder: IBinder): Boolean {
-        ServiceLocator.bind(ILSPManagerService.Stub.asInterface(binder))
+        ServiceLocator.bind(IManagerService.Stub.asInterface(binder))
 
         try {
             // If the daemon dies the manager is holding a dead binder and every screen would

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.manager.data.model.AppInfo
 import org.matrix.vector.manager.data.model.ModuleDetection
 import org.matrix.vector.manager.data.model.RecommendedScope
@@ -24,7 +24,14 @@ import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 
-/** A package/user pair, as a value type so set arithmetic is correct. */
+/**
+ * A package/user pair, as a value type so set arithmetic is correct.
+ *
+ * Not [ScopeEntry], which carries the same two fields over the wire: it is a generated AIDL bean
+ * with identity equality, so a set of them would count two readings of the same target as two
+ * targets and every difference taken here would come out as "everything added and everything
+ * removed". It is built from these only at the point of writing, in [ScopeViewModel.apply].
+ */
 data class ScopeTarget(val packageName: String, val userId: Int)
 
 /**
@@ -819,7 +826,7 @@ class ScopeViewModel(
             val merged = before + (draft - baseline) - (baseline - draft)
             val aidl =
                 merged.map { target ->
-                    Application().apply {
+                    ScopeEntry().apply {
                         packageName = target.packageName
                         userId = target.userId
                     }

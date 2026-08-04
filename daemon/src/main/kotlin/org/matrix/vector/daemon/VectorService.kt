@@ -15,16 +15,16 @@ import android.util.Log
 import hidden.HiddenApiBridge
 import io.github.libxposed.service.IXposedScopeCallback
 import kotlinx.coroutines.launch
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.ipc.IVectorDaemon
 import org.matrix.vector.ipc.IFrameworkService
 import org.matrix.vector.daemon.data.ConfigCache
 import org.matrix.vector.daemon.data.ModuleDatabase
 import org.matrix.vector.daemon.data.PreferenceStore
 import org.matrix.vector.daemon.data.ProcessScope
-import org.matrix.vector.daemon.ipc.ApplicationService
+import org.matrix.vector.daemon.ipc.FrameworkService
 import org.matrix.vector.daemon.ipc.ManagerService
-import org.matrix.vector.daemon.ipc.ModuleService
+import org.matrix.vector.daemon.ipc.ModuleAppService
 import org.matrix.vector.daemon.system.*
 
 private const val TAG = "VectorService"
@@ -75,7 +75,7 @@ object VectorService : IVectorDaemon.Stub() {
       Log.w(TAG, "Unauthorized attachProcess call")
       return null
     }
-    if (ApplicationService.hasRegister(uid, pid)) return null
+    if (FrameworkService.hasRegister(uid, pid)) return null
 
     val scope = ProcessScope(processName, uid)
     if (!ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
@@ -84,8 +84,8 @@ object VectorService : IVectorDaemon.Stub() {
       return null
     }
 
-    return if (ApplicationService.registerHeartBeat(uid, pid, processName, heartBeat)) {
-      ApplicationService
+    return if (FrameworkService.registerHeartBeat(uid, pid, processName, heartBeat)) {
+      FrameworkService
     } else null
   }
 
@@ -196,15 +196,15 @@ object VectorService : IVectorDaemon.Stub() {
     // UID Observer
     val uidObserver =
         object : android.app.IUidObserver.Stub() {
-          override fun onUidActive(uid: Int) = ModuleService.uidStarts(uid)
+          override fun onUidActive(uid: Int) = ModuleAppService.uidStarts(uid)
 
           override fun onUidCachedChanged(uid: Int, cached: Boolean) {
-            if (!cached) ModuleService.uidStarts(uid)
+            if (!cached) ModuleAppService.uidStarts(uid)
           }
 
-          override fun onUidIdle(uid: Int, disabled: Boolean) = ModuleService.uidStarts(uid)
+          override fun onUidIdle(uid: Int, disabled: Boolean) = ModuleAppService.uidStarts(uid)
 
-          override fun onUidGone(uid: Int, disabled: Boolean) = ModuleService.uidGone(uid)
+          override fun onUidGone(uid: Int, disabled: Boolean) = ModuleAppService.uidGone(uid)
         }
 
     val which =
@@ -316,7 +316,7 @@ object VectorService : IVectorDaemon.Stub() {
               val scopeList = ModuleDatabase.getModuleScope(xposedModule) ?: mutableListOf()
 
               val newScope =
-                  Application().apply {
+                  ScopeEntry().apply {
                     this.packageName = moduleName
                     this.userId = userId
                   }
@@ -367,7 +367,7 @@ object VectorService : IVectorDaemon.Stub() {
     if (moduleName != null && isXposedModule && !isRemovedAction && !isRemovedForAllUsers) {
       val scopes = ModuleDatabase.getModuleScope(moduleName) ?: emptyList()
       val isSystemModule = scopes.any { it.packageName == "system" }
-      val isEnabled = ManagerService.enabledModules().contains(moduleName)
+      val isEnabled = ManagerService.getEnabledModules().contains(moduleName)
 
       NotificationManager.notifyModuleUpdated(moduleName, userId, isEnabled, isSystemModule)
     }
@@ -455,7 +455,7 @@ object VectorService : IVectorDaemon.Stub() {
               val storedUserId = if (scopePackageName == "system") 0 else userId
               if (scopes.none { it.packageName == scopePackageName && it.userId == storedUserId }) {
                 scopes.add(
-                    Application().apply {
+                    ScopeEntry().apply {
                       this.packageName = scopePackageName
                       this.userId = storedUserId
                     })

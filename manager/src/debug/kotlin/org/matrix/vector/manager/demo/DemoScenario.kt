@@ -1,6 +1,6 @@
 package org.matrix.vector.manager.demo
 
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 
 /**
  * A device state the manager cannot otherwise be shown.
@@ -25,9 +25,9 @@ data class DemoScenario(
     /** Delay on every status call. Non-zero is the only way to hold "Checking…" still. */
     val stallMillis: Long = 0,
     val sepolicyLoaded: Boolean = true,
-    val systemServerRequested: Boolean = true,
-    val dex2oatFlagsLoaded: Boolean = true,
-    val dex2oatCompatibility: Int = ILSPManagerService.DEX2OAT_OK,
+    val systemServerAttached: Boolean = true,
+    val dex2OatInliningDisabled: Boolean = true,
+    val dex2OatWrapperState: Int = IManagerService.DEX2OAT_OK,
 
     /**
      * What the framework claims to implement.
@@ -35,9 +35,9 @@ data class DemoScenario(
      * Lowering it is how a module becomes incompatible without fabricating a module: the real ones
      * on the device declare a real minimum, and the framework simply stops meeting it.
      */
-    val xposedApiVersion: Int = -1,
-    val xposedVersionCode: Long = -1,
-    val rootImplementation: Int = ILSPManagerService.ROOT_MAGISK,
+    val libxposedApiVersion: Int = -1,
+    val frameworkVersionCode: Long = -1,
+    val rootImplementation: Int = IManagerService.ROOT_MAGISK,
     val rootVersion: String? = "28.1",
     val install: InstallScript = InstallScript.SUCCEEDS,
 
@@ -115,23 +115,23 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             id = "system-server",
             title = "System framework injection failed",
             summary = "Degraded, one cause. Normally needs another root module interfering.",
-            systemServerRequested = false,
+            systemServerAttached = false,
         ),
         DemoScenario(
             id = "dex2oat",
             title = "Dex optimizer wrapper unavailable",
             summary = "Degraded, one cause. Needs system properties removed or changed.",
-            dex2oatFlagsLoaded = false,
-            dex2oatCompatibility = ILSPManagerService.DEX2OAT_MOUNT_FAILED,
+            dex2OatInliningDisabled = false,
+            dex2OatWrapperState = IManagerService.DEX2OAT_MOUNT_FAILED,
         ),
         DemoScenario(
             id = "all-issues",
             title = "All three causes at once",
             summary = "Whether the issue list reads as a list or as a wall.",
             sepolicyLoaded = false,
-            systemServerRequested = false,
-            dex2oatFlagsLoaded = false,
-            dex2oatCompatibility = ILSPManagerService.DEX2OAT_SEPOLICY_INCORRECT,
+            systemServerAttached = false,
+            dex2OatInliningDisabled = false,
+            dex2OatWrapperState = IManagerService.DEX2OAT_SEPOLICY_INCORRECT,
         ),
         DemoScenario(
             id = "inactive",
@@ -149,13 +149,13 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             id = "api-too-old",
             title = "Framework below what modules need",
             summary = "API 82. Installed modules that need more become incompatible.",
-            xposedApiVersion = 82,
+            libxposedApiVersion = 82,
         ),
         DemoScenario(
             id = "root-none",
             title = "No root implementation",
             summary = "Nothing to flash through. The install path must refuse, not fail.",
-            rootImplementation = ILSPManagerService.ROOT_NONE,
+            rootImplementation = IManagerService.ROOT_NONE,
             rootVersion = null,
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
@@ -163,7 +163,7 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             id = "root-multiple",
             title = "Two root implementations fighting",
             summary = "Flashing through either would be a guess, and must be named as such.",
-            rootImplementation = ILSPManagerService.ROOT_MULTIPLE,
+            rootImplementation = IManagerService.ROOT_MULTIPLE,
             rootVersion = null,
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
@@ -171,7 +171,7 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             id = "root-too-old",
             title = "Root implementation too old",
             summary = "Installed but not usable. Distinct from having none.",
-            rootImplementation = ILSPManagerService.ROOT_TOO_OLD,
+            rootImplementation = IManagerService.ROOT_TOO_OLD,
             rootVersion = "20.4",
             install = DemoScenario.InstallScript.NO_ROOT,
         ),
@@ -179,27 +179,27 @@ val DEMO_SCENARIOS: List<DemoScenario> =
             id = "root-ksu",
             title = "KernelSU",
             summary = "The install path quotes the implementation it found.",
-            rootImplementation = ILSPManagerService.ROOT_KERNELSU,
+            rootImplementation = IManagerService.ROOT_KERNELSU,
             rootVersion = "12045",
         ),
         DemoScenario(
             id = "root-apatch",
             title = "APatch",
             summary = "As above, third implementation.",
-            rootImplementation = ILSPManagerService.ROOT_APATCH,
+            rootImplementation = IManagerService.ROOT_APATCH,
             rootVersion = "10763",
         ),
         DemoScenario(
             id = "update-available",
             title = "An update is available",
             summary = "Reports version 1, so a real release becomes an update. Shows the picker.",
-            xposedVersionCode = 1,
+            frameworkVersionCode = 1,
         ),
         DemoScenario(
             id = "install-fails",
             title = "Flash that dies halfway",
             summary = "Output already streamed, then a non-zero exit. The case that bites.",
-            xposedVersionCode = 1,
+            frameworkVersionCode = 1,
             install = DemoScenario.InstallScript.FAILS_PARTWAY,
         ),
         DemoScenario(

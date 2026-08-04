@@ -79,7 +79,7 @@ object VectorDaemon {
     @Suppress("DEPRECATION") Looper.prepareMainLooper()
 
     // Squat on the proxy service name immediately, which creates the early IPC channel of
-    // ApplicationService for our Zygisk module during system_server specialization.
+    // FrameworkService for our Zygisk module during system_server specialization.
     SystemServerService.registerProxyService(proxyServiceName)
 
     // Start Environmental Daemons
@@ -107,7 +107,7 @@ object VectorDaemon {
     // to do so while we still have root. On a successful injection a binder thread opens it for
     // us during specialization, but when the injection fails nothing else has, and the daemon
     // used to die here on an unreadable preference.
-    val isVerboseLog = ManagerService.isVerboseLog()
+    val isVerboseLog = ManagerService.isVerboseLogEnabled()
 
     // Setup IPC channel for applications by injecting DaemonService binder
     sendToBridge(VectorService.asBinder(), false, systemServerMaxRetry)

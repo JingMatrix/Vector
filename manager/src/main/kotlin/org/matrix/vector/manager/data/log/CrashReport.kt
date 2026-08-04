@@ -95,6 +95,9 @@ data class CrashFrame(
 private val OUR_PACKAGES =
     listOf(
         "org.matrix.vector",
+        // Where this project's own code used to live. A trace is read long after it was captured —
+        // out of a saved report, or out of the crash cache an update did not clear — so the frames
+        // an older build wrote still arrive under the old name and are still ours.
         "org.lsposed.lspd",
         "de.robv.android.xposed",
         "io.github.libxposed",

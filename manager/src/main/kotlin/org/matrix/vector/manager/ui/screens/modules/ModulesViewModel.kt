@@ -16,15 +16,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.lsposed.lspd.models.Application
-import org.lsposed.lspd.models.UserInfo
+import org.matrix.vector.ipc.DeviceUser
+import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.manager.data.model.InstalledModule
 import org.matrix.vector.manager.data.model.MATCH_ANY_USER
 import org.matrix.vector.manager.data.model.PER_USER_RANGE
 import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.manager.data.model.StoreEntry
 import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
-import org.lsposed.lspd.ILSPManagerService
 import org.matrix.vector.manager.data.model.XposedApi
 import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.di.ServiceLocator
@@ -34,7 +33,7 @@ import org.matrix.vector.manager.logI
 import org.matrix.vector.manager.logW
 
 /** One tab: a user, and the modules installed for them. */
-data class UserModulesState(val user: UserInfo, val modules: List<InstalledModule>)
+data class UserModulesState(val user: DeviceUser, val modules: List<InstalledModule>)
 
 /** What the list is showing. Answering "what is running" should not need a scroll. */
 enum class ModuleFilter {
@@ -65,11 +64,14 @@ data class ModuleFacts(
      */
     val apiBrokenSince: Int? = null,
     /**
-     * Why the framework could not load this module, though it is enabled and installed.
+     * Why the framework could not load this module, though it is enabled and installed, as one of
+     * `IManagerService.MODULE_LOAD_*`.
      *
-     * Null when it loaded. This is the daemon's two notions of a module disagreeing, and it is the
-     * only case where a row can be enabled and doing nothing — worth a sentence, because from the
-     * outside it is indistinguishable from the switch having turned itself off.
+     * Null when the daemon did not name this module at all, which is every other case: it loaded,
+     * or it is switched off and there was nothing to load. This is the daemon's two notions of a
+     * module disagreeing, and it is the only case where a row can be enabled and doing nothing —
+     * worth a sentence, because from the outside it is indistinguishable from the switch having
+     * turned itself off.
      */
     val loadFailure: Int? = null,
     /**
@@ -401,18 +403,12 @@ class ModulesViewModel(
      */
     private fun loadFacts(tabs: List<UserModulesState>) {
         viewModelScope.launch(Dispatchers.IO) {
-            val api = daemonClient.getXposedApiVersion().getOrDefault(0)
-            // One call for the whole list. Asking per module would be one binder round trip per
-            // row for an answer that is empty on almost every device.
-            val unloadable =
-                daemonClient
-                    .getUnloadableModules()
-                    .getOrDefault(emptyList())
-                    .associateWith { ILSPManagerService.MODULE_LOAD_NO_APK }
-                    .toMutableMap()
-            unloadable.keys.toList().forEach { pkg ->
-                daemonClient.getModuleLoadState(pkg).getOrNull()?.let { unloadable[pkg] = it }
-            }
+            val api = daemonClient.getLibxposedApiVersion().getOrDefault(0)
+            // One call for the whole list, package to reason. Absence is the answer for every
+            // other module — it loaded, or it is switched off and there was nothing to load — so
+            // nothing here invents a reason for a row the daemon did not name. On a daemon that
+            // would not answer at all this is empty, which claims nothing about any module.
+            val loadFailures = daemonClient.getModuleLoadFailures().getOrDefault(emptyMap())
             // One lookup table for every scope preview, rather than a package-manager query per
             // scoped app per module. Keyed by package *and* user: a device with a work profile or
             // a private space holds the same package twice, and collapsing them would let a row
@@ -426,7 +422,7 @@ class ModulesViewModel(
             // The daemon holds one scope per module package covering every user, so it is read
             // once here and split per user below — the loop runs over every copy of every module,
             // because each row needs its own answer.
-            val scopeCache = mutableMapOf<String, List<Application>?>()
+            val scopeCache = mutableMapOf<String, List<ScopeEntry>?>()
             tabs.flatMap { it.modules }.forEach { module ->
                 val scope =
                     scopeCache.getOrPut(module.packageName) {
@@ -464,7 +460,7 @@ class ModulesViewModel(
                         apiBrokenSince =
                             if (api <= 0) null
                             else XposedApi.brokenSince(module.apiVersion, api),
-                        loadFailure = unloadable[module.packageName],
+                        loadFailure = loadFailures[module.packageName],
                         scopeFramework = framework,
                         scopePreview =
                             apps

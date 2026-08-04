@@ -160,7 +160,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     /**
      * True when the user asked for verbose logging off and the daemon kept it on.
      *
-     * The current daemon's `ManagerService.isVerboseLog()` returns
+     * The current daemon's `ManagerService.isVerboseLogEnabled()` returns
      * `PreferenceStore.isVerboseLogEnabled()` unmodified, so this stays false against it. An older
      * daemon OR'd that preference with its own build type and the switch would snap straight back;
      * rather than let a control refuse to move with no explanation, the screen reads the value the
@@ -260,7 +260,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
                     }
 
                     val result =
-                        if (chosen == null) daemon.getLog(verbose)
+                        if (chosen == null) daemon.getLiveLogPart(verbose)
                         else daemon.getLogPart(verbose, chosen)
                     val pfd =
                         result.getOrElse {
@@ -544,25 +544,37 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
     /**
      * Rotates the current log.
      *
-     * Named that way because that is what happens: the daemon's `clearLogs()` calls
+     * Named that way because that is what happens: the daemon's `startNewLogPart()` calls
      * `LogcatMonitor.refresh()`, which opens a fresh part and leaves the closed one on disk under a
      * ten-part LRU, still reachable from the part chevrons and still carried by the zip export.
      * Nothing is truncated, so this reloads and re-indexes rather than emptying anything.
+     *
+     * [onResult] reports whether the daemon took the request, which is as much as there is to know:
+     * the call answers nothing, because the daemon asks its reader to rotate by writing a sentinel
+     * into the log and never learns whether it acted. Folded on the `Result` itself — it used to
+     * fold on `getOrDefault(false)` over a `Result<Boolean>` whose boolean was the daemon's
+     * constant `true`, so the only thing that answer ever reported was that a transaction had
+     * happened, while reading as though the rotation had.
      */
     fun rotate(tab: LogTab, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
-            val result = daemon.clearLogs(tab == LogTab.VERBOSE)
-            result.onFailure {
-                logE("logs: rotating the ${tab.name.lowercase()} log failed", it)
-            }
-            val ok = result.getOrDefault(false)
-            if (ok) reload(tab, Jump.NEWEST)
-            onResult(ok)
+            daemon
+                .startNewLogPart(tab == LogTab.VERBOSE)
+                .fold(
+                    onSuccess = {
+                        reload(tab, Jump.NEWEST)
+                        onResult(true)
+                    },
+                    onFailure = {
+                        logE("logs: rotating the ${tab.name.lowercase()} log failed", it)
+                        onResult(false)
+                    },
+                )
         }
     }
 
     /**
-     * Writes every log the daemon holds into [uri] as a zip.
+     * Writes the daemon's bug report into [uri] as a zip — far more than the logs, as below.
      *
      * This is the slowest binder transaction on the screen by a wide margin — `FileSystem.getLogs`
      * walks `/data/tombstones` and `/data/anr`, shells out to `logcat -b all -d` and `dmesg`,
@@ -587,7 +599,7 @@ class LogsViewModel(private val daemon: DaemonClient, private val settings: Sett
                         if (fd == null) LogSaveState.Failed(null)
                         else
                             daemon
-                                .writeLogsTo(fd)
+                                .writeBugReportTo(fd)
                                 .fold(
                                     onSuccess = { LogSaveState.Saved(uri) },
                                     onFailure = { LogSaveState.Failed(it.message) },

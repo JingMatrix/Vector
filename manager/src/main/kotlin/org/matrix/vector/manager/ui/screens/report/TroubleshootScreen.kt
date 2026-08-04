@@ -99,7 +99,7 @@ fun TroubleshootScreen(
                                     // ways this fails: a refused open, no descriptor, and a
                                     // failed transaction.
                                     checkNotNull(fd) { "no descriptor for the chosen file" }
-                                    ServiceLocator.daemon.writeLogsTo(fd).getOrThrow()
+                                    ServiceLocator.daemon.writeBugReportTo(fd).getOrThrow()
                                 }
                             }
                             .onFailure { e ->

@@ -5,10 +5,11 @@ import android.content.pm.PackageInfo
 import android.content.pm.ResolveInfo
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import org.lsposed.lspd.IFrameworkInstallCallback
-import org.lsposed.lspd.ILSPManagerService
-import org.lsposed.lspd.models.Application
-import org.lsposed.lspd.models.UserInfo
+import org.matrix.vector.ipc.DeviceUser
+import org.matrix.vector.ipc.IFrameworkInstallReceiver
+import org.matrix.vector.ipc.IManagerService
+import org.matrix.vector.ipc.ModuleLoadFailure
+import org.matrix.vector.ipc.ScopeEntry
 import rikka.parcelablelist.ParcelableListSlice
 import org.matrix.vector.manager.data.model.versionCodeCompat
 
@@ -38,8 +39,8 @@ import org.matrix.vector.manager.data.model.versionCodeCompat
  */
 class FakeManagerService(
     private val scenario: DemoScenario,
-    private val real: ILSPManagerService?,
-) : ILSPManagerService.Stub() {
+    private val real: IManagerService?,
+) : IManagerService.Stub() {
 
     /**
      * What each package's version was when the scenario started.
@@ -55,6 +56,16 @@ class FakeManagerService(
         if (scenario.stallMillis > 0) Thread.sleep(scenario.stallMillis)
     }
 
+    /**
+     * Neither scripted nor delegated.
+     *
+     * This class *is* this build's `Stub`, so the generation it answers to is the one this file was
+     * compiled against — the same answer the daemon of this build gives. Passing the real daemon's
+     * number through would report a peer's protocol for a peer that is not the one on the other end
+     * of these transactions.
+     */
+    override fun getProtocolVersion(): Int = IManagerService.PROTOCOL_VERSION
+
     // ---- what the scenario exists to lie about ------------------------------------------------
 
     override fun isSepolicyLoaded(): Boolean {
@@ -62,36 +73,36 @@ class FakeManagerService(
         return scenario.sepolicyLoaded
     }
 
-    override fun systemServerRequested(): Boolean {
+    override fun isSystemServerAttached(): Boolean {
         stall()
-        return scenario.systemServerRequested
+        return scenario.systemServerAttached
     }
 
-    override fun dex2oatFlagsLoaded(): Boolean {
+    override fun isDex2OatInliningDisabled(): Boolean {
         stall()
-        return scenario.dex2oatFlagsLoaded
+        return scenario.dex2OatInliningDisabled
     }
 
-    override fun getDex2OatWrapperCompatibility(): Int = scenario.dex2oatCompatibility
+    override fun getDex2OatWrapperState(): Int = scenario.dex2OatWrapperState
 
-    override fun getXposedApiVersion(): Int =
-        scenario.xposedApiVersion.takeIf { it != DemoScenario.PASS_THROUGH }
-            ?: real?.xposedApiVersion
+    override fun getLibxposedApiVersion(): Int =
+        scenario.libxposedApiVersion.takeIf { it != DemoScenario.PASS_THROUGH }
+            ?: real?.libxposedApiVersion
             ?: 0
 
-    override fun getXposedVersionCode(): Long =
-        scenario.xposedVersionCode.takeIf { it != DemoScenario.PASS_THROUGH.toLong() }
-            ?: real?.xposedVersionCode
+    override fun getFrameworkVersionCode(): Long =
+        scenario.frameworkVersionCode.takeIf { it != DemoScenario.PASS_THROUGH.toLong() }
+            ?: real?.frameworkVersionCode
             ?: 0L
 
     override fun getRootImplementation(): Int = scenario.rootImplementation
 
     /**
-     * Passed through, because a scenario that lied about the commit would be testing the *mismatch*
-     * warning rather than the states this harness exists for. Add a field here when there is a
-     * scenario that needs one.
+     * Passed through, because a scenario that lied about the build stamp would be testing the
+     * *mismatch* warning rather than the states this harness exists for. Add a field here when
+     * there is a scenario that needs one.
      */
-    override fun getFrameworkCommit(): String? = real?.frameworkCommit
+    override fun getBuildStamp(): String? = real?.buildStamp
 
     override fun getRootImplementationVersion(): String? = scenario.rootVersion
 
@@ -102,16 +113,18 @@ class FakeManagerService(
      * a screen that only works when the lines arrive on the binder thread would pass here and hang
      * on a device.
      */
-    override fun installFrameworkZip(zipPath: String?, callback: IFrameworkInstallCallback?) {
-        if (callback == null) return
+    override fun installFrameworkZip(zipPath: String?, receiver: IFrameworkInstallReceiver?) {
+        if (receiver == null) return
         Thread {
                 fun say(line: String) {
-                    runCatching { callback.onLine(line) }
+                    runCatching { receiver.onLine(line) }
                     Thread.sleep(220)
                 }
                 when (scenario.install) {
                     DemoScenario.InstallScript.NO_ROOT -> {
-                        runCatching { callback.onFinished(ILSPManagerService.INSTALL_NO_ROOT) }
+                        runCatching {
+                            receiver.onFinished(IFrameworkInstallReceiver.INSTALL_NO_ROOT)
+                        }
                     }
                     DemoScenario.InstallScript.SUCCEEDS -> {
                         say("- Target: $zipPath")
@@ -120,7 +133,7 @@ class FakeManagerService(
                         say("- Installing Vector")
                         say("- Setting permissions")
                         say("- Done. Reboot to apply.")
-                        runCatching { callback.onFinished(0) }
+                        runCatching { receiver.onFinished(0) }
                     }
                     DemoScenario.InstallScript.FAILS_PARTWAY -> {
                         say("- Target: $zipPath")
@@ -128,7 +141,7 @@ class FakeManagerService(
                         say("- Device is arm64-v8a API 36")
                         say("- Installing Vector")
                         say("! Failed to copy zygisk binary: No space left on device")
-                        runCatching { callback.onFinished(1) }
+                        runCatching { receiver.onFinished(1) }
                     }
                 }
             }
@@ -182,35 +195,38 @@ class FakeManagerService(
         return ParcelableListSlice(rewritten)
     }
 
-    override fun enabledModules(): Array<String> = real?.enabledModules() ?: emptyArray()
+    override fun getEnabledModules(): MutableList<String> = real?.enabledModules ?: mutableListOf()
 
-    override fun getUnloadableModules(): Array<String> =
-        real?.unloadableModules ?: emptyArray()
+    /**
+     * The empty list is the whole answer for a device with nothing wrong: a module absent from it
+     * loaded, so no daemon means nothing to report rather than a state to invent.
+     */
+    override fun getModuleLoadFailures(): MutableList<ModuleLoadFailure> =
+        real?.moduleLoadFailures ?: mutableListOf()
 
-    override fun getModuleLoadState(packageName: String?): Int =
-        real?.getModuleLoadState(packageName) ?: ILSPManagerService.MODULE_LOAD_OK
+    override fun setModuleEnabled(packageName: String?, enabled: Boolean): Boolean =
+        real?.setModuleEnabled(packageName, enabled) ?: false
 
-    override fun enableModule(packageName: String?): Boolean =
-        real?.enableModule(packageName) ?: false
-
-    override fun disableModule(packageName: String?): Boolean =
-        real?.disableModule(packageName) ?: false
-
-    override fun setModuleScope(packageName: String?, scope: MutableList<Application>?): Boolean =
+    override fun setModuleScope(packageName: String?, scope: MutableList<ScopeEntry>?): Boolean =
         real?.setModuleScope(packageName, scope) ?: false
 
-    override fun getModuleScope(packageName: String?): MutableList<Application> =
-        real?.getModuleScope(packageName) ?: mutableListOf()
+    /**
+     * Null is handed on rather than flattened, because the daemon answers it only for the
+     * framework's own pseudo-module row, which is not the same answer as a module with nothing
+     * scoped to it — and a fake that collapsed the two would hide a refusal from the very code this
+     * demo exists to exercise. The empty list is the no-daemon answer alone.
+     */
+    override fun getModuleScope(packageName: String?): MutableList<ScopeEntry>? =
+        if (real == null) mutableListOf() else real.getModuleScope(packageName)
 
-    override fun isVerboseLog(): Boolean = real?.isVerboseLog ?: false
+    override fun isVerboseLogEnabled(): Boolean = real?.isVerboseLogEnabled ?: false
 
-    override fun setVerboseLog(enabled: Boolean) {
-        real?.setVerboseLog(enabled)
+    override fun setVerboseLogEnabled(enabled: Boolean) {
+        real?.setVerboseLogEnabled(enabled)
     }
 
-    override fun getVerboseLog(): ParcelFileDescriptor? = real?.verboseLog
-
-    override fun getModulesLog(): ParcelFileDescriptor? = real?.modulesLog
+    override fun getLiveLogPart(verbose: Boolean): ParcelFileDescriptor? =
+        real?.getLiveLogPart(verbose)
 
     override fun getLogParts(verbose: Boolean): MutableList<String> =
         real?.getLogParts(verbose) ?: mutableListOf()
@@ -226,12 +242,11 @@ class FakeManagerService(
      */
     override fun getManagerApk(): ParcelFileDescriptor? = real?.managerApk
 
-    override fun getXposedVersionName(): String? = real?.xposedVersionName
+    override fun getFrameworkVersionName(): String? = real?.frameworkVersionName
 
-    override fun clearLogs(verbose: Boolean): Boolean = real?.clearLogs(verbose) ?: false
-
-    override fun getPackageInfo(packageName: String?, flags: Int, uid: Int): PackageInfo? =
-        real?.getPackageInfo(packageName, flags, uid)
+    override fun startNewLogPart(verbose: Boolean) {
+        real?.startNewLogPart(verbose)
+    }
 
     override fun forceStopPackage(packageName: String?, userId: Int) {
         real?.forceStopPackage(packageName, userId)
@@ -243,13 +258,12 @@ class FakeManagerService(
     override fun uninstallPackage(packageName: String?, userId: Int): Boolean =
         real?.uninstallPackage(packageName, userId) ?: false
 
-    override fun getUsers(): MutableList<UserInfo> = real?.users ?: mutableListOf()
+    override fun getUsers(): MutableList<DeviceUser> = real?.users ?: mutableListOf()
 
-    override fun installExistingPackageAsUser(packageName: String?, userId: Int): Int =
-        real?.installExistingPackageAsUser(packageName, userId) ?: 0
-
-    override fun startActivityAsUserWithFeature(intent: Intent?, userId: Int): Int =
-        real?.startActivityAsUserWithFeature(intent, userId) ?: 0
+    override fun startActivityAsUser(intent: Intent?, userId: Int, noUserSwitch: Boolean): Int =
+        // -1, not 0: the AIDL documents 0..99 as "the activity started", so a benign-looking
+        // 0 would report a successful start with no daemon behind it.
+        real?.startActivityAsUser(intent, userId, noUserSwitch) ?: -1
 
     override fun queryIntentActivitiesAsUser(
         intent: Intent?,
@@ -263,32 +277,28 @@ class FakeManagerService(
         // with it, and every screen this scenario exists to show would go with it.
     }
 
-    override fun forcedLauncherIcons(): Boolean = real?.forcedLauncherIcons() ?: true
+    override fun isForcedLauncherIcons(): Boolean = real?.isForcedLauncherIcons ?: true
 
     override fun setForcedLauncherIcons(force: Boolean) {
         real?.setForcedLauncherIcons(force)
     }
 
-    override fun getLogs(zipFd: ParcelFileDescriptor?) {
-        real?.getLogs(zipFd)
-    }
-
-    override fun restartFor(intent: Intent?) {
-        real?.restartFor(intent)
+    override fun writeBugReport(zipFd: ParcelFileDescriptor?) {
+        real?.writeBugReport(zipFd)
     }
 
     override fun optimizePackage(packageName: String?): Boolean =
         real?.optimizePackage(packageName) ?: false
 
     // `?: true` to match the daemon, whose PreferenceStore reads this one `?: true` when nobody has
-    // set it — the same reason forcedLauncherIcons above answers true. A fallback here is not a
+    // set it — the same reason isForcedLauncherIcons above answers true. A fallback here is not a
     // failed read: it is handed upstream as a *successful* answer, so answering false would leave
     // the status page's switch — and the ManagerPresence field HomeViewModel fills from the same
     // call — showing the opposite of what an untouched device with a real daemon behind it says.
-    override fun enableStatusNotification(): Boolean = real?.enableStatusNotification() ?: true
+    override fun isStatusNotificationEnabled(): Boolean = real?.isStatusNotificationEnabled ?: true
 
-    override fun setEnableStatusNotification(enable: Boolean) {
-        real?.setEnableStatusNotification(enable)
+    override fun setStatusNotificationEnabled(enabled: Boolean) {
+        real?.setStatusNotificationEnabled(enabled)
     }
 
     override fun getIncludeNewApps(packageName: String?): Boolean =

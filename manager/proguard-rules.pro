@@ -11,7 +11,7 @@
 -keep class org.matrix.vector.manager.ui.MainActivity { <init>(); }
 
 # AIDL stubs and the parcelables crossing the daemon boundary.
--keep class org.lsposed.lspd.** { *; }
+-keep class org.matrix.vector.ipc.** { *; }
 -keep class rikka.parcelablelist.** { *; }
 
 # kotlinx.serialization keeps generated serializers reachable from the companion.

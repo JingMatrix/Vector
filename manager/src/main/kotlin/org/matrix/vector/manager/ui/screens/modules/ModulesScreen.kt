@@ -106,7 +106,7 @@ import org.matrix.vector.manager.ui.components.SheetHeading
 import org.matrix.vector.manager.ui.components.sheetRowColors
 import org.matrix.vector.manager.ui.screens.repo.StoreChannel
 import org.matrix.vector.manager.ui.screens.repo.releasesOn
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.data.model.InstalledModule
 import org.matrix.vector.manager.di.ServiceLocator
@@ -856,11 +856,19 @@ private fun ModuleRow(
                                 // Named separately from "could not load it" because it is the one
                                 // refusal that is not brokenness: the module is old, and its
                                 // author is the only one who can move it forward.
-                                ILSPManagerService.MODULE_LOAD_UNSUPPORTED_API ->
+                                IManagerService.MODULE_LOAD_UNSUPPORTED_API ->
                                     R.string.modules_load_unsupported_api
-                                ILSPManagerService.MODULE_LOAD_UNUSABLE ->
+                                IManagerService.MODULE_LOAD_NO_APK ->
+                                    R.string.modules_load_no_apk
+                                IManagerService.MODULE_LOAD_UNUSABLE ->
                                     R.string.modules_load_unusable
-                                else -> R.string.modules_load_no_apk
+                                // Every other reason, including one this build does not know:
+                                // `ModuleLoadFailure.reason` is never 0, so an unrecognised value
+                                // is a reason a newer daemon has and this manager has not. Saying
+                                // the module could not be loaded is the whole of what is
+                                // established; naming the nearest reason we do know would be a
+                                // guess.
+                                else -> R.string.modules_load_unusable
                             }
                         ),
                     style = MaterialTheme.typography.bodySmall,

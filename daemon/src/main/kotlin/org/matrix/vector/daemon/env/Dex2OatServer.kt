@@ -14,17 +14,17 @@ import java.io.FileInputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlinx.coroutines.launch
-import org.lsposed.lspd.ILSPManagerService
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.daemon.VectorDaemon
 
 private const val TAG = "VectorDex2Oat"
 
-// Compatibility states mirrored directly from the ILSPManagerService AIDL contract.
-val DEX2OAT_OK = ILSPManagerService.DEX2OAT_OK
-val DEX2OAT_MOUNT_FAILED = ILSPManagerService.DEX2OAT_MOUNT_FAILED
-val DEX2OAT_SEPOLICY_INCORRECT = ILSPManagerService.DEX2OAT_SEPOLICY_INCORRECT
-val DEX2OAT_SELINUX_PERMISSIVE = ILSPManagerService.DEX2OAT_SELINUX_PERMISSIVE
-val DEX2OAT_CRASHED = ILSPManagerService.DEX2OAT_CRASHED
+// Wrapper states mirrored directly from the IManagerService AIDL contract.
+val DEX2OAT_OK = IManagerService.DEX2OAT_OK
+val DEX2OAT_MOUNT_FAILED = IManagerService.DEX2OAT_MOUNT_FAILED
+val DEX2OAT_SEPOLICY_INCORRECT = IManagerService.DEX2OAT_SEPOLICY_INCORRECT
+val DEX2OAT_SELINUX_PERMISSIVE = IManagerService.DEX2OAT_SELINUX_PERMISSIVE
+val DEX2OAT_CRASHED = IManagerService.DEX2OAT_CRASHED
 
 object Dex2OatServer {
   private const val WRAPPER32 = "bin/dex2oat32"

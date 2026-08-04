@@ -76,9 +76,9 @@ object SystemServerService : Binder(), IBinder.DeathRecipient {
     if (uid != 1000 || processLifeToken == null || processName != "system") return null
     systemServerRequested = true
 
-    // Return the ApplicationService singleton if successfully registered
-    return if (ApplicationService.registerHeartBeat(uid, pid, processName, processLifeToken)) {
-      ApplicationService
+    // Return the FrameworkService singleton if successfully registered
+    return if (FrameworkService.registerHeartBeat(uid, pid, processName, processLifeToken)) {
+      FrameworkService
     } else null
   }
 
@@ -107,7 +107,7 @@ object SystemServerService : Binder(), IBinder.DeathRecipient {
       }
       DEX_TRANSACTION_CODE,
       OBFUSCATION_MAP_TRANSACTION_CODE -> {
-        return ApplicationService.onTransact(code, data, reply, flags)
+        return FrameworkService.onTransact(code, data, reply, flags)
       }
       else -> {
         return super.onTransact(code, data, reply, flags)

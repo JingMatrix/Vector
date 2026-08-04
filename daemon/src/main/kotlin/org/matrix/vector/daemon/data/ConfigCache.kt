@@ -12,14 +12,13 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.util.UUID
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.lsposed.lspd.ILSPManagerService
-import org.lsposed.lspd.models.Application
+import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.ipc.LoadedModule
 import org.matrix.vector.daemon.BuildConfig
 import org.matrix.vector.daemon.VectorDaemon
-import org.matrix.vector.daemon.ipc.ApplicationService
+import org.matrix.vector.daemon.ipc.FrameworkService
 import org.matrix.vector.daemon.ipc.InjectedModuleService
-import org.matrix.vector.daemon.ipc.ModuleService
+import org.matrix.vector.daemon.ipc.ModuleAppService
 import org.matrix.vector.daemon.system.*
 import org.matrix.vector.daemon.utils.InstallerVerifier
 import org.matrix.vector.daemon.utils.applySqliteHelperWorkaround
@@ -264,7 +263,7 @@ object ConfigCache {
           // module the user did enable, and they would find the switch off with no reason given.
           // The configuration stands; what could not be done is recorded and reported instead.
           Log.w(TAG, "Failed to find path of $pkgName")
-          unloadable[pkgName] = ILSPManagerService.MODULE_LOAD_NO_APK
+          unloadable[pkgName] = IManagerService.MODULE_LOAD_NO_APK
           return@forEach
         }
         apkPath = realApkPath
@@ -284,7 +283,7 @@ object ConfigCache {
                   // being first in the list and answering for packages it does not even hold.
                   // The resolution above now deliberately prefers a *holder*, so for a module only
                   // user 11 has this reads 1110136, and without the modulo the module would fail
-                  // its own authentication in `ModuleService.ensureModule` against a caller's
+                  // its own authentication in `ModuleAppService.ensureModule` against a caller's
                   // 10136 and never be sent its binder.
                   appId = appInfo.uid % PER_USER_RANGE
                   versionCode = pkgInfo.longVersionCode
@@ -302,11 +301,11 @@ object ConfigCache {
           // than reported as "the framework could not load it" alongside a zip that will not parse.
           ModuleLoad.UnsupportedApi -> {
             Log.w(TAG, "Could not load $pkgName: it targets libxposed API 100; skipping.")
-            unloadable[pkgName] = ILSPManagerService.MODULE_LOAD_UNSUPPORTED_API
+            unloadable[pkgName] = IManagerService.MODULE_LOAD_UNSUPPORTED_API
           }
           ModuleLoad.Unusable -> {
             Log.w(TAG, "Could not load $pkgName; skipping.")
-            unloadable[pkgName] = ILSPManagerService.MODULE_LOAD_UNUSABLE
+            unloadable[pkgName] = IManagerService.MODULE_LOAD_UNUSABLE
           }
         }
       }
@@ -435,12 +434,12 @@ object ConfigCache {
 
       // Targets are removed only after the module set has been published.
       (oldState.modules.keys - newModules.keys).forEach {
-        ApplicationService.forgetHotReloadTargets(it)
+        FrameworkService.forgetHotReloadTargets(it)
       }
-      ApplicationService.backfillLoadedVersions()
+      FrameworkService.backfillLoadedVersions()
 
       // Ask stale opt-in targets to load the generation that was just installed.
-      newModules.values.forEach { ModuleService.autoHotReload(it) }
+      newModules.values.forEach { ModuleAppService.autoHotReload(it) }
       // Log.d(TAG, "cached modules:")
       // newModules.forEach { (pkg, mod) -> Log.d(TAG, "$pkg ${mod.apkPath}") }
 
