@@ -583,11 +583,14 @@ interface IManagerService {
      * needs to replace itself: a copy left behind in another profile refuses an install exactly as
      * loudly as one in this profile.</p>
      *
-     * <p>Blocks until the package installer broadcasts its status, with no timeout, so a status
-     * that never arrives holds a daemon binder thread for the life of the daemon.</p>
+     * <p>Blocks on a daemon binder thread until the package installer broadcasts its status, or for
+     * a minute, whichever comes first. The bound is what keeps a status that never arrives from
+     * holding that thread for the life of the daemon.</p>
      *
-     * @return whether the installer reported success. A device-policy refusal and a user that does
-     *         not exist both come back as a plain false, which no exception would show
+     * @return whether the installer reported success. A device-policy refusal, a user that does not
+     *         exist, and a status that never arrived all come back as a plain false, which no
+     *         exception would show - so this being false is not by itself evidence the package is
+     *         still installed, only that nothing confirmed it is gone
      */
     boolean uninstallPackage(String packageName, int userId);
 
