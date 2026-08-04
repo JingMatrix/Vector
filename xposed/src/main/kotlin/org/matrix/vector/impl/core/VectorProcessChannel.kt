@@ -7,7 +7,7 @@ import java.util.concurrent.Executors
 import org.matrix.vector.ipc.LoadedModule
 import org.matrix.vector.ipc.IHotReloadOutcomeReceiver
 import org.matrix.vector.ipc.IProcessChannel
-import org.lsposed.lspd.util.Utils.Log
+import org.matrix.vector.util.Log
 
 private const val TAG = "VectorProcessChannel"
 

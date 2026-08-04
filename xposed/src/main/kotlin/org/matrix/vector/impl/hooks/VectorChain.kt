@@ -5,7 +5,7 @@ import io.github.libxposed.api.XposedInterface.ExceptionMode
 import io.github.libxposed.api.XposedInterface.Hooker
 import java.lang.reflect.Executable
 import java.util.Collections
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 
 /**
  * A registered hook configuration, stored natively by [HookBridge].

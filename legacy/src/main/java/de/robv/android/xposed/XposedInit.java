@@ -25,7 +25,7 @@ import org.matrix.vector.impl.utils.VectorModuleClassLoader;
 import org.matrix.vector.nativebridge.NativeAPI;
 import org.matrix.vector.nativebridge.ResourcesHook;
 import org.matrix.vector.ipc.ModuleCode;
-import org.lsposed.lspd.util.Utils.Log;
+import org.matrix.vector.util.Log;
 
 import java.io.File;
 import java.lang.ref.WeakReference;

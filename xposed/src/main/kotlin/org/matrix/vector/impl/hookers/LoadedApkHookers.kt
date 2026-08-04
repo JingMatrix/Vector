@@ -6,7 +6,7 @@ import androidx.annotation.RequiresApi
 import io.github.libxposed.api.XposedInterface
 import java.util.Collections
 import java.util.WeakHashMap
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 import org.matrix.vector.impl.VectorLifecycleManager
 import org.matrix.vector.impl.di.LegacyPackageInfo
 import org.matrix.vector.impl.di.VectorBootstrap

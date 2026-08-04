@@ -1,7 +1,8 @@
 package org.matrix.vector.impl.core
 
 import java.lang.reflect.Executable
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Log
+import org.matrix.vector.util.Utils
 import org.matrix.vector.nativebridge.HookBridge
 
 /**
@@ -34,7 +35,7 @@ object VectorDeopter {
                     HookBridge.deoptimizeMethod(executable)
                 }
                 .onFailure {
-                    Utils.Log.v(
+                    Log.v(
                         TAG,
                         "Skipping deopt for ${target.className}#${target.methodName}: ${it.message}",
                     )

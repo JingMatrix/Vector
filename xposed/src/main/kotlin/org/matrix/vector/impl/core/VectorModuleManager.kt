@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import org.matrix.vector.ipc.HotReloadOutcome
 import org.matrix.vector.ipc.LoadedModule
-import org.lsposed.lspd.util.Utils.Log
+import org.matrix.vector.util.Log
 import org.matrix.vector.impl.VectorContext
 import org.matrix.vector.impl.VectorLifecycleManager
 import org.matrix.vector.impl.hooks.VectorHookBuilder

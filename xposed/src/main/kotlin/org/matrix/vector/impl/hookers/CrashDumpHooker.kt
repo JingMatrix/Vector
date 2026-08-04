@@ -1,7 +1,7 @@
 package org.matrix.vector.impl.hookers
 
 import io.github.libxposed.api.XposedInterface
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 
 /**
  * Intercepts uncaught exceptions in the framework to provide diagnostic logging before the process

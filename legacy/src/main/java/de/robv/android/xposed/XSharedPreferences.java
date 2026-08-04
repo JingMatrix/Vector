@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
-import org.lsposed.lspd.util.Utils.Log;
+import org.matrix.vector.util.Log;
 import org.matrix.vector.impl.core.VectorServiceClient;
 import org.matrix.vector.impl.utils.VectorMetaDataReader;
 import org.matrix.vector.legacy.BuildConfig;

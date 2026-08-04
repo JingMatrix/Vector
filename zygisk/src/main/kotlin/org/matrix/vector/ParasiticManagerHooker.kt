@@ -24,7 +24,7 @@ import java.io.FileOutputStream
 import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 import org.matrix.vector.ipc.IManagerService
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 import org.matrix.vector.impl.core.VectorServiceClient
 
 /** The "Parasite" logic. Injects the manager APK into a host process (shell). */

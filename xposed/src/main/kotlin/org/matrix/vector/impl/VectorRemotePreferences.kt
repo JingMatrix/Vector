@@ -9,7 +9,7 @@ import java.util.TreeMap
 import java.util.concurrent.ConcurrentHashMap
 import org.matrix.vector.ipc.IModuleService
 import org.matrix.vector.ipc.IRemotePreferenceCallback
-import org.lsposed.lspd.util.Utils.Log
+import org.matrix.vector.util.Log
 
 @Suppress("DEPRECATION", "UNCHECKED_CAST")
 private inline fun <reified T> Bundle.getSerializableCompat(key: String): T? {

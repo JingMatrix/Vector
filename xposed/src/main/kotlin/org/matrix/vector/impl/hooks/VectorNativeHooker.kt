@@ -11,7 +11,7 @@ import java.lang.reflect.Executable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import org.lsposed.lspd.util.Utils
+import org.matrix.vector.util.Utils
 import org.matrix.vector.impl.di.VectorBootstrap
 import org.matrix.vector.nativebridge.HookBridge
 

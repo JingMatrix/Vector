@@ -14,7 +14,7 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 import org.matrix.vector.ipc.IModuleService
-import org.lsposed.lspd.util.Utils.Log
+import org.matrix.vector.util.Log
 import org.matrix.vector.impl.hooks.VectorCtorInvoker
 import org.matrix.vector.impl.hooks.VectorHookBuilder
 import org.matrix.vector.impl.hooks.VectorMethodInvoker
