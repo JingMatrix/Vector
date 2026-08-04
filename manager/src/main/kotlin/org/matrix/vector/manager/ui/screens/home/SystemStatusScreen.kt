@@ -69,7 +69,6 @@ import org.matrix.vector.manager.data.model.XposedApi
 import org.matrix.vector.manager.data.log.CrashReport
 import org.matrix.vector.manager.data.model.buildStamp
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
-import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.ui.components.SnackbarTone
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.copyToClipboard
@@ -126,7 +125,7 @@ fun SystemStatusScreen(
     // screen, because the process that would record it is the one drawing it.
     var crash by remember { mutableStateOf(CrashRecorder.newest(context)) }
     // The two switches below belong to the framework, so they are only live while it is.
-    val daemonAlive = status.state != FrameworkState.Inactive
+    val daemonAlive = status.daemonUsable
     val snackbars = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copied = stringResource(R.string.copied)

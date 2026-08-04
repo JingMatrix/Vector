@@ -17,6 +17,7 @@
     <string name="status_active">已激活</string>
     <string name="status_degraded">异常</string>
     <string name="status_inactive">未激活</string>
+    <string name="status_mismatched">版本不匹配</string>
     <string name="status_checking">正在检查…</string>
     <string name="status_open_details">查看系统状态</string>
 

@@ -17,6 +17,7 @@
     <string name="status_active">فعال</string>
     <string name="status_degraded">نیازمند توجه</string>
     <string name="status_inactive">فعال نشده</string>
+    <string name="status_mismatched">ناسازگاری نسخه</string>
     <string name="status_checking">در حال بررسی…</string>
     <string name="status_open_details">باز کردن وضعیت سامانه</string>
 

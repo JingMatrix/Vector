@@ -17,6 +17,7 @@
     <string name="status_active">Активний</string>
     <string name="status_degraded">Проблеми</string>
     <string name="status_inactive">Не активовано</string>
+    <string name="status_mismatched">Розбіжність версій</string>
     <string name="status_checking">Перевірка…</string>
     <string name="status_open_details">Відкрити стан системи</string>
 

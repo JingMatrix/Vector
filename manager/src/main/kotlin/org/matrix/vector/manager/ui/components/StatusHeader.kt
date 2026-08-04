@@ -51,12 +51,22 @@ import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.components.ambience.AmbienceKind
 import org.matrix.vector.manager.ui.components.ambience.AmbientSurface
 
-/** The three states the framework can be in, plus the moment before we know. */
+/** The four states the framework can be in, plus the moment before we know. */
 enum class FrameworkState {
     Checking,
     Active,
     Degraded,
     Inactive,
+
+    /**
+     * The framework is running, and this manager cannot talk to it.
+     *
+     * Distinct from [Inactive], which means there is no framework. Here there is one, it pushed
+     * us a binder, and that binder speaks a different generation of `IManagerService` — so every
+     * transaction would fail and the honest thing to say is that the two builds are out of step,
+     * not that nothing is installed. Reached only through `ServiceLocator.peerDescriptor`.
+     */
+    Mismatched,
 }
 
 /**
@@ -96,6 +106,7 @@ fun StatusHeader(
                 FrameworkState.Active -> colors.primaryContainer
                 FrameworkState.Degraded -> colors.tertiaryContainer
                 FrameworkState.Inactive -> colors.errorContainer
+                FrameworkState.Mismatched -> colors.errorContainer
                 FrameworkState.Checking -> colors.surfaceContainer
             },
             animationSpec = tween(420),
@@ -107,6 +118,7 @@ fun StatusHeader(
                 FrameworkState.Active -> colors.onPrimaryContainer
                 FrameworkState.Degraded -> colors.onTertiaryContainer
                 FrameworkState.Inactive -> colors.onErrorContainer
+                FrameworkState.Mismatched -> colors.onErrorContainer
                 FrameworkState.Checking -> colors.onSurfaceVariant
             },
             animationSpec = tween(420),
@@ -121,6 +133,7 @@ fun StatusHeader(
                 FrameworkState.Active -> R.string.status_active
                 FrameworkState.Degraded -> R.string.status_degraded
                 FrameworkState.Inactive -> R.string.status_inactive
+                FrameworkState.Mismatched -> R.string.status_mismatched
                 FrameworkState.Checking -> R.string.status_checking
             }
         )
@@ -317,6 +330,8 @@ private fun StatusIndicator(
             FrameworkState.Active -> Icons.Rounded.Check
             FrameworkState.Degraded -> Icons.Rounded.PriorityHigh
             FrameworkState.Inactive -> Icons.Rounded.Close
+            // Not a Close: the framework is there. It is this manager that cannot reach it.
+            FrameworkState.Mismatched -> Icons.Rounded.PriorityHigh
             FrameworkState.Checking -> null
         }
 

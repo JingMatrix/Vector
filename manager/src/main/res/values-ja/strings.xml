@@ -17,6 +17,7 @@
     <string name="status_active">有効</string>
     <string name="status_degraded">確認が必要</string>
     <string name="status_inactive">未有効化</string>
+    <string name="status_mismatched">バージョン不一致</string>
     <string name="status_checking">確認中…</string>
     <string name="status_open_details">システム状態を開く</string>
 

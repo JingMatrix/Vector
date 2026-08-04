@@ -89,7 +89,6 @@ import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.currentLocale
 import org.matrix.vector.manager.di.ServiceLocator
-import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.manager.ui.components.VectorAlertDialog
 import org.matrix.vector.manager.ui.components.VectorSnackbarHost
 import org.matrix.vector.manager.ui.components.show
@@ -340,8 +339,9 @@ fun HomeScreen(
         showLauncherPrompt &&
             presence.unreachable &&
             !promptDismissed &&
-            // With no daemon there is no APK to install and bigger problems to report first.
-            status.state != FrameworkState.Inactive
+            // With no usable daemon there is no APK to install and bigger problems to report
+            // first.
+            status.daemonUsable
     ) {
         LauncherPrompt(
             shortcutSupported = presence.shortcutSupported,

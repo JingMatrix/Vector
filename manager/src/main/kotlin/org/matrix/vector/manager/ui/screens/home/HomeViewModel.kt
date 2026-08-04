@@ -59,6 +59,18 @@ data class FrameworkStatus(
 ) {
     val versionLabel: String?
         get() = versionName?.let { if (versionCode > 0) "$it ($versionCode)" else it }
+
+    /**
+     * Whether there is a daemon this manager can actually ask anything.
+     *
+     * Not `state != Inactive`, which is what the two callers used to test and which
+     * [FrameworkState.Mismatched] would answer wrongly: there a framework is plainly running and
+     * simply speaking a generation of the interface this build does not, so every transaction
+     * fails. Anything gated on being able to *use* the daemon belongs here rather than on a
+     * comparison a later state can slip past.
+     */
+    val daemonUsable: Boolean
+        get() = state != FrameworkState.Inactive && state != FrameworkState.Mismatched
 }
 
 /**
@@ -281,17 +293,23 @@ class HomeViewModel(
         // The binder may arrive after this ViewModel exists — injection order is not ours to
         // control — so status is re-derived whenever it changes rather than read once in init.
         viewModelScope.launch {
-            ServiceLocator.service.collect { service ->
-                refreshStatus(service)
-                // Both switches on the status page hold the daemon's state rather than ours, and
-                // the binder is what they need. This runs for every binder, including one already
-                // in hand when `refreshPresence` ran above — a second read of two idempotent
-                // values — and it is here for the one that arrives afterwards, which that call
-                // found nothing to ask about and returned. Nor is it the last such moment:
-                // `refreshPresence` asks again whenever a screen that shows them is opened, since
-                // this flow does not emit a second time while one binder stays alive.
-                if (service != null) refreshToggles()
-            }
+            // Both flows, because a refused binder leaves `service` null and only moves
+            // `peerDescriptor`. Collecting `service` alone would see no change at all — it was
+            // already null — and the header would sit on "not activated" for a framework that is
+            // running and simply out of step with this build.
+            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
+                .collect { service ->
+                    refreshStatus(service)
+                    // Both switches on the status page hold the daemon's state rather than ours,
+                    // and the binder is what they need. This runs for every binder, including one
+                    // already in hand when `refreshPresence` ran above — a second read of two
+                    // idempotent values — and it is here for the one that arrives afterwards,
+                    // which that call found nothing to ask about and returned. Nor is it the last
+                    // such moment: `refreshPresence` asks again whenever a screen that shows them
+                    // is opened, since this flow does not emit a second time while one binder
+                    // stays alive.
+                    if (service != null) refreshToggles()
+                }
         }
         // Opening Home is not a reason to talk to GitHub. The page renders from disk every time
         // and only occasionally goes and checks — the window it shows changes a few times a week
@@ -316,7 +334,15 @@ class HomeViewModel(
 
     private suspend fun refreshStatus(service: IManagerService?) {
         if (service == null || !daemon.isAlive) {
-            _status.value = FrameworkStatus(state = FrameworkState.Inactive)
+            // A binder did arrive and was refused for speaking a different generation of the
+            // interface, which is not the same thing as there being no framework — and saying "not
+            // activated" for it sends the reader to reinstall something that is already running.
+            val mismatch = ServiceLocator.peerMismatch.value
+            _status.value =
+                FrameworkStatus(
+                    state =
+                        if (mismatch != null) FrameworkState.Mismatched else FrameworkState.Inactive
+                )
             return
         }
 

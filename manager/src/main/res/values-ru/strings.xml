@@ -15,6 +15,7 @@
     <string name="status_active">Активен</string>
     <string name="status_degraded">Проблемы</string>
     <string name="status_inactive">Не активирован</string>
+    <string name="status_mismatched">Несовпадение версий</string>
     <string name="status_checking">Проверка…</string>
     <string name="status_open_details">Открыть состояние системы</string>
     <string name="issue_sepolicy_title">Политика SELinux не загружена</string>

@@ -17,6 +17,7 @@
     <string name="status_active">활성</string>
     <string name="status_degraded">확인 필요</string>
     <string name="status_inactive">활성화되지 않음</string>
+    <string name="status_mismatched">버전 불일치</string>
     <string name="status_checking">확인 중…</string>
     <string name="status_open_details">시스템 상태 열기</string>
 

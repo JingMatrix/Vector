@@ -21,6 +21,7 @@
     <string name="status_active">Aktif</string>
     <string name="status_degraded">Perlu dicek</string>
     <string name="status_inactive">Belum diaktifkan</string>
+    <string name="status_mismatched">Versi tidak cocok</string>
     <string name="status_checking">Memeriksa…</string>
     <string name="status_open_details">Buka status sistem</string>
 

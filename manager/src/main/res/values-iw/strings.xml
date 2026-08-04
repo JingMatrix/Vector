@@ -21,6 +21,7 @@
     <string name="status_active">פעיל</string>
     <string name="status_degraded">דורש בדיקה</string>
     <string name="status_inactive">לא הופעל</string>
+    <string name="status_mismatched">אי-התאמת גרסאות</string>
     <string name="status_checking">בודק…</string>
     <string name="status_open_details">פתיחת מצב המערכת</string>
 

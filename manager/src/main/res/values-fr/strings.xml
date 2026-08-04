@@ -17,6 +17,7 @@
     <string name="status_active">Actif</string>
     <string name="status_degraded">À vérifier</string>
     <string name="status_inactive">Non activé</string>
+    <string name="status_mismatched">Versions incompatibles</string>
     <string name="status_checking">Vérification…</string>
     <string name="status_open_details">Ouvrir l\'état du système</string>
 

@@ -17,6 +17,7 @@
     <string name="status_active">Đang hoạt động</string>
     <string name="status_degraded">Cần kiểm tra</string>
     <string name="status_inactive">Chưa kích hoạt</string>
+    <string name="status_mismatched">Phiên bản không khớp</string>
     <string name="status_checking">Đang kiểm tra…</string>
     <string name="status_open_details">Mở trạng thái hệ thống</string>
 

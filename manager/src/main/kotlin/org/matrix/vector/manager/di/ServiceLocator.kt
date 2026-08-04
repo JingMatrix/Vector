@@ -77,6 +77,23 @@ object ServiceLocator {
      */
     val service: StateFlow<IManagerService?> = _service.asStateFlow()
 
+    private val _peerMismatch = MutableStateFlow<String?>(null)
+
+    /**
+     * What the daemon turned out to be, when it is not something this build can talk to.
+     *
+     * Null in the ordinary case, including "no daemon at all" — this is only ever set when a binder
+     * did arrive and was then refused. That is a distinct situation from having no daemon and has to
+     * be rendered as one: the binder is alive and the framework is plainly running, so every screen
+     * would otherwise draw it as one that answers nothing.
+     *
+     * Two things set it, and the string says which: a descriptor that is not this interface, or a
+     * protocol version this build does not speak. It is text for a log and a marker for the header
+     * rather than something to branch on — the answer to both is the same, and a reader cannot act
+     * on the difference.
+     */
+    val peerMismatch: StateFlow<String?> = _peerMismatch.asStateFlow()
+
     val context: Context
         get() =
             appContext
@@ -283,5 +300,18 @@ object ServiceLocator {
     /** Called from `Constants.setBinder`, possibly before [attach]. */
     fun bind(service: IManagerService?) {
         _service.value = service
+        _peerMismatch.value = null
+    }
+
+    /**
+     * Called instead of [bind] when the binder that arrived is not one this build can use.
+     *
+     * Deliberately leaves [service] null. A refused peer is not a degraded daemon that answers some
+     * calls; it is one whose every answer would be thrown or wrong, so handing it out would only
+     * spread failures across every screen.
+     */
+    fun bindMismatch(what: String) {
+        _service.value = null
+        _peerMismatch.value = what
     }
 }

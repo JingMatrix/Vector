@@ -17,6 +17,7 @@
     <string name="status_active">نشط</string>
     <string name="status_degraded">يحتاج فحصًا</string>
     <string name="status_inactive">غير مُفعَّل</string>
+    <string name="status_mismatched">عدم تطابق الإصدار</string>
     <string name="status_checking">جارٍ الفحص…</string>
     <string name="status_open_details">فتح حالة النظام</string>
 
