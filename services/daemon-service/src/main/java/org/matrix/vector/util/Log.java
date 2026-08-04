@@ -31,9 +31,12 @@ public class Log {
      *
      * <p>Set in an injected process from {@code IFrameworkService.isLogMuted}, and deliberately not
      * consulted for {@link #e} or for anything at {@code ERROR} and above: muting is a request for
-     * less noise, not for a failure to go unrecorded. Which of the remaining overloads honour it is
-     * uneven — the message-only forms and {@code w(String, String, Throwable)} do, the other
-     * {@code Throwable} forms do not — and this is carried over unchanged.</p>
+     * less noise, not for a failure to go unrecorded.</p>
+     *
+     * <p>Everything below that is gated, the {@code Throwable} overloads included. They were not,
+     * which made the setting only half work: a user who turned verbose logging off still got every
+     * debug, verbose and info line that happened to carry an exception, and those are the ones in
+     * the hot paths of an injected process.</p>
      */
     public static boolean muted = false;
 
@@ -64,6 +67,7 @@ public class Log {
     }
 
     public static void d(String tag, String msg, Throwable tr) {
+        if (muted) return;
         android.util.Log.d(tag, msg, tr);
     }
 
@@ -73,6 +77,7 @@ public class Log {
     }
 
     public static void v(String tag, String msg, Throwable tr) {
+        if (muted) return;
         android.util.Log.v(tag, msg, tr);
     }
 
@@ -82,6 +87,7 @@ public class Log {
     }
 
     public static void i(String tag, String msg, Throwable tr) {
+        if (muted) return;
         android.util.Log.i(tag, msg, tr);
     }
 
