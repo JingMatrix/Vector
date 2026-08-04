@@ -203,8 +203,11 @@ object ModuleDatabase {
             put("apk_path", "") // defer to cache updating
             put("enabled", 1)
           }
-      db.insert("modules", null, values)
-      changed = true
+      // `insert` answers -1 rather than throwing: it catches the SQLException itself and logs one
+      // line. Taking that for granted reported a write that never landed as a success, and the
+      // caller acted on it — the manager left its switch on, and the shade's "not activated yet"
+      // notice was cancelled for a module the database had no row for.
+      changed = db.insert("modules", null, values) != -1L
     } else {
       val values = ContentValues().apply { put("enabled", 1) }
       changed = db.update("modules", values, "module_pkg_name = ?", arrayOf(packageName)) > 0
