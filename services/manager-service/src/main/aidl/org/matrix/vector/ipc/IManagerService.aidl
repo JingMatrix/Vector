@@ -140,17 +140,18 @@ interface IManagerService {
     // ---- whether the framework is actually working ----------------------------------------------
 
     /**
-     * Whether system_server has reached the daemon.
+     * Whether system_server reached the daemon and was given its framework service.
      *
-     * <p>Latched the moment system_server identifies itself to the bootstrap bridge as uid 1000,
-     * process {@code system}, with a life token - and never cleared. <b>It is set before that
-     * process's registration is confirmed</b>, so a registration that then failed still reads true
-     * here, and the symptom is a status screen claiming the framework is in system_server while no
-     * module in system_server ever loads. Registration is a map insertion that only fails when the
-     * life token cannot be linked to death, so that is rare rather than impossible.</p>
+     * <p>Latched once system_server has identified itself to the bootstrap bridge as uid 1000,
+     * process {@code system}, with a life token, <b>and</b> its registration has succeeded - and
+     * never cleared afterwards, because the framework is in that process for as long as it lives.
+     * Both halves matter: registration fails when the life token cannot be linked to death, and a
+     * true here that only meant "it asked" would claim the framework is in system_server while no
+     * module hooking the system loads.</p>
      *
-     * <p>False is the answer that matters and it is unambiguous: system_server never got as far as
-     * the daemon, so the framework is not in it and no module hooking the system will run.</p>
+     * <p>False is unambiguous: the framework is not in system_server, and nothing hooking the
+     * system will run. It is also the answer for the whole of boot before system_server gets
+     * there, so a false read early is not yet evidence of a fault.</p>
      */
     boolean isSystemServerAttached();
 
