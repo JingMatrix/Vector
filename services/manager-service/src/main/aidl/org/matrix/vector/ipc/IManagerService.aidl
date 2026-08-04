@@ -196,9 +196,9 @@ interface IManagerService {
      *
      * <p>Also the answer below Android 10, where there is no wrapper at all: the daemon only starts
      * the machinery that would report on one from Android 10, and answers with this literal before
-     * then. "Working" and "not applicable on this release" are therefore the same value, and a
-     * caller that renders this as a supported feature is right for the wrong reason on an old
-     * device.</p>
+     * then. "Working" and "not applicable on this release" are therefore the same value, so a
+     * caller must not render it as a supported feature without checking the release first - the
+     * manager drops the row entirely below Android 10 rather than claim anything about it.</p>
      */
     const int DEX2OAT_OK = 0;
 
