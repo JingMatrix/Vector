@@ -517,13 +517,36 @@ object NotificationManager {
             modulePackageName,
             userName)
 
+    // Which user the link opens, which is not necessarily the one whose update raised this.
+    //
+    // Every notice this function posts is enqueued for user 0 — see the call at the end — so the
+    // reader tapping one is standing in user 0 whichever user's PACKAGE_REPLACED fired it. A link
+    // naming a secondary user therefore lands them somewhere they cannot see: a module installed
+    // in a private space as well as the main user raised two of these, the tag is the package
+    // alone so the second overwrote the first, and the survivor pointed into a profile that is
+    // locked more often than not. The scope editor then listed that profile's apps, which for a
+    // locked private space is nothing at all, and blamed a filter nobody had set.
+    //
+    // Preferring user 0 gives up nothing, because this id does not choose a configuration. A
+    // module is one package and one APK for the whole device with one scope set and one enabled
+    // flag; what the id selects is only which user's apps are offered as targets. So the same
+    // rule applies to the "not activated yet" half, where the act waiting to be done — turning
+    // the module on — is likewise device-wide.
+    //
+    // The triggering user is kept when the module is not in user 0 at all, which is a module
+    // that lives only in a secondary profile. There is no better answer for that one, and the
+    // notice is at least still about somewhere the module exists.
+    val linkUserId =
+        if (packageManager?.isPackageAvailable(modulePackageName, 0, true) == true) 0
+        else moduleUserId
+
     val intent =
         Intent(openManagerAction).apply {
           setPackage("android")
           data =
               Uri.Builder()
                   .scheme("module")
-                  .encodedAuthority("$modulePackageName:$moduleUserId")
+                  .encodedAuthority("$modulePackageName:$linkUserId")
                   .build()
         }
     val pi =
@@ -554,6 +577,11 @@ object NotificationManager {
     // that a module installed for two users shows one notice rather than two — which is what it did
     // before this as well. The collision with the scope prompt is gone either way, now that a scope
     // tag carries its ":user:target" suffix.
+    //
+    // What that price used to include, and no longer does: the two raisings overwrite each other,
+    // so the surviving notice carried whichever user's link happened to be written last. That is
+    // what [linkUserId] above is for — the tag stays user-free and the destination stops depending
+    // on the order two broadcasts arrived in.
     val tag = if (enabled) modulePackageName else notActivatedTag(modulePackageName)
     runCatching {
       nm?.enqueueNotificationWithTag("android", opPkg, tag, tag.hashCode(), notif, 0)

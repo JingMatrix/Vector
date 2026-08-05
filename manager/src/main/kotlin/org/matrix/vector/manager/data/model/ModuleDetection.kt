@@ -219,18 +219,33 @@ object ModuleDetection {
                 .getOrNull()
                 ?.filter { it.isNotEmpty() } ?: return emptyList()
 
-        // Legacy modules name the system server the other way round: their "android" is the
-        // daemon's "system", and their "system" is the ordinary "android" package. The convention
-        // is as old as XposedBridge and universal among legacy modules, so the swap is
-        // unconditional.
-        return raw.map {
+        return swapLegacyFrameworkNames(raw)
+    }
+
+    /**
+     * A legacy module's declared scope, spelled the way everything else here spells it.
+     *
+     * Legacy modules name the system server the other way round: their "android" is the daemon's
+     * "system", and their "system" is the ordinary "android" package. XposedBridge reported
+     * `packageName` as "system" for the system dialogues so that a module testing for "android"
+     * found system_server alone, and the scope vocabulary grew up around that; LSPosed later made
+     * "system" the system server and left "android" as the real package, which is what every
+     * modern module and the whole of the daemon mean by the two words today. The convention is
+     * universal among legacy modules, so the swap is unconditional for them.
+     *
+     * Not private, and not applied at the point of reading alone: the store shows a module's
+     * declared scope from the catalogue rather than from the APK, and that list is written in the
+     * module's own vocabulary too — so it has to pass through here before it is put on screen
+     * beside a list that already has.
+     */
+    fun swapLegacyFrameworkNames(scope: List<String>): List<String> =
+        scope.map {
             when (it) {
                 "android" -> "system"
                 "system" -> "android"
                 else -> it
             }
         }
-    }
 
     private fun String?.toIntOrZero(): Int =
         this?.trim()?.takeWhile { it.isDigit() }?.toIntOrNull() ?: 0

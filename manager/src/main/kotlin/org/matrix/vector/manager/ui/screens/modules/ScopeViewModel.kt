@@ -305,6 +305,7 @@ class ScopeViewModel(
                                 target in filters.draft ||
                                 target in filters.saved ||
                                 target in filters.touched
+                        val requested = app.packageName in recommended
                         if (locked || filters.recommendedOnly) {
                             // Both answer one question — what does this module want, and what have
                             // I given it — and the other filters have no say in either. Chrome is
@@ -314,14 +315,31 @@ class ScopeViewModel(
                             // which is most of them, showed an empty list for exactly that reason.
                             // The screen greys the other three out in both cases, and this is the
                             // code that makes that honest rather than decorative.
-                            return@filter matchesQuery && (inPlay || app.packageName in recommended)
+                            return@filter matchesQuery && (inPlay || requested)
                         }
-                        // The framework is a system target and is filtered like one. It needs no
-                        // exemption of its own: once it is in the scope the line above puts it
-                        // beyond every filter, and before it is chosen it is simply the most
-                        // system of system apps, so someone who has asked not to see those has
-                        // asked not to see it.
-                        val matchesSys = inPlay || filters.showSystem || !app.isSystemApp
+                        // The framework, when the module has asked for it, and nothing else.
+                        //
+                        // A request does not generally outrank the reader's filters: a module may
+                        // name dozens of system packages, and exempting all of them would leave
+                        // the system-apps switch turning nothing off on exactly the modules whose
+                        // lists are longest. The reader has "What the module asks for" for that
+                        // view, and it already overrides all three.
+                        //
+                        // The framework is the exception because it is not one of the several
+                        // hundred rows the filters exist to thin out. It is not an installed
+                        // package at all — it is a synthetic row this view model adds — so it
+                        // cannot be found by turning any filter on and hunting for it, and a
+                        // reader who has never seen it has no reason to think it exists. Hidden,
+                        // a module whose whole declared scope is the framework shows an empty
+                        // list, which is the one case where the filters do not thin a list but
+                        // erase it.
+                        val frameworkRequested =
+                            requested && app.packageName == SYSTEM_FRAMEWORK_PACKAGE
+                        val matchesSys =
+                            inPlay || frameworkRequested || filters.showSystem || !app.isSystemApp
+                        // No exemption needed on either of these: the framework row is built with
+                        // `isGame = false` and is not an installed package, so it is not in the
+                        // module set. Both already pass it.
                         val matchesGame = inPlay || filters.showGames || !app.isGame
                         val matchesModule =
                             inPlay || showMods || modules == null || app.packageName !in modules

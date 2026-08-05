@@ -95,6 +95,24 @@ class RepoDetailsViewModel(
     private val _installedScope = MutableStateFlow<List<String>>(emptyList())
     val installedScope: StateFlow<List<String>> = _installedScope.asStateFlow()
 
+    /**
+     * Whether the copy on this device is a legacy module, which decides how to read the
+     * *catalogue's* scope.
+     *
+     * The two generations spell the framework differently — see
+     * `ModuleDetection.swapLegacyFrameworkNames` — and the catalogue entry is written in whichever
+     * vocabulary its module belongs to. Nothing in the payload says which that is, so the installed
+     * copy is the only thing that can answer it, and only for a module that is installed at all.
+     *
+     * False while the module is absent, which is the honest answer rather than a safe one: with
+     * nothing on the device to inspect there is no way to know, and guessing would relabel a
+     * target on the strength of nothing. The consequence is a legacy module whose catalogue names
+     * `android` reading as `android` until it is installed and as `system` afterwards — visibly
+     * odd, and less misleading than the alternative, which is asserting one of the two at random.
+     */
+    private val _installedIsLegacy = MutableStateFlow(false)
+    val installedIsLegacy: StateFlow<Boolean> = _installedIsLegacy.asStateFlow()
+
     private fun readInstalledScope() {
         viewModelScope.launch(Dispatchers.IO) {
             val packageManager = ServiceLocator.context.packageManager
@@ -110,6 +128,7 @@ class RepoDetailsViewModel(
                     info.lastUpdateTime,
                 )
             _installedScope.value = manifest.scope
+            _installedIsLegacy.value = manifest.isLegacy
         }
     }
 

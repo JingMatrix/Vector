@@ -93,6 +93,7 @@ import kotlinx.coroutines.launch
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import org.matrix.vector.manager.ui.theme.currentLocale
+import org.matrix.vector.manager.data.model.ModuleDetection
 import org.matrix.vector.manager.data.model.OnlineModule
 import org.matrix.vector.manager.data.model.Release
 import org.matrix.vector.manager.data.model.ReleaseAsset
@@ -130,6 +131,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
         viewModel(factory = RepoDetailsViewModelFactory(packageName))
     val state by viewModel.state.collectAsState()
     val installedScope by viewModel.installedScope.collectAsState()
+    val installedIsLegacy by viewModel.installedIsLegacy.collectAsState()
     val install by viewModel.installState.collectAsState()
 
     val context = LocalContext.current
@@ -319,6 +321,7 @@ fun RepoDetailsScreen(packageName: String, onNavigateBack: () -> Unit) {
                             module = module,
                             listState = informationScroll,
                             installedScope = installedScope,
+                            installedIsLegacy = installedIsLegacy,
                             onOpenUrl = openUrl,
                         )
                 }
@@ -748,6 +751,8 @@ private fun InformationTab(
     listState: LazyListState,
     /** What the copy on this device declares, when the catalogue declares nothing. */
     installedScope: List<String>,
+    /** Whether that copy is a legacy module, which decides how to read the catalogue's scope. */
+    installedIsLegacy: Boolean,
     onOpenUrl: (String) -> Unit,
 ) {
     // Hoisted: the rows below are emitted from a LazyListScope, which is not a composable.
@@ -767,7 +772,18 @@ private fun InformationTab(
             // into. The catalogue first, because it describes the published module. Failing that,
             // what the installed copy declares in its own APK — accurate for the build actually on
             // this device, and labelled as such so the two are not confused.
-            val published = module.scope?.takeIf { it.isNotEmpty() }
+            //
+            // The catalogue's list is written in the module's own vocabulary, and a legacy
+            // module's is the reverse of everything else here: its "android" is the system server
+            // and its "system" is the ordinary android package. The installed list beside it has
+            // already been through that swap on its way out of the APK, so without this the same
+            // module can name the same target two different ways in two adjacent lines.
+            val published =
+                module.scope
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let {
+                        if (installedIsLegacy) ModuleDetection.swapLegacyFrameworkNames(it) else it
+                    }
             InfoRow(
                 icon = Icons.Rounded.TrackChanges,
                 label =

@@ -197,6 +197,13 @@ fun ScopeScreen(
         }
     val haptics = LocalHapticFeedback.current
     var confirmStranded by remember { mutableStateOf(false) }
+    // Whether the stranding question has already been put this visit, and answered by neither
+    // button. Two slots cannot hold three answers, so when the module has asked for something the
+    // buttons are "give it that" and "switch it off" and there is none that says "leave it exactly
+    // as it is" — cancelling the dialog is the only way to say that, and a warning that comes
+    // straight back on the next back press turns cancelling into a wall the reader cannot get
+    // past. Asked once, then believed.
+    var strandWarned by remember { mutableStateOf(false) }
     val frameworkRestartNeeded by viewModel.frameworkRestartNeeded.collectAsStateWithLifecycle()
 
     val staticScopeNotice = stringResource(R.string.scope_static)
@@ -238,7 +245,8 @@ fun ScopeScreen(
 
     // Leaving a module enabled with nothing to hook does nothing at all but looks like it works.
     fun attemptBack() {
-        if (viewModel.wouldStrandModule()) confirmStranded = true else onNavigateBack()
+        if (!strandWarned && viewModel.wouldStrandModule()) confirmStranded = true
+        else onNavigateBack()
     }
 
     // The gesture leaves this screen exactly as the arrow does, so it asks the same question
@@ -505,24 +513,76 @@ fun ScopeScreen(
     }
 
     if (confirmStranded) {
+        // Three things the reader might mean and two slots to say them in — `VectorAlertDialog`
+        // wraps Material's `AlertDialog`, which has a confirm button and a dismiss button and
+        // nothing else. Which two are offered depends on whether the module asked for anything,
+        // and the third is always reachable by cancelling the dialog.
+        //
+        // A module with a recommendation is the interesting case: the useful answer there is not
+        // "switch it off" but "give it what it asked for", which is what the pre-Compose manager
+        // offered as its positive button whenever a recommendation existed, keeping disable for
+        // the negative one. Offering to disable a module that has told us exactly which apps it
+        // wants is offering to throw away the answer while holding it.
+        val hasRecommended = !state.recommended.isEmpty
+        // Written once and dropped into whichever slot is free: the same act — turn the module off
+        // and leave — is the positive answer when there is nothing better to offer and the
+        // negative one when there is.
+        val disableAndLeave: @Composable () -> Unit = {
+            TextButton(
+                onClick = {
+                    viewModel.setModuleEnabled(false)
+                    confirmStranded = false
+                    onNavigateBack()
+                }
+            ) {
+                Text(stringResource(R.string.scope_empty_disable))
+            }
+        }
         VectorAlertDialog(
-            onDismissRequest = { confirmStranded = false },
+            // Tapping outside, or the system back the dialog handles itself, is a cancel and not
+            // an answer — so it goes back to the list being edited rather than off the screen.
+            // It is also the only way to say "leave it exactly as it is" when the buttons are
+            // taken, which is why it records that the question has now been asked; see
+            // [strandWarned].
+            onDismissRequest = {
+                strandWarned = true
+                confirmStranded = false
+            },
             title = { Text(stringResource(R.string.scope_empty_title)) },
             text = { Text(stringResource(R.string.scope_empty_message)) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.setModuleEnabled(false)
-                        confirmStranded = false
-                        onNavigateBack()
+                if (hasRecommended) {
+                    // Ticks the recommendation and returns the reader to the list, deliberately
+                    // without leaving: this is an edit like every other on this screen and still
+                    // has to be applied, and navigating away from it would drop the draft on the
+                    // floor a moment after offering it.
+                    TextButton(
+                        onClick = {
+                            viewModel.useRecommended()
+                            confirmStranded = false
+                        }
+                    ) {
+                        Text(stringResource(R.string.scope_use_recommended))
                     }
-                ) {
-                    Text(stringResource(R.string.scope_empty_disable))
+                } else {
+                    disableAndLeave()
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirmStranded = false }) {
-                    Text(stringResource(R.string.scope_empty_keep))
+                if (hasRecommended) {
+                    disableAndLeave()
+                } else {
+                    // Leaves, which the label has always promised and the button never did:
+                    // dismissing the dialog alone put the reader back on the page they were trying
+                    // to leave, where pressing back asked them the same question again.
+                    TextButton(
+                        onClick = {
+                            confirmStranded = false
+                            onNavigateBack()
+                        }
+                    ) {
+                        Text(stringResource(R.string.scope_empty_keep))
+                    }
                 }
             },
         )
