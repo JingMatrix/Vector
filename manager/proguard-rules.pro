@@ -23,6 +23,29 @@
 # Gson models are constructed reflectively from field names.
 -keepclassmembers class org.matrix.vector.manager.data.model.** { <fields>; }
 
+# An enum's constants are reached reflectively: Enum.valueOf asks the class for its values()
+# method by name. Kotlin no longer calls that method itself — `entries` compiles to its own
+# synthetic field — so the last call site is usually gone and R8 shrinks values() away, which
+# leaves every enum in the APK undeserializable. Compose saved instance state is what reaches it
+# here: Parcel has no enum case and java.lang.Enum is Serializable, so a saved enum is written
+# as VAL_SERIALIZABLE, and restoring the activity after its process died threw
+# NoSuchMethodException on the navigation suite's own state value (#871). AGP's
+# proguard-android-optimize.txt carries this stanza, but that file has not been on the
+# proguardFiles list since #263, so it has to be written out here.
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# The same restore path reaches Parcelables, and finds their CREATOR by a reflective field lookup
+# that R8 cannot see either, so it drops the field from every class that does not otherwise
+# reference it. Compose keeps its own state in one: a `mutableStateOf` that survives process death
+# is a ParcelableSnapshotMutableState, and reading it back threw BadParcelableException. The legacy
+# manager carried this rule by hand; the rewrite in #796 did not bring it across.
+-keepclassmembers class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
 # OkHttp / Okio ship analysis-only references to optional platform classes.
 -dontwarn okhttp3.internal.**
 -dontwarn org.conscrypt.**
