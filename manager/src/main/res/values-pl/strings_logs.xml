@@ -9,66 +9,66 @@
 <resources>
     <string name="logs_title">Dzienniki</string>
     <!-- Top bar actions -->
-    <string name="logs_word_wrap">Zawijaj długie wiersze</string>
-    <string name="logs_save">Zapisz zgłoszenie błędu…</string>
-    <string name="logs_rotate">Zacznij nowy dziennik…</string>
+    <string name="logs_word_wrap">Zawijaj długie linie</string>
+    <string name="logs_save">Zapisz raport o błędzie…</string>
+    <string name="logs_rotate">Rozpocznij nowy dziennik…</string>
     <!-- Search and filter -->
-    <string name="logs_search_hint">Szukaj w tym dzienniku</string>
-    <string name="logs_filter">Filtruj wg poziomu i znacznika</string>
+    <string name="logs_search_hint">Przeszukaj ten dziennik</string>
+    <string name="logs_filter">Filtruj według poziomu i tagu</string>
     <string name="logs_filter_levels">Poziom</string>
-    <string name="logs_filter_tags">Znacznik</string>
+    <string name="logs_filter_tags">Tag</string>
     <string name="logs_filter_clear">Wyczyść filtr</string>
-    <string name="logs_filter_scanning">Wczytywanie całego pliku, aby filtr sięgał poza to, co widać na ekranie.</string>
+    <string name="logs_filter_scanning">Odczytywanie całego pliku, aby filtr mógł zobaczyć także to, co znajduje się poza ekranem.</string>
     <!-- The counter under the search field -->
     <!-- Example: "lines 1 200–3 200 of 30 412" -->
-    <string name="logs_window">Wiersze %1$d–%2$d z %3$d</string>
+    <string name="logs_window">Linie %1$d–%2$d z %3$d</string>
     <plurals name="logs_matches">
-        <item quantity="one">%1$d pasujący wiersz</item>
-        <item quantity="few">%1$d pasujące wiersze</item>
-        <item quantity="many">%1$d pasujących wierszy</item>
-        <item quantity="other">%1$d pasującego wiersza</item>
+        <item quantity="one">%1$d pasująca linia</item>
+        <item quantity="few">%1$d pasujące linie</item>
+        <item quantity="many">%1$d pasujących linii</item>
+        <item quantity="other">%1$d pasujących linii</item>
     </plurals>
-    <string name="logs_dropped">Ten dziennik jest dłuższy, niż przeglądarka potrafi zindeksować. Najstarszych %1$d wierszy nie widać; zapisz zgłoszenie błędu, aby je zachować.</string>
-    <string name="logs_line_truncated">wiersz ucięty</string>
+    <string name="logs_dropped">Ten dziennik jest dłuższy niż indeksy przeglądarki. Najstarsze %1$d wierszy nie są wyświetlane; zapisz raport o błędzie, aby je zachować.</string>
+    <string name="logs_line_truncated">linia ucięta</string>
     <plurals name="logs_frames">
         <item quantity="one">%1$d ramka</item>
         <item quantity="few">%1$d ramki</item>
         <item quantity="many">%1$d ramek</item>
-        <item quantity="other">%1$d ramki</item>
+        <item quantity="other">%1$d ramek</item>
     </plurals>
     <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
     <plurals name="logs_more_lines">
-        <item quantity="one">%1$d wiersz więcej</item>
-        <item quantity="few">%1$d wiersze więcej</item>
-        <item quantity="many">%1$d wierszy więcej</item>
-        <item quantity="other">%1$d wiersza więcej</item>
+        <item quantity="one">%1$d linia więcej</item>
+        <item quantity="few">%1$d linie więcej</item>
+        <item quantity="many">%1$d linii więcej</item>
+        <item quantity="other">%1$d linii więcej</item>
     </plurals>
     <!-- The four distinct nothing-to-show states -->
-    <string name="logs_state_daemon_title">Usługa jest nieosiągalna</string>
-    <string name="logs_state_daemon_body">Dopóki Vector nie działa, o dzienniku nic nie wiadomo. Z tego samego powodu pasek stanu na stronie startowej nie jest zielony.</string>
+    <string name="logs_state_daemon_title">Deamon jest nieosiągalny</string>
+    <string name="logs_state_daemon_body">Nic nie wiadomo o dzienniku, dopóki Vector nie jest uruchomiony. Z tego samego powodu pasek stanu na ekranie głównym nie jest zielony.</string>
     <string name="logs_state_nofile_title">Nie ma jeszcze pliku dziennika</string>
-    <string name="logs_state_nofile_body">Usługa działa, ale nie otworzyła tego dziennika. Przy dzienniku szczegółowym zwykle znaczy to, że szczegółowe zapisywanie jest wyłączone.</string>
+    <string name="logs_state_nofile_body">Daemon działa, ale nie otworzył tego dziennika. W przypadku dziennika szczegółowego zwykle oznacza to, że szczegółowe rejestrowanie jest wyłączone.</string>
     <string name="logs_state_empty_title">Ten dziennik jest pusty</string>
-    <string name="logs_state_empty_body">Plik istnieje i nic do niego nie zapisano. Przy dzienniku modułów spokojny system wygląda właśnie tak.</string>
+    <string name="logs_state_empty_body">Plik istnieje i nic do niego nie zapisano. Tak wygląda cichy system w dzienniku modułu.</string>
     <string name="logs_state_nomatches_title">Nic nie pasuje</string>
-    <string name="logs_state_nomatches_body">Plik ma zawartość; obecny filtr odrzuca ją w całości.</string>
-    <string name="logs_state_failed_title">Nie udało się odczytać dziennika</string>
-    <string name="logs_state_failed_body">Usługa przekazała plik, którego nie dało się odczytać: %1$s</string>
+    <string name="logs_state_nomatches_body">Plik zawiera dane, ale obecny filtr wyklucza całą jego zawartość.</string>
+    <string name="logs_state_failed_title">Nie można odczytać dziennika</string>
+    <string name="logs_state_failed_body">Demon przekazał plik, którego nie można odczytać: %1$s</string>
     <string name="logs_loading">Indeksowanie…</string>
     <!-- Verbose logging -->
-    <string name="logs_verbose_switch">Szczegółowe zapisywanie</string>
-    <string name="logs_verbose_enforced">Działająca usługa i tak wymusza tę opcję.</string>
+    <string name="logs_verbose_switch">Szczegółowe rejestrowanie</string>
+    <string name="logs_verbose_enforced">Uruchomiony Daemon wymusza to niezależnie od tego.</string>
     <!-- Navigation within a long log -->
-    <string name="logs_jump_oldest">Przejdź do najstarszego wiersza</string>
-    <string name="logs_jump_newest">Przejdź do najnowszego wiersza</string>
+    <string name="logs_jump_oldest">Przejdź do najstarszej linii</string>
+    <string name="logs_jump_newest">Przejdź do najnowszej linii</string>
     <!-- Per-row actions -->
     <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
     <!-- Starting a new log: the consequence, named -->
-    <string name="logs_rotate_title">Zacząć nowy dziennik?</string>
-    <string name="logs_rotate_body">Nic nie zostanie usunięte. Usługa zamyka bieżącą część i otwiera nową; zamknięta część zostaje na dysku — o jedno przesunięcie stąd — dopóki nie wypadnie z dziesięciu najnowszych, a zapisane zgłoszenie błędu nadal ją zawiera.</string>
-    <string name="logs_rotate_confirm">Zacznij nowy dziennik</string>
+    <string name="logs_rotate_title">Rozpocząć nowy dziennik?</string>
+    <string name="logs_rotate_body">Nic nie jest usuwane. Daemon zamyka bieżącą część i rozpoczyna nową; zamknięta część pozostaje na dysku — dostępna po przesunięciu — dopóki nie wypadnie z dziesięciu najnowszych, a zapisany raport o błędzie nadal ją zawiera.</string>
+    <string name="logs_rotate_confirm">Rozpocznij nowy dziennik</string>
     <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
-    <string name="logs_rotate_unreachable">Nie udało się połączyć z usługą, aby rozpocząć nowy dziennik</string>
+    <string name="logs_rotate_unreachable">Nie udało się nawiązać połączenia z Deamon w celu rozpoczęcia nowego dziennika</string>
     <string name="logs_cancel">Anuluj</string>
     <!-- Saving -->
     <string name="logs_saving">Zbieranie dzienników, tombstone\'ów i dmesg…</string>
@@ -85,8 +85,8 @@
     <string name="logs_traces_inline">Otwieraj ślady na miejscu</string>
     <string name="logs_traces_inline_summary">Ślad stosu rozwija się pod swoim wierszem. Wyłącz to, aby otwierać go na osobnym ekranie.</string>
     <string name="logs_save_summary">Zapisuje oba dzienniki do wybranego pliku zip</string>
-    <string name="logs_rotate_summary">Zamyka bieżącą część i otwiera nową</string>
-    <string name="logs_part">część %1$d/%2$d</string>
+    <string name="logs_rotate_summary">Zamyka bieżącą część i rozpoczyna nową</string>
+    <string name="logs_part">Część %1$d/%2$d</string>
     <string name="logs_part_older">Starsza część</string>
     <string name="logs_part_newer">Nowsza część</string>
 </resources>
