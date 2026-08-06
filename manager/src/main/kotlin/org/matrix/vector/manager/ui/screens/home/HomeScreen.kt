@@ -14,7 +14,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -210,8 +212,12 @@ fun HomeScreen(
 
     Scaffold(
         // The header draws its own status-bar inset so it can run under the bar; letting the
-        // Scaffold consume it here would leave a band of plain background above the pane.
-        contentWindowInsets = WindowInsets(0),
+        // Scaffold consume it here would leave a band of plain background above the pane. The
+        // bottom is the Scaffold's to reserve, though: with the panels floating there is no
+        // navigation container underneath to have taken it, and the last row of the feed would end
+        // up behind three-button navigation. Already-consumed insets are excluded from this, so it
+        // still adds nothing in the arrangements where a container is there.
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Bottom),
         snackbarHost = { VectorSnackbarHost(snackbars) },
     ) { padding ->
         val listState = rememberLazyListState()

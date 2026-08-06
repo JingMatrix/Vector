@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -312,6 +313,10 @@ private fun UpdateBar(
         modifier =
             Modifier.fillMaxWidth()
                 .background(colors.surfaceContainer)
+                // After the fill, before the padding: the container colour runs to the bottom edge
+                // of the window while the flash button stays clear of three-button navigation,
+                // which Scaffold leaves to its bottom slot rather than reserving itself.
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         when (flash) {

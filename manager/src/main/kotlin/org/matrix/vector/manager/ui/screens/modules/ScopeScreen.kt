@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -1037,7 +1038,19 @@ private fun ApplyBar(
 ) {
     Surface(tonalElevation = 3.dp, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+            // The bar is the last child of the window, and this screen is a detail screen: the
+            // navigation container is hidden here, so nothing above has reserved the system bars
+            // and Scaffold hands its bottom slot the whole window. Without this the buttons sit
+            // under three-button navigation, where what is left of them is a few pixels tall.
+            //
+            // Inside the Surface rather than on it, so the tonal fill still runs to the bottom
+            // edge and the bar reads as one surface rather than as a strip floating above the
+            // system's own. Insets already consumed count for nothing here, so the same call is
+            // correct in the arrangements where a container below has taken them.
+            modifier =
+                Modifier.fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
