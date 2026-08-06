@@ -44,7 +44,7 @@
         <item quantity="other">%1$d linii więcej</item>
     </plurals>
     <!-- The four distinct nothing-to-show states -->
-    <string name="logs_state_daemon_title">Deamon jest nieosiągalny</string>
+    <string name="logs_state_daemon_title">Daemon jest nieosiągalny</string>
     <string name="logs_state_daemon_body">Nic nie wiadomo o dzienniku, dopóki Vector nie jest uruchomiony. Z tego samego powodu pasek stanu na ekranie głównym nie jest zielony.</string>
     <string name="logs_state_nofile_title">Nie ma jeszcze pliku dziennika</string>
     <string name="logs_state_nofile_body">Daemon działa, ale nie otworzył tego dziennika. W przypadku dziennika szczegółowego zwykle oznacza to, że szczegółowe rejestrowanie jest wyłączone.</string>
@@ -53,7 +53,7 @@
     <string name="logs_state_nomatches_title">Nic nie pasuje</string>
     <string name="logs_state_nomatches_body">Plik zawiera dane, ale obecny filtr wyklucza całą jego zawartość.</string>
     <string name="logs_state_failed_title">Nie można odczytać dziennika</string>
-    <string name="logs_state_failed_body">Demon przekazał plik, którego nie można odczytać: %1$s</string>
+    <string name="logs_state_failed_body">Daemon przekazał plik, którego nie można odczytać: %1$s</string>
     <string name="logs_loading">Indeksowanie…</string>
     <!-- Verbose logging -->
     <string name="logs_verbose_switch">Szczegółowe rejestrowanie</string>
@@ -68,22 +68,22 @@
     <string name="logs_rotate_body">Nic nie jest usuwane. Daemon zamyka bieżącą część i rozpoczyna nową; zamknięta część pozostaje na dysku — dostępna po przesunięciu — dopóki nie wypadnie z dziesięciu najnowszych, a zapisany raport o błędzie nadal ją zawiera.</string>
     <string name="logs_rotate_confirm">Rozpocznij nowy dziennik</string>
     <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
-    <string name="logs_rotate_unreachable">Nie udało się nawiązać połączenia z Deamon w celu rozpoczęcia nowego dziennika</string>
+    <string name="logs_rotate_unreachable">Nie udało się nawiązać połączenia z Daemon w celu rozpoczęcia nowego dziennika</string>
     <string name="logs_cancel">Anuluj</string>
     <!-- Saving -->
-    <string name="logs_saving">Zbieranie dzienników, tombstone\'ów i dmesg…</string>
-    <string name="logs_saved">Zapisano zgłoszenie błędu</string>
-    <string name="logs_save_failed">Nie udało się zapisać zgłoszenia błędu</string>
-    <string name="logs_save_failed_reason">Nie udało się zapisać zgłoszenia błędu: %1$s</string>
+    <string name="logs_saving">Zbieranie dzienników, zrzutów awarii i dmesg…</string>
+    <string name="logs_saved">Raport o błędzie zapisany</string>
+    <string name="logs_save_failed">Nie udało się zapisać raportu o błędzie</string>
+    <string name="logs_save_failed_reason">Nie udało się zapisać raportu o błędzie: %1$s</string>
     <string name="logs_share">Udostępnij</string>
-    <string name="logs_filter_clear_tag">Wyczyść filtr znacznika</string>
-    <string name="logs_settings">Ustawienia dzienników</string>
-    <string name="logs_source_more">Pokaż też wiersze samego szkieletu</string>
-    <string name="logs_source_less">Pokaż tylko wiersze modułów</string>
-    <string name="logs_verbose_summary">Włącz to przed zgłoszeniem błędu. Aplikacje mogą czytać własne dzienniki, więc pozostawienie tej opcji włączonej to jeden ze sposobów, w jaki aplikacja może wykryć Vectora.</string>
+    <string name="logs_filter_clear_tag">Wyczyść filtr tagów</string>
+    <string name="logs_settings">Ustawienia dziennika</string>
+    <string name="logs_source_more">Uwzględnij własne linie frameworka</string>
+    <string name="logs_source_less">Pokaż tylko linie modułów</string>
+    <string name="logs_verbose_summary">Włącz tę opcję przed zgłoszeniem błędu. Aplikacje potrafią odczytywać własne dzienniki więc pozostawienie tej opcji włączonej to jeden ze sposobów na wykrycie Vectora.</string>
     <string name="logs_trace_title">Ślad stosu</string>
-    <string name="logs_traces_inline">Otwieraj ślady na miejscu</string>
-    <string name="logs_traces_inline_summary">Ślad stosu rozwija się pod swoim wierszem. Wyłącz to, aby otwierać go na osobnym ekranie.</string>
+    <string name="logs_traces_inline">Otwórz ślady na miejscu</string>
+    <string name="logs_traces_inline_summary">Ślad stosu rozwija się pod linią. Wyłącz tę opcję, aby otworzyć go na osobnym ekranie.</string>
     <string name="logs_save_summary">Zapisuje oba dzienniki do wybranego pliku zip</string>
     <string name="logs_rotate_summary">Zamyka bieżącą część i rozpoczyna nową</string>
     <string name="logs_part">Część %1$d/%2$d</string>
