@@ -12,9 +12,9 @@
     <string name="status_channel_name">Stan Vector</string>
     <string name="vector_running_notification_title">Vector załadowany</string>
     <string name="vector_running_notification_content">Naciśnij powiadomienie, by włączyć menedżer</string>
-    <string name="xposed_module_request_scope_title">Zakres żądania</string>
+    <string name="xposed_module_request_scope_title">Żądanie zakresu</string>
     <string name="xposed_module_request_scope_content">%1$s dla użytkownika %2$s żąda dodania %3$s do jego zakresu.</string>
-    <string name="scope_channel_name">Zakres żądania</string>
+    <string name="scope_channel_name">Żądanie zakresu</string>
     <string name="scope_approve">Zatwierdź</string>
     <string name="scope_deny">Odrzuć</string>
     <string name="never_ask_again">Nigdy nie pytaj</string>
