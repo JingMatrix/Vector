@@ -46,8 +46,8 @@
     <string name="store_tab_releases">Wydania</string>
     <string name="store_tab_information">Informacja</string>
     <!-- Detail -->
-    <string name="store_readme_missing">Ten moduł nie zawiera pliku README.</string>
-    <string name="store_detail_partial">Pokazuje to, co lista modułów już wiedziała. Plik README i starsze wydania potrzebują połączenia.</string>
+    <string name="store_readme_missing">Ten moduł nie zawiera pliku readme.</string>
+    <string name="store_detail_partial">Pokazuje to, co lista modułów już wiedziała. Plik readme i starsze wydania potrzebują połączenia.</string>
     <string name="store_releases_none">Ten moduł nie ma opublikowanych żadnych wydań na tym kanale.</string>
     <string name="store_release_notes">Informacje o wydaniu</string>
     <string name="store_open_release">Otwórz na GitHubie</string>
