@@ -38,9 +38,24 @@ fun IUserManager.getRealUsers(): List<UserInfo> {
   return users
 }
 
-/** Android 16 DP1 SystemUI FeatureFlag and Notification Builder workaround. */
+/**
+ * Notification.Builder workaround for the SystemUI feature flags.
+ *
+ * Android 16 reads an aconfig flag from the `systemui` container while constructing a
+ * `Notification`, and the generated `FeatureFlagsImpl` only reads it once, guarded by
+ * `systemui_is_cached`. The read goes out to `content://settings/config`, which the daemon cannot
+ * reach: it has an ActivityThread but no application record, so the system refuses it a provider
+ * and the constructor throws `SecurityException`. Setting the guard leaves the flags at their
+ * defaults and skips the read entirely.
+ *
+ * The read belongs to Android 16 and is gone again in Android 17, where the constructor sets the
+ * fields unconditionally. It reaches Android 15 all the same, on vendor builds that took the change
+ * without taking the SDK level: #96 and #880 are both Xiaomi HyperOS on 15. The test therefore
+ * spans the versions where the field can exist rather than naming one, and a device that never had
+ * it fails with a `ClassNotFoundException` that is ignored.
+ */
 fun applyNotificationWorkaround() {
-  if (Build.VERSION.SDK_INT == 36) {
+  if (Build.VERSION.SDK_INT in Build.VERSION_CODES.VANILLA_ICE_CREAM..36) {
     runCatching {
           val feature = Class.forName("android.app.FeatureFlagsImpl")
           val field = feature.getDeclaredField("systemui_is_cached").apply { isAccessible = true }
