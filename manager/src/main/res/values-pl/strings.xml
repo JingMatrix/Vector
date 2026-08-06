@@ -25,18 +25,18 @@
     <string name="panels_ball_close">Zamknij nawigację</string>
     <!-- Framework status -->
     <string name="status_active">jest aktywny</string>
-    <string name="status_degraded">wymaga uwagi</string>
+    <string name="status_degraded">wymaga uwagi!</string>
     <string name="status_inactive">jest nieaktywny</string>
     <!-- The framework is running but speaks a different generation of the manager interface. -->
-    <string name="status_mismatched">Niezgodność wersji</string>
+    <string name="status_mismatched">Wersje się nie zgadzają</string>
     <string name="status_checking">Sprawdzanie…</string>
     <string name="status_open_details">Otwórz status systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
     <string name="issue_sepolicy_title">Zasady SELinux nie zostały załadowane</string>
-    <string name="issue_sepolicy_summary">Niektóre funkcje nie będą działać. Zwykle oznacza to, że implementacja roota nie zastosowała reguł Vectora.</string>
-    <string name="issue_system_server_title">Nie udało się wstrzyknąć systemowego frameworka</string>
-    <string name="issue_system_server_summary">Moduły nie mogą podłączać się do usług systemowych. Zdarza się to rzadko i zwykle jest spowodowane przez inny moduł roota, który zakłóca działanie.</string>
-    <string name="issue_dex2oat_title">Warstwa pośrednia optymalizatora DEX jest niedostępna</string>
+    <string name="issue_sepolicy_summary">Niektóre funkcje nie będą działać. Zwykle oznacza to, że implementacja roota nie zastosowała reguł Vectora</string>
+    <string name="issue_system_server_title">Nie udało się wstrzyknąć frameworka systemu</string>
+    <string name="issue_system_server_summary">Moduły nie mogą się podłączyć do usług systemowych. Zdarza się to rzadko i zwykle jest spowodowane przez inny moduł roota, który powoduje konflikt działania.</string>
+    <string name="issue_dex2oat_title">Warstwa optymalizatora DEX jest niedostępna</string>
     <string name="issue_dex2oat_summary">Niektóre właściwości systemu zostały usunięte lub zmienione. Moduły mogą przestać działać po aktualizacji aplikacji.</string>
     <string name="crash_recorded_title">Menedżer nieoczekiwanie się zamknął</string>
     <string name="crash_recorded_summary">Pełny ślad stosu znajduje się w eksporcie dziennika, w sekcji crash_manager.</string>
@@ -65,12 +65,12 @@
     <string name="system_status">Stan systemu</string>
     <string name="info_manager_version">Menedżer</string>
     <string name="info_api_version">API Xposed</string>
-    <string name="info_section_build">Co jest uruchomione</string>
-    <string name="info_section_health">Czy działa poprawnie</string>
+    <string name="info_section_build">Co jest uruchomione?</string>
+    <string name="info_section_health">Czy działa poprawnie?</string>
     <string name="info_section_device">To urządzenie</string>
     <string name="info_framework_version">Framework</string>
     <string name="info_manager_package">Pakiet menedżera</string>
-    <string name="info_dex2oat">Warstwa pośrednia optymalizatora DEX</string>
+    <string name="info_dex2oat">Warstwa optymalizatora DEX</string>
     <string name="info_selinux">Zasady SELinux</string>
     <string name="info_system_server">Framework systemu</string>
     <string name="info_android">Android</string>
@@ -97,9 +97,9 @@
     <!-- Example: "7 commits by 4 people" -->
     <plurals name="home_commit_count">
         <item quantity="one">%1$d zatwierdzenie</item>
-        <item quantity="few">%1$d zatwierdzeń</item>
-        <item quantity="many">%1$d zatwierdzenia</item>
-        <item quantity="other">%1$d zatwierdzenia</item>
+        <item quantity="few">%1$d zatwierdzenia</item>
+        <item quantity="many">%1$d zatwierdzeń</item>
+        <item quantity="other">%1$d zatwierdzeń</item>
     </plurals>
     <plurals name="home_people_count">
         <item quantity="one">od %1$d osoby</item>
@@ -132,7 +132,7 @@
     <string name="home_month_stats">%1$s · %2$s</string>
     <plurals name="home_people_count_plain">
         <item quantity="one">%1$d osoba</item>
-        <item quantity="few">%1$d osoby</item>
+        <item quantity="few">%1$d osób</item>
         <item quantity="many">%1$d osób</item>
         <item quantity="other">%1$d osób</item>
     </plurals>
@@ -153,10 +153,10 @@
     <!-- Home appearance sheet. Settings live beside what they change, not in one heap. -->
     <string name="appearance_title">Wygląd</string>
     <string name="appearance_theme">Motyw</string>
-    <string name="appearance_theme_system">Zgodnie z systemem</string>
+    <string name="appearance_theme_system">Zgodny z systemem</string>
     <string name="appearance_theme_light">Jasny</string>
     <string name="appearance_theme_dark">Ciemny</string>
-    <string name="appearance_dynamic_color">Kolory z tapety</string>
+    <string name="appearance_dynamic_color">Kolory tapety</string>
     <string name="appearance_amoled">Prawdziwy czarny w trybie ciemnym</string>
     <string name="appearance_amoled_summary">Oszczędza energię na ekranach OLED.</string>
     <string name="egg_two_more">Jeszcze dwa razy…</string>
@@ -241,15 +241,15 @@
     <string name="settings_open_externally">Otwieraj linki w przeglądarce</string>
     <string name="settings_open_externally_summary">Wyłączone: strony GitHuba otwierają się wewnątrz Vectora.</string>
     <!-- Scope editor -->
-    <string name="scope_use_recommended">Użyj tego, o co prosi moduł</string>
-    <string name="scope_select_visible">Zaznacz wszystko co jest pokazane</string>
-    <string name="scope_clear_visible">Wyczyść wszystko co jest pokazane</string>
+    <string name="scope_use_recommended">Użyj tego, czego wymaga moduł</string>
+    <string name="scope_select_visible">Zaznacz wszystko, co jest pokazane</string>
+    <string name="scope_clear_visible">Wyczyść wszystko, co jest pokazane</string>
     <string name="scope_backup_done">Zakres zapisany.</string>
     <string name="scope_backup_failed">Nie udało się odczytać ani zapisać tego pliku.</string>
     <string name="scope_select">Zaznacz</string>
     <string name="scope_sort">Sortuj</string>
     <string name="scope_modules">Inne moduły</string>
-    <string name="scope_include_new_apps">Dodawaj nowe aplikacje automatycznie</string>
+    <string name="scope_include_new_apps">Dodaj nowe aplikacje automatycznie</string>
     <string name="scope_include_new_apps_summary">Aplikacje zainstalowane od teraz trafią do zakresu tego modułu.</string>
     <string name="scope_backup">Utwórz kopię tego zakresu</string>
     <string name="scope_restore">Przywróć ten zakres</string>
@@ -317,7 +317,7 @@
     <string name="modules_collapse">Pokaż mniej</string>
     <string name="action_optimize_summary">Ponownie kompiluje aplikację, aby ART przestał wbudowywać metody, których moduł potrzebuje do podłączenia</string>
     <string name="modules_scope_framework">Podłącza się do frameworka systemu</string>
-    <string name="scope_origin_locked">Naprawione przez moduł</string>
+    <string name="scope_origin_locked">Ustalone przez moduł</string>
     <string name="scope_origin_chosen">Twój wybór</string>
     <string name="scope_origin_derived">Zawsze w zakresie</string>
     <string name="modules_selection_clear">Wyczyść zaznaczenie</string>
@@ -356,20 +356,20 @@
     <plurals name="modules_batch_already_off">
         <item quantity="one">%1$d był już wyłączony</item>
         <item quantity="few">%1$d były już wyłączone</item>
-        <item quantity="many">%1$d było już wyłączonych</item>
-        <item quantity="other">%1$d było już wyłączonych</item>
+        <item quantity="many">%1$d było już wyłączone</item>
+        <item quantity="other">%1$d było już wyłączone</item>
     </plurals>
     <plurals name="modules_batch_all_already_on">
-        <item quantity="one">%1$d był już wyłączony</item>
+        <item quantity="one">%1$d był już włączony</item>
         <item quantity="few">Wszystkie %1$d były już włączone</item>
-        <item quantity="many">Wszystkie %1$d były już włączone</item>
-        <item quantity="other">Wszystkie %1$d były już włączone</item>
+        <item quantity="many">Wszystkie %1$d było już włączone</item>
+        <item quantity="other">Wszystkie %1$d było już włączone</item>
     </plurals>
     <plurals name="modules_batch_all_already_off">
         <item quantity="one">Był już wyłączony</item>
         <item quantity="few">Wszystkie %1$d były już wyłączone</item>
-        <item quantity="many">Wszystkie %1$d były już wyłączone</item>
-        <item quantity="other">Wszystkie %1$d były już wyłączone</item>
+        <item quantity="many">Wszystkie %1$d było już wyłączone</item>
+        <item quantity="other">Wszystkie %1$d było już wyłączone</item>
     </plurals>
     <string name="modules_batch_partial">Tylko %1$s z nich zadziałało</string>
     <string name="modules_uninstall_title">Odinstalować te moduły?</string>
@@ -411,13 +411,13 @@
     <string name="canary_report_body">Canary, która zawodzi, to właśnie powód, by ją uruchamiać — dopiero zgłoszenie zmienia to w poprawkę. Jeśli tropisz błąd, weź archiwum Debug: zapisuje znacznie więcej, a tego właśnie wymaga zgłoszenie.</string>
     <string name="home_contributors_by_commits">Najwięcej zatwierdzeń</string>
     <string name="home_contributors_by_recent">Najnowsze</string>
-    <string name="scope_recommended_only">To czego wymaga moduł</string>
-    <string name="home_resting">Przerwa — zapisana aktywność. Pociągnij, aby odświeżyć.</string>
+    <string name="scope_recommended_only">To, czego wymaga moduł</string>
+    <string name="home_resting">Przerwa — aktywność zapisana. Pociągnij, aby odświeżyć.</string>
     <string name="report_title">Zanim zgłosisz</string>
     <string name="report_step_canary">Najpierw wypróbuj najnowsze Canary</string>
     <string name="report_step_canary_body">Może to być już naprawione, a kompilacja debug jest tym, czego potrzebują opiekunowie, aby ci pomóc. Pozostań na głównej gałęzi — kompilacje żądań zmian są niestabilne.</string>
     <string name="report_step_zygisk">Nie masz Magiska? Zaktualizuj Zygisk</string>
-    <string name="report_step_zygisk_body">Wgraj najnowszą implementację Zygisk, w jej kompilacji debug, jeśli taka istnieje.</string>
+    <string name="report_step_zygisk_body">Wgraj najnowszą implementację Zygiska, w jego kompilacji debug, jeśli taka istnieje.</string>
     <string name="report_step_logs">Dołącz dzienniki</string>
     <string name="report_step_logs_body">Raport bez dzienników to rozmowa, która zaczyna się od początku. Spowoduje to zapisanie obu dzienników do pliku zip, który możesz dołączyć.</string>
     <string name="report_step_crashed">Jeśli Zygisk uległ awarii</string>
@@ -426,7 +426,7 @@
     <string name="report_save_with_root">Zapisz folder dziennika (wymaga roota)</string>
     <string name="report_saved_to">Zapisano w %1$s</string>
     <string name="report_see_guide">Pełny poradnik w zgłoszeniu</string>
-    <string name="report_root_refused">Odmówiono dostępu root. Zezwól Vector na dostęp w swoim menedżerze roota, a następnie spróbuj ponownie%1$s</string>
+    <string name="report_root_refused">Odmówiono dostępu root. Zezwól Vectorowi na dostęp w swoim menedżerze roota, a następnie spróbuj ponownie%1$s</string>
     <string name="home_custom_build">Niestandardowa kompilacja — nowsza niż główna</string>
     <string name="language_title">Język</string>
     <string name="language_system">Domyślny systemowy</string>
@@ -483,8 +483,8 @@
     <string name="settings_doh_fell_back">Nie można było połączyć się z Cloudflare (%1$s), więc przez resztę tej sesji używany jest moduł rozpoznawania nazw sieci.</string>
     <string name="settings_doh_retry">Spróbuj ponownie</string>
     <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
-    <string name="launcher_title">Jak otworzyć Vector</string>
-    <string name="launcher_body">Vector nie jest zainstalowany jako aplikacja, więc w launcherze nie ma nic do pokazania. Oto sposoby powrotu.</string>
+    <string name="launcher_title">Jak otworzyć Vectora?</string>
+    <string name="launcher_body">Vector nie jest zainstalowany jako aplikacja, więc w launcherze nie ma nic do pokazania. Oto sposoby jego otwarcia.</string>
     <string name="launcher_shortcut">Skrót na ekranie głównym</string>
     <string name="launcher_shortcut_create">Utwórz</string>
     <string name="launcher_shortcut_unsupported">Twój launcher nie akceptuje przypinania skrótów.</string>
@@ -494,10 +494,10 @@
     <string name="launcher_install_action">Zainstaluj</string>
     <string name="launcher_install_reinstall">Zainstaluj ponownie</string>
     <string name="launcher_install_done">Vector jest zainstalowany. Otwórz go z launchera.</string>
-    <string name="launcher_install_failed">Nie udało się zainstalować Vector.</string>
-    <string name="launcher_install_conflict">Kopia Vector podpisana innym kluczem jest już zainstalowana. Usuń ją, aby ten klucz pasował.</string>
+    <string name="launcher_install_failed">Nie udało się zainstalować Vectora.</string>
+    <string name="launcher_install_conflict">Kopia Vectora podpisana innym kluczem jest już zainstalowana. Usuń ją, aby ten klucz pasował.</string>
     <string name="launcher_install_remove">Usuń ją</string>
-    <string name="launcher_install_diverged">Zainstalowana kopia to inna wersja Vector — nie ta uruchomiona tutaj. Ponowna instalacja ją zastąpi.</string>
+    <string name="launcher_install_diverged">Zainstalowana kopia to inna wersja Vectora — nie ta uruchomiona tutaj. Ponowna instalacja ją zastąpi.</string>
     <string name="launcher_route_available">Dostępne</string>
     <string name="launcher_note">Możesz też wybrać %1$s albo otworzyć Vector przyciskiem działania w %2$s.</string>
     <string name="launcher_root_generic">twoim menedżerze roota</string>
