@@ -12,10 +12,10 @@
     <string name="store_filter">並べ替えと絞り込み</string>
     <string name="store_sort_recent">最近更新された順</string>
     <string name="store_sort_name">名前</string>
-    <string name="store_sort_stars">スターが多い順</string>
+    <string name="store_sort_stars">スター数の多い順</string>
     <string name="store_updates_first">更新があるものを先に</string>
     <string name="store_channel_stable">正式版のみ</string>
-    <string name="store_channel_prerelease">プレリリースも含める</string>
+    <string name="store_channel_prerelease">プレリリース版を含める</string>
     <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">%1$d 個のモジュール</item>
@@ -23,26 +23,26 @@
     <plurals name="store_update_count">
         <item quantity="other">%1$d 件の更新</item>
     </plurals>
-    <string name="store_all_current">手元のものはすべて最新です</string>
+    <string name="store_all_current">インストール済みのモジュールはすべて最新の状態です</string>
     <!-- Rows -->
-    <string name="store_badge_update">%1$s に更新</string>
+    <string name="store_badge_update">バージョン %1$s に更新</string>
     <string name="store_badge_reinstall">%1$s を再インストール</string>
     <string name="store_badge_installed">インストール済み</string>
     <string name="store_badge_prerelease">プレリリース</string>
     <!-- Example: "Updated 23 Jul 2026" -->
-    <string name="store_updated_on">%1$s に更新</string>
+    <string name="store_updated_on">更新日: %1$s</string>
     <!-- Empty states, which must never render identically -->
-    <string name="store_unreachable">モジュールカタログに接続できず、この端末にはまだ何も保存されていません。</string>
-    <string name="store_no_match">その検索に一致するモジュールはありません。</string>
-    <string name="store_empty">カタログからモジュールが返ってきませんでした。</string>
+    <string name="store_unreachable">モジュールリポジトリに接続できませんでした。また、このデバイスにはまだ何も保存されていません。</string>
+    <string name="store_no_match">該当するモジュールは見つかりませんでした。</string>
+    <string name="store_empty">リポジトリはモジュールを返しませんでした。</string>
     <!-- Detail tabs -->
-    <string name="store_tab_readme">説明</string>
+    <string name="store_tab_readme">README</string>
     <string name="store_tab_releases">リリース</string>
     <string name="store_tab_information">情報</string>
     <!-- Detail -->
-    <string name="store_readme_missing">このモジュールには説明が付属していません。</string>
-    <string name="store_detail_partial">モジュール一覧が把握していた内容を表示しています。説明と過去のリリースには接続が必要です。</string>
-    <string name="store_releases_none">このモジュールはこのチャンネルでリリースを公開していません。</string>
+    <string name="store_readme_missing">このモジュールには README が含まれていません。</string>
+    <string name="store_detail_partial">モジュール一覧で取得済みの情報を表示しています。README と過去のリリースを表示するには、ネットワーク接続が必要です。</string>
+    <string name="store_releases_none">このチャンネルには、このモジュールのリリースがありません。</string>
     <string name="store_release_notes">リリースノート</string>
     <string name="store_open_release">GitHub で開く</string>
     <string name="store_open_module">モジュールのページを開く</string>
@@ -57,12 +57,12 @@
          com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
          has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">%1$s をインストールしますか？</string>
-    <string name="store_confirm_body">%1$s（%2$s）をモジュールカタログからダウンロードし、%3$s としてインストールします。</string>
-    <string name="store_confirm_trust">モジュールは、フックしたアプリの中でフレームワークの権限で動きます。作者を信頼できる場合にのみインストールしてください。</string>
-    <string name="store_confirm_silent">Vector が自分でインストールするため、システムから改めて確認されることはありません。</string>
+    <string name="store_confirm_body">%1$s (%2$s) がモジュールリポジトリからダウンロードされ、%3$s としてインストールされます。</string>
+    <string name="store_confirm_trust">モジュールは、フック対象のアプリ内でフレームワークの権限を使って動作します。開発者を信頼できる場合にのみインストールしてください。</string>
+    <string name="store_confirm_silent">Vector はこれを自動的にインストールするため、システムから再度確認されることはありません。</string>
     <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
-    <string name="store_downloading">%2$s 中 %1$s をダウンロード中</string>
-    <string name="store_installing">インストール中…</string>
+    <string name="store_downloading">ダウンロード中: %1$s / %2$s</string>
+    <string name="store_installing">インストールしています…</string>
     <string name="store_confirming">システムの確認を待っています…</string>
     <string name="store_install_failed">%1$s をインストールできませんでした</string>
     <string name="store_install_failed_reason">%1$s をインストールできませんでした: %2$s</string>
@@ -70,17 +70,17 @@
     <!-- Information tab -->
     <string name="store_info_summary">概要</string>
     <string name="store_info_scope">フック対象</string>
-    <string name="store_info_scope_installed">フック対象（インストール済みの版による）</string>
-    <string name="store_info_scope_undeclared">未申告。このモジュールはどのアプリをフックするか示していません。</string>
+    <string name="store_info_scope_installed">インストール済みのモジュールが指定しているフック対象</string>
+    <string name="store_info_scope_undeclared">指定されていません。このモジュールは、どのアプリにフックするのかを指定していません。</string>
     <string name="store_info_homepage">ホームページ</string>
     <string name="store_info_source">ソースコード</string>
     <string name="store_info_collaborators">メンテナー</string>
-    <string name="store_info_stars">スター</string>
-    <string name="store_info_updated">最新のリリース</string>
-    <string name="store_info_created">最初の公開</string>
-    <string name="store_release_notes_hide">ノートを閉じる</string>
-    <string name="store_installed_first">インストール済みを先に</string>
+    <string name="store_info_stars">スター数</string>
+    <string name="store_info_updated">最新リリース</string>
+    <string name="store_info_created">初回リリース日</string>
+    <string name="store_release_notes_hide">リリースノートを非表示</string>
+    <string name="store_installed_first">インストール済みを先に表示</string>
     <string name="store_group_sort">並べ替え</string>
-    <string name="store_group_priority">優先</string>
+    <string name="store_group_priority">優先度</string>
     <string name="store_group_channel">チャンネル</string>
 </resources>
