@@ -1,76 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Logs screen.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without colliding
+  with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
 <resources>
-
     <string name="logs_title">ログ</string>
-
+    <!-- Top bar actions -->
     <string name="logs_word_wrap">長い行を折り返す</string>
-    <string name="logs_save">不具合報告を保存…</string>
-    <string name="logs_rotate">新しいログを始める…</string>
-
+    <string name="logs_save">バグレポートを保存…</string>
+    <string name="logs_rotate">新しいログを開始…</string>
+    <!-- Search and filter -->
     <string name="logs_search_hint">このログを検索</string>
-    <string name="logs_filter">レベルとタグで絞り込む</string>
+    <string name="logs_filter">レベルとタグでフィルタリング</string>
     <string name="logs_filter_levels">レベル</string>
     <string name="logs_filter_tags">タグ</string>
-    <string name="logs_filter_clear">絞り込みを解除</string>
-    <string name="logs_filter_scanning">画面の外まで絞り込めるよう、ファイル全体を読み込んでいます。</string>
-
-    <string name="logs_window">%3$d 行中 %1$d–%2$d 行</string>
+    <string name="logs_filter_clear">フィルターを解除</string>
+    <string name="logs_filter_scanning">画面に表示されている範囲を超えてフィルターが内容を認識できるよう、ファイル全体を読み込みます。</string>
+    <!-- The counter under the search field -->
+    <!-- Example: "lines 1 200–3 200 of 30 412" -->
+    <string name="logs_window">%3$d 行中 %1$d – %2$d 行</string>
     <plurals name="logs_matches">
-        <item quantity="other">一致 %1$d 行</item>
+        <item quantity="other">一致する行: %1$d 行</item>
     </plurals>
-    <string name="logs_dropped">このログはビューアーが索引を作れる長さを超えています。最も古い %1$d 行は表示されません。残すには不具合報告を保存してください。</string>
+    <string name="logs_dropped">このログはビューアーのインデックスよりも長くなっています。最も古い %1$d 行は表示されません。それらを保持するには、バグレポートを保存してください。</string>
     <string name="logs_line_truncated">行を省略しました</string>
     <plurals name="logs_frames">
         <item quantity="other">%1$d 段のスタック</item>
     </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
     <plurals name="logs_more_lines">
         <item quantity="other">続きが %1$d 行</item>
     </plurals>
-
+    <!-- The four distinct nothing-to-show states -->
     <string name="logs_state_daemon_title">デーモンに接続できません</string>
-    <string name="logs_state_daemon_body">Vector が動作していない間はログの状態が分かりません。ホームの状態バーが緑にならないのも同じ理由です。</string>
-    <string name="logs_state_nofile_title">ログファイルがまだありません</string>
-    <string name="logs_state_nofile_body">デーモンは動作していますが、このログを開いていません。詳細ログの場合、たいていは詳細ログが無効になっています。</string>
+    <string name="logs_state_daemon_body">Vector が起動するまで、ログの状態は確認できません。[ホーム] のステータスリボンが緑色でないのも同じ理由です。</string>
+    <string name="logs_state_nofile_title">ログファイルはまだありません</string>
+    <string name="logs_state_nofile_body">デーモンは実行されていますが、このログはまだ開かれていません。詳細ログの場合は通常、詳細ログの記録が無効になっています。</string>
     <string name="logs_state_empty_title">このログは空です</string>
-    <string name="logs_state_empty_body">ファイルはありますが、何も書き込まれていません。モジュールのログでは、静かなシステムはこう見えます。</string>
-    <string name="logs_state_nomatches_title">一致するものがありません</string>
-    <string name="logs_state_nomatches_body">ファイルに中身はありますが、いまの絞り込みがすべて除外しています。</string>
-    <string name="logs_state_failed_title">ログを読み取れませんでした</string>
-    <string name="logs_state_failed_body">デーモンから渡されたファイルを読み取れませんでした: %1$s</string>
-    <string name="logs_loading">索引を作成中…</string>
-
+    <string name="logs_state_empty_body">ファイルは存在しますが、まだ何も書き込まれていません。モジュールログでは、アクティビティがない (システムが静止) 状態の場合、このように表示されます。</string>
+    <string name="logs_state_nomatches_title">一致するログはありません</string>
+    <string name="logs_state_nomatches_body">ファイルにはログがありますが、現在のフィルターによってすべて除外されています。</string>
+    <string name="logs_state_failed_title">ログを読み込めませんでした</string>
+    <string name="logs_state_failed_body">デーモンから渡されたファイルを読み込めませんでした: %1$s</string>
+    <string name="logs_loading">ログを読み込んでいます…</string>
+    <!-- Verbose logging -->
     <string name="logs_verbose_switch">詳細ログ</string>
-    <string name="logs_verbose_enforced">動作中のデーモンがこれを強制的に有効にしています。</string>
-
-    <string name="logs_jump_oldest">最も古い行へ</string>
-    <string name="logs_jump_newest">最も新しい行へ</string>
-
-    <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
-
-    <string name="logs_rotate_title">新しいログを始めますか？</string>
-    <string name="logs_rotate_body">何も削除されません。デーモンは現在の区切りを閉じて新しいものを始めます。閉じた区切りは、直近 10 件から外れるまでは端末に残り — スワイプで見られます — 保存した不具合報告にも引き続き含まれます。</string>
-    <string name="logs_rotate_confirm">新しいログを始める</string>
-    <string name="logs_rotate_done">新しいログを始めました</string>
+    <string name="logs_verbose_enforced">実行中のデーモンにより、この設定は強制的に有効になっています。</string>
+    <!-- Navigation within a long log -->
+    <string name="logs_jump_oldest">最も古い行へ移動</string>
+    <string name="logs_jump_newest">最も新しい行へ移動</string>
+    <!-- Per-row actions -->
+    <string name="logs_row_detail">UID %1$d・PID %2$d・TID %3$d</string>
+    <!-- Starting a new log: the consequence, named -->
+    <string name="logs_rotate_title">新しいログを開始しますか？</string>
+    <string name="logs_rotate_body">何も削除されません。デーモンは現在のログを閉じて、新しいログへの記録を開始します。閉じられたログは、直近 10 件から外れるまで端末に残り、スワイプして確認できます。また、保存されたバグレポートにも引き続き含まれます。</string>
+    <string name="logs_rotate_confirm">新しいログを開始</string>
+    <string name="logs_rotate_done">新しいログが開始されました</string>
     <string name="logs_rotate_unreachable">デーモンに接続できず、新しいログを開始できませんでした</string>
     <string name="logs_cancel">キャンセル</string>
-
-    <string name="logs_saving">ログ・tombstone・dmesg を集めています…</string>
-    <string name="logs_saved">不具合報告を保存しました</string>
-    <string name="logs_save_failed">不具合報告を保存できませんでした</string>
-    <string name="logs_save_failed_reason">不具合報告を保存できませんでした: %1$s</string>
+    <!-- Saving -->
+    <string name="logs_saving">ログ、クラッシュダンプ、dmesg を収集しています…</string>
+    <string name="logs_saved">バグレポートが保存されました</string>
+    <string name="logs_save_failed">バグレポートを保存できませんでした</string>
+    <string name="logs_save_failed_reason">バグレポートを保存できませんでした: %1$s</string>
     <string name="logs_share">共有</string>
-
-    <string name="logs_filter_clear_tag">タグの絞り込みを解除</string>
+    <string name="logs_filter_clear_tag">タグのフィルターを解除</string>
     <string name="logs_settings">ログの設定</string>
-    <string name="logs_source_more">フレームワーク自身の行も表示する</string>
-    <string name="logs_source_less">モジュールの行だけ表示する</string>
-    <string name="logs_verbose_summary">不具合を報告する前に有効にしてください。アプリは自分のログを読めるため、有効のままにしておくとアプリが Vector に気づく手がかりになります。</string>
+    <string name="logs_source_more">フレームワークのログも含める</string>
+    <string name="logs_source_less">モジュールのログのみ表示</string>
+    <string name="logs_verbose_summary">バグを報告する前に、これを有効にしてください。アプリは自身のログを読み取ることができるため、これを有効にしておくと、アプリが Vector を検出する手段の一つとなります。</string>
     <string name="logs_trace_title">スタックトレース</string>
     <string name="logs_traces_inline">トレースをその場で開く</string>
-    <string name="logs_traces_inline_summary">スタックトレースはその行の下に展開されます。オフにすると専用の画面で開きます。</string>
-    <string name="logs_save_summary">両方のログを、選んだ zip に書き出します</string>
-    <string name="logs_rotate_summary">現在の区切りを閉じて新しいものを始めます</string>
-    <string name="logs_part">%2$d 分割中 %1$d 番目</string>
-    <string name="logs_part_older">古い区切り</string>
-    <string name="logs_part_newer">新しい区切り</string>
+    <string name="logs_traces_inline_summary">その行の下にスタックトレースが展開されます。これを無効にすると、代わりに別の画面で開くようになります。</string>
+    <string name="logs_save_summary">両方のログを、指定した zip ファイルに書き出します</string>
+    <string name="logs_rotate_summary">現在のログを閉じて、新しいログを開始します</string>
+    <string name="logs_part">分割ログ %1$d / %2$d</string>
+    <string name="logs_part_older">前の分割ログ</string>
+    <string name="logs_part_newer">次の分割ログ</string>
 </resources>
