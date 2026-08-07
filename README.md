@@ -1,6 +1,9 @@
 <div align="center">
 
 # Vector Framework
+<p align="center">
+<a href="/README.md"><img src="https://github.com/loanelly/EntropyShield/blob/main/img/Flags/EN1.png" height="21" align="center"/></a> <a href="/README_RU.md"><img src="https://github.com/loanelly/EntropyShield/blob/main/img/Flags/result.png" height="26" align="center"/></a>
+</p>
 
 **A high-performance ART hooking framework for modern Android**
 
