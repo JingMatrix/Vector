@@ -41,20 +41,18 @@ private const val SCOPE_REQUEST_TIMEOUT_MS = 60L * 60 * 1000
 /**
  * How many prompts one module may have waiting for an answer at once.
  *
- * `IXposedService.requestScope` takes an unbounded list and there is now one prompt per package in
- * it, none of them deduplicated beyond exact string equality and none checked for existence before
- * it goes up. Nothing else bounds them: these are enqueued as "android", which
- * NotificationManagerService exempts from its per-package limit, and they are IMPORTANCE_HIGH, so a
- * module asking for a thousand packages gets a thousand heads-up prompts that each sit for
- * [SCOPE_REQUEST_TIMEOUT_MS]. That was hidden before this branch only because every prompt of a
- * module shared one tag and so replaced the one before it — which is the bug this branch fixed.
+ * Nothing else bounds them: these are enqueued as "android", which NotificationManagerService
+ * exempts from its per-package limit, and they are IMPORTANCE_HIGH, so a module calling
+ * `IXposedService.requestScope` in a loop would get a heads-up prompt per call, each sitting for
+ * [SCOPE_REQUEST_TIMEOUT_MS]. It is a *call* that costs a place, not a package: one request is one
+ * prompt however many packages it names, which is what makes a single Approve able to answer for
+ * all of them.
  *
  * Sixteen because it is far above anything an honest module asks for in one go, and low enough that
  * the worst a module can do to the shade is a screenful. It bounds what is *unanswered*, not what
  * may be asked over time: answering a prompt frees its place at once, so a module that asks a few
- * questions and waits for them never meets it. A module that does meet it is told so per package
- * rather than left waiting, because a callback that never fires is the failure this whole path
- * exists to avoid.
+ * questions and waits for them never meets it. A module that does meet it is told so rather than
+ * left waiting, because a callback that never fires is the failure this whole path exists to avoid.
  */
 private const val MAX_OPEN_SCOPE_REQUESTS_PER_MODULE = 16
 
@@ -161,9 +159,14 @@ object NotificationManager {
    * that each replaced the one before it: only the last request was ever answerable, the earlier
    * ones were never granted and their callbacks were never called at all. One module running under
    * two users collided in exactly the same way.
+   *
+   * The requested packages are named as a set rather than one at a time, because one call to
+   * `requestScope` is one prompt. Canonical order is the caller's job — see `ModuleAppService`,
+   * which sorts — so that the same request asked twice lands on the same tag and replaces its own
+   * prompt instead of stacking a second copy of the same question.
    */
-  private fun scopeTag(modulePkg: String, moduleUserId: Int, scopePkg: String) =
-      "$modulePkg:$moduleUserId:$scopePkg"
+  private fun scopeTag(modulePkg: String, moduleUserId: Int, scopePkgs: List<String>) =
+      "$modulePkg:$moduleUserId:${scopePkgs.joinToString(",")}"
 
   /** Cancels what we posted under [tag]; the id is derived from it exactly as it is on enqueue. */
   private fun cancelByTag(tag: String) {
@@ -179,13 +182,13 @@ object NotificationManager {
   }
 
   /**
-   * Takes down the prompt for one (module, user, requested package) once it has been answered.
+   * Takes down the prompt for one (module, user, requested set) once it has been answered.
    *
-   * It has to name the requested package, because a module asking for several has one prompt per
-   * package and answering one of them must not clear the rest.
+   * It has to name the requested set, because a module that asked twice for different sets has a
+   * prompt for each and answering one of them must not clear the other.
    */
-  fun cancelScopeRequest(modulePkg: String, moduleUserId: Int, scopePkg: String) =
-      cancelByTag(scopeTag(modulePkg, moduleUserId, scopePkg))
+  fun cancelScopeRequest(modulePkg: String, moduleUserId: Int, scopePkgs: List<String>) =
+      cancelByTag(scopeTag(modulePkg, moduleUserId, scopePkgs))
 
   /**
    * The "not activated yet" half of [notifyModuleUpdated], which is the half that can go stale.
@@ -310,20 +313,20 @@ object NotificationManager {
   }
 
   /**
-   * Claims the right to answer the prompt for one (module, user, requested package).
+   * Claims the right to answer the prompt for one (module, user, requested set).
    *
    * @return true for the first caller, false for every later one — the module's
    *   [IXposedScopeCallback] must be called exactly once per request.
    */
-  fun claimScopeAnswer(modulePkg: String, moduleUserId: Int, scopePkg: String) =
-      OutstandingScopeRequests.claim(scopeTag(modulePkg, moduleUserId, scopePkg)) != null
+  fun claimScopeAnswer(modulePkg: String, moduleUserId: Int, scopePkgs: List<String>) =
+      OutstandingScopeRequests.claim(scopeTag(modulePkg, moduleUserId, scopePkgs)) != null
 
   /**
    * Withdraws every prompt [modulePkg] still has on screen and hands back their callbacks, so the
    * caller can tell each of those requests it will not be granted.
    *
-   * What makes "never ask again" mean what it says. A module that asked for three packages now has
-   * a prompt for each of them; answering the user's "stop asking" by leaving two more questions on
+   * What makes "never ask again" mean what it says. A module that asked three times has a prompt
+   * for each of those requests; answering the user's "stop asking" by leaving two more questions on
    * screen — both still approvable — would be answering it with the opposite.
    *
    * They are claimed before they are cancelled, and that order is load-bearing, though not for the
@@ -338,16 +341,14 @@ object NotificationManager {
    * moment, would otherwise answer a request we are in the middle of withdrawing. Claiming first
    * makes every one of those arrive at a closed door.
    *
-   * Each withdrawn request is handed back on its own, so the caller reports one failure per
-   * package. That is the honest reading — the module named each package separately and each was
-   * asked in its own right — but it is worth knowing what it costs: `requestScope` supplies one
-   * callback for the whole list, so those failures all land on the same binder, and the shipped
-   * client library does not collapse them. Its `OnScopeEventListener` wrapper calls the listener
-   * every time and merely drops its map entry afterwards, so a module written to the singular
-   * javadoc ("invoked when the request is completed") runs its handler once per package rather than
-   * once per call. Reporting the withdrawal once would be the other defensible choice, but it would
-   * have to pick one of the packages to name and would leave the rest with no answer at all, which
-   * is exactly the failure this map exists to prevent.
+   * Each withdrawn request is handed back on its own, and that is now one failure per
+   * `requestScope` call rather than one per package. It used to be per package, which put a module
+   * in an awkward spot: `requestScope` supplies one callback for the whole list, those failures all
+   * landed on the same binder, and the shipped client library does not collapse them — its
+   * `OnScopeEventListener` wrapper calls the listener every time and merely drops its map entry
+   * afterwards, so a module written to the singular javadoc ("invoked when the request is
+   * completed") ran its handler once per package. Batching the prompt is what fixed that, here and
+   * everywhere else on this path: the answer is now shaped like the question the module asked.
    */
   fun withdrawScopeRequests(modulePkg: String): List<IXposedScopeCallback> {
     val withdrawn = OutstandingScopeRequests.claimAllOf(modulePkg)
@@ -373,10 +374,10 @@ object NotificationManager {
   fun requestModuleScope(
       modulePkg: String,
       moduleUserId: Int,
-      scopePkg: String,
+      scopePkgs: List<String>,
       callback: IXposedScopeCallback
   ) {
-    val tag = scopeTag(modulePkg, moduleUserId, scopePkg)
+    val tag = scopeTag(modulePkg, moduleUserId, scopePkgs)
     // Registered before the notification is built, let alone posted: the buttons are live from the
     // moment the platform accepts it, and a prompt the receiver does not know about is one whose
     // answer it drops. Registering is also what enforces the ceiling, so there is no point
@@ -386,14 +387,13 @@ object NotificationManager {
       Log.w(
           TAG,
           "$modulePkg is already waiting on $MAX_OPEN_SCOPE_REQUESTS_PER_MODULE scope prompts;" +
-              " not asking about $scopePkg")
-      // Refused, not ignored. The module is told about this package rather than left holding a
-      // callback that can never fire, and the message names the package so a module developer can
-      // see which of their list did not make it.
+              " not asking about ${scopePkgs.joinToString()}")
+      // Refused, not ignored. The module is told rather than left holding a callback that can
+      // never fire, and the message names what did not make it so a module developer can see it.
       runCatching {
             callback.onScopeRequestFailed(
                 "Too many scope requests are already waiting for an answer from the user," +
-                    " so $scopePkg was not asked about")
+                    " so ${scopePkgs.joinToString()} was not asked about")
           }
           .onFailure { Log.w(TAG, "Could not tell $modulePkg its request was refused", it) }
       return
@@ -415,7 +415,12 @@ object NotificationManager {
                 Uri.Builder()
                     .scheme("module")
                     .encodedAuthority("$modulePkg:$moduleUserId")
-                    .encodedPath(scopePkg)
+                    // The whole list, because one request is one prompt and one answer. ',' is a
+                    // legal path character and cannot occur in a package name, so the receiver can
+                    // split it back apart; it is also what keeps two requests naming different sets
+                    // on separate PendingIntents, which are identified by their intent and not by
+                    // the extras that carry the callback.
+                    .encodedPath(scopePkgs.joinToString(","))
                     .appendQueryParameter("action", actionParams)
                     .build()
             putExtras(Bundle().apply { putBinder("callback", callback.asBinder()) })
@@ -432,7 +437,10 @@ object NotificationManager {
             .setContentTitle(context.getString(R.string.xposed_module_request_scope_title))
             .setContentText(
                 context.getString(
-                    R.string.xposed_module_request_scope_content, modulePkg, userName, scopePkg))
+                    R.string.xposed_module_request_scope_content,
+                    modulePkg,
+                    userName,
+                    scopePkgs.joinToString()))
             .setSmallIcon(getNotificationIcon())
             .addAction(
                 Notification.Action.Builder(
@@ -466,7 +474,14 @@ object NotificationManager {
                             R.string.xposed_module_request_scope_content,
                             modulePkg,
                             userName,
-                            scopePkg)))
+                            // The whole list, wrapped over as many lines as it takes. Approve
+                            // answers for all of it at once, so all of it is what the user is
+                            // agreeing to; the collapsed line above is one line whatever we put in
+                            // it, and this is where a request naming more packages than fit there
+                            // becomes readable. Comma-separated rather than one per line because
+                            // the string this fills is a sentence and the list sits mid-way
+                            // through it.
+                            scopePkgs.joinToString())))
             .build()
             .apply { extras.putString("android.substName", BuildConfig.FRAMEWORK_NAME) }
 

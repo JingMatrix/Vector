@@ -194,9 +194,26 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
         ?.distinct() ?: emptyList()
   }
 
+  /**
+   * One request, one question, one answer.
+   *
+   * The AIDL hands over a list and takes a single [IXposedScopeCallback] for it, and the javadoc on
+   * the client's `OnScopeEventListener` says its listener runs "when the request is completed" —
+   * singular — with `onScopeRequestApproved` taking the *packages* that were approved. This used to
+   * put one prompt per package on screen, each answered in its own right, so a module asking for
+   * three packages made the user answer three questions and then fired that one listener three
+   * times. A module that took the first answer as the answer acted on a third of it.
+   *
+   * So the whole list goes up as one prompt and Approve answers for all of it. What the user gives
+   * away in one press is what the prompt lists, which is why it lists all of them rather than a
+   * count, and why the packages are sorted and deduplicated first: it is a set that is being agreed
+   * to, the same set asked for twice is the same question, and `NotificationManager` identifies a
+   * prompt by the set it names.
+   */
   override fun requestScope(packages: List<String>, callback: IXposedScopeCallback) {
     val userId = ensureModule()
-    if (packages.isEmpty()) {
+    val requested = packages.distinct().sorted()
+    if (requested.isEmpty()) {
       // Nothing was asked for, so the request is trivially satisfied. Returning without touching
       // the callback would leave the module waiting forever.
       callback.onScopeRequestApproved(emptyList())
@@ -205,7 +222,7 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
     // A module that fixed its own scope in module.prop does not get to ask for more of it at
     // runtime. Prompting the user here would make "fixed" mean nothing.
     ConfigCache.staticScopeOf(loadedModule.packageName)?.let { claimed ->
-      val beyond = packages.filterNot { claimed.contains(it) }
+      val beyond = requested.filterNot { claimed.contains(it) }
       if (beyond.isNotEmpty()) {
         callback.onScopeRequestFailed(
             "This module declares a static scope, so ${beyond.joinToString()} cannot be added")
@@ -213,9 +230,7 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
       }
     }
     if (!PreferenceStore.isScopeRequestBlocked(loadedModule.packageName)) {
-      packages.forEach { pkg ->
-        NotificationManager.requestModuleScope(loadedModule.packageName, userId, pkg, callback)
-      }
+      NotificationManager.requestModuleScope(loadedModule.packageName, userId, requested, callback)
     } else {
       callback.onScopeRequestFailed("Scope request blocked by user configuration")
     }

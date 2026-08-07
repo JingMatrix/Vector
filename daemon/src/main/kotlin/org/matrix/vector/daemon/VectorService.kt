@@ -385,29 +385,39 @@ object VectorService : IVectorDaemon.Stub() {
     val packageName = parts[0]
     val userId = parts[1].toIntOrNull() ?: return
 
-    val scopePackageName = data.path?.substring(1) ?: return // remove leading '/'
+    // Everything the one prompt asked about, in the order it listed them. ',' cannot occur in a
+    // package name, so this is the list the module named and not a guess at it.
+    val scopePackageNames =
+        data.path?.substring(1)?.split(",")?.filter { it.isNotEmpty() } ?: return // strip '/'
+    if (scopePackageNames.isEmpty()) return
     val action = data.getQueryParameter("action") ?: return
-
-    // A prompt outlives the process that asked for it: it sits for an hour, and the app the module
-    // is running inside can be killed at any point in that hour. For approve, deny and the timeout
-    // there is then nobody left to tell, so those are dropped where they always were. "Never ask
-    // again" is not like them — it is the user's decision about the module, not an answer owed to a
-    // caller who is still listening — so it is honoured whether or not anyone is there to hear it,
-    // and the claim below still takes the prompt down.
-    if (!callbackBinder.isBinderAlive && action != "block") return
 
     // One prompt reaches this receiver from four places — its three buttons and its delete intent
     // — and a swipe or the one-hour timeout fires the delete intent whether or not a button was
     // pressed first. Answering the module twice, an approval followed by a spurious "Request
     // timeout", would be worse than the dismissal never reaching it, so whichever of the four
     // arrives first is the one that answers and the rest are dropped. The request is identified by
-    // the module, its user and the package it asked for; the action is deliberately not part of
-    // that, since the whole point is that a second *different* action must not answer again.
-    if (!NotificationManager.claimScopeAnswer(packageName, userId, scopePackageName)) {
-      Log.d(TAG, "Ignoring $action of $scopePackageName for $packageName: already answered")
+    // the module, its user and the set of packages it asked for; the action is deliberately not
+    // part of that, since the whole point is that a second *different* action must not answer
+    // again.
+    if (!NotificationManager.claimScopeAnswer(packageName, userId, scopePackageNames)) {
+      Log.d(
+          TAG,
+          "Ignoring $action of ${scopePackageNames.joinToString()} for $packageName:" +
+              " already answered")
       return
     }
 
+    // A prompt outlives the process that asked for it: it sits for an hour, and the app the module
+    // is running inside can be killed at any point in that hour. Nothing is dropped for that any
+    // more. There used to be a `!callbackBinder.isBinderAlive` return above the claim, exempting
+    // only "never ask again", and it did more than lose an answer nobody was listening for: an
+    // approval the user had already given was thrown away, and because the return sat above the
+    // claim and the cancel, the prompt stayed on screen with live buttons that did nothing for the
+    // rest of the hour. An approval is a decision about the module's scope and is written down
+    // whether or not the module is there to hear it; deny and the timeout have nothing to record
+    // but still have a prompt to take down. What actually fails against a dead module is the
+    // callback below, and that is caught where it is made.
     val iCallback = IXposedScopeCallback.Stub.asInterface(callbackBinder)
     runCatching {
           // Answered before the requested package is looked up at all, because "never ask again" is
@@ -419,12 +429,10 @@ object VectorService : IVectorDaemon.Stub() {
           // down, and the module was free to ask again a second later.
           if (action == "block") {
             blockScopeRequests(packageName)
-            // The preference only stops the *next* request. A module that asked for three packages
-            // has a prompt up for each, so without this the user says "never ask again" and is left
+            // The preference only stops the *next* request. A module that asked three times has a
+            // prompt up for each, so without this the user says "never ask again" and is left
             // looking at two more questions, both still approvable. Each withdrawn request is
-            // answered in its own right, because each of them was asked in its own right; what that
-            // costs a module whose listener expects one call is written out on
-            // withdrawScopeRequests.
+            // answered in its own right, because each of them was asked in its own right.
             NotificationManager.withdrawScopeRequests(packageName).forEach { pending ->
               runCatching { pending.onScopeRequestFailed("Request blocked by configuration") }
             }
@@ -437,31 +445,72 @@ object VectorService : IVectorDaemon.Stub() {
             return@runCatching
           }
 
-          val appInfo = packageManager?.getPackageInfoCompat(scopePackageName, 0, userId)
-          if (appInfo == null) {
-            // Leaving the whole function here skipped the cancel below, which used to be merely
-            // untidy and is now a prompt nobody can use: the request has been answered, so every
-            // later press of its buttons is dropped. The request is over either way, so the
-            // notification goes with it.
-            iCallback.onScopeRequestFailed("Package not found")
-            return@runCatching
-          }
           when (action) {
             "approve" -> {
-              val scopes = ModuleDatabase.getModuleScope(packageName) ?: mutableListOf()
-              // Compared against where the row will land, not against the user who asked: the
-              // framework is stored under user 0 whoever requested it, so for "system" this test
-              // never matched and every approval appended a duplicate and rewrote the whole table.
-              val storedUserId = if (scopePackageName == "system") 0 else userId
-              if (scopes.none { it.packageName == scopePackageName && it.userId == storedUserId }) {
-                scopes.add(
-                    ScopeEntry().apply {
-                      this.packageName = scopePackageName
-                      this.userId = storedUserId
-                    })
-                ModuleDatabase.setModuleScope(packageName, scopes)
+              // "system" is the framework and not a package: it names system_server, which belongs
+              // to no package and resolves for nobody. The lookup below therefore came back null
+              // for every framework prompt, and the approval the user had just given was answered
+              // "Package not found" — the request was closed, its notification cancelled, and no
+              // row written. The normalisation to user 0 further down could never once have run.
+              //
+              // Package by package rather than all-or-nothing: the prompt may have been up for an
+              // hour and one of the packages it named can have been uninstalled in the meantime,
+              // which is no reason to throw away the user's answer about the rest.
+              //
+              // Only under "approve", because only an approval has to name something real. Deny
+              // and the timeout used to be refused here too, so dismissing a prompt for a package
+              // that had since been uninstalled told the module "Package not found" when what had
+              // actually happened was that the user turned it down.
+              val granted =
+                  scopePackageNames.filter {
+                    it == "system" || packageManager?.getPackageInfoCompat(it, 0, userId) != null
+                  }
+              if (granted.isEmpty()) {
+                // Logged, because until now this said nothing anywhere: the module was told
+                // "Package not found", the user was told nothing at all, and the daemon kept no
+                // record that the press had even arrived. The framework-scope failure above was
+                // invisible for exactly that reason.
+                Log.w(
+                    TAG,
+                    "None of ${scopePackageNames.joinToString()} resolve for user $userId;" +
+                        " refusing the scope request of $packageName")
+                // Leaving the whole function here skipped the cancel below, which used to be
+                // merely untidy and is now a prompt nobody can use: the request has been answered,
+                // so every later press of its buttons is dropped. The request is over either way,
+                // so the notification goes with it.
+                iCallback.onScopeRequestFailed("Package not found")
+                return@runCatching
               }
-              iCallback.onScopeRequestApproved(listOf(scopePackageName))
+              val scopes = ModuleDatabase.getModuleScope(packageName) ?: mutableListOf()
+              var added = false
+              granted.forEach { scopePackageName ->
+                // Compared against where the row will land, not against the user who asked: the
+                // framework is stored under user 0 whoever requested it, so for "system" this test
+                // never matched and every approval appended a duplicate and rewrote the whole
+                // table.
+                val storedUserId = if (scopePackageName == "system") 0 else userId
+                val present =
+                    scopes.any { it.packageName == scopePackageName && it.userId == storedUserId }
+                if (!present) {
+                  scopes.add(
+                      ScopeEntry().apply {
+                        this.packageName = scopePackageName
+                        this.userId = storedUserId
+                      })
+                  added = true
+                }
+              }
+              // One write for the whole prompt, and none at all when the user approved what the
+              // module already had. `setModuleScope` replaces the module's rows wholesale and
+              // enables the module on the way through, so writing per package would rewrite the
+              // table once per package — leaving a window after each in which the scope is only
+              // partly what was agreed to — and writing unconditionally would let a module enable
+              // itself by asking again for what it has.
+              if (added) ModuleDatabase.setModuleScope(packageName, scopes)
+              Log.i(TAG, "Approved ${granted.joinToString()} for $packageName on user $userId")
+              // The packages that were granted, which is what the list in this callback is for. A
+              // module comparing it against what it asked for can see what it did not get.
+              iCallback.onScopeRequestApproved(granted)
             }
             "deny" -> iCallback.onScopeRequestFailed("Request denied by user")
             "delete" -> iCallback.onScopeRequestFailed("Request timeout")
@@ -470,9 +519,9 @@ object VectorService : IVectorDaemon.Stub() {
         // onScopeRequestFailed declares @NonNull, and Throwable.message is frequently null.
         .onFailure { runCatching { iCallback.onScopeRequestFailed(it.message ?: it.toString()) } }
 
-    // Only this one request goes; a module that asked for several packages has a prompt still open
-    // for each of the others, and they are answered on their own.
-    NotificationManager.cancelScopeRequest(packageName, userId, scopePackageName)
+    // Only this one request goes; a module that asked more than once has a prompt still open for
+    // each of its other requests, and they are answered on their own.
+    NotificationManager.cancelScopeRequest(packageName, userId, scopePackageNames)
   }
 
   /**
