@@ -8,20 +8,20 @@
 -->
 <resources>
     <!-- The list -->
-    <string name="store_search_hint">カタログを検索</string>
-    <string name="store_filter">並べ替えと絞り込み</string>
+    <string name="store_search_hint">リポジトリを検索</string>
+    <string name="store_filter">並べ替えとフィルタリング</string>
     <string name="store_sort_recent">最近更新された順</string>
     <string name="store_sort_name">名前</string>
     <string name="store_sort_stars">スター数の多い順</string>
     <string name="store_updates_first">更新があるものを先に</string>
-    <string name="store_channel_stable">正式版のみ</string>
+    <string name="store_channel_stable">安定版のみ</string>
     <string name="store_channel_prerelease">プレリリース版を含める</string>
     <!-- Header. Example: "809 modules · 3 updates" -->
     <plurals name="store_module_count">
         <item quantity="other">%1$d 個のモジュール</item>
     </plurals>
     <plurals name="store_update_count">
-        <item quantity="other">%1$d 件の更新</item>
+        <item quantity="other">%1$d 件のアップデート</item>
     </plurals>
     <string name="store_all_current">インストール済みのモジュールはすべて最新の状態です</string>
     <!-- Rows -->
