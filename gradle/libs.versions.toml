@@ -2,7 +2,7 @@
 agp = "9.3.1"
 kotlin = "2.4.10"
 okhttp = "5.4.0"
-ktfmt = "0.26.0"
+ktfmt = "0.27.0"
 coroutines = "1.11.0"
 lifecycle = "2.11.0"
 coil = "3.5.0"
