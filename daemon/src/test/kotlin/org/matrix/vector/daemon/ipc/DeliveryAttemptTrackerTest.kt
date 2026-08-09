@@ -59,4 +59,28 @@ class DeliveryAttemptTrackerTest {
 
     assertTrue(tracker.isCurrent(7, replacement))
   }
+
+  @Test
+  fun scopedInvalidationLeavesOtherModuleAttemptCurrent() {
+    val tracker = DeliveryAttemptTracker()
+    val changedModule = tracker.begin(10042) ?: error("changed-module attempt was not created")
+    val otherModule = tracker.begin(20043) ?: error("other-module attempt was not created")
+
+    tracker.invalidateMatching { it == 10042 }
+
+    assertFalse(tracker.isCurrent(10042, changedModule))
+    assertTrue(tracker.isCurrent(20043, otherModule))
+  }
+
+  @Test
+  fun queuedObsoleteAttemptDoesNotStartProviderLookup() {
+    val tracker = DeliveryAttemptTracker()
+    val attempt = tracker.begin(42) ?: error("attempt was not created")
+    tracker.invalidate(42)
+
+    var lookupStarted = false
+    if (tracker.isCurrent(42, attempt)) lookupStarted = true
+
+    assertFalse(lookupStarted)
+  }
 }

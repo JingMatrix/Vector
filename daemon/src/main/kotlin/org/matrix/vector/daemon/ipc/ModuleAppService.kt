@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.os.RemoteException
-import android.os.SystemClock
 import android.util.Log
 import io.github.libxposed.service.HookedProcess
 import io.github.libxposed.service.IHotReloadCallback
@@ -84,7 +83,7 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
      * recipient watching it. Held because a `DeathRecipient` nothing references is one the runtime
      * may collect before it ever fires.
      */
-    private val deliveries = ConcurrentHashMap<Int, Pair<IBinder, IBinder.DeathRecipient>>()
+    private val deliveries = DeliveryRegistry<IBinder, IBinder.DeathRecipient>()
 
     private val serviceMap =
         Collections.synchronizedMap(WeakHashMap<LoadedModule, ModuleAppService>())
@@ -104,41 +103,46 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
      * crash-looping copy in a work profile throttle the healthy copy in user 0, and let either
      * one's success wipe the other's run.
      *
-     * Once [MAX_CONSECUTIVE_BINDER_FAILURES] have piled up the retries are throttled to one per
-     * [BINDER_RETRY_COOLDOWN_MS] — the count is held at the ceiling rather than reset by the
-     * attempt that the cooldown lets through, or the ceiling would simply be re-climbed and three
-     * more attempts allowed every minute for ever. A run is forgotten after
-     * [BINDER_FAILURE_RUN_MS] without a failure, so an occasional one never accumulates. Throttled
-     * rather than abandoned, and cleared by the first success, because the app may simply have been
-     * mid-update or out of memory; a module written off for good on three failures would be a worse
-     * bug than the one this is fixing.
+     * Once three failures have piled up the retries are throttled to one per minute — the count is
+     * held at the ceiling rather than reset by the attempt that the cooldown lets through, or the
+     * ceiling would simply be re-climbed and three more attempts allowed every minute for ever. A
+     * run is forgotten after ten minutes without a failure, so an occasional one never accumulates.
+     * Throttled rather than abandoned, and cleared by the first success, because the app may simply
+     * have been mid-update or out of memory; a module written off for good on three failures would
+     * be a worse bug than the one this is fixing.
      */
-    private val binderFailures = ConcurrentHashMap<Int, FailureRun>()
-
-    private class FailureRun(val count: Int, val atElapsed: Long)
-
-    private const val MAX_CONSECUTIVE_BINDER_FAILURES = 3
-    private const val BINDER_RETRY_COOLDOWN_MS = 60_000L
-    private const val BINDER_FAILURE_RUN_MS = 10 * BINDER_RETRY_COOLDOWN_MS
+    private val binderFailures = BinderFailureTracker()
 
     // The delivery blocks in getContentProviderExternal until the app publishes its provider or
     // AMS gives up on it, and it runs from an IUidObserver callback - one binder thread, serving
     // every uid transition on the device. A module app that never publishes therefore stalls the
     // delivery of every *other* module's binder behind it: eight and a half seconds, measured, on
-    // a device where one module app was crash-looping. A small fixed pool keeps this local without
-    // allowing an event storm to create an unbounded number of blocked threads.
+    // a device where one module app was crash-looping. Keep one worker per blocked lookup instead
+    // of queueing all modules behind a fixed global pool: [deliveryAttempts] deduplicates repeated
+    // callbacks for a uid, and uidGone() invalidation intentionally lets a replacement proceed
+    // without waiting for the stale lookup to return.
     private val binderExecutor =
-        Executors.newFixedThreadPool(4) { r -> Thread(r, "vector-module-binder") }
+        Executors.newCachedThreadPool { r -> Thread(r, "vector-module-binder") }
 
-    fun uidClear() {
-      deliveryAttempts.clear()
-      uidSet.clear()
-      binderFailures.clear()
-      deliveries.forEach { (uid, delivery) ->
-        if (deliveries.remove(uid, delivery)) {
-          runCatching { delivery.first.unlinkToDeath(delivery.second, 0) }
-        }
+    /**
+     * Invalidates deliveries for the module generations identified by [moduleAppIds]. Other
+     * modules keep both their live binder and their retry throttle.
+     */
+    fun uidClear(moduleAppIds: Set<Int>): Set<Int> {
+      if (moduleAppIds.isEmpty()) return emptySet()
+      val belongsToChangedModule = { uid: Int -> uid % PER_USER_RANGE in moduleAppIds }
+      val invalidatedUids = mutableSetOf<Int>()
+
+      invalidatedUids += deliveryAttempts.invalidateMatching(belongsToChangedModule)
+      uidSet.toList().forEach { uid ->
+        if (belongsToChangedModule(uid) && uidSet.remove(uid)) invalidatedUids += uid
       }
+      deliveries.removeMatching(belongsToChangedModule).forEach { (uid, delivery) ->
+        invalidatedUids += uid
+        uidSet.remove(uid)
+        runCatching { delivery.provider.unlinkToDeath(delivery.recipient, 0) }
+      }
+      return invalidatedUids
     }
 
     fun uidStarts(uid: Int) {
@@ -160,17 +164,20 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
       runCatching {
             binderExecutor.execute {
               try {
-                // A fixed executor can queue work behind a blocked provider lookup. Do not start
-                // an obsolete lookup after uidGone() or a cache generation reset has already made
-                // this attempt inert; the post-send check below still handles invalidation while
-                // the lookup is in flight.
+                // Do not start an obsolete lookup after uidGone() or a cache generation reset has
+                // already made this attempt inert; the post-send check below still handles
+                // invalidation while the lookup is in flight.
                 if (deliveryAttempts.isCurrent(uid, attempt)) {
                   val delivered = service.sendBinder(uid)
-                  if (deliveryAttempts.isCurrent(uid, attempt) && delivered != null) {
-                    binderFailures.remove(uid)
-                    linkDelivery(uid, delivered, attempt)
-                  } else if (deliveryAttempts.isCurrent(uid, attempt)) {
+                  if (delivered == null) {
+                    // A uid can disappear while AMS is waiting for its provider. That makes this
+                    // attempt stale, but it is still a failed launch and must feed the retry
+                    // throttle; otherwise a crash-looping app can evade the three-failure limit
+                    // by dying at exactly this point.
                     recordFailure(uid, module.packageName)
+                  } else if (deliveryAttempts.isCurrent(uid, attempt)) {
+                    binderFailures.clear(uid)
+                    linkDelivery(uid, delivered, attempt)
                   }
                 }
               } finally {
@@ -201,69 +208,45 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
 
       lateinit var recipient: IBinder.DeathRecipient
       recipient = IBinder.DeathRecipient {
-        val current = deliveries[uid]
-        if (current?.first === provider && current.second === recipient &&
-            deliveries.remove(uid, current)) {
+        if (deliveries.removeIfCurrent(uid, provider, recipient)) {
           uidSet.remove(uid)
         }
       }
-      val delivery = provider to recipient
-      val previous = deliveries.put(uid, delivery)
-      previous?.let { (old, oldRecipient) ->
-        runCatching { old.unlinkToDeath(oldRecipient, 0) }
+      deliveries.put(uid, provider, recipient)?.let { previous ->
+        runCatching { previous.provider.unlinkToDeath(previous.recipient, 0) }
       }
       uidSet.add(uid)
       runCatching {
         provider.linkToDeath(recipient, 0)
-        if (!deliveryAttempts.isCurrent(uid, attempt) || deliveries[uid] !== delivery) {
-          if (deliveries.remove(uid, delivery)) uidSet.remove(uid)
+        if (!deliveryAttempts.isCurrent(uid, attempt) ||
+            !deliveries.isCurrent(uid, provider, recipient)) {
+          if (deliveries.removeIfCurrent(uid, provider, recipient)) uidSet.remove(uid)
           runCatching { provider.unlinkToDeath(recipient, 0) }
         }
       }
       // Already dead, which is an answer in itself: whatever took the binder is gone, so the
       // uid must not stay marked as served.
       .onFailure {
-        if (deliveries.remove(uid, delivery)) uidSet.remove(uid)
+        if (deliveries.removeIfCurrent(uid, provider, recipient)) uidSet.remove(uid)
         runCatching { provider.unlinkToDeath(recipient, 0) }
       }
     }
 
     /** True while a uid has spent its attempts and its cooldown has not elapsed. */
     private fun isThrottled(uid: Int): Boolean {
-      val run = binderFailures[uid] ?: return false
-      if (run.count < MAX_CONSECUTIVE_BINDER_FAILURES) return false
-      return SystemClock.elapsedRealtime() - run.atElapsed < BINDER_RETRY_COOLDOWN_MS
+      return binderFailures.isThrottled(uid)
     }
 
     private fun recordFailure(uid: Int, modulePkg: String) {
-      var crossed = false
-      // Read-modify-write in one step. Two threads cannot be here for one uid while
-      // [deliveryAttempts] holds the attempt, but that is an invariant of another field and not
-      // one to build arithmetic on.
-      binderFailures.compute(uid) { _, previous ->
-        val now = SystemClock.elapsedRealtime()
-        val count =
-            when {
-              // A run is forgotten only after a long quiet spell, not after one cooldown. Forgetting
-              // it at the cooldown meant the attempt the cooldown let through reset the count, so
-              // the ceiling was re-climbed and three more attempts allowed every minute, for ever.
-              previous == null || now - previous.atElapsed >= BINDER_FAILURE_RUN_MS -> 1
-              // Held at the ceiling rather than growing without bound: what the number decides is
-              // only whether we are throttled, and pinning it here is what makes the cooldown mean
-              // one attempt rather than another three.
-              else -> minOf(previous.count + 1, MAX_CONSECUTIVE_BINDER_FAILURES)
-            }
-        crossed = count == MAX_CONSECUTIVE_BINDER_FAILURES && (previous?.count ?: 0) < count
-        FailureRun(count, now)
-      }
+      val crossed = binderFailures.recordFailure(uid)
       // Once, on the way past the ceiling. The failures themselves are already logged one by one
       // in sendBinder; what is worth saying here is that we have stopped trying, which is the part
       // a reader chasing a module that never receives its service cannot otherwise see.
       if (crossed) {
         Log.w(
             TAG,
-            "$modulePkg/$uid failed to take its binder $MAX_CONSECUTIVE_BINDER_FAILURES times in" +
-                " a row; retrying at most once every ${BINDER_RETRY_COOLDOWN_MS / 1000}s")
+            "$modulePkg/$uid failed to take its binder three times in a row; retrying at most once" +
+                " every 60s")
       }
     }
 
@@ -274,8 +257,8 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
       // deadline — would otherwise leave the uid here for the life of the daemon, and every later
       // delivery for it refused at the top of uidStarts. The generation invalidation above makes
       // a late return inert and releases the uid for a replacement attempt.
-      deliveries.remove(uid)?.let { (binder, recipient) ->
-        runCatching { binder.unlinkToDeath(recipient, 0) }
+      deliveries.remove(uid)?.let { delivery ->
+        runCatching { delivery.provider.unlinkToDeath(delivery.recipient, 0) }
       }
     }
 

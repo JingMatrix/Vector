@@ -40,6 +40,17 @@ internal class DeliveryAttemptTracker {
     active.remove(uid)
   }
 
+  /** Invalidates only the active attempts selected by [predicate]. */
+  @Synchronized
+  fun invalidateMatching(predicate: (Int) -> Boolean): Set<Int> {
+    val invalidated = active.keys.filter(predicate).toSet()
+    invalidated.forEach { uid ->
+      nextUidGeneration(uid)
+      active.remove(uid)
+    }
+    return invalidated
+  }
+
   @Synchronized
   fun clear() {
     cacheGeneration++

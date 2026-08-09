@@ -26,6 +26,25 @@ import org.matrix.vector.daemon.utils.getRealUsers
 
 private const val TAG = "VectorConfigCache"
 
+/** Returns app ids whose [LoadedModule] object changed between two published generations. */
+internal fun moduleGenerationAppIds(
+    oldModules: Map<String, LoadedModule>,
+    newModules: Map<String, LoadedModule>,
+): Set<Int> {
+  val changed = mutableSetOf<Int>()
+  oldModules.forEach { (packageName, oldModule) ->
+    if (newModules[packageName] !== oldModule && oldModule.appId >= 0) {
+      changed += oldModule.appId
+    }
+  }
+  newModules.forEach { (packageName, newModule) ->
+    if (oldModules[packageName] !== newModule && newModule.appId >= 0) {
+      changed += newModule.appId
+    }
+  }
+  return changed
+}
+
 object ConfigCache {
   // Module preference operations are delegated to PreferenceStore
   // Writable operations of modules are delegated to ModuleDatabase
@@ -411,15 +430,6 @@ object ConfigCache {
             }
           }
 
-      // A new LoadedModule object means the service endpoint belongs to a new APK generation. A
-      // scope-only rebuild keeps the same objects and does not need to interrupt an already
-      // delivered module service.
-      val moduleGenerationChanged =
-          oldState.modules.size != newModules.size ||
-              oldState.modules.any { (packageName, oldModule) ->
-                newModules[packageName] !== oldModule
-              }
-
       // --- ATOMIC STATE SWAP ---
       //
       // Against the *current* state, not against the copy taken at the top of this function. A
@@ -431,24 +441,31 @@ object ConfigCache {
       //
       // `oldState` is still the right thing to *read* from above: reusing an already-parsed module
       // is a decision about what was loaded when the rebuild started.
-      synchronized(this) {
+      val (publishedModules, changedModuleAppIds) = synchronized(this) {
+        // Compare with the state being replaced, not the snapshot from the start of this rebuild.
+        // A concurrent writer may have updated the state while package and APK queries ran above.
+        val currentModules = state.modules
+        val changedAppIds = moduleGenerationAppIds(currentModules, newModules)
         state = state.copy(modules = newModules, scopes = newScopes, unloadable = unloadable)
         // Swapped here rather than sixty lines earlier, so that the claims and the modules they
         // belong to become visible together. Between the two assignments a reader could see the new
         // static scopes against the old module set.
         staticScopes = newStaticScopes
+        currentModules to changedAppIds
       }
 
-      if (moduleGenerationChanged) {
-        // The state swap starts a new cache generation. Any provider binder or queued delivery built
-        // from the previous module map must not repopulate delivery state after this point.
-        ModuleAppService.uidClear()
+      if (changedModuleAppIds.isNotEmpty()) {
+        // Only the module generations that changed need to release their provider binders. Keeping
+        // other modules' deliveries and failure runs avoids re-feeding an unrelated crash loop.
+        // A module that is already running may not emit another uid transition, so immediately
+        // offer the affected uids a delivery for the newly published generation.
+        ModuleAppService.uidClear(changedModuleAppIds).forEach { ModuleAppService.uidStarts(it) }
       }
 
       Log.d(TAG, "Cache Update Complete. Map Swap successful.")
 
       // Targets are removed only after the module set has been published.
-      (oldState.modules.keys - newModules.keys).forEach {
+      (publishedModules.keys - newModules.keys).forEach {
         FrameworkService.forgetHotReloadTargets(it)
       }
       FrameworkService.backfillLoadedVersions()
