@@ -21,6 +21,18 @@ class DeliveryStateTest {
   }
 
   @Test
+  fun failureAfterUidGoneIsCountedWithoutPublishing() {
+    val states = DeliveryStateStore<Any, Any>(now = { 0L })
+    val attempt = states.begin(43) ?: error("attempt was not created")
+
+    states.invalidateGone(43)
+
+    assertFalse(states.commitSuccess(43, attempt, Any(), Any()))
+    assertFalse(states.recordFailure(43, attempt))
+    assertEquals(1, states.failureCount(43))
+  }
+
+  @Test
   fun staleFailureCannotOverwriteReplacementSuccess() {
     val states = DeliveryStateStore<Any, Any>(now = { 0L })
     val first = states.begin(7) ?: error("first attempt was not created")
