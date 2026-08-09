@@ -1,5 +1,7 @@
 # Vector Native Library (`native`)
 
+[中文文档（简体）](README_zh-CN.md)
+
 ## Purpose and Design Philosophy
 
 This library provides low-level hooking and modification capabilities for the Android OS.

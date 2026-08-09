@@ -11,6 +11,8 @@
 
 </div>
 
+[中文文档（简体）](README_zh-CN.md)
+
 ---
 
 ### Introduction

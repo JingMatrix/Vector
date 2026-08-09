@@ -1,5 +1,7 @@
 # Legacy Xposed API Implementation
 
+[中文文档（简体）](README_zh-CN.md)
+
 This document details the architecture and implementation of the `legacy` module within the Vector framework. The `legacy` subsystem provides a backward-compatibility layer, implementing the classic `de.robv.android.xposed` API namespace while routing execution to the modern native ART hooking engine.
 
 ## Module Topology and Boundaries

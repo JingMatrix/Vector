@@ -1,5 +1,7 @@
 # External Dependencies
 
+[中文文档（简体）](README_zh-CN.md)
+
 This directory contains all the external dependencies required to build the Vector framework.
 They are included as git submodules to ensure version consistency and timely updating.
 
@@ -27,4 +29,3 @@ They are included as git submodules to ensure version consistency and timely upd
 
 -   [axml/manifest-editor](https://github.com/JingMatrix/ManifestEditor):
     A a tool used to modify Android Manifest binary file. It is to parse manifestation files of Xposed modules.
-

@@ -1,5 +1,7 @@
 # Vector Manager
 
+[中文文档（简体）](README_zh-CN.md)
+
 The manager app: Jetpack Compose, one activity, configuring the root daemon over Binder. It holds
 no privilege of its own — everything it does to the device, it asks the daemon to do. It replaces
 `:app`, which is deleted.

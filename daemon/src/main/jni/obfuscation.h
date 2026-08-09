@@ -7,8 +7,8 @@
 
 #include "logging.h"
 
-// Custom allocator for dex::Writer that creates an ashmem region.
-// Manages the virtual memory mapping lifecycle to prevent memory leaks.
+// 为 dex::Writer 提供自定义分配器，创建一个 ashmem 区域。
+// 管理虚拟内存映射生命周期，避免泄露。
 class DexAllocator : public dex::Writer::Allocator {
     void* mapped_mem_ = nullptr;
     size_t mapped_size_ = 0;
@@ -18,16 +18,18 @@ public:
     inline void* Allocate(size_t size) override {
         LOGV("DexAllocator: attempting to allocate %zu bytes", size);
 
-        fd_ = ASharedMemory_create("obfuscated_dex", size);
+        // /proc/self/maps 中会暴露内存名，且在不同进程可见。这里将区域设置为匿名，
+        // 避免注入应用获得稳定的 framework 指纹。
+        fd_ = ASharedMemory_create(nullptr, size);
         if (fd_ < 0) {
-            // Log the specific error
+            // 记录具体错误信息
             PLOGE("DexAllocator: ASharedMemory_create");
             return nullptr;
         }
 
         mapped_size_ = size;
-        // MAP_SHARED is required for the output buffer so that Slicer's writes
-        // are immediately reflected in the underlying file descriptor.
+        // 输出缓冲区必须使用 MAP_SHARED，这样 Slicer 的写入才能
+        // 立即反映到底层文件描述符。
         mapped_mem_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_, 0);
 
         if (mapped_mem_ == MAP_FAILED) {
@@ -54,12 +56,12 @@ public:
     inline int GetFd() const { return fd_; }
 
     inline ~DexAllocator() {
-        // Unmap the virtual memory upon destruction to prevent memory leaks.
+        // 析构时解除虚拟内存映射，避免泄露。
         if (mapped_mem_ != nullptr && mapped_mem_ != MAP_FAILED) {
             munmap(mapped_mem_, mapped_size_);
         }
-        // Notice: We do NOT close(fd_) here!
-        // The file descriptor is extracted via GetFd() and handed over to Java's SharedMemory,
-        // which assumes lifecycle ownership of it.
+        // 注意：这里不在此处 close(fd_)！
+        // 文件描述符会通过 GetFd() 取出并交给 Java 的 SharedMemory 管理，
+        // Java 侧承担其生命周期所有权。
     }
 };

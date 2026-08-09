@@ -1,5 +1,7 @@
 # Xposed API implementation of the Vector framework
 
+[中文文档（简体）](README_zh-CN.md)
+
 This module implements the [libxposed](https://github.com/libxposed/api) API for the Vector framework. It serves as the primary bridge between the native ART hooking engine (`lsplant`) and module developers, providing a type-safe, OkHttp-style interceptor chain architecture.
 
 ## Architectural Overview

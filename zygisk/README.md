@@ -1,5 +1,7 @@
 # Vector Zygisk Module and Framework Loader
 
+[中文文档（简体）](README_zh-CN.md)
+
 ## Overview
 
 This subsystem constitutes the injection engine of the Vector framework. It acts as the bridge between the Android Zygote process and the high-level Java/Kotlin Xposed API. The architecture is designed to avoid standard Android service registration and disk-based class loading, operating entirely through in-memory execution, JNI-level Binder interception, and process identity transplantation.

@@ -1,5 +1,7 @@
 # Vector Daemon Subsystem
 
+[中文文档（简体）](README_zh-CN.md)
+
 The Vector daemon is a standalone, root-privileged Dalvik executable bootstrapped via `app_process`. Operating entirely outside the standard Android application sandbox, it serves as the central coordinator, state manager, and inter-process communication (IPC) asset server for the Vector framework. 
 
 Target processes operating under strict Android sandbox and SELinux constraints cannot safely access external configuration files or SQLite databases. The daemon offloads these operations, providing an IPC backend that serves memory-mapped resources, configuration states, and native file descriptors to target applications securely and efficiently.
