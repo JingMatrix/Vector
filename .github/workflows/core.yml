@@ -123,7 +123,7 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          ./gradlew zipAll
+          ./gradlew :daemon:testDebugUnitTest zipAll
 
       - name: Prepare artifact
         if: success()

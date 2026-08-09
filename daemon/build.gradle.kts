@@ -150,4 +150,5 @@ dependencies {
   implementation(projects.services.managerService)
   compileOnly(libs.androidx.annotation)
   compileOnly(projects.hiddenapi.stubs)
+  testImplementation("junit:junit:4.13.2")
 }
