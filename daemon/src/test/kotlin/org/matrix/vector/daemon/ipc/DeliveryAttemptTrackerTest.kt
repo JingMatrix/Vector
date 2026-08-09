@@ -46,4 +46,17 @@ class DeliveryAttemptTrackerTest {
     val replacement = tracker.begin(1) ?: error("replacement attempt was not created")
     assertTrue(tracker.isCurrent(1, replacement))
   }
+
+  @Test
+  fun staleCompletionAfterClearCannotReleaseReplacementOwnership() {
+    val tracker = DeliveryAttemptTracker()
+    val first = tracker.begin(7) ?: error("first attempt was not created")
+
+    tracker.clear()
+    val replacement = tracker.begin(7) ?: error("replacement attempt was not created")
+
+    tracker.finish(7, first)
+
+    assertTrue(tracker.isCurrent(7, replacement))
+  }
 }

@@ -160,12 +160,18 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
       runCatching {
             binderExecutor.execute {
               try {
-                val delivered = service.sendBinder(uid)
-                if (deliveryAttempts.isCurrent(uid, attempt) && delivered != null) {
-                  binderFailures.remove(uid)
-                  linkDelivery(uid, delivered, attempt)
-                } else if (deliveryAttempts.isCurrent(uid, attempt)) {
-                  recordFailure(uid, module.packageName)
+                // A fixed executor can queue work behind a blocked provider lookup. Do not start
+                // an obsolete lookup after uidGone() or a cache generation reset has already made
+                // this attempt inert; the post-send check below still handles invalidation while
+                // the lookup is in flight.
+                if (deliveryAttempts.isCurrent(uid, attempt)) {
+                  val delivered = service.sendBinder(uid)
+                  if (deliveryAttempts.isCurrent(uid, attempt) && delivered != null) {
+                    binderFailures.remove(uid)
+                    linkDelivery(uid, delivered, attempt)
+                  } else if (deliveryAttempts.isCurrent(uid, attempt)) {
+                    recordFailure(uid, module.packageName)
+                  }
                 }
               } finally {
                 deliveryAttempts.finish(uid, attempt)

@@ -411,6 +411,15 @@ object ConfigCache {
             }
           }
 
+      // A new LoadedModule object means the service endpoint belongs to a new APK generation. A
+      // scope-only rebuild keeps the same objects and does not need to interrupt an already
+      // delivered module service.
+      val moduleGenerationChanged =
+          oldState.modules.size != newModules.size ||
+              oldState.modules.any { (packageName, oldModule) ->
+                newModules[packageName] !== oldModule
+              }
+
       // --- ATOMIC STATE SWAP ---
       //
       // Against the *current* state, not against the copy taken at the top of this function. A
@@ -428,6 +437,12 @@ object ConfigCache {
         // belong to become visible together. Between the two assignments a reader could see the new
         // static scopes against the old module set.
         staticScopes = newStaticScopes
+      }
+
+      if (moduleGenerationChanged) {
+        // The state swap starts a new cache generation. Any provider binder or queued delivery built
+        // from the previous module map must not repopulate delivery state after this point.
+        ModuleAppService.uidClear()
       }
 
       Log.d(TAG, "Cache Update Complete. Map Swap successful.")
