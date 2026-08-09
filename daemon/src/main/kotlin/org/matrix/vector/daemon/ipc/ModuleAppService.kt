@@ -58,9 +58,9 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
     private const val RELOAD_TIMEOUT_SECONDS = 30L
 
     /**
-     * Coordinates active UIDs, in-flight attempts, and provider/death-recipient ownership under
-     * one lock. A failed send remains an active UID so a later module-generation swap can retry it
-     * even though it has no successful delivery entry.
+     * Coordinates active UIDs, in-flight attempts, and provider/death-recipient ownership through
+     * one per-UID atomic state transition. A failed send remains an active UID so a later
+     * module-generation swap can retry it even though it has no successful delivery entry.
      */
     private val deliveryState = DeliveryStateStore<IBinder, IBinder.DeathRecipient>()
 
