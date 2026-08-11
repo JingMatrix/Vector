@@ -73,7 +73,7 @@
     <!-- Information tab -->
     <string name="store_info_summary">Özet</string>
     <string name="store_info_scope">Hook\'lar</string>
-    <string name="store_info_scope_installed">Kancalar, kurulu kopyaya göre</string>
+    <string name="store_info_scope_installed">Hook\'lar, kurulu kopyaya göre</string>
     <string name="store_info_scope_undeclared">Bildirilmemiş. Bu modül hangi uygulamalara hook taktığını söylemiyor.</string>
     <string name="store_info_homepage">Ana sayfa</string>
     <string name="store_info_source">Kaynak kodu</string>

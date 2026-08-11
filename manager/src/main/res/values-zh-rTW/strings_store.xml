@@ -70,7 +70,7 @@
     <!-- Information tab -->
     <string name="store_info_summary">簡介</string>
     <string name="store_info_scope">掛鉤對象</string>
-    <string name="store_info_scope_installed">掛鉤目標（依已安裝的副本）</string>
+    <string name="store_info_scope_installed">掛鉤對象（依已安裝的副本）</string>
     <string name="store_info_scope_undeclared">未宣告。此模組沒有說明它會掛鉤哪些應用程式。</string>
     <string name="store_info_homepage">首頁</string>
     <string name="store_info_source">原始碼</string>

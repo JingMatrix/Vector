@@ -25,7 +25,7 @@
     <plurals name="logs_matches">
         <item quantity="other">一致する行: %1$d 行</item>
     </plurals>
-    <string name="logs_dropped">このログはビューアーのインデックスよりも長くなっています。最も古い %1$d 行は表示されません。それらを保持するには、バグレポートを保存してください。</string>
+    <string name="logs_dropped">このログはビューアーがインデックスを作成できる長さを超えています。最も古い %1$d 行は表示されません。それらを保持するには、バグレポートを保存してください。</string>
     <string name="logs_line_truncated">行を省略しました</string>
     <plurals name="logs_frames">
         <item quantity="other">%1$d 段のスタック</item>
@@ -45,7 +45,7 @@
     <string name="logs_state_nomatches_body">ファイルにはログがありますが、現在のフィルターによってすべて除外されています。</string>
     <string name="logs_state_failed_title">ログを読み込めませんでした</string>
     <string name="logs_state_failed_body">デーモンから渡されたファイルを読み込めませんでした: %1$s</string>
-    <string name="logs_loading">ログを読み込んでいます…</string>
+    <string name="logs_loading">インデックスを作成中…</string>
     <!-- Verbose logging -->
     <string name="logs_verbose_switch">詳細ログ</string>
     <string name="logs_verbose_enforced">実行中のデーモンにより、この設定は強制的に有効になっています。</string>

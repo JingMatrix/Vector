@@ -70,7 +70,7 @@
     <!-- Information tab -->
     <string name="store_info_summary">简介</string>
     <string name="store_info_scope">挂钩对象</string>
-    <string name="store_info_scope_installed">挂钩目标（据已安装的副本）</string>
+    <string name="store_info_scope_installed">挂钩对象（据已安装的副本）</string>
     <string name="store_info_scope_undeclared">未声明。此模块没有说明它会挂钩哪些应用。</string>
     <string name="store_info_homepage">主页</string>
     <string name="store_info_source">源代码</string>

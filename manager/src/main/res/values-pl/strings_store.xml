@@ -29,7 +29,7 @@
         <item quantity="many">%1$d aktualizacji</item>
         <item quantity="other">%1$d aktualizacji</item>
     </plurals>
-    <string name="store_all_current">Wszystkie twoje moduły są aktualne</string>
+    <string name="store_all_current">wszystkie twoje moduły są aktualne</string>
     <!-- Rows -->
     <string name="store_badge_update">Zaktualizuj do %1$s</string>
     <string name="store_badge_reinstall">Zainstaluj ponownie %1$s</string>
@@ -42,7 +42,7 @@
     <string name="store_no_match">Żaden moduł nie spełnia kryteriów wyszukiwania.</string>
     <string name="store_empty">Katalog nie zwrócił żadnych modułów.</string>
     <!-- Detail tabs -->
-    <string name="store_tab_readme">Przeczytaj</string>
+    <string name="store_tab_readme">Readme</string>
     <string name="store_tab_releases">Wydania</string>
     <string name="store_tab_information">Informacja</string>
     <!-- Detail -->
@@ -57,10 +57,10 @@
     <string name="store_reinstall">Zainstaluj ponownie</string>
     <string name="store_choose_asset">Wybierz plik do zainstalowania</string>
     <plurals name="store_asset_downloads">
-        <item quantity="one">%1$d pobrany</item>
-        <item quantity="few">%1$d pobrane</item>
-        <item quantity="many">%1$d pobranych</item>
-        <item quantity="other">%1$d pobranych</item>
+        <item quantity="one">%1$d pobranie</item>
+        <item quantity="few">%1$d pobrania</item>
+        <item quantity="many">%1$d pobrań</item>
+        <item quantity="other">%1$d pobrania</item>
     </plurals>
     <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
          com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore

@@ -9,7 +9,7 @@
 -->
 <resources>
     <!-- Navigation -->
-    <string name="nav_home">Strona główna</string>
+    <string name="nav_home">Start</string>
     <string name="nav_modules">Moduły</string>
     <string name="nav_store">Katalog</string>
     <string name="nav_logs">Dzienniki</string>
@@ -24,11 +24,11 @@
     <string name="panels_ball_open">Otwórz nawigację</string>
     <string name="panels_ball_close">Zamknij nawigację</string>
     <!-- Framework status -->
-    <string name="status_active">jest aktywny</string>
-    <string name="status_degraded">wymaga uwagi!</string>
-    <string name="status_inactive">jest nieaktywny</string>
+    <string name="status_active">Aktywny</string>
+    <string name="status_degraded">Problemy</string>
+    <string name="status_inactive">Nieaktywowany</string>
     <!-- The framework is running but speaks a different generation of the manager interface. -->
-    <string name="status_mismatched">Wersje się nie zgadzają</string>
+    <string name="status_mismatched">Niezgodność wersji</string>
     <string name="status_checking">Sprawdzanie…</string>
     <string name="status_open_details">Otwórz status systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
@@ -112,13 +112,13 @@
     <string name="home_filter_remove">Przestań pokazywać tylko %1$s</string>
     <string name="home_scroll_top">Wróć na górę</string>
     <string name="home_scroll_down">Następny ekran</string>
-    <string name="home_history_loading">Sięgnij dalej wstecz…</string>
+    <string name="home_history_loading">Sięgamy dalej wstecz…</string>
     <string name="home_history_more">Załaduj wcześniejsze zatwierdzenia</string>
     <string name="home_history_window_end">To wszystko w tym zakresie</string>
     <string name="home_history_beginning">Tu się zaczęło, %1$s</string>
     <string name="home_no_activity">Brak zatwierdzeń w ostatnich sześciu miesiącach.</string>
     <string name="home_loading_activity">Ładowanie ostatniej aktywności…</string>
-    <string name="home_window_changed">Wyświetlaj zapisaną aktywność dla nowego zakresu — pociągnij, aby odświeżyć</string>
+    <string name="home_window_changed">Wyświetlana jest zapisana aktywność dla nowego zakresu — pociągnij, aby odświeżyć</string>
     <string name="home_offline">Wyświetlana jest zapisana aktywność — nie można nawiązać połączenia z GitHubem.</string>
     <string name="home_bumps">%1$d aktualizacji zależności</string>
     <string name="home_contribute">Weź udział</string>
@@ -132,7 +132,7 @@
     <string name="home_month_stats">%1$s · %2$s</string>
     <plurals name="home_people_count_plain">
         <item quantity="one">%1$d osoba</item>
-        <item quantity="few">%1$d osób</item>
+        <item quantity="few">%1$d osoby</item>
         <item quantity="many">%1$d osób</item>
         <item quantity="other">%1$d osób</item>
     </plurals>
@@ -310,7 +310,7 @@
     <string name="action_uninstall_failed">Nie udało się odinstalować %1$s.</string>
     <!-- Generic -->
     <string name="back">Wstecz</string>
-    <string name="retry">Ponów</string>
+    <string name="retry">Spróbuj ponownie</string>
     <string name="appearance_color">Kolor</string>
     <string name="appearance_custom_color">Wybierz kolor</string>
     <string name="modules_expand">Pokaż pełny opis</string>
@@ -360,7 +360,7 @@
         <item quantity="other">%1$d było już wyłączone</item>
     </plurals>
     <plurals name="modules_batch_all_already_on">
-        <item quantity="one">%1$d był już włączony</item>
+        <item quantity="one">Był już włączony</item>
         <item quantity="few">Wszystkie %1$d były już włączone</item>
         <item quantity="many">Wszystkie %1$d było już włączone</item>
         <item quantity="other">Wszystkie %1$d było już włączone</item>
@@ -410,7 +410,7 @@
     <string name="canary_report_title">Znalazłeś coś?</string>
     <string name="canary_report_body">Canary, która zawodzi, to właśnie powód, by ją uruchamiać — dopiero zgłoszenie zmienia to w poprawkę. Jeśli tropisz błąd, weź archiwum Debug: zapisuje znacznie więcej, a tego właśnie wymaga zgłoszenie.</string>
     <string name="home_contributors_by_commits">Najwięcej zatwierdzeń</string>
-    <string name="home_contributors_by_recent">Najnowsze</string>
+    <string name="home_contributors_by_recent">Najnowsi</string>
     <string name="scope_recommended_only">To, czego wymaga moduł</string>
     <string name="home_resting">Przerwa — aktywność zapisana. Pociągnij, aby odświeżyć.</string>
     <string name="report_title">Zanim zgłosisz</string>
@@ -421,7 +421,7 @@
     <string name="report_step_logs">Dołącz dzienniki</string>
     <string name="report_step_logs_body">Raport bez dzienników to rozmowa, która zaczyna się od początku. Spowoduje to zapisanie obu dzienników do pliku zip, który możesz dołączyć.</string>
     <string name="report_step_crashed">Jeśli Zygisk uległ awarii</string>
-    <string name="report_step_crashed_body">Daemon nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
+    <string name="report_step_crashed_body">Usługa nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
     <string name="report_open_tracker">Otwórz system zgłaszania problemów</string>
     <string name="report_save_with_root">Zapisz folder dziennika (wymaga roota)</string>
     <string name="report_saved_to">Zapisano w %1$s</string>
@@ -430,7 +430,7 @@
     <string name="home_custom_build">Niestandardowa kompilacja — nowsza niż główna</string>
     <string name="language_title">Język</string>
     <string name="language_system">Domyślny systemowy</string>
-    <string name="language_system_summary">Wybierz język ustawiony w telefonie</string>
+    <string name="language_system_summary">Używaj języka ustawionego w telefonie</string>
     <string name="language_translated_by">Przetłumaczone przez %1$s</string>
     <string name="language_help_short">Tłumacz</string>
     <string name="language_help">Pomóż tłumaczyć Vector</string>
@@ -478,7 +478,7 @@
     <string name="settings_doh">Rozwiązuj nazwy przez HTTPS</string>
     <string name="settings_doh_summary">Rozwiązuje nazwy przez Cloudflare zamiast przez moduł rozpoznawania nazw sieci. Dla sieci, które blokują lub modyfikują zapytania DNS.</string>
     <string name="settings_doh_untested">Nie wyszukano jeszcze żadnych nazw.</string>
-    <string name="settings_doh_bypassed">Nieużywane: skonfigurowano serwer proxy, więc nazwy są rozwiązywane.</string>
+    <string name="settings_doh_bypassed">Nieużywane: skonfigurowano serwer proxy, więc to on rozwiązuje nazwy.</string>
     <string name="settings_doh_working">Działa — %1$s zostało rozwiązane za pośrednictwem Cloudflare.</string>
     <string name="settings_doh_fell_back">Nie można było połączyć się z Cloudflare (%1$s), więc przez resztę tej sesji używany jest moduł rozpoznawania nazw sieci.</string>
     <string name="settings_doh_retry">Spróbuj ponownie</string>
@@ -495,7 +495,7 @@
     <string name="launcher_install_reinstall">Zainstaluj ponownie</string>
     <string name="launcher_install_done">Vector jest zainstalowany. Otwórz go z launchera.</string>
     <string name="launcher_install_failed">Nie udało się zainstalować Vectora.</string>
-    <string name="launcher_install_conflict">Kopia Vectora podpisana innym kluczem jest już zainstalowana. Usuń ją, aby ten klucz pasował.</string>
+    <string name="launcher_install_conflict">Kopia Vectora podpisana innym kluczem jest już zainstalowana. Trzeba ją usunąć, zanim ta się zmieści.</string>
     <string name="launcher_install_remove">Usuń ją</string>
     <string name="launcher_install_diverged">Zainstalowana kopia to inna wersja Vectora — nie ta uruchomiona tutaj. Ponowna instalacja ją zastąpi.</string>
     <string name="launcher_route_available">Dostępne</string>

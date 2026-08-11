@@ -85,7 +85,7 @@
     <!-- Information tab -->
     <string name="store_info_summary">نبذة</string>
     <string name="store_info_scope">الارتباطات</string>
-    <string name="store_info_scope_installed">العناصر المُعترضة، بحسب النسخة المثبَّتة</string>
+    <string name="store_info_scope_installed">الارتباطات، بحسب النسخة المثبَّتة</string>
     <string name="store_info_scope_undeclared">غير معلَن. لا تذكر هذه الوحدة أي التطبيقات تربطها.</string>
     <string name="store_info_homepage">الصفحة الرئيسية</string>
     <string name="store_info_source">الشيفرة المصدرية</string>
