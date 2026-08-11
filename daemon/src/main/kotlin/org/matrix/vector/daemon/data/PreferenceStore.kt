@@ -97,7 +97,23 @@ object PreferenceStore {
   fun setVerboseLog(enabled: Boolean) =
       updateModulePref("lspd", 0, "config", "enable_verbose_log", enabled)
 
+  @Suppress("UNCHECKED_CAST")
+  fun getBlockedScopeRequests(): Set<String> =
+      getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<String> ?: emptySet()
+
+  fun setBlockedScopeRequests(scopes: Set<String>) =
+      updateModulePref("lspd", 0, "config", "scope_request_blocked", scopes)
+
   fun isScopeRequestBlocked(pkg: String): Boolean =
-      (getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<*>)?.contains(pkg) ==
-          true
+      getBlockedScopeRequests().contains(pkg)
+
+  @Suppress("UNCHECKED_CAST")
+  fun getApprovedScopeRequests(): Set<String> =
+      getModulePrefs("lspd", 0, "config")["scope_request_approved"] as? Set<String> ?: emptySet()
+
+  fun setApprovedScopeRequests(scopes: Set<String>) =
+      updateModulePref("lspd", 0, "config", "scope_request_approved", scopes)
+
+  fun isScopeRequestApproved(pkg: String): Boolean =
+      getApprovedScopeRequests().contains(pkg)
 }

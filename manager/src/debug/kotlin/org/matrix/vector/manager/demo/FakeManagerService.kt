@@ -218,6 +218,20 @@ class FakeManagerService(
     override fun getModuleScope(packageName: String?): MutableList<ScopeEntry>? =
         if (real == null) mutableListOf() else real.getModuleScope(packageName)
 
+    override fun isScopeRequestBlocked(packageName: String?): Boolean =
+        real?.isScopeRequestBlocked(packageName) ?: false
+
+    override fun setModuleScopeRequestBlocked(packageName: String?, block: Boolean) {
+        real?.setModuleScopeRequestBlocked(packageName, block)
+    }
+
+    override fun isScopeRequestApproved(packageName: String?): Boolean =
+        real?.isScopeRequestApproved(packageName) ?: false
+
+    override fun setModuleScopeRequestApproved(packageName: String?, approve: Boolean) {
+        real?.setModuleScopeRequestApproved(packageName, approve)
+    }
+
     override fun isVerboseLogEnabled(): Boolean = real?.isVerboseLogEnabled ?: false
 
     override fun setVerboseLogEnabled(enabled: Boolean) {

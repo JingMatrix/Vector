@@ -467,72 +467,12 @@ object VectorService : IVectorDaemon.Stub() {
           }
 
           when (action) {
-            "approve" -> {
-              // "system" is the framework and not a package: it names system_server, which belongs
-              // to no package and resolves for nobody. The lookup below therefore came back null
-              // for every framework prompt, and the approval the user had just given was answered
-              // "Package not found" — the request was closed, its notification cancelled, and no
-              // row written. The normalisation to user 0 further down could never once have run.
-              //
-              // Package by package rather than all-or-nothing: the prompt may have been up for an
-              // hour and one of the packages it named can have been uninstalled in the meantime,
-              // which is no reason to throw away the user's answer about the rest.
-              //
-              // Only under "approve", because only an approval has to name something real. Deny
-              // and the timeout used to be refused here too, so dismissing a prompt for a package
-              // that had since been uninstalled told the module "Package not found" when what had
-              // actually happened was that the user turned it down.
-              val granted =
-                  scopePackageNames.filter {
-                    it == "system" || packageManager?.getPackageInfoCompat(it, 0, userId) != null
-                  }
-              if (granted.isEmpty()) {
-                // Logged, because until now this said nothing anywhere: the module was told
-                // "Package not found", the user was told nothing at all, and the daemon kept no
-                // record that the press had even arrived. The framework-scope failure above was
-                // invisible for exactly that reason.
-                Log.w(
-                    TAG,
-                    "None of ${scopePackageNames.joinToString()} resolve for user $userId;" +
-                        " refusing the scope request of $packageName")
-                // Leaving the whole function here skipped the cancel below, which used to be
-                // merely untidy and is now a prompt nobody can use: the request has been answered,
-                // so every later press of its buttons is dropped. The request is over either way,
-                // so the notification goes with it.
-                iCallback.onScopeRequestFailed("Package not found")
+            "approve" -> ModuleDatabase.approveModuleScope(packageName, userId, scopePackageNames)
+              .onSuccess { granted -> iCallback.onScopeRequestApproved(granted) }
+              .onFailure {
+                iCallback.onScopeRequestFailed(it.message)
                 return@runCatching
               }
-              val scopes = ModuleDatabase.getModuleScope(packageName) ?: mutableListOf()
-              var added = false
-              granted.forEach { scopePackageName ->
-                // Compared against where the row will land, not against the user who asked: the
-                // framework is stored under user 0 whoever requested it, so for "system" this test
-                // never matched and every approval appended a duplicate and rewrote the whole
-                // table.
-                val storedUserId = if (scopePackageName == "system") 0 else userId
-                val present =
-                    scopes.any { it.packageName == scopePackageName && it.userId == storedUserId }
-                if (!present) {
-                  scopes.add(
-                      ScopeEntry().apply {
-                        this.packageName = scopePackageName
-                        this.userId = storedUserId
-                      })
-                  added = true
-                }
-              }
-              // One write for the whole prompt, and none at all when the user approved what the
-              // module already had. `setModuleScope` replaces the module's rows wholesale and
-              // enables the module on the way through, so writing per package would rewrite the
-              // table once per package — leaving a window after each in which the scope is only
-              // partly what was agreed to — and writing unconditionally would let a module enable
-              // itself by asking again for what it has.
-              if (added) ModuleDatabase.setModuleScope(packageName, scopes)
-              Log.i(TAG, "Approved ${granted.joinToString()} for $packageName on user $userId")
-              // The packages that were granted, which is what the list in this callback is for. A
-              // module comparing it against what it asked for can see what it did not get.
-              iCallback.onScopeRequestApproved(granted)
-            }
             "deny" -> iCallback.onScopeRequestFailed("Request denied by user")
             "delete" -> iCallback.onScopeRequestFailed("Request timeout")
           }
@@ -545,23 +485,8 @@ object VectorService : IVectorDaemon.Stub() {
     NotificationManager.cancelScopeRequest(packageName, userId, scopePackageNames)
   }
 
-  /**
-   * The modules that may not ask for scope again.
-   *
-   * Filed under "lspd" rather than under the module it names, because it records the user's decision
-   * about a module rather than that module's own configuration. That is also why uninstalling a
-   * module does not take it away — `deleteModulePrefs` deletes what is filed under the module's own
-   * name — and why [unblockScopeRequests] has to exist.
-   */
-  @Suppress("UNCHECKED_CAST")
-  private fun blockedScopeRequests(): Set<String> =
-      PreferenceStore.getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<String>
-          ?: emptySet()
-
-  private fun blockScopeRequests(packageName: String) {
-    PreferenceStore.updateModulePref(
-        "lspd", 0, "config", "scope_request_blocked", blockedScopeRequests() + packageName)
-  }
+  private fun blockScopeRequests(packageName: String) =
+      PreferenceStore.setBlockedScopeRequests(PreferenceStore.getBlockedScopeRequests() + packageName)
 
   /**
    * Lets an uninstalled module ask again if it comes back.
@@ -573,10 +498,9 @@ object VectorService : IVectorDaemon.Stub() {
    * back — and a module that is gone has no decision left to honour.
    */
   private fun unblockScopeRequests(packageName: String) {
-    val blocked = blockedScopeRequests()
+    val blocked = PreferenceStore.getBlockedScopeRequests()
     if (packageName !in blocked) return
-    PreferenceStore.updateModulePref(
-        "lspd", 0, "config", "scope_request_blocked", blocked - packageName)
+    PreferenceStore.setBlockedScopeRequests(blocked - packageName)
     Log.i(TAG, "$packageName was uninstalled; it may ask for scope again if it returns")
   }
 }

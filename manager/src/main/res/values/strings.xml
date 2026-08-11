@@ -308,6 +308,9 @@
     <string name="action_optimize_failed">Could not re-optimize %1$s.</string>
     <string name="action_uninstalled">Uninstalled %1$s.</string>
     <string name="action_uninstall_failed">Could not uninstall %1$s.</string>
+    <string name="action_block_scope_requests">Block scope requests</string>
+    <string name="action_approve_scope_requests">Approve scope requests</string>
+    <string name="action_approve_scope_requests_summary">Approve scope requests automatically</string>
 
     <!-- Generic -->
     <string name="back">Back</string>

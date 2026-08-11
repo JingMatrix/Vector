@@ -272,6 +272,24 @@ object ManagerService : IManagerService.Stub() {
 
   override fun getModuleScope(packageName: String) = ModuleDatabase.getModuleScope(packageName)
 
+  override fun isScopeRequestBlocked(packageName: String) =
+      PreferenceStore.isScopeRequestBlocked(packageName)
+
+  override fun setModuleScopeRequestBlocked(packageName: String, block: Boolean) {
+    val blocked = PreferenceStore.getBlockedScopeRequests()
+    if (block xor (packageName !in blocked)) return
+    PreferenceStore.setBlockedScopeRequests(if (block) blocked + packageName else blocked - packageName)
+  }
+
+  override fun isScopeRequestApproved(packageName: String) =
+      PreferenceStore.isScopeRequestApproved(packageName)
+
+  override fun setModuleScopeRequestApproved(packageName: String, approve: Boolean) {
+    val approved = PreferenceStore.getApprovedScopeRequests()
+    if (approve xor (packageName !in approved)) return
+    PreferenceStore.setApprovedScopeRequests(if (approve) approved + packageName else approved - packageName)
+}
+
   // Reports the setting, not the setting OR'd with the build type. It used to be
   // `|| BuildConfig.DEBUG`, which made the value unwritable on a debug daemon: the manager could
   // never read false, so its switch snapped back on every tap and had to be greyed out. The OR was

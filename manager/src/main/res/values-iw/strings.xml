@@ -213,6 +213,9 @@
     <string name="action_optimize_failed">לא ניתן היה לבצע אופטימיזציה מחדש ל-%1$s.</string>
     <string name="action_uninstalled">‏%1$s הוסרה.</string>
     <string name="action_uninstall_failed">לא ניתן היה להסיר את %1$s.</string>
+    <string name="action_block_scope_requests">חסמית בקשות תחום</string>
+    <string name="action_approve_scope_requests">אישור בקשות תחום</string>
+    <string name="action_approve_scope_requests_summary">אישור בקשות תחום באופן אוטומטי</string>
 
     <string name="back">חזרה</string>
     <string name="retry">ניסיון נוסף</string>

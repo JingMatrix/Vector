@@ -52,6 +52,7 @@ import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.R
 import android.text.format.Formatter
 import androidx.compose.material.icons.rounded.ArrowCircleUp
+import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.NotificationsOff
@@ -65,6 +66,7 @@ import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.ui.screens.repo.StoreChannel
 import org.matrix.vector.manager.ui.screens.repo.releasesOn
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material3.TextButton
 import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel
 import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel.Companion.SYSTEM_FRAMEWORK_PACKAGE
@@ -123,6 +125,9 @@ fun PackageActionSheet(
     // Asked once, when the sheet opens. Most modules have neither a companion nor a launcher entry,
     // and a row that exists only to report that it has nothing to do is worse than no row.
     var openable by remember(packageName, userId) { mutableStateOf<Boolean?>(null) }
+    var isScopeRequestBlocked by remember(packageName) { mutableStateOf(false) }
+    var isScopeRequestApproved by remember(packageName) { mutableStateOf(false) }
+
     LaunchedEffect(packageName, userId) {
         openable =
             ServiceLocator.daemon
@@ -131,6 +136,12 @@ fun PackageActionSheet(
                     logW("actions: launch target lookup for $packageName u$userId failed", e)
                 }
                 .getOrNull() != null
+
+        isScopeRequestBlocked =
+            ServiceLocator.daemon.isScopeRequestBlocked(packageName).getOrDefault(false)
+
+        isScopeRequestApproved =
+            ServiceLocator.daemon.isScopeRequestApproved(packageName).getOrDefault(false)
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
@@ -181,7 +192,10 @@ fun PackageActionSheet(
     // thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than half the
     // screen would open at full height and could not be made smaller. Material caps the stop at
     // the sheet's own height, so short sheets still open at that height and gain no useless drag.
-    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
+    )
 
     // `Dispatchers.Main` because [onResult] reaches a snackbar on the screen underneath, and
     // because that is the thread the composition scope this replaces used to resume on.
@@ -361,6 +375,48 @@ LocalizedOverlay {
                     )
                 }
             }
+        }
+
+        if (isModule) {
+            HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
+
+            if (!isScopeRequestApproved)
+            ActionToggleRow(
+                title = stringResource(R.string.action_block_scope_requests),
+                icon = Icons.Rounded.Block,
+                checked = isScopeRequestBlocked,
+                onCheckedChange = { checked ->
+                    isScopeRequestBlocked = checked
+
+                    scope.launch(Dispatchers.Main) {
+                        daemon.setModuleScopeRequestBlocked(packageName, checked).onFailure {
+                            isScopeRequestBlocked = !checked
+                        }
+                    }
+                },
+            )
+
+            ActionToggleRow(
+                title = stringResource(R.string.action_approve_scope_requests),
+                subtitle = stringResource(R.string.action_approve_scope_requests_summary),
+                icon = Icons.Rounded.VerifiedUser,
+                checked = isScopeRequestApproved,
+                onCheckedChange = { checked ->
+                    isScopeRequestApproved = checked
+
+                    scope.launch(Dispatchers.Main) {
+                        daemon.setModuleScopeRequestApproved(packageName, checked).onFailure {
+                            isScopeRequestApproved = !checked
+                        }.onSuccess {
+                            if (checked && isScopeRequestBlocked) {
+                                daemon.setModuleScopeRequestBlocked(packageName, false).onSuccess {
+                                    isScopeRequestBlocked = false
+                                }
+                            }
+                        }
+                    }
+                },
+            )
         }
 
         if (isModule) {

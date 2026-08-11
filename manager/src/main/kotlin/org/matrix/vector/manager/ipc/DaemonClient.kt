@@ -205,6 +205,25 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
             ?: throw IllegalArgumentException("$packageName has no scope to read")
     }
 
+
+    suspend fun isScopeRequestBlocked(packageName: String): Result<Boolean> = runIpc {
+        it.isScopeRequestBlocked(packageName)
+    }
+
+    suspend fun setModuleScopeRequestBlocked(
+        packageName: String,
+        block: Boolean,
+    ): Result<Unit> = runIpc { it.setModuleScopeRequestBlocked(packageName, block) }
+
+    suspend fun isScopeRequestApproved(packageName: String): Result<Boolean> = runIpc {
+        it.isScopeRequestApproved(packageName)
+    }
+
+    suspend fun setModuleScopeRequestApproved(
+        packageName: String,
+        approve: Boolean,
+    ): Result<Unit> = runIpc { it.setModuleScopeRequestApproved(packageName, approve) }
+
     suspend fun isStatusNotificationEnabled(): Result<Boolean> = runIpc {
         it.isStatusNotificationEnabled
     }

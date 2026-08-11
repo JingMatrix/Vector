@@ -73,7 +73,7 @@ interface IManagerService {
      * transaction ids follow declaration order, this number is the only thing standing between a
      * mismatched pair and a call that lands on the wrong method.</p>
      */
-    const int PROTOCOL_VERSION = 1;
+    const int PROTOCOL_VERSION = 2;
 
     /**
      * Which generation of this interface the daemon implements, never below 1.
@@ -310,6 +310,20 @@ interface IManagerService {
      *         whether the call succeeded will show a scope the framework never took
      */
     boolean setModuleScope(String packageName, in List<ScopeEntry> scope);
+
+    /**
+     * Whether a module's scope requests are blocked.
+     */
+    boolean isScopeRequestBlocked(String packageName);
+
+    void setModuleScopeRequestBlocked(String packageName, boolean block);
+
+    /**
+     * Whether a module's scope requests are approved automatically.
+     */
+    boolean isScopeRequestApproved(String packageName);
+
+    void setModuleScopeRequestApproved(String packageName, boolean approve);
 
     /**
      * Whether a module is given each newly installed app automatically.

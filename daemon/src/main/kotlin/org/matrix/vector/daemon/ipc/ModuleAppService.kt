@@ -474,7 +474,11 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
         return
       }
     }
-    if (!PreferenceStore.isScopeRequestBlocked(loadedModule.packageName)) {
+    if (PreferenceStore.isScopeRequestApproved(loadedModule.packageName)) {
+      ModuleDatabase.approveModuleScope(loadedModule.packageName, userId, requested)
+        .onSuccess { granted -> callback.onScopeRequestApproved(granted) }
+        .onFailure { callback.onScopeRequestFailed(it.message) }
+    } else if (!PreferenceStore.isScopeRequestBlocked(loadedModule.packageName)) {
       NotificationManager.requestModuleScope(loadedModule.packageName, userId, requested, callback)
     } else {
       callback.onScopeRequestFailed("Scope request blocked by user configuration")

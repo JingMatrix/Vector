@@ -3,8 +3,10 @@ package org.matrix.vector.daemon.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.daemon.system.NotificationManager
+import org.matrix.vector.daemon.system.getPackageInfoCompat
+import org.matrix.vector.daemon.system.packageManager
+import org.matrix.vector.ipc.ScopeEntry
 
 private const val TAG = "VectorModuleDatabase"
 
@@ -402,5 +404,72 @@ object ModuleDatabase {
     }
 
     return changed
+  }
+
+  fun approveModuleScope(packageName: String, userId: Int, requested: List<String>): Result<List<String>> {
+    // "system" is the framework and not a package: it names system_server, which belongs
+    // to no package and resolves for nobody. The lookup below therefore came back null
+    // for every framework prompt, and the approval the user had just given was answered
+    // "Package not found" — the request was closed, its notification canceled, and no
+    // row written. The normalization to user 0 further down could never once have run.
+    //
+    // Package by package rather than all-or-nothing: the prompt may have been up for an
+    // hour and one of the packages it named can have been uninstalled in the meantime,
+    // which is no reason to throw away the user's answer about the rest.
+    //
+    // Only under "approve", because only an approval has to name something real. Deny
+    // and the timeout used to be refused here too, so dismissing a prompt for a package
+    // that had since been uninstalled told the module "Package not found" when what had
+    // actually happened was that the user turned it down.
+    val granted =
+      requested.filter {
+        it == "system" || packageManager?.getPackageInfoCompat(it, 0, userId) != null
+      }
+    if (granted.isEmpty()) {
+      // Logged, because until now this said nothing anywhere: the module was told
+      // "Package not found", the user was told nothing at all, and the daemon kept no
+      // record that the press had even arrived. The framework-scope failure above was
+      // invisible for exactly that reason.
+      Log.w(
+        TAG,
+        "None of ${requested.joinToString()} resolve for user $userId;" +
+                " refusing the scope request of $packageName"
+      )
+      // Leaving the whole function here skipped the cancel below, which used to be
+      // merely untidy and is now a prompt nobody can use: the request has been answered,
+      // so every later press of its buttons is dropped. The request is over either way,
+      // so the notification goes with it.
+      return Result.failure(Exception("Package not found"))
+    }
+    val scopes = getModuleScope(packageName) ?: mutableListOf()
+    var added = false
+    granted.forEach { scopePackageName ->
+      // Compared against where the row will land, not against the user who asked: the
+      // framework is stored under user 0 whoever requested it, so for "system" this test
+      // never matched and every approval appended a duplicate and rewrote the whole
+      // table.
+      val storedUserId = if (scopePackageName == "system") 0 else userId
+      val present =
+        scopes.any { it.packageName == scopePackageName && it.userId == storedUserId }
+      if (!present) {
+        scopes.add(
+          ScopeEntry().apply {
+            this.packageName = scopePackageName
+            this.userId = storedUserId
+          })
+        added = true
+      }
+    }
+    // One write for the whole prompt, and none at all when the user approved what the
+    // module already had. `setModuleScope` replaces the module's rows wholesale and
+    // enables the module on the way through, so writing per package would rewrite the
+    // table once per package — leaving a window after each in which the scope is only
+    // partly what was agreed to — and writing unconditionally would let a module enable
+    // itself by asking again for what it has.
+    if (added) setModuleScope(packageName, scopes)
+    Log.i(TAG, "Approved ${granted.joinToString()} for $packageName on user $userId")
+    // The packages that were granted, which is what the list in this callback is for. A
+    // module comparing it against what it asked for can see what it did not get.
+    return Result.success(granted)
   }
 }
