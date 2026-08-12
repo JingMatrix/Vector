@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Logs screen.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without colliding
+  with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
 <resources>
-
     <string name="logs_title">Журнали</string>
-
+    <!-- Top bar actions -->
     <string name="logs_word_wrap">Переносити довгі рядки</string>
     <string name="logs_save">Зберегти звіт про помилку…</string>
     <string name="logs_rotate">Почати новий журнал…</string>
-
+    <!-- Search and filter -->
     <string name="logs_search_hint">Пошук у цьому журналі</string>
     <string name="logs_filter">Фільтр за рівнем і теґом</string>
     <string name="logs_filter_levels">Рівень</string>
     <string name="logs_filter_tags">Теґ</string>
     <string name="logs_filter_clear">Очистити фільтр</string>
     <string name="logs_filter_scanning">Читається весь файл, щоб фільтр бачив і те, чого немає на екрані.</string>
-
+    <!-- The counter under the search field -->
+    <!-- Example: "lines 1 200–3 200 of 30 412" -->
     <string name="logs_window">Рядки %1$d–%2$d з %3$d</string>
     <plurals name="logs_matches">
         <item quantity="one">%1$d збіг у рядку</item>
@@ -29,13 +36,14 @@
         <item quantity="many">%1$d кадрів</item>
         <item quantity="other">%1$d кадра</item>
     </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
     <plurals name="logs_more_lines">
         <item quantity="one">ще %1$d рядок</item>
         <item quantity="few">ще %1$d рядки</item>
         <item quantity="many">ще %1$d рядків</item>
         <item quantity="other">ще %1$d рядка</item>
     </plurals>
-
+    <!-- The four distinct nothing-to-show states -->
     <string name="logs_state_daemon_title">Служба недоступна</string>
     <string name="logs_state_daemon_body">Поки Vector не працює, про журнал нічого не відомо. Із тієї самої причини смужка стану на головній не зелена.</string>
     <string name="logs_state_nofile_title">Файлу журналу ще немає</string>
@@ -47,28 +55,27 @@
     <string name="logs_state_failed_title">Не вдалося прочитати журнал</string>
     <string name="logs_state_failed_body">Служба передала файл, який не вдалося прочитати: %1$s</string>
     <string name="logs_loading">Індексування…</string>
-
+    <!-- Verbose logging -->
     <string name="logs_verbose_switch">Докладне журналювання</string>
     <string name="logs_verbose_enforced">Запущена служба однаково тримає це ввімкненим.</string>
-
+    <!-- Navigation within a long log -->
     <string name="logs_jump_oldest">До найдавнішого рядка</string>
     <string name="logs_jump_newest">До найновішого рядка</string>
-
+    <!-- Per-row actions -->
     <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
-
+    <!-- Starting a new log: the consequence, named -->
     <string name="logs_rotate_title">Почати новий журнал?</string>
     <string name="logs_rotate_body">Нічого не видаляється. Служба закриває поточну частину й починає нову; закрита частина лишається на диску — за один змах звідси — доки не випаде з десяти найновіших, і збережений звіт про помилку все одно її містить.</string>
     <string name="logs_rotate_confirm">Почати новий журнал</string>
     <string name="logs_rotate_done">Розпочато новий журнал</string>
     <string name="logs_rotate_unreachable">Не вдалося звернутися до служби, щоб почати новий журнал</string>
     <string name="logs_cancel">Скасувати</string>
-
+    <!-- Saving -->
     <string name="logs_saving">Збирання журналів, tombstone і dmesg…</string>
     <string name="logs_saved">Звіт про помилку збережено</string>
     <string name="logs_save_failed">Не вдалося зберегти звіт про помилку</string>
     <string name="logs_save_failed_reason">Не вдалося зберегти звіт про помилку: %1$s</string>
     <string name="logs_share">Поділитися</string>
-
     <string name="logs_filter_clear_tag">Очистити фільтр за теґом</string>
     <string name="logs_settings">Налаштування журналів</string>
     <string name="logs_source_more">Показувати й рядки самого фреймворку</string>
