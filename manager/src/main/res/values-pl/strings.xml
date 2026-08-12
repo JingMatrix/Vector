@@ -9,7 +9,7 @@
 -->
 <resources>
     <!-- Navigation -->
-    <string name="nav_home">Start</string>
+    <string name="nav_home">Strona główna</string>
     <string name="nav_modules">Moduły</string>
     <string name="nav_store">Katalog</string>
     <string name="nav_logs">Dzienniki</string>
@@ -24,11 +24,11 @@
     <string name="panels_ball_open">Otwórz nawigację</string>
     <string name="panels_ball_close">Zamknij nawigację</string>
     <!-- Framework status -->
-    <string name="status_active">Aktywny</string>
-    <string name="status_degraded">Problemy</string>
-    <string name="status_inactive">Nieaktywowany</string>
+    <string name="status_active">jest aktywny</string>
+    <string name="status_degraded">wymaga uwagi!</string>
+    <string name="status_inactive">jest nieaktywny</string>
     <!-- The framework is running but speaks a different generation of the manager interface. -->
-    <string name="status_mismatched">Niezgodność wersji</string>
+    <string name="status_mismatched">wykrył niezgodne wersje!</string>
     <string name="status_checking">Sprawdzanie…</string>
     <string name="status_open_details">Otwórz status systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
@@ -112,7 +112,7 @@
     <string name="home_filter_remove">Przestań pokazywać tylko %1$s</string>
     <string name="home_scroll_top">Wróć na górę</string>
     <string name="home_scroll_down">Następny ekran</string>
-    <string name="home_history_loading">Sięgamy dalej wstecz…</string>
+    <string name="home_history_loading">Sięgnij dalej wstecz…</string>
     <string name="home_history_more">Załaduj wcześniejsze zatwierdzenia</string>
     <string name="home_history_window_end">To wszystko w tym zakresie</string>
     <string name="home_history_beginning">Tu się zaczęło, %1$s</string>
@@ -201,7 +201,7 @@
     <string name="modules_section_active">Uruchomione</string>
     <string name="modules_section_inactive">Nieuruchomione</string>
     <string name="modules_scope_more">+%1$d</string>
-    <string name="modules_sort_enabled">Najpierw uruchomione</string>
+    <string name="modules_sort_enabled">Running first</string>
     <string name="modules_sort_name">Według nazwy</string>
     <string name="modules_sort_recent">Ostatnio zaktualizowane</string>
     <string name="modules_sort_scope">Najszerszy zakres</string>
@@ -310,7 +310,7 @@
     <string name="action_uninstall_failed">Nie udało się odinstalować %1$s.</string>
     <!-- Generic -->
     <string name="back">Wstecz</string>
-    <string name="retry">Spróbuj ponownie</string>
+    <string name="retry">Ponów</string>
     <string name="appearance_color">Kolor</string>
     <string name="appearance_custom_color">Wybierz kolor</string>
     <string name="modules_expand">Pokaż pełny opis</string>
@@ -382,7 +382,7 @@
     <!-- Canary builds: choosing which nightly to test, and why it is worth an evening -->
     <string name="canary_open_actions">Otwórz na GitHubie</string>
     <string name="canary_none">Nie opublikowano jeszcze żadnej kompilacji Canary.</string>
-    <string name="canary_what_title">Czym jest Canary</string>
+    <string name="canary_what_title">Czym jest Canary?</string>
     <string name="canary_what_body">Bieżący stan gałęzi master, zbudowany i sprawdzony wyłącznie przez CI, nic więcej. Poprawki trafiają tutaj dni lub tygodnie przed tym, jak trafią do wydania.</string>
     <!-- %1$d is how many canaries CI keeps -->
     <string name="canary_keep_body">Najnowsze %1$d są zachowywane, a każda strona kompilacji umożliwia przenoszenie się między nimi lub powrót do ostatniej wersji. Nic tu nie jest drzwiami w jedną stronę.</string>
@@ -421,7 +421,7 @@
     <string name="report_step_logs">Dołącz dzienniki</string>
     <string name="report_step_logs_body">Raport bez dzienników to rozmowa, która zaczyna się od początku. Spowoduje to zapisanie obu dzienników do pliku zip, który możesz dołączyć.</string>
     <string name="report_step_crashed">Jeśli Zygisk uległ awarii</string>
-    <string name="report_step_crashed_body">Usługa nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
+    <string name="report_step_crashed_body">Daemon nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
     <string name="report_open_tracker">Otwórz system zgłaszania problemów</string>
     <string name="report_save_with_root">Zapisz folder dziennika (wymaga roota)</string>
     <string name="report_saved_to">Zapisano w %1$s</string>
