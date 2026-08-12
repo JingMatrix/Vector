@@ -44,20 +44,20 @@
         <item quantity="other">%1$d linii więcej</item>
     </plurals>
     <!-- The four distinct nothing-to-show states -->
-    <string name="logs_state_daemon_title">Usługa jest nieosiągalna</string>
+    <string name="logs_state_daemon_title">Daemon jest nieosiągalny</string>
     <string name="logs_state_daemon_body">Nic nie wiadomo o dzienniku, dopóki Vector nie jest uruchomiony. Z tego samego powodu pasek stanu na ekranie głównym nie jest zielony.</string>
     <string name="logs_state_nofile_title">Nie ma jeszcze pliku dziennika</string>
-    <string name="logs_state_nofile_body">Usługa działa, ale nie otworzyła tego dziennika. W przypadku dziennika szczegółowego zwykle oznacza to, że szczegółowe rejestrowanie jest wyłączone.</string>
+    <string name="logs_state_nofile_body">Daemon działa, ale nie otworzył tego dziennika. W przypadku dziennika szczegółowego zwykle oznacza to, że szczegółowe rejestrowanie jest wyłączone.</string>
     <string name="logs_state_empty_title">Ten dziennik jest pusty</string>
     <string name="logs_state_empty_body">Plik istnieje i nic do niego nie zapisano. Tak wygląda cichy system w dzienniku modułu.</string>
     <string name="logs_state_nomatches_title">Nic nie pasuje</string>
     <string name="logs_state_nomatches_body">Plik zawiera dane, ale obecny filtr wyklucza całą jego zawartość.</string>
     <string name="logs_state_failed_title">Nie można odczytać dziennika</string>
-    <string name="logs_state_failed_body">Usługa przekazała plik, którego nie można odczytać: %1$s</string>
+    <string name="logs_state_failed_body">Daemon przekazał plik, którego nie można odczytać: %1$s</string>
     <string name="logs_loading">Indeksowanie…</string>
     <!-- Verbose logging -->
     <string name="logs_verbose_switch">Szczegółowe rejestrowanie</string>
-    <string name="logs_verbose_enforced">Działająca usługa i tak wymusza tę opcję.</string>
+    <string name="logs_verbose_enforced">Uruchomiony Daemon wymusza to niezależnie od tego.</string>
     <!-- Navigation within a long log -->
     <string name="logs_jump_oldest">Przejdź do najstarszej linii</string>
     <string name="logs_jump_newest">Przejdź do najnowszej linii</string>
@@ -65,10 +65,10 @@
     <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
     <!-- Starting a new log: the consequence, named -->
     <string name="logs_rotate_title">Rozpocząć nowy dziennik?</string>
-    <string name="logs_rotate_body">Nic nie jest usuwane. Usługa zamyka bieżącą część i rozpoczyna nową; zamknięta część pozostaje na dysku — dostępna po przesunięciu — dopóki nie wypadnie z dziesięciu najnowszych, a zapisany raport o błędzie nadal ją zawiera.</string>
+    <string name="logs_rotate_body">Nic nie jest usuwane. Daemon zamyka bieżącą część i rozpoczyna nową; zamknięta część pozostaje na dysku — dostępna po przesunięciu — dopóki nie wypadnie z dziesięciu najnowszych, a zapisany raport o błędzie nadal ją zawiera.</string>
     <string name="logs_rotate_confirm">Rozpocznij nowy dziennik</string>
     <string name="logs_rotate_done">Rozpoczęto nowy dziennik</string>
-    <string name="logs_rotate_unreachable">Nie udało się nawiązać połączenia z usługą w celu rozpoczęcia nowego dziennika</string>
+    <string name="logs_rotate_unreachable">Nie udało się nawiązać połączenia z Daemon w celu rozpoczęcia nowego dziennika</string>
     <string name="logs_cancel">Anuluj</string>
     <!-- Saving -->
     <string name="logs_saving">Zbieranie dzienników, zrzutów awarii i dmesg…</string>
