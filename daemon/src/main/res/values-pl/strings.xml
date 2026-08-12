@@ -10,7 +10,7 @@
     <string name="xposed_module_updated_notification_content_system">%s został zaktualizowany, ponieważ zakres zawiera systemowy framework, wymagany jest restart w celu zastosowania zmian</string>
     <string name="module_updated_channel_name">Aktualizacja modułu zakończona</string>
     <string name="status_channel_name">Stan Vector</string>
-    <string name="vector_running_notification_title">Vector załadowany</string>
+    <string name="vector_running_notification_title">Vector jest załadowany</string>
     <string name="vector_running_notification_content">Naciśnij powiadomienie, by włączyć menedżer</string>
     <string name="xposed_module_request_scope_title">Żądanie zakresu</string>
     <string name="xposed_module_request_scope_content">%1$s dla użytkownika %2$s żąda dodania %3$s do jego zakresu.</string>
