@@ -42,7 +42,7 @@
     <string name="store_no_match">Żaden moduł nie spełnia kryteriów wyszukiwania.</string>
     <string name="store_empty">Katalog nie zwrócił żadnych modułów.</string>
     <!-- Detail tabs -->
-    <string name="store_tab_readme">Readme</string>
+    <string name="store_tab_readme">Przeczytaj</string>
     <string name="store_tab_releases">Wydania</string>
     <string name="store_tab_information">Informacja</string>
     <!-- Detail -->
