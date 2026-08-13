@@ -75,7 +75,7 @@
     <string name="logs_trace_title">スタックトレース</string>
     <string name="logs_traces_inline">トレースをその場で開く</string>
     <string name="logs_traces_inline_summary">その行の下にスタックトレースが展開されます。これを無効にすると、代わりに別の画面で開くようになります。</string>
-    <string name="logs_save_summary">両方のログを、指定した zip ファイルに書き出します</string>
+    <string name="logs_save_summary">両方のログを指定した zip ファイルに書き出します</string>
     <string name="logs_rotate_summary">現在のログを閉じて、新しいログを開始します</string>
     <string name="logs_part">分割ログ %1$d / %2$d</string>
     <string name="logs_part_older">前の分割ログ</string>
