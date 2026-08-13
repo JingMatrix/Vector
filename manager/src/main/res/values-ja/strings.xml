@@ -1,35 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<!--
+  Strings for the Compose manager.
 
+  These are new keys, kept separate from the legacy :app string set while both modules
+  exist. When :app is retired, app/src/main/res/values*/strings.xml moves here and
+  crowdin.yml is repointed so the ~40 existing translations carry over rather than
+  being rewritten. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- Navigation -->
     <string name="nav_home">ホーム</string>
     <string name="nav_modules">モジュール</string>
-    <string name="nav_store">カタログ</string>
+    <string name="nav_store">リポジトリ</string>
     <string name="nav_logs">ログ</string>
-
+    <!-- Rearranging the panels, and the ball that can stand in for the bar -->
     <string name="panels_done">完了</string>
+    <!-- Example: "Hide Store". The name is one of the four panels above. -->
     <string name="panels_hide">%1$s を非表示</string>
     <string name="panels_show">%1$s を表示</string>
+    <!-- Spoken actions while rearranging: a drag cannot be made with touch exploration on -->
     <string name="panels_move_earlier">前へ移動</string>
     <string name="panels_move_later">後ろへ移動</string>
     <string name="panels_ball_open">ナビゲーションを開く</string>
     <string name="panels_ball_close">ナビゲーションを閉じる</string>
-
+    <!-- Framework status -->
     <string name="status_active">有効</string>
     <string name="status_degraded">確認が必要</string>
     <string name="status_inactive">未有効化</string>
-    <string name="status_mismatched">バージョン不一致</string>
+    <!-- The framework is running but speaks a different generation of the manager interface. -->
+    <string name="status_mismatched">バージョンが一致しません</string>
     <string name="status_checking">確認中…</string>
     <string name="status_open_details">システム状態を開く</string>
-
+    <!-- Degraded causes, in the priority order the daemon reports them -->
     <string name="issue_sepolicy_title">SELinux ポリシーが読み込まれていません</string>
     <string name="issue_sepolicy_summary">一部の機能が動作しません。たいていは root 実装が Vector のポリシー規則を適用しなかったことが原因です。</string>
     <string name="issue_system_server_title">システムフレームワークへの注入に失敗しました</string>
     <string name="issue_system_server_summary">モジュールがシステムサービスをフックできません。まれな症状で、たいていは別の root モジュールが干渉しています。</string>
     <string name="issue_dex2oat_title">dex2oat ラッパーが利用できません</string>
     <string name="issue_dex2oat_summary">一部のシステムプロパティが削除または変更されています。アプリの更新後にモジュールが効かなくなることがあります。</string>
-
+    <string name="crash_recorded_title">マネージャーが予期せず終了しました</string>
+    <string name="crash_recorded_summary">完全なスタックトレースは、ログの書き出しの crash_manager に含まれます。</string>
+    <string name="crash_recorded_clear">破棄</string>
+    <string name="crash_what">種類</string>
+    <string name="crash_message">メッセージ</string>
+    <string name="crash_where">場所</string>
+    <string name="crash_when">発生時刻</string>
+    <!-- Shown for "Where" when no frame in the trace belongs to Vector's own code. -->
+    <string name="crash_where_unknown">Vector 自身のコード内にはありません</string>
+    <!-- %1$s is a timestamp, %2$s a thread name, e.g. "2026-07-29 11:42:03 +0200 on main". -->
+    <string name="crash_when_value">%1$s (スレッド: %2$s)</string>
+    <string name="crash_open_trace">スタックトレースを確認</string>
+    <string name="crash_trace">クラッシュ</string>
+    <string name="crash_caused_by">原因</string>
+    <!-- The frames printStackTrace replaced with "... N more" because it had printed them already. -->
+    <plurals name="crash_frames_elided">
+        <item quantity="other">上と同じスタックがさらに %1$d 段</item>
+    </plurals>
+    <string name="crash_frame_copied">スタックの 1 段をコピーしました</string>
+    <string name="crash_unreadable">このクラッシュ情報を読み取ることができませんでした。コピーして、そのままレポートに添付してください。</string>
+    <!-- System status detail -->
     <string name="system_status">システム状態</string>
+    <string name="info_manager_version">マネージャー</string>
     <string name="info_api_version">Xposed API</string>
+    <string name="info_section_build">動作中のもの</string>
+    <string name="info_section_health">正しく動いているか</string>
+    <string name="info_section_device">この端末</string>
     <string name="info_framework_version">フレームワーク</string>
     <string name="info_manager_package">マネージャーのパッケージ</string>
     <string name="info_dex2oat">dex2oat ラッパー</string>
@@ -40,16 +75,23 @@
     <string name="info_abi">アーキテクチャ</string>
     <string name="info_supported">対応</string>
     <string name="info_unsupported">非対応</string>
+    <string name="info_dex2oat_crashed">クラッシュしました</string>
+    <string name="info_dex2oat_mount_failed">マウントに失敗しました</string>
+    <string name="info_dex2oat_selinux_permissive">SELinux が permissive です</string>
+    <string name="info_dex2oat_sepolicy_incorrect">SELinux ポリシーが正しくありません</string>
     <string name="info_loaded">読み込み済み</string>
     <string name="info_not_loaded">未読み込み</string>
     <string name="info_injected">注入済み</string>
     <string name="info_not_injected">未注入</string>
     <string name="status_notification">状態通知</string>
     <string name="status_notification_summary">Vector が動作していることを示す常駐通知。</string>
+    <string name="force_launcher_icons">アプリがランチャーアイコンを非表示にするのを防止</string>
+    <string name="force_launcher_icons_summary">Android 10 以降、自分のランチャーアイコンを隠したアプリには、代わりにアプリ情報の画面を開くアイコンが与えられます。オフにすると隠れたままにできます — ランチャー側は再起動するまで古い一覧を表示し続けることがあります。もともとランチャーアイコンを持たないアプリ（ほとんどのモジュールがそうです）には影響しません。</string>
     <string name="action_copy_all">すべてコピー</string>
     <string name="copied">クリップボードにコピーしました</string>
-
+    <!-- Home: the community feed -->
     <string name="home_quarter_title">最近の動き</string>
+    <!-- Example: "7 commits by 4 people" -->
     <plurals name="home_commit_count">
         <item quantity="other">%1$d 件のコミット</item>
     </plurals>
@@ -57,24 +99,32 @@
         <item quantity="other">%1$d 人による</item>
     </plurals>
     <string name="home_since">%1$s 以降</string>
+    <string name="home_filter_clear">すべて表示</string>
+    <string name="home_filter_remove">%1$s のみの表示をやめる</string>
+    <string name="home_scroll_top">先頭に戻る</string>
+    <string name="home_scroll_down">次の画面へ</string>
+    <string name="home_history_loading">さらに過去へ…</string>
+    <string name="home_history_more">以前のコミットを読み込む</string>
+    <string name="home_history_window_end">この期間はこれで全部です</string>
+    <string name="home_history_beginning">ここから始まりました（%1$s）</string>
     <string name="home_no_activity">この 6 か月間コミットはありません。</string>
     <string name="home_loading_activity">最近の動きを読み込み中…</string>
+    <string name="home_window_changed">新しい期間の保存済みアクティビティを表示中 — 引いて更新</string>
     <string name="home_offline">保存済みの記録を表示しています — GitHub に接続できませんでした。</string>
     <string name="home_bumps">依存関係の更新 %1$d 件</string>
     <string name="home_contribute">参加する</string>
-    <string name="home_test_canary">canary を試す</string>
+    <string name="home_test_canary">Canary を試す</string>
     <string name="home_open_issue">問題を報告</string>
     <string name="home_discussions">ディスカッション</string>
     <string name="home_review_prs">変更をレビュー</string>
-
+    <!-- Joins a commit's author with its co-authors, e.g. "Leaf-lsgtky &amp; Qing" -->
     <string name="home_with_coauthor">%1$s と %2$s</string>
     <string name="home_with_coauthors">%1$s ほか %2$d 名</string>
-
-    <string name="home_month_stats">%1$s · %2$s</string>
+    <string name="home_month_stats">%1$s・%2$s</string>
     <plurals name="home_people_count_plain">
         <item quantity="other">%1$d 人</item>
     </plurals>
-
+    <!-- The rail's "you are here" marker -->
     <plurals name="home_commits_ahead">
         <item quantity="other">お使いのビルドより %1$d 件新しい</item>
     </plurals>
@@ -82,7 +132,7 @@
     <plurals name="home_quiet_days">
         <item quantity="other">%1$d 日間の静けさ</item>
     </plurals>
-
+    <!-- Home appearance sheet. Settings live beside what they change, not in one heap. -->
     <string name="appearance_title">外観</string>
     <string name="appearance_theme">テーマ</string>
     <string name="appearance_theme_system">システムに合わせる</string>
@@ -93,8 +143,23 @@
     <string name="appearance_amoled_summary">OLED 画面での消費電力を抑えます。</string>
     <string name="egg_two_more">あと 2 回…</string>
     <string name="egg_one_more">あと 1 回…</string>
-
+    <!-- Modules -->
     <string name="modules_empty">モジュールがインストールされていません。</string>
+    <plurals name="modules_updates">
+        <item quantity="other">%1$d 個のモジュールを更新できます</item>
+    </plurals>
+    <plurals name="modules_updated">
+        <item quantity="other">%1$d 個のモジュールを更新しました</item>
+    </plurals>
+    <plurals name="modules_update_failed">
+        <item quantity="other">%1$d 個のモジュールを更新できませんでした</item>
+    </plurals>
+    <string name="modules_updating">%1$s を更新中 — %3$d 件中 %2$d 件目</string>
+    <string name="modules_updates_title">更新するモジュール</string>
+    <string name="modules_update_versions">%1$s → %2$s・%3$s</string>
+    <string name="modules_update_reinstall">%1$s を再インストール · %2$s</string>
+    <string name="modules_update_ignored">無視中</string>
+    <string name="modules_update_selected">%1$d 件を更新</string>
     <string name="modules_active_of">%2$d 個中 %1$d 個が有効</string>
     <string name="modules_no_match">その検索や絞り込みに一致するモジュールはありません。</string>
     <string name="modules_backup">モジュールをバックアップ</string>
@@ -116,33 +181,36 @@
     <string name="modules_filter_all">すべて</string>
     <string name="modules_filter_active">有効</string>
     <string name="modules_filter_inactive">無効</string>
+    <string name="modules_load_no_apk">有効ですが、読み込む APK が見つかりませんでした。</string>
+    <string name="modules_load_unusable">有効ですが、フレームワークが読み込めませんでした。動作していません。</string>
+    <string name="modules_load_unsupported_api">有効ですが、libxposed API 100 向けにビルドされており、このフレームワークはもう読み込みません。</string>
     <string name="modules_incompatible">libxposed API %1$d が必要ですが、このフレームワークは提供していません。</string>
     <string name="modules_incompatible_legacy">Xposed API %1$d が必要ですが、このフレームワークは提供していません。</string>
     <string name="modules_api_behind">libxposed API %1$d 向けにビルドされています。API %2$d でインターフェースが変わったため、完全には動作しない可能性があります。</string>
     <string name="modules_no_daemon">Vector が動作していないため、モジュール一覧を取得できません。理由はホームのシステム状態で確認できます。</string>
-
+    <!-- Built-in web viewer -->
     <string name="web_open_external">ブラウザーで開く</string>
-
+    <!-- The status header's living surface -->
     <string name="settings_ambience">ヘッダーの表現</string>
     <string name="ambience_snow">雪</string>
     <string name="ambience_maze">迷路</string>
     <string name="ambience_circuit">回路</string>
     <string name="ambience_matrix">コードの雨</string>
     <string name="ambience_none">静止</string>
-
+    <!-- Settings: where the panels live. Nothing on Android teaches a long press on a bar. -->
     <string name="settings_navigation">ナビゲーション</string>
     <string name="settings_floating_nav">フローティングナビゲーション</string>
-    <string name="settings_floating_nav_summary">バーの代わりに、どこへでもドラッグできる小さなボールを表示します。長押しするとパネルが扇状に開き、タップすると開いたままになります。</string>
-    <string name="settings_rearrange_panels">パネルを並べ替える</string>
-    <string name="settings_rearrange_panels_summary">並び順を変えたり、開かないものを隠したりできます。</string>
-
+    <string name="settings_floating_nav_summary">バーの代わりに、どこへでもドラッグできる小さなボールを表示します。長押しするとパネルが扇状に開き、タップすると開いたままの状態になります。</string>
+    <string name="settings_rearrange_panels">パネルの並べ替え</string>
+    <string name="settings_rearrange_panels_summary">並び順を変更したり、めったに開かないものを非表示にしたりできます。</string>
+    <!-- Settings: activity feed -->
     <string name="settings_activity">活動フィード</string>
     <plurals name="settings_window_months">
         <item quantity="other">直近 %1$d か月</item>
     </plurals>
     <string name="settings_open_externally">リンクをブラウザーで開く</string>
     <string name="settings_open_externally_summary">オフのとき、GitHub のページは Vector 内で開きます。</string>
-
+    <!-- Scope editor -->
     <string name="scope_use_recommended">モジュールの要求どおりにする</string>
     <string name="scope_select_visible">表示中のすべてを選択</string>
     <string name="scope_clear_visible">表示中のすべてを解除</string>
@@ -162,11 +230,14 @@
     <string name="scope_sort_relevance">選択済みを先に</string>
     <string name="scope_sort_name">名前順</string>
     <string name="scope_search_hint">アプリを検索</string>
+    <string name="scope_no_match">その検索や絞り込みに一致するアプリはありません。</string>
     <string name="scope_system_apps">システムアプリ</string>
     <string name="scope_games">ゲーム</string>
     <string name="scope_recommended">このモジュールが要求</string>
     <string name="scope_static">このモジュールは適用範囲を固定しており、ほかのアプリに向けることはできません。</string>
+    <!-- e.g. "3 to add, 1 to remove" -->
     <string name="scope_pending">追加 %1$d、削除 %2$d</string>
+    <string name="scope_apply_effect">各アプリは次回の起動時にこれを反映します。</string>
     <string name="scope_apply">適用</string>
     <string name="scope_discard">破棄</string>
     <string name="scope_applied">適用範囲を反映しました。</string>
@@ -176,9 +247,24 @@
     <string name="scope_empty_message">このモジュールは有効ですがアプリが 1 つも選ばれていないため、何もしません。無効にするか、アプリを選んでください。</string>
     <string name="scope_empty_disable">モジュールを無効にする</string>
     <string name="scope_empty_keep">有効のままにする</string>
-
+    <!-- Long-press actions on a package -->
+    <string name="action_not_in_store">ストアにありません</string>
+    <string name="action_not_in_store_summary">このモジュールの更新は確認できません</string>
+    <string name="action_update_to">%1$s に更新</string>
+    <string name="action_update_from">%1$s から · %2$s</string>
+    <string name="action_reinstall_same">同じバージョン · %1$s</string>
+    <string name="action_update_running">インストール中…</string>
+    <string name="action_update_no_apk">このリリースにインストールできる APK がありません</string>
+    <string name="action_update_choose">複数のビルドがあります — ストアで選択</string>
+    <string name="action_update_started">更新を開始しました</string>
+    <string name="action_open_companion">コンパニオンアプリを開く</string>
+    <string name="action_open_companion_summary">作者がこのモジュールの設定用に用意した画面</string>
+    <string name="action_open_store">ストアで開く</string>
     <string name="action_launch">開く</string>
     <string name="action_app_info">アプリ情報</string>
+    <string name="action_soft_reboot">ソフトリブート</string>
+    <string name="action_soft_reboot_summary">端末を再起動せずにフレームワークを再起動します</string>
+    <string name="action_soft_reboot_confirm">起動中のアプリはすべて終了し、画面が一瞬暗くなります。端末自体は起動したままです。</string>
     <string name="action_force_stop">強制停止</string>
     <string name="action_optimize">再最適化</string>
     <string name="action_uninstall">アンインストール</string>
@@ -186,15 +272,15 @@
     <string name="action_no_launcher">このアプリには開く画面がありません。</string>
     <string name="action_opened_info">アプリ情報を開いています…</string>
     <string name="action_force_stopped">%1$s を停止しました。</string>
+    <string name="action_force_stop_failed">%1$s を停止できませんでした。</string>
     <string name="action_optimizing">%1$s を再最適化しています。しばらくかかります。</string>
     <string name="action_optimized">%1$s を再最適化しました。インライン化で失われていたフックが効くはずです。</string>
     <string name="action_optimize_failed">%1$s を再最適化できませんでした。</string>
     <string name="action_uninstalled">%1$s をアンインストールしました。</string>
     <string name="action_uninstall_failed">%1$s をアンインストールできませんでした。</string>
-
+    <!-- Generic -->
     <string name="back">戻る</string>
     <string name="retry">再試行</string>
-
     <string name="appearance_color">色</string>
     <string name="appearance_custom_color">色を選ぶ</string>
     <string name="modules_expand">説明をすべて表示</string>
@@ -210,36 +296,63 @@
     </plurals>
     <string name="modules_batch_enable">選択中をすべて有効にする</string>
     <string name="modules_batch_disable">選択中をすべて無効にする</string>
+    <plurals name="modules_batch_enabled">
+        <item quantity="other">%1$d 個のモジュールを有効化</item>
+    </plurals>
+    <plurals name="modules_batch_disabled">
+        <item quantity="other">%1$d 個のモジュールを無効化</item>
+    </plurals>
+    <plurals name="modules_batch_uninstalled">
+        <item quantity="other">%1$d 個のモジュールをアンインストール</item>
+    </plurals>
+    <plurals name="modules_batch_already_on">
+        <item quantity="other">%1$d 個はすでに有効</item>
+    </plurals>
+    <plurals name="modules_batch_already_off">
+        <item quantity="other">%1$d 個はすでに無効</item>
+    </plurals>
+    <plurals name="modules_batch_all_already_on">
+        <item quantity="other">%1$d 個すべてすでに有効でした</item>
+    </plurals>
+    <plurals name="modules_batch_all_already_off">
+        <item quantity="other">%1$d 個すべてすでに無効でした</item>
+    </plurals>
     <string name="modules_batch_partial">うち %1$s 個だけ成功しました</string>
     <string name="modules_uninstall_title">これらのモジュールをアンインストールしますか？</string>
     <plurals name="modules_uninstall_body">
         <item quantity="other">%1$d 個のモジュールと、それらが設定した内容がすべて削除されます。元には戻せません。</item>
     </plurals>
+    <!-- Canary builds: choosing which nightly to test, and why it is worth an evening -->
     <string name="canary_open_actions">GitHub で開く</string>
-    <string name="canary_none">canary ビルドはまだ公開されていません。</string>
-    <string name="canary_what_title">canary とは</string>
-    <string name="canary_what_body">master の現在の状態で、CI がビルドして確認しただけのものです。修正はリリースに届く数日から数週間前に、まずここへ来ます。</string>
-    <string name="canary_keep_body">最新の %1$d 件が保持され、どのビルドのページからでもそれらの間を行き来したり、最後のリリースへ戻ったりできます。ここに片道の選択はありません。</string>
+    <string name="canary_none">Canary ビルドはまだ公開されていません。</string>
+    <string name="canary_what_title">Canary とは</string>
+    <string name="canary_what_body">CI によるビルドとチェックのみが行われている、現在の master ブランチの状態です。修正は、リリースに反映されるよりも数日あるいは数週間早く、ここにマージされます。</string>
+    <!-- %1$d is how many canaries CI keeps -->
+    <string name="canary_keep_body">最新の %1$d 件が保持され、どのビルドページからでもそれらの間を移動したり、直前のリリースに戻ったりすることができます。ここには後戻りできない操作は一切ありません。</string>
     <plurals name="canary_since_commits">
-        <item quantity="other">お使いのビルド以降に %1$d 件のコミットが入りました。</item>
+        <item quantity="other">現在使用しているビルド以降、%1$d 件のコミットがマージされました。</item>
     </plurals>
+    <!-- Heads the list of issues closed since the reader's build -->
     <plurals name="canary_fixed_since">
-        <item quantity="other">お使いのビルド以降に修正 — %1$d 件</item>
+        <item quantity="other">現在使用しているビルド以降に修正された問題 — %1$d 件</item>
     </plurals>
-    <string name="canary_current">最新の canary を使用中です。CI が次を公開するまで試すものはありません。</string>
-    <string name="canary_ahead">お使いのビルドは公開済みのどの canary よりも新しく、そのいずれからもビルドされていません。</string>
-    <string name="canary_diverged">お使いのビルドは最新 canary と同じ番号ですが、そこからビルドされたものではありません。何を試しているのか確かめるには、その canary を導入してください。</string>
-    <string name="canary_after_release">ここにあるどの canary よりも新しいリリースを使用中です。次の canary はこの上に構築されます。</string>
-    <string name="canary_build">canary %1$d</string>
-    <string name="canary_report_title">何か見つかりましたか？</string>
-    <string name="canary_report_body">canary の不具合こそ、それを使う理由そのものです。報告があって初めて修正になります。バグを追っているなら Debug の ZIP を選んでください。記録される情報がはるかに多く、報告に必要なのはそれです。</string>
+    <string name="canary_current">現在、最新の Canary 版を実行しています。CI が再度リリースを行うまでは、テストするものはありません。</string>
+    <string name="canary_ahead">お使いのビルドは公開されているどの Canary ビルドよりも新しいため、それらのいずれかからビルドされたものではありません。</string>
+    <!-- Same version number as the newest canary, but built from a different commit -->
+    <string name="canary_diverged">お使いのビルドには最新の Canary 版の番号が付けられていますが、実際にはその Canary 版からビルドされたものではありません。何をテストしているのかを確実に把握するため、その Canary 版をインストールしてください。</string>
+    <!-- On a release published after the last canary — normal for a day or two after a release -->
+    <string name="canary_after_release">現在使用しているリリースは、ここにあるどの Canary 版よりも新しいものです。次回の Canary 版は、このリリースをベースにビルドされます。</string>
+    <!-- The build number, shown in monospace: "canary 3049" -->
+    <string name="canary_build">Canary %1$d</string>
+    <string name="canary_report_title">何か見つけましたか？</string>
+    <string name="canary_report_body">Canary 版を運用する最大の意義は、あえて不具合を起こさせることにあります。報告があって初めて、それが修正へとつながるのです。バグを追跡する際はデバッグの ZIP を使用してください。詳細なログが記録されるため、報告に必要な情報が得られます。</string>
     <string name="home_contributors_by_commits">コミット数順</string>
     <string name="home_contributors_by_recent">最近の順</string>
     <string name="scope_recommended_only">モジュールが要求したもの</string>
     <string name="home_resting">お休み中 — 保存済みの記録です。引っ張ると更新します。</string>
     <string name="report_title">報告する前に</string>
-    <string name="report_step_canary">まず最新の canary を試す</string>
-    <string name="report_step_canary_body">すでに直っているかもしれませんし、メンテナーが手助けするにはデバッグビルドが必要です。master のものを使ってください。プルリクエストのビルドは不安定です。</string>
+    <string name="report_step_canary">まず最新の Canary を試す</string>
+    <string name="report_step_canary_body">すでに修正されている可能性があり、メンテナが問題を調査や支援をするにはデバッグビルドが必要です。master ブランチを使い続けてください (プルリクエストのビルドは不安定なため)。</string>
     <string name="report_step_zygisk">Magisk 以外をお使いですか？ Zygisk を更新してください</string>
     <string name="report_step_zygisk_body">最新の Zygisk 実装を、デバッグビルドがあればそちらで書き込んでください。</string>
     <string name="report_step_logs">ログを添付する</string>
@@ -255,13 +368,11 @@
     <string name="language_title">言語</string>
     <string name="language_system">システムに合わせる</string>
     <string name="language_system_summary">端末で設定されている言語に従います</string>
-
     <string name="language_translated_by">翻訳：%1$s</string>
     <string name="language_help_short">翻訳</string>
     <string name="language_help">Vector の翻訳に参加する</string>
-
     <string name="update_title">フレームワークの更新</string>
-    <string name="update_channel_canary">canary ビルド</string>
+    <string name="update_channel_canary">Canary ビルド</string>
     <string name="update_channel_release">正式版</string>
     <string name="update_install">インストール</string>
     <string name="update_downloading">%2$s 中 %1$s をダウンロード中</string>
@@ -273,6 +384,7 @@
     <string name="update_none">利用できる更新はありません。</string>
     <string name="update_no_notes">このリリースには説明がありません。</string>
     <string name="update_no_root">root 実装が見つからないため、書き込めません。</string>
+    <string name="update_root_unknown">このフレームワークのビルドは、どの root 実装がインストールされているかを伝えません。</string>
     <string name="update_root_multiple">root 実装が 2 つ見つかりました。どちらがモジュールを管理しているか、Vector は推測しません。</string>
     <string name="update_failed_start">インストーラーを起動できませんでした。</string>
     <string name="update_failed_download">更新をダウンロードできませんでした。</string>
@@ -289,117 +401,13 @@
     <string name="update_variant_debug_why">詳細ログ付き。不具合報告用です</string>
     <string name="update_versions">すべてのバージョン</string>
     <string name="update_installed">使用中</string>
+    <string name="update_same_number">同じ番号、別のビルド</string>
     <string name="update_older">より古い</string>
     <string name="update_rollback">戻す</string>
     <string name="update_reinstall">再インストール</string>
     <string name="update_rollback_warning">使用中より古いビルドです。データベースが古い場合、戻すと有効なモジュールと適用範囲がリセットされます。先にバックアップしてください。</string>
     <string name="settings_window_all">最初から</string>
     <string name="update_diverged">バージョン番号は同じですが別のビルドです。動作中のものはこのリリースから作られていません</string>
-    <string name="home_filter_clear">すべて表示</string>
-    <string name="home_filter_remove">%1$s のみの表示をやめる</string>
-    <string name="home_history_loading">さらに過去へ…</string>
-    <string name="home_history_more">以前のコミットを読み込む</string>
-    <string name="home_history_beginning">ここから始まりました（%1$s）</string>
-    <string name="home_scroll_top">先頭に戻る</string>
-    <string name="home_scroll_down">次の画面へ</string>
-    <string name="action_not_in_store">ストアにありません</string>
-    <string name="action_not_in_store_summary">このモジュールの更新は確認できません</string>
-    <string name="action_update_to">%1$s に更新</string>
-    <string name="action_update_from">%1$s から · %2$s</string>
-    <string name="action_reinstall_same">同じバージョン · %1$s</string>
-    <string name="action_update_running">インストール中…</string>
-    <string name="action_update_no_apk">このリリースにインストールできる APK がありません</string>
-    <string name="action_update_choose">複数のビルドがあります — ストアで選択</string>
-    <string name="action_update_started">更新を開始しました</string>
-    <string name="action_open_store">ストアで開く</string>
-    <string name="modules_updating">%1$s を更新中 — %3$d 件中 %2$d 件目</string>
-    <string name="modules_updates_title">更新するモジュール</string>
-    <string name="modules_update_versions">%1$s → %2$s · %3$s</string>
-    <string name="modules_update_reinstall">%1$s を再インストール · %2$s</string>
-    <string name="modules_update_ignored">無視中</string>
-    <string name="modules_update_selected">%1$d 件を更新</string>
-    <plurals name="modules_updates">
-        <item quantity="one">%1$d 個のモジュールを更新できます</item>
-        <item quantity="other">%1$d 個のモジュールを更新できます</item>
-    </plurals>
-    <plurals name="modules_updated">
-        <item quantity="one">%1$d 個のモジュールを更新しました</item>
-        <item quantity="other">%1$d 個のモジュールを更新しました</item>
-    </plurals>
-    <plurals name="modules_update_failed">
-        <item quantity="one">%1$d 個のモジュールを更新できませんでした</item>
-        <item quantity="other">%1$d 個のモジュールを更新できませんでした</item>
-    </plurals>
-    <string name="home_window_changed">新しい期間の保存済みアクティビティを表示中 — 引いて更新</string>
-    <string name="home_history_window_end">この期間はこれで全部です</string>
-    <string name="update_same_number">同じ番号、別のビルド</string>
-    <string name="modules_load_no_apk">有効ですが、読み込む APK が見つかりませんでした。</string>
-    <string name="modules_load_unusable">有効ですが、フレームワークが読み込めませんでした。動作していません。</string>
-    <plurals name="modules_batch_enabled">
-        <item quantity="one">%1$d 個のモジュールを有効化</item>
-        <item quantity="other">%1$d 個のモジュールを有効化</item>
-    </plurals>
-    <plurals name="modules_batch_disabled">
-        <item quantity="one">%1$d 個のモジュールを無効化</item>
-        <item quantity="other">%1$d 個のモジュールを無効化</item>
-    </plurals>
-    <plurals name="modules_batch_uninstalled">
-        <item quantity="one">%1$d 個のモジュールをアンインストール</item>
-        <item quantity="other">%1$d 個のモジュールをアンインストール</item>
-    </plurals>
-    <plurals name="modules_batch_already_on">
-        <item quantity="one">%1$d 個はすでに有効</item>
-        <item quantity="other">%1$d 個はすでに有効</item>
-    </plurals>
-    <plurals name="modules_batch_already_off">
-        <item quantity="one">%1$d 個はすでに無効</item>
-        <item quantity="other">%1$d 個はすでに無効</item>
-    </plurals>
-    <plurals name="modules_batch_all_already_on">
-        <item quantity="one">すでに有効でした</item>
-        <item quantity="other">%1$d 個すべてすでに有効でした</item>
-    </plurals>
-    <plurals name="modules_batch_all_already_off">
-        <item quantity="one">すでに無効でした</item>
-        <item quantity="other">%1$d 個すべてすでに無効でした</item>
-    </plurals>
-    <string name="info_manager_version">マネージャー</string>
-    <string name="action_open_companion">コンパニオンアプリを開く</string>
-    <string name="action_open_companion_summary">作者がこのモジュールの設定用に用意した画面</string>
-    <string name="action_soft_reboot">ソフトリブート</string>
-    <string name="action_soft_reboot_summary">端末を再起動せずにフレームワークを再起動します</string>
-    <string name="action_soft_reboot_confirm">起動中のアプリはすべて終了し、画面が一瞬暗くなります。端末自体は起動したままです。</string>
-    <string name="info_section_build">動作中のもの</string>
-    <string name="info_section_health">正しく動いているか</string>
-    <string name="info_section_device">この端末</string>
-    <string name="crash_recorded_title">マネージャーが予期せず終了しました</string>
-    <string name="crash_recorded_summary">完全なスタックトレースは、ログの書き出しの crash_manager に含まれます。</string>
-    <string name="crash_recorded_clear">破棄</string>
-    <string name="crash_what">種類</string>
-    <string name="crash_message">メッセージ</string>
-    <string name="crash_where">場所</string>
-    <string name="crash_when">発生時刻</string>
-    <string name="crash_where_unknown">Vector 自身のコードには見当たりません</string>
-    <string name="crash_when_value">%1$s（スレッド %2$s）</string>
-    <string name="crash_open_trace">スタックトレースを見る</string>
-    <string name="crash_trace">クラッシュ</string>
-    <string name="crash_caused_by">原因</string>
-    <plurals name="crash_frames_elided">
-        <item quantity="other">上と同じスタックがさらに %1$d 段</item>
-    </plurals>
-    <string name="crash_frame_copied">スタックの 1 段をコピーしました</string>
-    <string name="crash_unreadable">このクラッシュは読み取れませんでした。そのままコピーして報告に添えてください。</string>
-    <string name="force_launcher_icons">アプリがランチャーアイコンを隠すのを防ぐ</string>
-    <string name="force_launcher_icons_summary">Android 10 以降、自分のランチャーアイコンを隠したアプリには、代わりにアプリ情報の画面を開くアイコンが与えられます。オフにすると隠れたままにできます — ランチャー側は再起動するまで古い一覧を表示し続けることがあります。もともとランチャーアイコンを持たないアプリ（ほとんどのモジュールがそうです）には影響しません。</string>
-    <string name="action_force_stop_failed">%1$s を停止できませんでした。</string>
-    <string name="modules_load_unsupported_api">有効ですが、libxposed API 100 向けにビルドされており、このフレームワークはもう読み込みません。</string>
-    <string name="update_root_unknown">このフレームワークのビルドは、どの root 実装がインストールされているかを伝えません。</string>
-    <string name="scope_no_match">その検索や絞り込みに一致するアプリはありません。</string>
-    <string name="scope_apply_effect">各アプリは次回の起動時にこれを反映します。</string>
-    <string name="info_dex2oat_crashed">クラッシュしました</string>
-    <string name="info_dex2oat_mount_failed">マウントに失敗しました</string>
-    <string name="info_dex2oat_selinux_permissive">SELinux が permissive です</string>
-    <string name="info_dex2oat_sepolicy_incorrect">SELinux ポリシーが正しくありません</string>
     <string name="scope_framework_restart_title">フレームワークはまだ反映していません</string>
     <string name="scope_framework_restart_body">システムフレームワークは Android の起動時に一度だけ読み込まれます。この変更が届くのは、フレームワークが再起動したときだけです。実行中のアプリはすべて終了しますが、端末自体は起動したままです。</string>
     <string name="scope_framework_restart_later">後で</string>
@@ -407,30 +415,30 @@
     <string name="settings_doh">名前を HTTPS で解決する</string>
     <string name="settings_doh_summary">名前をネットワークのリゾルバではなく Cloudflare 経由で解決します。DNS を遮断または改変するネットワーク向けです。</string>
     <string name="settings_doh_untested">まだ名前を解決していません。</string>
-    <string name="settings_doh_bypassed">未使用: プロキシが設定されているため、名前解決はプロキシが行います。</string>
-    <string name="settings_doh_working">動作中 — %1$s を Cloudflare 経由で解決しました。</string>
-    <string name="settings_doh_fell_back">Cloudflare に接続できませんでした (%1$s)。このセッションの残りはネットワークのリゾルバを使用します。</string>
+    <string name="settings_doh_bypassed">使用されていません。プロキシが設定されているため、プロキシによって名前解決が行われています。</string>
+    <string name="settings_doh_working">動作中 — %1$s は Cloudflare 経由で解決されました。</string>
+    <string name="settings_doh_fell_back">Cloudflare に接続できませんでした (%1$s)。そのため、このセッションの残りの期間はネットワークのリゾルバが使用されます。</string>
     <string name="settings_doh_retry">再試行</string>
-
-    <string name="launcher_title">Vector の開き方</string>
-    <string name="launcher_body">Vector はアプリとしてインストールされていないため、ランチャーには表示するものがありません。戻ってくる手段は次のとおりです。</string>
+    <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
+    <string name="launcher_title">Vector を開く方法</string>
+    <string name="launcher_body">Vector はアプリとしてインストールされていないため、ランチャーには何も表示されません。以下は、Vector に戻ってくるための手段です。</string>
     <string name="launcher_shortcut">ホーム画面のショートカット</string>
     <string name="launcher_shortcut_create">作成</string>
-    <string name="launcher_shortcut_unsupported">このランチャーはショートカットの固定を受け付けません。</string>
-    <string name="launcher_shortcut_refused">ランチャーがショートカットを拒否しました。</string>
-    <string name="launcher_turn_on">オンにする</string>
+    <string name="launcher_shortcut_unsupported">お使いのランチャーは、固定されたショートカットに対応していません。</string>
+    <string name="launcher_shortcut_refused">お使いのランチャーがショートカットの作成を拒否しました。</string>
+    <string name="launcher_turn_on">オン</string>
     <string name="launcher_install">アプリとしてインストール</string>
     <string name="launcher_install_action">インストール</string>
     <string name="launcher_install_reinstall">再インストール</string>
-    <string name="launcher_install_done">Vector をインストールしました。ランチャーから開けます。</string>
+    <string name="launcher_install_done">Vector がインストールされました。ランチャーから起動してください。</string>
     <string name="launcher_install_failed">Vector をインストールできませんでした。</string>
-    <string name="launcher_install_conflict">別の鍵で署名された Vector が既にインストールされています。こちらを入れるには先に削除してください。</string>
-    <string name="launcher_install_remove">削除する</string>
-    <string name="launcher_install_diverged">インストール済みのものは別のビルドの Vector です。ここで動作しているものではありません。再インストールすると置き換わります。</string>
-    <string name="launcher_route_available">利用できます</string>
-    <string name="launcher_note">%1$s をダイヤルするか、%2$s のアクションボタンからも開けます。</string>
+    <string name="launcher_install_conflict">別のキーで署名された Vector のコピーが既にインストールされています。このバージョンをインストールするには、まずそれを削除する必要があります。</string>
+    <string name="launcher_install_remove">削除</string>
+    <string name="launcher_install_diverged">インストールされている Vector は、ここで実行されているものとは別のビルドです。再インストールすると置き換わります。</string>
+    <string name="launcher_route_available">利用可能</string>
+    <string name="launcher_note">%1$s をダイヤルするか、%2$s のアクションボタンから Vector を開くこともできます。</string>
     <string name="launcher_root_generic">root マネージャー</string>
-    <string name="launcher_prompt_title">Vector にはまだアイコンがありません</string>
-    <string name="launcher_prompt_body">Vector はインストールされるのではなく別のプロセスの中で動くため、ランチャーには何も現れず、戻ってくる分かりやすい手段がありません。ホーム画面にショートカットを作るか、通常のアプリとしてインストールしてください。</string>
+    <string name="launcher_prompt_title">Vector のアイコンはまだありません</string>
+    <string name="launcher_prompt_body">Vector はインストールされるのではなく、別のプロセス内で実行されるため、ランチャーには何も表示されず、Vector に戻ってくる手段もありません。ホーム画面にショートカットを作成するか、通常のアプリとしてインストールしてください。</string>
     <string name="launcher_prompt_never">今後表示しない</string>
 </resources>
