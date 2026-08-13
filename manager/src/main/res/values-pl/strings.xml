@@ -30,7 +30,7 @@
     <!-- The framework is running but speaks a different generation of the manager interface. -->
     <string name="status_mismatched">wykrył niezgodne wersje!</string>
     <string name="status_checking">Sprawdzanie…</string>
-    <string name="status_open_details">Otwórz status systemu</string>
+    <string name="status_open_details">Otwórz stan systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
     <string name="issue_sepolicy_title">Zasady SELinux nie zostały załadowane</string>
     <string name="issue_sepolicy_summary">Niektóre funkcje nie będą działać. Zwykle oznacza to, że implementacja roota nie zastosowała reguł Vectora</string>
@@ -201,7 +201,7 @@
     <string name="modules_section_active">Uruchomione</string>
     <string name="modules_section_inactive">Nieuruchomione</string>
     <string name="modules_scope_more">+%1$d</string>
-    <string name="modules_sort_enabled">Running first</string>
+    <string name="modules_sort_enabled">Najpierw uruchomione</string>
     <string name="modules_sort_name">Według nazwy</string>
     <string name="modules_sort_recent">Ostatnio zaktualizowane</string>
     <string name="modules_sort_scope">Najszerszy zakres</string>
