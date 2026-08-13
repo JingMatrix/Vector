@@ -23,7 +23,7 @@
     <plurals name="store_update_count">
         <item quantity="other">%1$d 件のアップデート</item>
     </plurals>
-    <string name="store_all_current">インストール済みのモジュールはすべて最新の状態です</string>
+    <string name="store_all_current">モジュールはすべて最新の状態です</string>
     <!-- Rows -->
     <string name="store_badge_update">バージョン %1$s に更新</string>
     <string name="store_badge_reinstall">%1$s を再インストール</string>
