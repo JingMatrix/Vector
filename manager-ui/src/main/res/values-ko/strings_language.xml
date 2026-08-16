@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">언어</string>
+    <string name="language_system">시스템 기본값</string>
+    <string name="language_system_summary">휴대전화에 설정된 언어를 따릅니다</string>
+    <string name="language_help">번역 돕기</string>
+    <string name="language_help_short">번역하기</string>
+</resources>
