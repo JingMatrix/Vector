@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">Ana sayfa</string>
+    <string name="nav_modules">Modüller</string>
+    <string name="nav_logs">Günlükler</string>
+    <string name="panels_ball_close">Gezinmeyi kapat</string>
+    <string name="panels_ball_open">Gezinmeyi aç</string>
+    <string name="panels_done">Bitti</string>
+    <string name="panels_hide">%1$s öğesini gizle</string>
+    <string name="panels_move_earlier">Öne taşı</string>
+    <string name="panels_move_later">Arkaya taşı</string>
+    <string name="panels_show">%1$s öğesini göster</string>
+    <string name="settings_rearrange_panels">Panelleri yeniden düzenle</string>
+    <string name="nav_manage">Yönet</string>
+</resources>
