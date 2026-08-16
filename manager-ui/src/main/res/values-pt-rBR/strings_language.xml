@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">Idioma</string>
+    <string name="language_system">Padrão do sistema</string>
+    <string name="language_system_summary">Seguir o idioma configurado no telefone</string>
+    <string name="language_help">Ajudar a traduzir</string>
+    <string name="language_help_short">Traduzir</string>
+</resources>
