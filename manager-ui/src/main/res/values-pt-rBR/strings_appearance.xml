@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Tema</string>
+    <string name="appearance_theme_system">Seguir o sistema</string>
+    <string name="appearance_theme_light">Claro</string>
+    <string name="appearance_theme_dark">Escuro</string>
+    <string name="appearance_color">Cor</string>
+    <string name="appearance_dynamic_color">Cores do papel de parede</string>
+    <string name="appearance_custom_color">Escolher uma cor</string>
+    <string name="appearance_amoled">Preto puro no tema escuro</string>
+    <string name="appearance_amoled_summary">Economiza bateria em telas OLED.</string>
+    <string name="settings_ambience">Superfície do cabeçalho</string>
+    <string name="ambience_snow">Neve</string>
+    <string name="ambience_maze">Labirinto</string>
+    <string name="ambience_circuit">Circuito</string>
+    <string name="ambience_matrix">Chuva de código</string>
+    <string name="ambience_none">Parada</string>
+</resources>
