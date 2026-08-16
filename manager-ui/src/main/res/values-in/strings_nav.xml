@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">Beranda</string>
+    <string name="nav_modules">Modul</string>
+    <string name="nav_logs">Log</string>
+    <string name="panels_ball_close">Tutup navigasi</string>
+    <string name="panels_ball_open">Buka navigasi</string>
+    <string name="panels_done">Selesai</string>
+    <string name="panels_hide">Sembunyikan %1$s</string>
+    <string name="panels_move_earlier">Pindahkan ke depan</string>
+    <string name="panels_move_later">Pindahkan ke belakang</string>
+    <string name="panels_show">Tampilkan %1$s</string>
+    <string name="settings_rearrange_panels">Atur ulang panel</string>
+    <string name="nav_manage">Kelola</string>
+</resources>
