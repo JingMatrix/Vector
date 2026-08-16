@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Tema</string>
+    <string name="appearance_theme_system">Sistemi izle</string>
+    <string name="appearance_theme_light">Açık</string>
+    <string name="appearance_theme_dark">Koyu</string>
+    <string name="appearance_color">Renk</string>
+    <string name="appearance_dynamic_color">Duvar kâğıdından renkler</string>
+    <string name="appearance_custom_color">Bir renk seç</string>
+    <string name="appearance_amoled">Koyu temada saf siyah</string>
+    <string name="appearance_amoled_summary">OLED ekranlarda güç tasarrufu sağlar.</string>
+    <string name="settings_ambience">Başlık yüzeyi</string>
+    <string name="ambience_snow">Kar</string>
+    <string name="ambience_maze">Labirent</string>
+    <string name="ambience_circuit">Devre</string>
+    <string name="ambience_matrix">Kod yağmuru</string>
+    <string name="ambience_none">Durgun</string>
+</resources>
