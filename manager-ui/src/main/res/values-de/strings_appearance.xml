@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Design</string>
+    <string name="appearance_theme_system">System folgen</string>
+    <string name="appearance_theme_light">Hell</string>
+    <string name="appearance_theme_dark">Dunkel</string>
+    <string name="appearance_color">Farbe</string>
+    <string name="appearance_dynamic_color">Farben vom Hintergrundbild</string>
+    <string name="appearance_custom_color">Farbe wählen</string>
+    <string name="appearance_amoled">Reines Schwarz im dunklen Design</string>
+    <string name="appearance_amoled_summary">Spart Strom auf OLED-Displays.</string>
+    <string name="settings_ambience">Kopfbereich-Fläche</string>
+    <string name="ambience_snow">Schnee</string>
+    <string name="ambience_maze">Labyrinth</string>
+    <string name="ambience_circuit">Leiterbahnen</string>
+    <string name="ambience_matrix">Coderegen</string>
+    <string name="ambience_none">Ruhig</string>
+</resources>
