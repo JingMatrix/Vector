@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Тема</string>
+    <string name="appearance_theme_system">Как в системе</string>
+    <string name="appearance_theme_light">Светлая</string>
+    <string name="appearance_theme_dark">Тёмная</string>
+    <string name="appearance_color">Цвет</string>
+    <string name="appearance_dynamic_color">Цвета из обоев</string>
+    <string name="appearance_custom_color">Выбрать цвет</string>
+    <string name="appearance_amoled">Чёрный фон в тёмной теме</string>
+    <string name="appearance_amoled_summary">Экономит заряд на OLED-экранах.</string>
+    <string name="settings_ambience">Фон заголовка</string>
+    <string name="ambience_snow">Снег</string>
+    <string name="ambience_maze">Лабиринт</string>
+    <string name="ambience_circuit">Схема</string>
+    <string name="ambience_matrix">Цифровой дождь</string>
+    <string name="ambience_none">Без анимации</string>
+</resources>
