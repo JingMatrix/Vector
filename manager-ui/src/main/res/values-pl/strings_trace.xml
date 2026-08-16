@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Spowodowana przez</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d ramka więcej, taka sama jak powyżej</item>
+        <item quantity="few">%1$d ramki więcej, takie same jak powyżej</item>
+        <item quantity="many">%1$d ramek więcej, takich samych jak powyżej</item>
+        <item quantity="other">%1$d ramek więcej, takich samych jak powyżej</item>
+    </plurals>
+    <string name="crash_frame_copied">Ramka skopiowana</string>
+    <string name="action_copy_all">Kopiuj wszystko</string>
+    <string name="copied">Skopiowano do schowka</string>
+</resources>
