@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">خانه</string>
+    <string name="nav_modules">ماژول‌ها</string>
+    <string name="nav_logs">گزارش‌ها</string>
+    <string name="panels_ball_close">بستن ناوبری</string>
+    <string name="panels_ball_open">باز کردن ناوبری</string>
+    <string name="panels_done">انجام شد</string>
+    <string name="panels_hide">پنهان کردن %1$s</string>
+    <string name="panels_move_earlier">انتقال به جلو</string>
+    <string name="panels_move_later">انتقال به عقب</string>
+    <string name="panels_show">نمایش %1$s</string>
+    <string name="settings_rearrange_panels">چیدمان دوبارهٔ بخش‌ها</string>
+    <string name="nav_manage">مدیریت</string>
+</resources>
