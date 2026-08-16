@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">主页</string>
+    <string name="nav_modules">模块</string>
+    <string name="nav_logs">日志</string>
+    <string name="panels_ball_close">关闭导航</string>
+    <string name="panels_ball_open">打开导航</string>
+    <string name="panels_done">完成</string>
+    <string name="panels_hide">隐藏%1$s</string>
+    <string name="panels_move_earlier">向前移动</string>
+    <string name="panels_move_later">向后移动</string>
+    <string name="panels_show">显示%1$s</string>
+    <string name="settings_rearrange_panels">重新排列面板</string>
+    <string name="nav_manage">管理</string>
+</resources>
