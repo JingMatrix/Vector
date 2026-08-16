@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">السمة</string>
+    <string name="appearance_theme_system">حسب النظام</string>
+    <string name="appearance_theme_light">فاتحة</string>
+    <string name="appearance_theme_dark">داكنة</string>
+    <string name="appearance_color">اللون</string>
+    <string name="appearance_dynamic_color">ألوان من الخلفية</string>
+    <string name="appearance_custom_color">اختر لونًا</string>
+    <string name="appearance_amoled">أسود خالص في السمة الداكنة</string>
+    <string name="appearance_amoled_summary">يوفّر الطاقة على شاشات OLED.</string>
+    <string name="settings_ambience">سطح الترويسة</string>
+    <string name="ambience_snow">ثلج</string>
+    <string name="ambience_maze">متاهة</string>
+    <string name="ambience_circuit">دارة</string>
+    <string name="ambience_matrix">مطر الشيفرة</string>
+    <string name="ambience_none">ساكن</string>
+</resources>
