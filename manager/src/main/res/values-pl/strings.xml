@@ -9,9 +9,8 @@
 -->
 <resources>
     <!-- Navigation -->
-    <string name="nav_home">Strona główna</string>
+    <string name="nav_home">Start</string>
     <string name="nav_modules">Moduły</string>
-    <string name="nav_store">Katalog</string>
     <string name="nav_logs">Dzienniki</string>
     <!-- Rearranging the panels, and the ball that can stand in for the bar -->
     <string name="panels_done">Gotowe</string>
@@ -24,11 +23,11 @@
     <string name="panels_ball_open">Otwórz nawigację</string>
     <string name="panels_ball_close">Zamknij nawigację</string>
     <!-- Framework status -->
-    <string name="status_active">jest aktywny</string>
-    <string name="status_degraded">wymaga uwagi!</string>
-    <string name="status_inactive">jest nieaktywny</string>
+    <string name="status_active">Aktywny</string>
+    <string name="status_degraded">Problemy</string>
+    <string name="status_inactive">Nieaktywowany</string>
     <!-- The framework is running but speaks a different generation of the manager interface. -->
-    <string name="status_mismatched">wykrył niezgodne wersje!</string>
+    <string name="status_mismatched">Niezgodność wersji</string>
     <string name="status_checking">Sprawdzanie…</string>
     <string name="status_open_details">Otwórz stan systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
@@ -59,7 +58,6 @@
         <item quantity="many">%1$d ramek więcej, takich samych jak powyżej</item>
         <item quantity="other">%1$d ramek więcej, takich samych jak powyżej</item>
     </plurals>
-    <string name="crash_frame_copied">Ramka skopiowana</string>
     <string name="crash_unreadable">Nie udało się odczytać tej awarii. Skopiuj ją i dołącz do raportu w obecnej formie.</string>
     <!-- System status detail -->
     <string name="system_status">Stan systemu</string>
@@ -90,8 +88,6 @@
     <string name="status_notification_summary">Stałe powiadomienie pokazujące, że Vector jest uruchomiony.</string>
     <string name="force_launcher_icons">Nie pozwalaj aplikacjom ukrywać ikon w launcherze</string>
     <string name="force_launcher_icons_summary">Od Androida 10 aplikacja, która ukrywa własną ikonę launchera, otrzymuje z powrotem jedną ikonę, która otwiera stronę informacji o aplikacji. Wyłącz to, aby pozostała ukryta — launcher może się nie zaktualizować do czasu restartu. Nie dotyczy to aplikacji, które nigdy nie miały ikony launchera, w tym większość modułów.</string>
-    <string name="action_copy_all">Kopiuj wszystko</string>
-    <string name="copied">Skopiowano do schowka</string>
     <!-- Home: the community feed -->
     <string name="home_quarter_title">Ostatnia aktywność</string>
     <!-- Example: "7 commits by 4 people" -->
@@ -112,7 +108,7 @@
     <string name="home_filter_remove">Przestań pokazywać tylko %1$s</string>
     <string name="home_scroll_top">Wróć na górę</string>
     <string name="home_scroll_down">Następny ekran</string>
-    <string name="home_history_loading">Sięgnij dalej wstecz…</string>
+    <string name="home_history_loading">Sięgamy dalej wstecz…</string>
     <string name="home_history_more">Załaduj wcześniejsze zatwierdzenia</string>
     <string name="home_history_window_end">To wszystko w tym zakresie</string>
     <string name="home_history_beginning">Tu się zaczęło, %1$s</string>
@@ -310,7 +306,7 @@
     <string name="action_uninstall_failed">Nie udało się odinstalować %1$s.</string>
     <!-- Generic -->
     <string name="back">Wstecz</string>
-    <string name="retry">Ponów</string>
+    <string name="retry">Spróbuj ponownie</string>
     <string name="appearance_color">Kolor</string>
     <string name="appearance_custom_color">Wybierz kolor</string>
     <string name="modules_expand">Pokaż pełny opis</string>
@@ -421,7 +417,7 @@
     <string name="report_step_logs">Dołącz dzienniki</string>
     <string name="report_step_logs_body">Raport bez dzienników to rozmowa, która zaczyna się od początku. Spowoduje to zapisanie obu dzienników do pliku zip, który możesz dołączyć.</string>
     <string name="report_step_crashed">Jeśli Zygisk uległ awarii</string>
-    <string name="report_step_crashed_body">Daemon nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
+    <string name="report_step_crashed_body">Usługa nie może już udostępnić pliku zip na żądanie, ale pliki nadal zostały zapisane. Root może je odczytać, nawet gdy nic innego nie może.</string>
     <string name="report_open_tracker">Otwórz system zgłaszania problemów</string>
     <string name="report_save_with_root">Zapisz folder dziennika (wymaga roota)</string>
     <string name="report_saved_to">Zapisano w %1$s</string>
@@ -452,16 +448,9 @@
     <string name="update_failed_start">Nie można uruchomić instalatora.</string>
     <string name="update_failed_download">Nie udało się pobrać aktualizacji.</string>
     <string name="update_failed_exit">Instalator zakończył się niepowodzeniem (kod wyjścia %1$d).</string>
-    <string name="store_mute_updates">Ignoruj aktualizacje tego modułu</string>
-    <string name="store_mute_updates_summary">Przestaje być liczone jako nieaktualne, tutaj i na liście modułów</string>
-    <string name="store_options">Opcje</string>
     <string name="scope_framework_shared">Jeden proces współdzielony przez każdego użytkownika, co ma wpływ na całe urządzenie</string>
     <string name="scope_self_hook">Ten moduł jest ładowany do własnej aplikacji, w ten sposób informuje o swojej aktywności</string>
     <string name="update_no_output">Instalator nie wygenerował żadnego wyniku.</string>
-    <string name="update_variant_release">Stabilna</string>
-    <string name="update_variant_debug">Debug</string>
-    <string name="update_variant_release_why">Wersja do codziennego użytku</string>
-    <string name="update_variant_debug_why">Szczegółowe rejestrowanie w celu zgłoszenia błędu</string>
     <string name="update_versions">Wszystkie wersje</string>
     <string name="update_installed">Zainstalowana</string>
     <string name="update_same_number">Ten sam numer, inna kompilacja</string>
