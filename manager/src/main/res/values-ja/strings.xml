@@ -11,7 +11,6 @@
     <!-- Navigation -->
     <string name="nav_home">ホーム</string>
     <string name="nav_modules">モジュール</string>
-    <string name="nav_store">リポジトリ</string>
     <string name="nav_logs">ログ</string>
     <!-- Rearranging the panels, and the ball that can stand in for the bar -->
     <string name="panels_done">完了</string>
@@ -56,7 +55,6 @@
     <plurals name="crash_frames_elided">
         <item quantity="other">上と同じスタックがさらに %1$d 段</item>
     </plurals>
-    <string name="crash_frame_copied">スタックの 1 段をコピーしました</string>
     <string name="crash_unreadable">このクラッシュ情報を読み取ることができませんでした。コピーして、そのままレポートに添付してください。</string>
     <!-- System status detail -->
     <string name="system_status">システムの状態</string>
@@ -87,13 +85,11 @@
     <string name="status_notification_summary">Vector が実行中であることを示す常時表示の通知です。</string>
     <string name="force_launcher_icons">アプリがランチャーアイコンを非表示にするのを防止</string>
     <string name="force_launcher_icons_summary">Android 10 以降、自身のランチャーアイコンを非表示にしたアプリには、代わりにアプリ情報画面を開くアイコンが表示されます。この設定をオフにすると、アイコンを非表示のままにできます。ただし、ランチャーを再起動するまで表示が更新されない可能性があります。ほとんどのモジュールを含め、もともとランチャーアイコンを持たないアプリには影響しません。</string>
-    <string name="action_copy_all">すべてコピー</string>
-    <string name="copied">クリップボードにコピーされました</string>
     <!-- Home: the community feed -->
     <string name="home_quarter_title">最近のアクティビティ</string>
     <!-- Example: "7 commits by 4 people" -->
     <plurals name="home_commit_count">
-        <item quantity="other">コミット数: %1$d /</item>
+        <item quantity="other">コミット数: %1$d</item>
     </plurals>
     <plurals name="home_people_count">
         <item quantity="other">人数: %1$d</item>
@@ -259,7 +255,7 @@
     <string name="action_update_started">更新を開始しました</string>
     <string name="action_open_companion">コンパニオンアプリを開く</string>
     <string name="action_open_companion_summary">製作者がこのモジュールの設定用に用意した画面</string>
-    <string name="action_open_store">モジュールで開く</string>
+    <string name="action_open_store">リポジトリで開く</string>
     <string name="action_launch">開く</string>
     <string name="action_app_info">アプリ情報</string>
     <string name="action_soft_reboot">ソフトリブート</string>
@@ -360,7 +356,7 @@
     <string name="report_step_crashed">Zygisk がクラッシュした場合</string>
     <string name="report_step_crashed_body">もうデーモンに対して ZIP ファイルの作成を要求することはできませんが、ファイル自体は書き出されています。他のどのユーザーもアクセスできない状態であっても、root ユーザーであればそれらのファイルを読み取ることができます。</string>
     <string name="report_open_tracker">課題トラッカーを開く</string>
-    <string name="report_save_with_root">ログフォルダを保存 (root 権限が必要です）</string>
+    <string name="report_save_with_root">ログフォルダを保存 (root 権限が必要です)</string>
     <string name="report_saved_to">%1$s に保存しました</string>
     <string name="report_see_guide">詳しい手引きは課題に</string>
     <string name="report_root_refused">root 権限の付与が拒否されました。root 権限マネージャーで Vector を許可してから、もう一度試してください%1$s</string>
@@ -389,16 +385,9 @@
     <string name="update_failed_start">インストーラーを起動できませんでした。</string>
     <string name="update_failed_download">更新をダウンロードできませんでした。</string>
     <string name="update_failed_exit">インストーラーが失敗しました (終了コード: %1$d)。</string>
-    <string name="store_mute_updates">このモジュールの更新を無視</string>
-    <string name="store_mute_updates_summary">ここやモジュール一覧では、古いものとしてカウントされなくなります</string>
-    <string name="store_options">オプション</string>
     <string name="scope_framework_shared">すべてのユーザーで共有されるプロセスであるため、デバイス全体に影響します。</string>
     <string name="scope_self_hook">このモジュールは独自のアプリに読み込まれ、それによりアクティブであることを報告します</string>
     <string name="update_no_output">インストーラーは何も出力しませんでした。</string>
-    <string name="update_variant_release">正式版</string>
-    <string name="update_variant_debug">デバッグ版</string>
-    <string name="update_variant_release_why">普段使い向けのビルド</string>
-    <string name="update_variant_debug_why">詳細ログ付き。不具合報告用です</string>
     <string name="update_versions">すべてのバージョン</string>
     <string name="update_installed">使用中</string>
     <string name="update_same_number">同じ番号、別のビルド</string>
