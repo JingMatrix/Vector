@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_modules">الوحدات</string>
+    <string name="nav_logs">السجلات</string>
+    <string name="panels_ball_close">إغلاق التنقّل</string>
+    <string name="panels_ball_open">فتح التنقّل</string>
+    <string name="panels_done">تمّ</string>
+    <string name="panels_hide">إخفاء %1$s</string>
+    <string name="panels_move_earlier">نقل إلى الأمام</string>
+    <string name="panels_move_later">نقل إلى الخلف</string>
+    <string name="panels_show">إظهار %1$s</string>
+    <string name="settings_rearrange_panels">إعادة ترتيب الأقسام</string>
+    <string name="nav_manage">الإدارة</string>
+</resources>
