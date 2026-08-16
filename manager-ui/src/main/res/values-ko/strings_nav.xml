@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">홈</string>
+    <string name="nav_modules">모듈</string>
+    <string name="nav_logs">로그</string>
+    <string name="panels_ball_close">탐색 닫기</string>
+    <string name="panels_ball_open">탐색 열기</string>
+    <string name="panels_done">완료</string>
+    <string name="panels_hide">%1$s 숨기기</string>
+    <string name="panels_move_earlier">앞으로 이동</string>
+    <string name="panels_move_later">뒤로 이동</string>
+    <string name="panels_show">%1$s 표시</string>
+    <string name="settings_rearrange_panels">패널 순서 바꾸기</string>
+    <string name="nav_manage">관리</string>
+</resources>
