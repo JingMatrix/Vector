@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Nguyên nhân</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">thêm %1$d khung nữa, giống như trên</item>
+    </plurals>
+    <string name="crash_frame_copied">Đã sao chép khung</string>
+    <string name="action_copy_all">Sao chép tất cả</string>
+    <string name="copied">Đã sao chép vào bộ nhớ tạm</string>
+</resources>
