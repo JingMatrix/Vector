@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">Trang chính</string>
+    <string name="nav_modules">Mô-đun</string>
+    <string name="nav_logs">Nhật ký</string>
+    <string name="panels_ball_close">Đóng điều hướng</string>
+    <string name="panels_ball_open">Mở điều hướng</string>
+    <string name="panels_done">Xong</string>
+    <string name="panels_hide">Ẩn %1$s</string>
+    <string name="panels_move_earlier">Chuyển lên trước</string>
+    <string name="panels_move_later">Chuyển ra sau</string>
+    <string name="panels_show">Hiện %1$s</string>
+    <string name="settings_rearrange_panels">Sắp xếp lại các mục</string>
+    <string name="nav_manage">Quản lý</string>
+</resources>
