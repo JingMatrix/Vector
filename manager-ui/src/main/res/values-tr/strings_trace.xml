@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Nedeni</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">yukarıdakinin aynısı %1$d çerçeve daha</item>
+        <item quantity="other">yukarıdakilerin aynısı %1$d çerçeve daha</item>
+    </plurals>
+    <string name="crash_frame_copied">Çerçeve kopyalandı</string>
+    <string name="action_copy_all">Tümünü kopyala</string>
+    <string name="copied">Panoya kopyalandı</string>
+</resources>
