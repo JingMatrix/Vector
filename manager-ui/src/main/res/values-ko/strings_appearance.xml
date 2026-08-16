@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">테마</string>
+    <string name="appearance_theme_system">시스템 설정 따르기</string>
+    <string name="appearance_theme_light">밝게</string>
+    <string name="appearance_theme_dark">어둡게</string>
+    <string name="appearance_color">색</string>
+    <string name="appearance_dynamic_color">배경화면에서 색 가져오기</string>
+    <string name="appearance_custom_color">색 고르기</string>
+    <string name="appearance_amoled">어두운 테마에서 순수한 검정 사용</string>
+    <string name="appearance_amoled_summary">OLED 화면에서 전력을 아낍니다.</string>
+    <string name="settings_ambience">헤더 표현</string>
+    <string name="ambience_snow">눈</string>
+    <string name="ambience_maze">미로</string>
+    <string name="ambience_circuit">회로</string>
+    <string name="ambience_matrix">코드 비</string>
+    <string name="ambience_none">정지</string>
+</resources>
