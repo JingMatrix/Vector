@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Disebabkan oleh</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">%1$d bingkai lagi, sama seperti di atas</item>
+    </plurals>
+    <string name="crash_frame_copied">Bingkai disalin</string>
+    <string name="action_copy_all">Salin semua</string>
+    <string name="copied">Disalin ke papan klip</string>
+</resources>
