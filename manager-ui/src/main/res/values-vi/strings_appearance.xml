@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Chủ đề</string>
+    <string name="appearance_theme_system">Theo hệ thống</string>
+    <string name="appearance_theme_light">Sáng</string>
+    <string name="appearance_theme_dark">Tối</string>
+    <string name="appearance_color">Màu</string>
+    <string name="appearance_dynamic_color">Lấy màu từ hình nền</string>
+    <string name="appearance_custom_color">Chọn một màu</string>
+    <string name="appearance_amoled">Đen tuyền ở chủ đề tối</string>
+    <string name="appearance_amoled_summary">Tiết kiệm pin trên màn hình OLED.</string>
+    <string name="settings_ambience">Nền phần đầu</string>
+    <string name="ambience_snow">Tuyết</string>
+    <string name="ambience_maze">Mê cung</string>
+    <string name="ambience_circuit">Mạch điện</string>
+    <string name="ambience_matrix">Mưa mã</string>
+    <string name="ambience_none">Đứng yên</string>
+</resources>
