@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">Ngôn ngữ</string>
+    <string name="language_system">Theo hệ thống</string>
+    <string name="language_system_summary">Dùng ngôn ngữ đã đặt trên điện thoại</string>
+    <string name="language_help">Giúp dịch thuật</string>
+    <string name="language_help_short">Dịch</string>
+</resources>
