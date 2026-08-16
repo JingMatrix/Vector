@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">ホーム</string>
+    <string name="nav_modules">モジュール</string>
+    <string name="nav_logs">ログ</string>
+    <string name="panels_ball_close">ナビゲーションを閉じる</string>
+    <string name="panels_ball_open">ナビゲーションを開く</string>
+    <string name="panels_done">完了</string>
+    <string name="panels_hide">%1$s を非表示</string>
+    <string name="panels_move_earlier">前へ移動</string>
+    <string name="panels_move_later">後ろへ移動</string>
+    <string name="panels_show">%1$s を表示</string>
+    <string name="settings_rearrange_panels">パネルの並べ替え</string>
+    <string name="nav_manage">管理</string>
+</resources>
