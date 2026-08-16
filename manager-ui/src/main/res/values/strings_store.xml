@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Store — the online module repository.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+
+    <!-- The list -->
+    <string name="store_search_hint">Search the repository</string>
+    <string name="store_filter">Sort and filter</string>
+    <string name="store_sort_recent">Recently updated</string>
+    <string name="store_sort_name">Name</string>
+    <string name="store_sort_stars">Most starred</string>
+    <string name="store_updates_first">Updates first</string>
+    <string name="store_channel_stable">Stable releases only</string>
+    <string name="store_channel_prerelease">Include prereleases</string>
+
+    <!-- Header. Example: "809 modules · 3 updates" -->
+    <plurals name="store_module_count">
+        <item quantity="one">%1$d module</item>
+        <item quantity="other">%1$d modules</item>
+    </plurals>
+    <plurals name="store_update_count">
+        <item quantity="one">%1$d update</item>
+        <item quantity="other">%1$d updates</item>
+    </plurals>
+    <string name="store_all_current">everything you have is current</string>
+
+    <!-- Rows -->
+    <string name="store_badge_update">Update to %1$s</string>
+    <string name="store_badge_reinstall">Reinstall %1$s</string>
+    <string name="store_badge_installed">Installed</string>
+    <string name="store_badge_prerelease">Prerelease</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
+    <string name="store_updated_on">Updated %1$s</string>
+
+    <!-- Empty states, which must never render identically -->
+    <string name="store_unreachable">Could not reach the module repository, and nothing is saved on this device yet.</string>
+    <string name="store_no_match">No module matches that search.</string>
+    <string name="store_empty">The repository returned no modules.</string>
+
+    <!-- Detail tabs -->
+    <string name="store_tab_readme">Readme</string>
+    <string name="store_tab_releases">Releases</string>
+    <string name="store_tab_information">Information</string>
+
+    <!-- Detail -->
+    <string name="store_readme_missing">This module ships no readme.</string>
+    <string name="store_detail_partial">Showing what the module list already knew. The readme and the older releases need a connection.</string>
+    <string name="store_releases_none">This module has published no releases on this channel.</string>
+    <string name="store_release_notes">Release notes</string>
+    <string name="store_open_release">Open on GitHub</string>
+    <string name="store_open_module">Open the module page</string>
+
+    <!-- Install -->
+    <string name="store_install">Install</string>
+    <string name="store_reinstall">Reinstall</string>
+    <string name="store_choose_asset">Choose a file to install</string>
+    <plurals name="store_asset_downloads">
+        <item quantity="one">%1$d download</item>
+        <item quantity="other">%1$d downloads</item>
+    </plurals>
+
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
+    <string name="store_confirm_title">Install %1$s?</string>
+    <string name="store_confirm_body">%1$s (%2$s) will be downloaded from the module repository and installed as %3$s.</string>
+    <string name="store_confirm_trust">A module runs with the framework\'s privileges inside the apps it hooks. Install one only if you trust its author.</string>
+    <string name="store_confirm_silent">Vector installs this itself and the system will not ask again.</string>
+
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
+    <string name="store_downloading">Downloading %1$s of %2$s</string>
+    <string name="store_installing">Installing…</string>
+    <string name="store_confirming">Waiting for the system prompt…</string>
+    <string name="store_install_failed">Could not install %1$s</string>
+    <string name="store_install_failed_reason">Could not install %1$s: %2$s</string>
+    <string name="store_cancel">Cancel</string>
+
+    <!-- Information tab -->
+    <string name="store_info_summary">Summary</string>
+    <string name="store_info_scope">Hooks</string>
+    <string name="store_info_scope_installed">Hooks, as the installed copy declares</string>
+    <string name="store_info_scope_undeclared">Not declared. This module does not say which apps it hooks.</string>
+    <string name="store_info_homepage">Homepage</string>
+    <string name="store_info_source">Source code</string>
+    <string name="store_info_collaborators">Maintainers</string>
+    <string name="store_info_stars">Stars</string>
+    <string name="store_info_updated">Last release</string>
+    <string name="store_info_created">First published</string>
+
+    <string name="store_release_notes_hide">Hide the notes</string>
+    <string name="store_installed_first">Installed first</string>
+
+    <string name="store_group_sort">Sort</string>
+    <string name="store_group_priority">Priority</string>
+    <string name="store_group_channel">Channel</string>
+
+    <!-- Moved from strings.xml: nav label + store options -->
+    <string name="nav_store">Store</string>
+    <string name="store_mute_updates">Ignore updates for this module</string>
+    <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
+    <string name="store_options">Options</string>
+
+    <!-- Moved from manager strings.xml: shared Details screen -->
+    <string name="back">Back</string>
+    <string name="retry">Retry</string>
+</resources>
