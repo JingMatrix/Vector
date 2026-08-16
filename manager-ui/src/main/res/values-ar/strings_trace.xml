@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">سببه</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="zero">بلا إطارات أخرى</item>
+        <item quantity="one">إطار آخر، مثل ما سبق</item>
+        <item quantity="two">إطاران آخران، مثل ما سبق</item>
+        <item quantity="few">%1$d إطارات أخرى، مثل ما سبق</item>
+        <item quantity="many">%1$d إطارًا آخر، مثل ما سبق</item>
+        <item quantity="other">%1$d إطار آخر، مثل ما سبق</item>
+    </plurals>
+    <string name="crash_frame_copied">نُسخ الإطار</string>
+    <string name="action_copy_all">نسخ الكل</string>
+    <string name="copied">نُسخ إلى الحافظة</string>
+</resources>
