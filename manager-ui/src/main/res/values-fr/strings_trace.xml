@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Causé par</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d trame de plus, identique à ci-dessus</item>
+        <item quantity="other">%1$d trames de plus, identiques à ci-dessus</item>
+    </plurals>
+    <string name="crash_frame_copied">Trame copiée</string>
+    <string name="action_copy_all">Tout copier</string>
+    <string name="copied">Copié dans le presse-papiers</string>
+</resources>
