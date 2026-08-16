@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">起因</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">还有 %1$d 层调用栈，与上面相同</item>
+    </plurals>
+    <string name="crash_frame_copied">已复制该层调用栈</string>
+    <string name="action_copy_all">全部复制</string>
+    <string name="copied">已复制到剪贴板</string>
+</resources>
