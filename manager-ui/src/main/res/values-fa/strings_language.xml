@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">زبان</string>
+    <string name="language_system">پیش‌فرض سامانه</string>
+    <string name="language_system_summary">هماهنگ با زبانی که روی گوشی تنظیم شده است</string>
+    <string name="language_help">کمک به ترجمه</string>
+    <string name="language_help_short">ترجمه</string>
+</resources>
