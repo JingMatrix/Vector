@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Store — the online module repository.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
+    <string name="store_search_hint">ابحث في الفهرس</string>
+    <string name="store_filter">الترتيب والتصفية</string>
+    <string name="store_sort_recent">المحدَّثة حديثًا</string>
+    <string name="store_sort_name">الاسم</string>
+    <string name="store_sort_stars">الأكثر نجومًا</string>
+    <string name="store_updates_first">التحديثات أولًا</string>
+    <string name="store_channel_stable">الإصدارات المستقرة فقط</string>
+    <string name="store_channel_prerelease">تضمين الإصدارات التجريبية</string>
+    <!-- Header. Example: "809 modules · 3 updates" -->
+    <plurals name="store_module_count">
+        <item quantity="zero">لا وحدات</item>
+        <item quantity="one">وحدة واحدة</item>
+        <item quantity="two">وحدتان</item>
+        <item quantity="few">%1$d وحدات</item>
+        <item quantity="many">%1$d وحدة</item>
+        <item quantity="other">%1$d وحدة</item>
+    </plurals>
+    <plurals name="store_update_count">
+        <item quantity="zero">لا تحديثات</item>
+        <item quantity="one">تحديث واحد</item>
+        <item quantity="two">تحديثان</item>
+        <item quantity="few">%1$d تحديثات</item>
+        <item quantity="many">%1$d تحديثًا</item>
+        <item quantity="other">%1$d تحديث</item>
+    </plurals>
+    <string name="store_all_current">كل ما لديك محدَّث</string>
+    <!-- Rows -->
+    <string name="store_badge_update">التحديث إلى %1$s</string>
+    <string name="store_badge_reinstall">إعادة تثبيت %1$s</string>
+    <string name="store_badge_installed">مثبَّتة</string>
+    <string name="store_badge_prerelease">إصدار تجريبي</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
+    <string name="store_updated_on">حُدِّثت في %1$s</string>
+    <!-- Empty states, which must never render identically -->
+    <string name="store_unreachable">تعذّر الوصول إلى فهرس الوحدات، ولا شيء محفوظ على هذا الجهاز بعد.</string>
+    <string name="store_no_match">لا وحدة تطابق هذا البحث.</string>
+    <string name="store_empty">لم يُعِد الفهرس أي وحدة.</string>
+    <!-- Detail tabs -->
+    <string name="store_tab_readme">الوصف</string>
+    <string name="store_tab_releases">الإصدارات</string>
+    <string name="store_tab_information">معلومات</string>
+    <!-- Detail -->
+    <string name="store_readme_missing">لا تتضمّن هذه الوحدة ملف وصف.</string>
+    <string name="store_detail_partial">يُعرض ما تعرفه قائمة الوحدات أصلًا. أما الوصف والإصدارات الأقدم فتحتاج اتصالًا.</string>
+    <string name="store_releases_none">لم تنشر هذه الوحدة أي إصدار على هذه القناة.</string>
+    <string name="store_release_notes">ملاحظات الإصدار</string>
+    <string name="store_open_release">فتح على GitHub</string>
+    <string name="store_open_module">فتح صفحة الوحدة</string>
+    <!-- Install -->
+    <string name="store_install">تثبيت</string>
+    <string name="store_reinstall">إعادة التثبيت</string>
+    <string name="store_choose_asset">اختر ملفًا للتثبيت</string>
+    <plurals name="store_asset_downloads">
+        <item quantity="zero">لا تنزيلات</item>
+        <item quantity="one">تنزيل واحد</item>
+        <item quantity="two">تنزيلان</item>
+        <item quantity="few">%1$d تنزيلات</item>
+        <item quantity="many">%1$d تنزيلًا</item>
+        <item quantity="other">%1$d تنزيل</item>
+    </plurals>
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
+    <string name="store_confirm_title">تثبيت %1$s؟</string>
+    <string name="store_confirm_body">سيُنزَّل %1$s ‏(%2$s) من فهرس الوحدات ويُثبَّت باسم %3$s.</string>
+    <string name="store_confirm_trust">تعمل الوحدة بصلاحيات الإطار داخل التطبيقات التي تربطها. لا تثبّت وحدة إلا إن كنت تثق بمؤلّفها.</string>
+    <string name="store_confirm_silent">يثبّتها Vector بنفسه ولن يسألك النظام مجددًا.</string>
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
+    <string name="store_downloading">جارٍ تنزيل %1$s من %2$s</string>
+    <string name="store_installing">جارٍ التثبيت…</string>
+    <string name="store_confirming">في انتظار طلب النظام…</string>
+    <string name="store_install_failed">تعذّر تثبيت %1$s</string>
+    <string name="store_install_failed_reason">تعذّر تثبيت %1$s: %2$s</string>
+    <string name="store_cancel">إلغاء</string>
+    <!-- Information tab -->
+    <string name="store_info_summary">نبذة</string>
+    <string name="store_info_scope">الارتباطات</string>
+    <string name="store_info_scope_installed">الارتباطات، بحسب النسخة المثبَّتة</string>
+    <string name="store_info_scope_undeclared">غير معلَن. لا تذكر هذه الوحدة أي التطبيقات تربطها.</string>
+    <string name="store_info_homepage">الصفحة الرئيسية</string>
+    <string name="store_info_source">الشيفرة المصدرية</string>
+    <string name="store_info_collaborators">المشرفون</string>
+    <string name="store_info_stars">النجوم</string>
+    <string name="store_info_updated">آخر إصدار</string>
+    <string name="store_info_created">أول نشر</string>
+    <string name="store_release_notes_hide">إخفاء الملاحظات</string>
+    <string name="store_installed_first">المثبَّتة أولًا</string>
+    <string name="store_group_sort">الترتيب</string>
+    <string name="store_group_priority">الأولوية</string>
+    <string name="store_group_channel">القناة</string>
+    <!-- Moved from strings.xml: nav label + store options -->
+    <string name="nav_store">الفهرس</string>
+    <string name="store_mute_updates">تجاهل تحديثات هذه الوحدة</string>
+    <string name="store_mute_updates_summary">لن تُحتسب قديمة بعد الآن، لا هنا ولا في قائمة الوحدات</string>
+    <string name="store_options">خيارات</string>
+    <!-- Moved from manager strings.xml: shared Details screen -->
+    <string name="back">رجوع</string>
+    <string name="retry">إعادة المحاولة</string>
+</resources>
