@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Тема</string>
+    <string name="appearance_theme_system">Як у системі</string>
+    <string name="appearance_theme_light">Світла</string>
+    <string name="appearance_theme_dark">Темна</string>
+    <string name="appearance_color">Колір</string>
+    <string name="appearance_dynamic_color">Кольори зі шпалер</string>
+    <string name="appearance_custom_color">Вибрати колір</string>
+    <string name="appearance_amoled">Чистий чорний у темній темі</string>
+    <string name="appearance_amoled_summary">Заощаджує заряд на екранах OLED.</string>
+    <string name="settings_ambience">Поверхня заголовка</string>
+    <string name="ambience_snow">Сніг</string>
+    <string name="ambience_maze">Лабіринт</string>
+    <string name="ambience_circuit">Схема</string>
+    <string name="ambience_matrix">Дощ із коду</string>
+    <string name="ambience_none">Нерухома</string>
+</resources>
