@@ -12,7 +12,6 @@
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_modules">Modules</string>
-    <string name="nav_store">Store</string>
     <string name="nav_logs">Logs</string>
 
     <!-- Rearranging the panels, and the ball that can stand in for the bar -->
@@ -61,7 +60,6 @@
         <item quantity="one">%1$d more frame, the same as above</item>
         <item quantity="other">%1$d more frames, the same as above</item>
     </plurals>
-    <string name="crash_frame_copied">Frame copied</string>
     <string name="crash_unreadable">This crash could not be read. Copy it and attach it to the report as it is.</string>
 
     <!-- System status detail -->
@@ -94,9 +92,6 @@
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>
     <string name="force_launcher_icons">Stop apps hiding their launcher icons</string>
     <string name="force_launcher_icons_summary">Since Android 10, an app that hides its own launcher icon gets one back that opens its app info page. Turn this off to let it stay hidden — your launcher may not catch up until it restarts. Apps that never had a launcher icon, including most modules, are unaffected.</string>
-    <string name="action_copy_all">Copy all</string>
-    <string name="copied">Copied to clipboard</string>
-
     <!-- Home: the community feed -->
     <string name="home_quarter_title">Recent activity</string>
     <!-- Example: "7 commits by 4 people" -->
@@ -435,16 +430,9 @@
     <string name="update_failed_start">The installer could not be started.</string>
     <string name="update_failed_download">The update could not be downloaded.</string>
     <string name="update_failed_exit">The installer failed (exit %1$d).</string>
-    <string name="store_mute_updates">Ignore updates for this module</string>
-    <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
-    <string name="store_options">Options</string>
     <string name="scope_framework_shared">One process shared by every user, so this affects the whole device</string>
     <string name="scope_self_hook">This module is loaded into its own app, which is how it reports that it is active</string>
     <string name="update_no_output">The installer produced no output.</string>
-    <string name="update_variant_release">Release</string>
-    <string name="update_variant_debug">Debug</string>
-    <string name="update_variant_release_why">The build to run day to day</string>
-    <string name="update_variant_debug_why">Verbose logging, for a bug report</string>
     <string name="update_versions">All versions</string>
     <string name="update_installed">Installed</string>
     <string name="update_same_number">Same number, other build</string>
