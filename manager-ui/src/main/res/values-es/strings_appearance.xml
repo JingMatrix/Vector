@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Tema</string>
+    <string name="appearance_theme_system">Seguir al sistema</string>
+    <string name="appearance_theme_light">Claro</string>
+    <string name="appearance_theme_dark">Oscuro</string>
+    <string name="appearance_color">Color</string>
+    <string name="appearance_dynamic_color">Colores del fondo de pantalla</string>
+    <string name="appearance_custom_color">Elegir un color</string>
+    <string name="appearance_amoled">Negro puro en el tema oscuro</string>
+    <string name="appearance_amoled_summary">Ahorra batería en pantallas OLED.</string>
+    <string name="settings_ambience">Superficie de la cabecera</string>
+    <string name="ambience_snow">Nieve</string>
+    <string name="ambience_maze">Laberinto</string>
+    <string name="ambience_circuit">Circuito</string>
+    <string name="ambience_matrix">Lluvia de código</string>
+    <string name="ambience_none">Quieta</string>
+</resources>
