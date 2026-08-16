@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Logs screen.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without colliding
+  with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+
+    <string name="logs_title">Logs</string>
+
+    <!-- Top bar actions -->
+    <string name="logs_word_wrap">Wrap long lines</string>
+    <string name="logs_save">Save a bug report…</string>
+    <string name="logs_rotate">Start a new log…</string>
+
+    <!-- Search and filter -->
+    <string name="logs_search_hint">Search this log</string>
+    <string name="logs_filter">Filter by level and tag</string>
+    <string name="logs_filter_levels">Level</string>
+    <string name="logs_filter_tags">Tag</string>
+    <string name="logs_filter_clear">Clear filter</string>
+    <string name="logs_filter_scanning">Reading the whole file so the filter can see past what is on screen.</string>
+
+    <!-- The counter under the search field -->
+    <!-- Example: "lines 1 200–3 200 of 30 412" -->
+    <string name="logs_window">Lines %1$d–%2$d of %3$d</string>
+    <plurals name="logs_matches">
+        <item quantity="one">%1$d matching line</item>
+        <item quantity="other">%1$d matching lines</item>
+    </plurals>
+    <string name="logs_dropped">This log is longer than the viewer indexes. The oldest %1$d lines are not shown; save a bug report to keep them.</string>
+    <string name="logs_line_truncated">line cut</string>
+    <plurals name="logs_frames">
+        <item quantity="one">%1$d frame</item>
+        <item quantity="other">%1$d frames</item>
+    </plurals>
+    <!-- A multi-line message that is not a stack trace: a mount-argument report, a property dump. -->
+    <plurals name="logs_more_lines">
+        <item quantity="one">%1$d more line</item>
+        <item quantity="other">%1$d more lines</item>
+    </plurals>
+
+    <!-- The four distinct nothing-to-show states -->
+    <string name="logs_state_daemon_title">The log service is not reachable</string>
+    <string name="logs_state_daemon_body">Nothing is known about the log until the background service that streams it is running.</string>
+    <string name="logs_state_nofile_title">No log file yet</string>
+    <string name="logs_state_nofile_body">The daemon is running but has not opened this log. For the verbose log that usually means verbose logging is off.</string>
+    <string name="logs_state_empty_title">This log is empty</string>
+    <string name="logs_state_empty_body">The file exists and nothing has been written to it. For the module log that is what a quiet system looks like.</string>
+    <string name="logs_state_nomatches_title">Nothing matches</string>
+    <string name="logs_state_nomatches_body">The file has content; the current filter excludes all of it.</string>
+    <string name="logs_state_failed_title">Could not read the log</string>
+    <string name="logs_state_failed_body">The daemon handed over a file that could not be read: %1$s</string>
+    <string name="logs_loading">Indexing…</string>
+
+    <!-- Verbose logging -->
+    <string name="logs_verbose_switch">Verbose logging</string>
+    <string name="logs_verbose_enforced">The running daemon is forcing this on regardless.</string>
+
+    <!-- Navigation within a long log -->
+    <string name="logs_jump_oldest">Jump to the oldest line</string>
+    <string name="logs_jump_newest">Jump to the newest line</string>
+
+    <!-- Per-row actions -->
+    <string name="logs_row_detail">uid %1$d · pid %2$d · tid %3$d</string>
+
+    <!-- Starting a new log: the consequence, named -->
+    <string name="logs_rotate_title">Start a new log?</string>
+    <string name="logs_rotate_body">Nothing is deleted. The daemon closes the current part and starts a fresh one; the closed part stays on disk — a swipe away — until it ages out of the ten most recent, and a saved bug report still includes it.</string>
+    <string name="logs_rotate_confirm">Start a new log</string>
+    <string name="logs_rotate_done">A new log has been started</string>
+    <string name="logs_rotate_unreachable">Could not reach the daemon to start a new log</string>
+    <string name="logs_cancel">Cancel</string>
+
+    <!-- Saving -->
+    <string name="logs_saving">Collecting logs, tombstones and dmesg…</string>
+    <string name="logs_saved">Bug report saved</string>
+    <string name="logs_save_failed">Could not save the bug report</string>
+    <string name="logs_save_failed_reason">Could not save the bug report: %1$s</string>
+    <string name="logs_share">Share</string>
+
+    <string name="logs_filter_clear_tag">Clear the tag filter</string>
+    <string name="logs_settings">Log settings</string>
+    <string name="logs_source_more">Include the framework\'s own lines</string>
+    <string name="logs_source_less">Show module lines only</string>
+    <string name="logs_verbose_summary">Turn this on before reporting a bug. Apps can read their own logs, so leaving it on is one way an app can spot Vector.</string>
+    <string name="logs_trace_title">Stack trace</string>
+    <string name="logs_traces_inline">Open traces in place</string>
+    <string name="logs_traces_inline_summary">A stack trace unfolds under its line. Turn this off to open it on its own screen instead.</string>
+    <string name="logs_save_summary">Writes both logs to a zip you choose</string>
+    <string name="logs_rotate_summary">Closes the current part and starts a fresh one</string>
+    <string name="logs_part">part %1$d/%2$d</string>
+    <string name="logs_part_older">Older part</string>
+    <string name="logs_part_newer">Newer part</string>
+    <!-- Clear (destructive reset), used by hosts that empty a buffer rather than rotate a part. -->
+    <string name="logs_clear">Clear the log…</string>
+    <string name="logs_clear_summary">Empties the device log buffer</string>
+    <string name="logs_clear_title">Clear the log?</string>
+    <string name="logs_clear_body">This empties the device log buffer. Lines already on screen stay until you refresh; new lines are still captured.</string>
+    <string name="logs_clear_confirm">Clear</string>
+    <string name="logs_clear_done">The log has been cleared</string>
+    <string name="logs_clear_unreachable">Could not clear the log</string>
+</resources>
