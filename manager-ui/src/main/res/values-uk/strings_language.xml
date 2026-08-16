@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">Мова</string>
+    <string name="language_system">Як у системі</string>
+    <string name="language_system_summary">Використовувати мову, налаштовану на телефоні</string>
+    <string name="language_help">Допомогти з перекладом</string>
+    <string name="language_help_short">Перекласти</string>
+</resources>
