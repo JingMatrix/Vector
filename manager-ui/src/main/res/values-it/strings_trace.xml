@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Causato da</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">%1$d frame in più, uguale a sopra</item>
+        <item quantity="other">%1$d frame in più, uguali a sopra</item>
+    </plurals>
+    <string name="crash_frame_copied">Frame copiato</string>
+    <string name="action_copy_all">Copia tutto</string>
+    <string name="copied">Copiato negli appunti</string>
+</resources>
