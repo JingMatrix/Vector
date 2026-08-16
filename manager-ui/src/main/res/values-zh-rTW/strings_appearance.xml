@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">主題</string>
+    <string name="appearance_theme_system">跟隨系統</string>
+    <string name="appearance_theme_light">淺色</string>
+    <string name="appearance_theme_dark">深色</string>
+    <string name="appearance_color">配色</string>
+    <string name="appearance_dynamic_color">取色自桌布</string>
+    <string name="appearance_custom_color">自選顏色</string>
+    <string name="appearance_amoled">深色模式使用純黑</string>
+    <string name="appearance_amoled_summary">在 OLED 螢幕上更省電。</string>
+    <string name="settings_ambience">頁首動態效果</string>
+    <string name="ambience_snow">雪花</string>
+    <string name="ambience_maze">迷宮</string>
+    <string name="ambience_circuit">電路</string>
+    <string name="ambience_matrix">程式碼雨</string>
+    <string name="ambience_none">靜止</string>
+</resources>
