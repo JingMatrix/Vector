@@ -11,7 +11,6 @@
     <!-- Navigation -->
     <string name="nav_home">Головна</string>
     <string name="nav_modules">Модулі</string>
-    <string name="nav_store">Каталог</string>
     <string name="nav_logs">Журнали</string>
     <!-- Rearranging the panels, and the ball that can stand in for the bar -->
     <string name="panels_done">Готово</string>
@@ -59,7 +58,6 @@
         <item quantity="many">ще %1$d кадрів, таких самих, як вище</item>
         <item quantity="other">ще %1$d кадра, такі самі, як вище</item>
     </plurals>
-    <string name="crash_frame_copied">Кадр скопійовано</string>
     <string name="crash_unreadable">Цей збій не вдалося прочитати. Скопіюйте його та додайте до звіту як є.</string>
     <!-- System status detail -->
     <string name="system_status">Стан системи</string>
@@ -90,8 +88,6 @@
     <string name="status_notification_summary">Постійне сповіщення, яке показує, що Vector працює.</string>
     <string name="force_launcher_icons">Не дозволяти застосункам ховати свій значок у лаунчері</string>
     <string name="force_launcher_icons_summary">Починаючи з Android 10, застосунок, який ховає свій значок у лаунчері, отримує його назад, і цей значок відкриває сторінку відомостей про застосунок. Вимкніть це, щоб значок лишався прихованим — лаунчер може оновити свій перелік лише після перезапуску. Застосунків, які ніколи не мали значка в лаунчері, зокрема більшість модулів, це не стосується.</string>
-    <string name="action_copy_all">Копіювати все</string>
-    <string name="copied">Скопійовано в буфер обміну</string>
     <!-- Home: the community feed -->
     <string name="home_quarter_title">Нещодавня активність</string>
     <!-- Example: "7 commits by 4 people" -->
@@ -452,16 +448,9 @@
     <string name="update_failed_start">Не вдалося запустити встановлювач.</string>
     <string name="update_failed_download">Не вдалося завантажити оновлення.</string>
     <string name="update_failed_exit">Встановлювач завершився помилкою (код %1$d).</string>
-    <string name="store_mute_updates">Ігнорувати оновлення цього модуля</string>
-    <string name="store_mute_updates_summary">Він перестане рахуватися застарілим — і тут, і в переліку модулів</string>
-    <string name="store_options">Параметри</string>
     <string name="scope_framework_shared">Один процес, спільний для всіх користувачів, тож це стосується всього пристрою</string>
     <string name="scope_self_hook">Цей модуль завантажується у власний застосунок — так він і повідомляє, що активний</string>
     <string name="update_no_output">Встановлювач нічого не вивів.</string>
-    <string name="update_variant_release">Стабільна</string>
-    <string name="update_variant_debug">Зневаджувальна</string>
-    <string name="update_variant_release_why">Збірка на щодень</string>
-    <string name="update_variant_debug_why">Докладні журнали, для звіту про помилку</string>
     <string name="update_versions">Усі версії</string>
     <string name="update_installed">Встановлена</string>
     <string name="update_same_number">Той самий номер, інша збірка</string>
