@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">اللغة</string>
+    <string name="language_system">لغة النظام</string>
+    <string name="language_system_summary">اتّباع اللغة المضبوطة على الهاتف</string>
+    <string name="language_help">ساعِد في الترجمة</string>
+    <string name="language_help_short">ترجمة</string>
+</resources>
