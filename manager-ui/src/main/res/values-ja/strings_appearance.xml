@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">テーマ</string>
+    <string name="appearance_theme_system">システムの設定に従う</string>
+    <string name="appearance_theme_light">ライト</string>
+    <string name="appearance_theme_dark">ダーク</string>
+    <string name="appearance_color">色</string>
+    <string name="appearance_dynamic_color">壁紙から配色</string>
+    <string name="appearance_custom_color">色を選ぶ</string>
+    <string name="appearance_amoled">ダークテーマでピュアブラックを使用</string>
+    <string name="appearance_amoled_summary">OLED 画面での消費電力を抑えます。</string>
+    <string name="settings_ambience">ヘッダーの表現</string>
+    <string name="ambience_snow">雪</string>
+    <string name="ambience_maze">迷路</string>
+    <string name="ambience_circuit">回路</string>
+    <string name="ambience_matrix">コードの雨</string>
+    <string name="ambience_none">静止</string>
+</resources>
