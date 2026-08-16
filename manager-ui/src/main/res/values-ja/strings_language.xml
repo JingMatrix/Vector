@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">言語</string>
+    <string name="language_system">システムの設定に従う</string>
+    <string name="language_system_summary">デバイスで設定されている言語に従います</string>
+    <string name="language_help">Vector の翻訳に参加</string>
+    <string name="language_help_short">翻訳</string>
+</resources>
