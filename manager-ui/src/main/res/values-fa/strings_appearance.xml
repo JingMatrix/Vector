@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">پوسته</string>
+    <string name="appearance_theme_system">هماهنگ با سامانه</string>
+    <string name="appearance_theme_light">روشن</string>
+    <string name="appearance_theme_dark">تیره</string>
+    <string name="appearance_color">رنگ</string>
+    <string name="appearance_dynamic_color">رنگ از تصویر پس‌زمینه</string>
+    <string name="appearance_custom_color">یک رنگ برگزینید</string>
+    <string name="appearance_amoled">سیاه ناب در پوستهٔ تیره</string>
+    <string name="appearance_amoled_summary">در نمایشگرهای OLED مصرف را کم می‌کند.</string>
+    <string name="settings_ambience">سطح سربرگ</string>
+    <string name="ambience_snow">برف</string>
+    <string name="ambience_maze">هزارتو</string>
+    <string name="ambience_circuit">مدار</string>
+    <string name="ambience_matrix">باران کد</string>
+    <string name="ambience_none">ساکن</string>
+</resources>
