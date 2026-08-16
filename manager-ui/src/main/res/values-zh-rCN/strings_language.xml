@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">语言</string>
+    <string name="language_system">跟随系统</string>
+    <string name="language_system_summary">使用手机设置的语言</string>
+    <string name="language_help">帮助翻译</string>
+    <string name="language_help_short">翻译</string>
+</resources>
