@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Tema</string>
+    <string name="appearance_theme_system">Ikuti sistem</string>
+    <string name="appearance_theme_light">Terang</string>
+    <string name="appearance_theme_dark">Gelap</string>
+    <string name="appearance_color">Warna</string>
+    <string name="appearance_dynamic_color">Warna dari wallpaper</string>
+    <string name="appearance_custom_color">Pilih warna</string>
+    <string name="appearance_amoled">Hitam pekat di tema gelap</string>
+    <string name="appearance_amoled_summary">Menghemat daya di layar OLED.</string>
+    <string name="settings_ambience">Permukaan kepala halaman</string>
+    <string name="ambience_snow">Salju</string>
+    <string name="ambience_maze">Labirin</string>
+    <string name="ambience_circuit">Sirkuit</string>
+    <string name="ambience_matrix">Hujan kode</string>
+    <string name="ambience_none">Diam</string>
+</resources>
