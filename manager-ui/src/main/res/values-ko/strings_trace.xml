@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">원인</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="other">위와 같은 스택 %1$d단 더</item>
+    </plurals>
+    <string name="crash_frame_copied">스택 한 단을 복사했습니다</string>
+    <string name="action_copy_all">모두 복사</string>
+    <string name="copied">클립보드에 복사했습니다</string>
+</resources>
