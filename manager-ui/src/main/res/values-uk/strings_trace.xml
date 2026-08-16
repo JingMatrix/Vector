@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Причина</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">ще %1$d кадр, такий самий, як вище</item>
+        <item quantity="few">ще %1$d кадри, такі самі, як вище</item>
+        <item quantity="many">ще %1$d кадрів, таких самих, як вище</item>
+        <item quantity="other">ще %1$d кадра, такі самі, як вище</item>
+    </plurals>
+    <string name="crash_frame_copied">Кадр скопійовано</string>
+    <string name="action_copy_all">Копіювати все</string>
+    <string name="copied">Скопійовано в буфер обміну</string>
+</resources>
