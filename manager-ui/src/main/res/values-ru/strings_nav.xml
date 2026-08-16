@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_home">Главная</string>
+    <string name="nav_modules">Модули</string>
+    <string name="nav_logs">Журнал</string>
+    <string name="panels_ball_close">Закрыть навигацию</string>
+    <string name="panels_ball_open">Открыть навигацию</string>
+    <string name="panels_done">Готово</string>
+    <string name="panels_hide">Скрыть «%1$s»</string>
+    <string name="panels_move_earlier">Переместить вперёд</string>
+    <string name="panels_move_later">Переместить назад</string>
+    <string name="panels_show">Показать «%1$s»</string>
+    <string name="settings_rearrange_panels">Изменить порядок разделов</string>
+    <string name="nav_manage">Управление</string>
+</resources>
