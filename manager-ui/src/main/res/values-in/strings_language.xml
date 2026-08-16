@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_title">Bahasa</string>
+    <string name="language_system">Bawaan sistem</string>
+    <string name="language_system_summary">Ikuti bahasa yang disetel di ponsel</string>
+    <string name="language_help">Bantu menerjemahkan</string>
+    <string name="language_help_short">Terjemahkan</string>
+</resources>
