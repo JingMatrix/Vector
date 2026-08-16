@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Theme</string>
+    <string name="appearance_theme_system">Follow system</string>
+    <string name="appearance_theme_light">Light</string>
+    <string name="appearance_theme_dark">Dark</string>
+    <string name="appearance_color">Colour</string>
+    <string name="appearance_dynamic_color">Colours from wallpaper</string>
+    <string name="appearance_custom_color">Pick a colour</string>
+    <string name="appearance_amoled">True black in dark mode</string>
+    <string name="appearance_amoled_summary">Saves power on OLED screens.</string>
+    <string name="settings_ambience">Header surface</string>
+    <string name="ambience_snow">Snow</string>
+    <string name="ambience_maze">Maze</string>
+    <string name="ambience_circuit">Circuit</string>
+    <string name="ambience_matrix">Code rain</string>
+    <string name="ambience_none">Still</string>
+</resources>
