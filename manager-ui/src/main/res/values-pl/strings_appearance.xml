@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_theme">Motyw</string>
+    <string name="appearance_theme_system">Zgodny z systemem</string>
+    <string name="appearance_theme_light">Jasny</string>
+    <string name="appearance_theme_dark">Ciemny</string>
+    <string name="appearance_color">Kolor</string>
+    <string name="appearance_dynamic_color">Kolory tapety</string>
+    <string name="appearance_custom_color">Wybierz kolor</string>
+    <string name="appearance_amoled">Prawdziwy czarny w trybie ciemnym</string>
+    <string name="appearance_amoled_summary">Oszczędza energię na ekranach OLED.</string>
+    <string name="settings_ambience">Powierzchnia nagłówka</string>
+    <string name="ambience_snow">Śnieg</string>
+    <string name="ambience_maze">Labirynt</string>
+    <string name="ambience_circuit">Obwód</string>
+    <string name="ambience_matrix">Deszcz kodu</string>
+    <string name="ambience_none">Nieruchoma</string>
+</resources>
