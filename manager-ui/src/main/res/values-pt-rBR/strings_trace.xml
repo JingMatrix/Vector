@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="crash_caused_by">Causado por</string>
+    <plurals name="crash_frames_elided">
+        <item quantity="one">mais %1$d quadro, igual aos de cima</item>
+        <item quantity="other">mais %1$d quadros, iguais aos de cima</item>
+    </plurals>
+    <string name="crash_frame_copied">Quadro copiado</string>
+    <string name="action_copy_all">Copiar tudo</string>
+    <string name="copied">Copiado para a área de transferência</string>
+</resources>
