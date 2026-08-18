@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="modules_expand">説明をすべて表示</string>
+    <string name="modules_collapse">表示を減らす</string>
+    <!-- The overflow beyond the icons a reach cluster shows: "+3". Locale-invariant. -->
+    <string name="modules_scope_more">+%1$d</string>
+</resources>
