@@ -45,7 +45,7 @@
     <string name="logs_state_nomatches_body">ファイルにはログがありますが、現在のフィルターによってすべて除外されています。</string>
     <string name="logs_state_failed_title">ログを読み込めませんでした</string>
     <string name="logs_state_failed_body">デーモンから渡されたファイルを読み込めませんでした: %1$s</string>
-    <string name="logs_loading">インデックスを作成中…</string>
+    <string name="logs_loading">インデックスを作成しています…</string>
     <!-- Verbose logging -->
     <string name="logs_verbose_switch">詳細ログ</string>
     <string name="logs_verbose_enforced">実行中のデーモンにより、この設定は強制的に有効になっています。</string>
