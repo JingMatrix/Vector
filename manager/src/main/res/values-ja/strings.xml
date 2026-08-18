@@ -50,7 +50,7 @@
     <string name="crash_when_value">%1$s (スレッド: %2$s)</string>
     <string name="crash_open_trace">スタックトレースを確認</string>
     <string name="crash_trace">クラッシュ</string>
-    <string name="crash_caused_by">原因</string>
+    <string name="crash_caused_by">原因: </string>
     <!-- The frames printStackTrace replaced with "... N more" because it had printed them already. -->
     <plurals name="crash_frames_elided">
         <item quantity="other">上と同じスタックがさらに %1$d 段</item>
