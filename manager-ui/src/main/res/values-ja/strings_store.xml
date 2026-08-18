@@ -13,7 +13,7 @@
     <string name="store_sort_recent">最近更新された順</string>
     <string name="store_sort_name">名前</string>
     <string name="store_sort_stars">スター数の多い順</string>
-    <string name="store_updates_first">更新があるものを先に</string>
+    <string name="store_updates_first">更新があるものを先頭に</string>
     <string name="store_channel_stable">安定版のみ</string>
     <string name="store_channel_prerelease">プレリリース版を含める</string>
     <!-- Header. Example: "809 modules · 3 updates" -->
