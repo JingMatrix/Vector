@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="crash_caused_by">原因</string>
+    <string name="crash_caused_by">原因: </string>
     <plurals name="crash_frames_elided">
         <item quantity="other">上と同じスタックがさらに %1$d 段</item>
     </plurals>
