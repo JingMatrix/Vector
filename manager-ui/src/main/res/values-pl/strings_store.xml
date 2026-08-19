@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings for the Store — the online module repository.
+
+  Kept in their own file rather than merged into strings.xml: Android merges every values/
+  file at build time, so a screen under active development can own its keys without
+  colliding with anyone else's edits. Nothing user-visible may be hard-coded in a composable.
+-->
+<resources>
+    <!-- The list -->
+    <string name="store_search_hint">Przeszukaj katalog</string>
+    <string name="store_filter">Sortuj i filtruj</string>
+    <string name="store_sort_recent">Ostatnio zaktualizowane</string>
+    <string name="store_sort_name">Nazwa</string>
+    <string name="store_sort_stars">Najwięcej gwiazdek</string>
+    <string name="store_updates_first">Najpierw aktualizacje</string>
+    <string name="store_channel_stable">Tylko wydania stabilne</string>
+    <string name="store_channel_prerelease">Uwzględnij wydania wstępne</string>
+    <!-- Header. Example: "809 modules · 3 updates" -->
+    <plurals name="store_module_count">
+        <item quantity="one">%1$d moduł</item>
+        <item quantity="few">%1$d moduły</item>
+        <item quantity="many">%1$d modułów</item>
+        <item quantity="other">%1$d modułów</item>
+    </plurals>
+    <plurals name="store_update_count">
+        <item quantity="one">%1$d aktualizacja</item>
+        <item quantity="few">%1$d aktualizacje</item>
+        <item quantity="many">%1$d aktualizacji</item>
+        <item quantity="other">%1$d aktualizacji</item>
+    </plurals>
+    <string name="store_all_current">wszystkie twoje moduły są aktualne</string>
+    <!-- Rows -->
+    <string name="store_badge_update">Zaktualizuj do %1$s</string>
+    <string name="store_badge_reinstall">Zainstaluj ponownie %1$s</string>
+    <string name="store_badge_installed">Zainstalowane</string>
+    <string name="store_badge_prerelease">Wydanie wstępne</string>
+    <!-- Example: "Updated 23 Jul 2026" -->
+    <string name="store_updated_on">Zaktualizowano %1$s</string>
+    <!-- Empty states, which must never render identically -->
+    <string name="store_unreachable">Nie można uzyskać dostępu do katalogu modułów. Na tym urządzeniu nie ma jeszcze żadnych zapisanych danych.</string>
+    <string name="store_no_match">Żaden moduł nie spełnia kryteriów wyszukiwania.</string>
+    <string name="store_empty">Katalog nie zwrócił żadnych modułów.</string>
+    <!-- Detail tabs -->
+    <string name="store_tab_readme">Przeczytaj</string>
+    <string name="store_tab_releases">Wydania</string>
+    <string name="store_tab_information">Informacja</string>
+    <!-- Detail -->
+    <string name="store_readme_missing">Ten moduł nie zawiera pliku readme.</string>
+    <string name="store_detail_partial">Pokazuje to, co lista modułów już wiedziała. Plik readme i starsze wydania potrzebują połączenia.</string>
+    <string name="store_releases_none">Ten moduł nie ma opublikowanych żadnych wydań na tym kanale.</string>
+    <string name="store_release_notes">Informacje o wydaniu</string>
+    <string name="store_open_release">Otwórz na GitHubie</string>
+    <string name="store_open_module">Otwórz stronę modułu</string>
+    <!-- Install -->
+    <string name="store_install">Zainstaluj</string>
+    <string name="store_reinstall">Zainstaluj ponownie</string>
+    <string name="store_choose_asset">Wybierz plik do zainstalowania</string>
+    <plurals name="store_asset_downloads">
+        <item quantity="one">%1$d pobranie</item>
+        <item quantity="few">%1$d pobrania</item>
+        <item quantity="many">%1$d pobrań</item>
+        <item quantity="other">%1$d pobrania</item>
+    </plurals>
+    <!-- The confirmation. Parasitically this is the ONLY consent gate: the manager runs inside
+         com.android.shell, which holds INSTALL_PACKAGES, so the system never asks. It therefore
+         has to name the module, the version, the file and its size before anything is fetched. -->
+    <string name="store_confirm_title">Zainstalować %1$s?</string>
+    <string name="store_confirm_body">%1$s (%2$s) zostanie pobrany z katalogu modułów i zainstalowany jako %3$s.</string>
+    <string name="store_confirm_trust">Moduł działa z uprawnieniami frameworka w aplikacjach, do których jest podłączony. Zainstaluj go tylko wtedy, gdy ufasz jego autorowi.</string>
+    <string name="store_confirm_silent">Vector instaluje tę aplikację samodzielnie i system nie będzie już pytał o to ponownie.</string>
+    <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
+    <string name="store_downloading">Pobieranie %1$s z %2$s</string>
+    <string name="store_installing">Instalowanie…</string>
+    <string name="store_confirming">Oczekiwanie na monit systemowy…</string>
+    <string name="store_install_failed">Nie udało się zainstalować %1$s</string>
+    <string name="store_install_failed_reason">Nie udało się zainstalować %1$s: %2$s</string>
+    <string name="store_cancel">Anuluj</string>
+    <!-- Information tab -->
+    <string name="store_info_summary">Podsumowanie</string>
+    <string name="store_info_scope">Podłączenia</string>
+    <string name="store_info_scope_installed">Podłączenia zadeklarowane przez zainstalowaną kopię</string>
+    <string name="store_info_scope_undeclared">Nie zadeklarowano. Ten moduł nie określa, które aplikacje podłącza.</string>
+    <string name="store_info_homepage">Strona domowa</string>
+    <string name="store_info_source">Kod źródłowy</string>
+    <string name="store_info_collaborators">Opiekunowie</string>
+    <string name="store_info_stars">Gwiazdki</string>
+    <string name="store_info_updated">Ostatnie wydanie</string>
+    <string name="store_info_created">Pierwsze wydanie</string>
+    <string name="store_release_notes_hide">Ukryj notatki</string>
+    <string name="store_installed_first">Najpierw zainstalowane</string>
+    <string name="store_group_sort">Sortowanie</string>
+    <string name="store_group_priority">Priorytet</string>
+    <string name="store_group_channel">Kanał</string>
+    <!-- Moved from strings.xml: nav label + store options -->
+    <string name="nav_store">Katalog</string>
+    <string name="store_mute_updates">Ignoruj aktualizacje tego modułu</string>
+    <string name="store_mute_updates_summary">Przestaje być liczone jako nieaktualne, tutaj i na liście modułów</string>
+    <string name="store_options">Opcje</string>
+    <!-- Moved from manager strings.xml: shared Details screen -->
+    <string name="back">Wstecz</string>
+    <string name="retry">Spróbuj ponownie</string>
+</resources>
