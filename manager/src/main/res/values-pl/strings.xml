@@ -9,7 +9,7 @@
 -->
 <resources>
     <!-- Navigation -->
-    <string name="nav_home">Start</string>
+    <string name="nav_home">Strona główna</string>
     <string name="nav_modules">Moduły</string>
     <string name="nav_logs">Dzienniki</string>
     <!-- Rearranging the panels, and the ball that can stand in for the bar -->
@@ -23,11 +23,11 @@
     <string name="panels_ball_open">Otwórz nawigację</string>
     <string name="panels_ball_close">Zamknij nawigację</string>
     <!-- Framework status -->
-    <string name="status_active">Aktywny</string>
-    <string name="status_degraded">Problemy</string>
+    <string name="status_active">jest aktywny</string>
+    <string name="status_degraded">wymaga uwagi!</string>
     <string name="status_inactive">Nieaktywowany</string>
     <!-- The framework is running but speaks a different generation of the manager interface. -->
-    <string name="status_mismatched">Niezgodność wersji</string>
+    <string name="status_mismatched">wykrył niezgodne wersje!</string>
     <string name="status_checking">Sprawdzanie…</string>
     <string name="status_open_details">Otwórz stan systemu</string>
     <!-- Degraded causes, in the priority order the daemon reports them -->
