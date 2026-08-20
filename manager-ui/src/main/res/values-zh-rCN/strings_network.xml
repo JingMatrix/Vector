@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">网络</string>
+    <string name="settings_doh">通过 HTTPS 解析域名</string>
+    <string name="settings_doh_summary">通过 Cloudflare 而非网络自带的解析器查询域名。适用于屏蔽或篡改 DNS 的网络。</string>
+    <string name="settings_doh_untested">尚未解析任何域名。</string>
+    <string name="settings_doh_bypassed">未使用：已配置代理，域名由代理解析。</string>
+    <string name="settings_doh_working">正常 — 已通过 Cloudflare 解析 %1$s。</string>
+    <string name="settings_doh_fell_back">无法连接 Cloudflare（%1$s），本次会话的剩余时间将使用网络自带的解析器。</string>
+    <string name="settings_doh_retry">重试</string>
+</resources>
