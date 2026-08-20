@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Netzwerk</string>
+    <string name="settings_doh">Namen über HTTPS auflösen</string>
+    <string name="settings_doh_summary">Löst Namen über Cloudflare auf statt über den Resolver des Netzwerks. Für Netzwerke, die DNS blockieren oder verfälschen.</string>
+    <string name="settings_doh_untested">Bisher wurden keine Namen aufgelöst.</string>
+    <string name="settings_doh_bypassed">Nicht in Verwendung: Ein Proxy ist eingerichtet und übernimmt die Auflösung.</string>
+    <string name="settings_doh_working">Funktioniert — %1$s wurde über Cloudflare aufgelöst.</string>
+    <string name="settings_doh_fell_back">Cloudflare ist nicht erreichbar (%1$s); für den Rest dieser Sitzung wird der Resolver des Netzwerks verwendet.</string>
+    <string name="settings_doh_retry">Erneut versuchen</string>
+</resources>
