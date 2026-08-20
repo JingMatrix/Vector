@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Sieć</string>
+    <string name="settings_doh">Rozwiązuj nazwy przez HTTPS</string>
+    <string name="settings_doh_summary">Rozwiązuje nazwy przez Cloudflare zamiast przez moduł rozpoznawania nazw sieci. Dla sieci, które blokują lub modyfikują zapytania DNS.</string>
+    <string name="settings_doh_untested">Nie wyszukano jeszcze żadnych nazw.</string>
+    <string name="settings_doh_bypassed">Nieużywane: skonfigurowano serwer proxy, więc to on rozwiązuje nazwy.</string>
+    <string name="settings_doh_working">Działa — %1$s zostało rozwiązane za pośrednictwem Cloudflare.</string>
+    <string name="settings_doh_fell_back">Nie można było połączyć się z Cloudflare (%1$s), więc przez resztę tej sesji używany jest moduł rozpoznawania nazw sieci.</string>
+    <string name="settings_doh_retry">Spróbuj ponownie</string>
+</resources>
