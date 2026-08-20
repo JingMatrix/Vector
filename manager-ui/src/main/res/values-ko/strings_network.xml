@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">네트워크</string>
+    <string name="settings_doh">HTTPS로 이름 확인</string>
+    <string name="settings_doh_summary">네트워크의 확인자 대신 Cloudflare를 통해 이름을 확인합니다. DNS를 차단하거나 변조하는 네트워크용입니다.</string>
+    <string name="settings_doh_untested">아직 확인한 이름이 없습니다.</string>
+    <string name="settings_doh_bypassed">사용 안 함: 프록시가 설정되어 있어 프록시가 이름을 확인합니다.</string>
+    <string name="settings_doh_working">작동 중 — %1$s을(를) Cloudflare로 확인했습니다.</string>
+    <string name="settings_doh_fell_back">Cloudflare에 연결할 수 없어(%1$s) 이 세션의 나머지 동안 네트워크의 확인자를 사용합니다.</string>
+    <string name="settings_doh_retry">다시 시도</string>
+</resources>
