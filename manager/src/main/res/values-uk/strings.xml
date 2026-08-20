@@ -463,14 +463,6 @@
     <string name="scope_framework_restart_title">Фреймворк ще не застосував це</string>
     <string name="scope_framework_restart_body">Системний фреймворк завантажується один раз, коли запускається Android. Ця зміна дійде до нього лише після перезапуску фреймворка — усі запущені застосунки закриються, а телефон залишиться увімкненим.</string>
     <string name="scope_framework_restart_later">Пізніше</string>
-    <string name="settings_network">Мережа</string>
-    <string name="settings_doh">Розвʼязувати імена через HTTPS</string>
-    <string name="settings_doh_summary">Розвʼязує імена через Cloudflare, а не через резолвер мережі. Для мереж, які блокують або підміняють DNS.</string>
-    <string name="settings_doh_untested">Поки жодне імʼя не розвʼязувалося.</string>
-    <string name="settings_doh_bypassed">Не використовується: налаштовано проксі, і розвʼязуванням імен займається він.</string>
-    <string name="settings_doh_working">Працює — %1$s розвʼязано через Cloudflare.</string>
-    <string name="settings_doh_fell_back">Cloudflare недоступний (%1$s), тому до кінця цього сеансу використовується резолвер мережі.</string>
-    <string name="settings_doh_retry">Повторити</string>
     <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
     <string name="launcher_title">Як відкрити Vector</string>
     <string name="launcher_body">Vector не встановлено як застосунок, тож лаунчеру нема чого показувати. Ось як до нього повернутися.</string>
