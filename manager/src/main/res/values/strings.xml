@@ -445,15 +445,6 @@
     <string name="scope_framework_restart_title">The framework has not picked this up yet</string>
     <string name="scope_framework_restart_body">System Framework is loaded once, when Android starts it. This change reaches it only when the framework restarts — every running app closes, and the phone itself stays on.</string>
     <string name="scope_framework_restart_later">Later</string>
-    <string name="settings_network">Network</string>
-    <string name="settings_doh">Resolve names over HTTPS</string>
-    <string name="settings_doh_summary">Looks names up through Cloudflare instead of the network\'s resolver. For networks that block or tamper with DNS.</string>
-    <string name="settings_doh_untested">No names looked up yet.</string>
-    <string name="settings_doh_bypassed">Not in use: a proxy is configured, so it is resolving names.</string>
-    <string name="settings_doh_working">Working — %1$s was resolved through Cloudflare.</string>
-    <string name="settings_doh_fell_back">Cloudflare could not be reached (%1$s), so the network\'s resolver is being used for the rest of this session.</string>
-    <string name="settings_doh_retry">Try again</string>
-
     <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
     <string name="launcher_title">How to open Vector</string>
     <string name="launcher_body">Vector is not installed as an app, so your launcher has nothing to show. These are the ways back in.</string>
