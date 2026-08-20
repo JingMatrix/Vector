@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Mạng</string>
+    <string name="settings_doh">Phân giải tên qua HTTPS</string>
+    <string name="settings_doh_summary">Phân giải tên qua Cloudflare thay vì trình phân giải của mạng. Dành cho mạng chặn hoặc can thiệp DNS.</string>
+    <string name="settings_doh_untested">Chưa phân giải tên nào.</string>
+    <string name="settings_doh_bypassed">Không dùng: đã cấu hình proxy nên proxy đang phân giải tên.</string>
+    <string name="settings_doh_working">Đang hoạt động — %1$s được phân giải qua Cloudflare.</string>
+    <string name="settings_doh_fell_back">Không kết nối được tới Cloudflare (%1$s), nên trình phân giải của mạng sẽ được dùng trong phần còn lại của phiên này.</string>
+    <string name="settings_doh_retry">Thử lại</string>
+</resources>
