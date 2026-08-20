@@ -17,9 +17,15 @@
 
     <!-- Search and filter -->
     <string name="logs_search_hint">Search this log</string>
-    <string name="logs_filter">Filter by level and tag</string>
+    <string name="logs_filter">Filter by level, app and tag</string>
     <string name="logs_filter_levels">Level</string>
     <string name="logs_filter_tags">Tag</string>
+    <!-- Filter section: the processes whose lines the log holds, named by the app they belong to -->
+    <string name="logs_filter_writers">App</string>
+    <!-- Shown in the filter sheet when the rest of the filter leaves no option in a section -->
+    <string name="logs_filter_none">Nothing left to narrow by</string>
+    <!-- Content description: removes the app filter this chip carries -->
+    <string name="logs_filter_clear_writer">Clear app filter</string>
     <string name="logs_filter_clear">Clear filter</string>
     <string name="logs_filter_scanning">Reading the whole file so the filter can see past what is on screen.</string>
 
