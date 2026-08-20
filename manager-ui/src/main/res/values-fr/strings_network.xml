@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Réseau</string>
+    <string name="settings_doh">Résoudre les noms via HTTPS</string>
+    <string name="settings_doh_summary">Résout les noms via Cloudflare plutôt que par le résolveur du réseau. Pour les réseaux qui bloquent ou altèrent le DNS.</string>
+    <string name="settings_doh_untested">Aucun nom résolu pour l\'instant.</string>
+    <string name="settings_doh_bypassed">Inutilisé : un proxy est configuré, c\'est donc lui qui résout les noms.</string>
+    <string name="settings_doh_working">Fonctionne — %1$s a été résolu via Cloudflare.</string>
+    <string name="settings_doh_fell_back">Cloudflare est injoignable (%1$s) ; le résolveur du réseau est utilisé pour le reste de cette session.</string>
+    <string name="settings_doh_retry">Réessayer</string>
+</resources>
