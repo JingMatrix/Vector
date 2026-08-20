@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">الشبكة</string>
+    <string name="settings_doh">تحليل الأسماء عبر HTTPS</string>
+    <string name="settings_doh_summary">يحلّل الأسماء عبر Cloudflare بدلاً من محلّل الشبكة. للشبكات التي تحجب الـ DNS أو تعبث به.</string>
+    <string name="settings_doh_untested">لم يُحلَّل أي اسم بعد.</string>
+    <string name="settings_doh_bypassed">غير مستخدَم: هناك وكيل مُهيَّأ، وهو الذي يحلّل الأسماء.</string>
+    <string name="settings_doh_working">يعمل — حُلّل %1$s عبر Cloudflare.</string>
+    <string name="settings_doh_fell_back">تعذّر الوصول إلى Cloudflare (%1$s)، لذا سيُستخدَم محلّل الشبكة لبقية هذه الجلسة.</string>
+    <string name="settings_doh_retry">إعادة المحاولة</string>
+</resources>
