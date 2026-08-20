@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Сеть</string>
+    <string name="settings_doh">Разрешать имена через HTTPS</string>
+    <string name="settings_doh_summary">Разрешает имена через Cloudflare, а не через резолвер сети. Для сетей, которые блокируют или подменяют DNS.</string>
+    <string name="settings_doh_untested">Пока ни одно имя не разрешалось.</string>
+    <string name="settings_doh_bypassed">Не используется: настроен прокси, и разрешением имён занимается он.</string>
+    <string name="settings_doh_working">Работает — %1$s разрешено через Cloudflare.</string>
+    <string name="settings_doh_fell_back">Cloudflare недоступен (%1$s), поэтому до конца этого сеанса используется резолвер сети.</string>
+    <string name="settings_doh_retry">Повторить</string>
+</resources>
