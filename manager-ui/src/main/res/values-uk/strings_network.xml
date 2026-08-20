@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Мережа</string>
+    <string name="settings_doh">Розвʼязувати імена через HTTPS</string>
+    <string name="settings_doh_summary">Розвʼязує імена через Cloudflare, а не через резолвер мережі. Для мереж, які блокують або підміняють DNS.</string>
+    <string name="settings_doh_untested">Поки жодне імʼя не розвʼязувалося.</string>
+    <string name="settings_doh_bypassed">Не використовується: налаштовано проксі, і розвʼязуванням імен займається він.</string>
+    <string name="settings_doh_working">Працює — %1$s розвʼязано через Cloudflare.</string>
+    <string name="settings_doh_fell_back">Cloudflare недоступний (%1$s), тому до кінця цього сеансу використовується резолвер мережі.</string>
+    <string name="settings_doh_retry">Повторити</string>
+</resources>
