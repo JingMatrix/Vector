@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">شبکه</string>
+    <string name="settings_doh">تحلیل نام‌ها از راه HTTPS</string>
+    <string name="settings_doh_summary">نام‌ها را به‌جای تحلیل‌گر شبکه از راه Cloudflare پیدا می‌کند. برای شبکه‌هایی که DNS را مسدود یا دستکاری می‌کنند.</string>
+    <string name="settings_doh_untested">هنوز هیچ نامی تحلیل نشده است.</string>
+    <string name="settings_doh_bypassed">استفاده نمی‌شود: یک پیشکار پیکربندی شده و نام‌ها را او تحلیل می‌کند.</string>
+    <string name="settings_doh_working">کار می‌کند — %1$s از راه Cloudflare تحلیل شد.</string>
+    <string name="settings_doh_fell_back">دسترسی به Cloudflare ممکن نشد (%1$s)، بنابراین تا پایان این نشست از تحلیل‌گر شبکه استفاده می‌شود.</string>
+    <string name="settings_doh_retry">تلاش دوباره</string>
+</resources>
