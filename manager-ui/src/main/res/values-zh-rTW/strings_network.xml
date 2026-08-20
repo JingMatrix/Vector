@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">網路</string>
+    <string name="settings_doh">透過 HTTPS 解析網域</string>
+    <string name="settings_doh_summary">透過 Cloudflare 而非網路自帶的解析器查詢網域。適用於封鎖或竄改 DNS 的網路。</string>
+    <string name="settings_doh_untested">尚未解析任何網域。</string>
+    <string name="settings_doh_bypassed">未使用：已設定 Proxy，網域由 Proxy 解析。</string>
+    <string name="settings_doh_working">正常 — 已透過 Cloudflare 解析 %1$s。</string>
+    <string name="settings_doh_fell_back">無法連線至 Cloudflare（%1$s），本次工作階段的其餘時間將使用網路自帶的解析器。</string>
+    <string name="settings_doh_retry">重試</string>
+</resources>
