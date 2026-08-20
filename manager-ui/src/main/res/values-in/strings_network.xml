@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Jaringan</string>
+    <string name="settings_doh">Selesaikan nama lewat HTTPS</string>
+    <string name="settings_doh_summary">Menyelesaikan nama lewat Cloudflare alih-alih resolver jaringan. Untuk jaringan yang memblokir atau mengubah DNS.</string>
+    <string name="settings_doh_untested">Belum ada nama yang diselesaikan.</string>
+    <string name="settings_doh_bypassed">Tidak dipakai: proxy telah dikonfigurasi, jadi proxy yang menyelesaikan nama.</string>
+    <string name="settings_doh_working">Berfungsi — %1$s diselesaikan lewat Cloudflare.</string>
+    <string name="settings_doh_fell_back">Cloudflare tidak dapat dihubungi (%1$s), jadi resolver jaringan dipakai untuk sisa sesi ini.</string>
+    <string name="settings_doh_retry">Coba lagi</string>
+</resources>
