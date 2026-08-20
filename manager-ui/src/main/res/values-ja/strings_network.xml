@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">ネットワーク</string>
+    <string name="settings_doh">名前を HTTPS で解決</string>
+    <string name="settings_doh_summary">ネットワークの DNS リゾルバではなく、Cloudflare 経由で名前解決を行います。DNS をブロックしたり改ざんしたりするネットワーク環境に適しています。</string>
+    <string name="settings_doh_untested">まだ名前を解決していません。</string>
+    <string name="settings_doh_bypassed">使用されていません。プロキシが設定されているため、プロキシによって名前解決が行われています。</string>
+    <string name="settings_doh_working">動作中 — %1$s は Cloudflare 経由で解決されました。</string>
+    <string name="settings_doh_fell_back">Cloudflare に接続できませんでした (%1$s)。そのため、このセッションの残りの期間はネットワークのリゾルバが使用されます。</string>
+    <string name="settings_doh_retry">再試行</string>
+</resources>
