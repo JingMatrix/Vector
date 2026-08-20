@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_network">Ağ</string>
+    <string name="settings_doh">Adları HTTPS üzerinden çöz</string>
+    <string name="settings_doh_summary">Adları ağın çözümleyicisi yerine Cloudflare üzerinden çözer. DNS\'i engelleyen veya kurcalayan ağlar için.</string>
+    <string name="settings_doh_untested">Henüz hiçbir ad çözümlenmedi.</string>
+    <string name="settings_doh_bypassed">Kullanılmıyor: bir proxy yapılandırılmış, adları o çözümlüyor.</string>
+    <string name="settings_doh_working">Çalışıyor — %1$s Cloudflare üzerinden çözümlendi.</string>
+    <string name="settings_doh_fell_back">Cloudflare\'a ulaşılamadı (%1$s), bu oturumun kalanında ağın çözümleyicisi kullanılacak.</string>
+    <string name="settings_doh_retry">Yeniden dene</string>
+</resources>
