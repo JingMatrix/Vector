@@ -92,6 +92,12 @@
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>
     <string name="force_launcher_icons">Stop apps hiding their launcher icons</string>
     <string name="force_launcher_icons_summary">Since Android 10, an app that hides its own launcher icon gets one back that opens its app info page. Turn this off to let it stay hidden — your launcher may not catch up until it restarts. Apps that never had a launcher icon, including most modules, are unaffected.</string>
+    <!-- ART inline hook compatibility mode -->
+    <string name="action_invalidate_art_inline_hooks">ART inline hook compatibility mode</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Disable Vector\'s ART inline hooks in this app to improve compatibility. Some modules may stop working here, and the app may misbehave or crash. Applies the next time the app starts.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Enabled ART inline hook compatibility for %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Disabled ART inline hook compatibility for %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Could not change ART inline hook compatibility for %1$s.</string>
     <!-- Home: the community feed -->
     <string name="home_quarter_title">Recent activity</string>
     <!-- Example: "7 commits by 4 people" -->

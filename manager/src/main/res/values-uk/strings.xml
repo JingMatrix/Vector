@@ -462,4 +462,9 @@
     <string name="launcher_prompt_title">У Vector ще немає значка</string>
     <string name="launcher_prompt_body">Vector працює всередині чужого процесу, а не встановлений, тому в лаунчері нічого не з\'являється і очевидного шляху назад немає. Додайте ярлик на головний екран або встановіть Vector як звичайний застосунок.</string>
     <string name="launcher_prompt_never">Більше не питати</string>
+    <string name="action_invalidate_art_inline_hooks">Режим сумісності інлайн-хуків ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Вимкнути інлайн-хуки ART Vector у цьому застосунку для покращення сумісності. Деякі модулі можуть перестати працювати тут, а застосунок може поводитися неправильно або аварійно завершуватися. Застосовується під час наступного запуску застосунка.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Режим сумісності інлайн-хуків ART увімкнено для %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Режим сумісності інлайн-хуків ART вимкнено для %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Не вдалося змінити режим сумісності інлайн-хуків ART для %1$s.</string>
 </resources>

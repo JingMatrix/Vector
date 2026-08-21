@@ -15,6 +15,8 @@ import org.matrix.vector.ipc.IProcessChannel
 import org.matrix.vector.ipc.IFrameworkService
 import org.matrix.vector.daemon.data.ConfigCache
 import org.matrix.vector.daemon.data.FileSystem
+import org.matrix.vector.daemon.data.InlineHookProcessPolicy
+import org.matrix.vector.daemon.data.PreferenceStore
 import org.matrix.vector.daemon.system.FIRST_APPLICATION_UID
 import org.matrix.vector.daemon.system.PER_USER_RANGE
 import org.matrix.vector.daemon.utils.InstallerVerifier
@@ -29,6 +31,8 @@ const val DEX_TRANSACTION_CODE =
     ('_'.code shl 24) or ('D'.code shl 16) or ('E'.code shl 8) or 'X'.code
 const val OBFUSCATION_MAP_TRANSACTION_CODE =
     ('_'.code shl 24) or ('O'.code shl 16) or ('B'.code shl 8) or 'F'.code
+const val INVALIDATE_ART_INLINE_HOOKS_TRANSACTION_CODE =
+    ('_'.code shl 24) or ('I'.code shl 16) or ('N'.code shl 8) or 'L'.code
 
 /**
  * What an injected process asks the framework for — this project's `IFrameworkService`.
@@ -239,6 +243,15 @@ object FrameworkService : IFrameworkService.Stub() {
           reply?.writeString(key)
           reply?.writeString(if (obfuscation) value else key)
         }
+        return true
+      }
+      INVALIDATE_ART_INLINE_HOOKS_TRANSACTION_CODE -> {
+        val info = ensureRegistered()
+        val invalidate =
+            InlineHookProcessPolicy.mayInvalidate(info.processName, info.key.uid) &&
+                PreferenceStore.shouldInvalidateArtInlineHooks(info.processName, info.key.uid)
+        reply?.writeNoException()
+        reply?.writeInt(if (invalidate) 1 else 0)
         return true
       }
     }

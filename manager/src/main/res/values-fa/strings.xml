@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector هنوز نمادی ندارد</string>
     <string name="launcher_prompt_body">Vector به‌جای آنکه نصب شده باشد درون فرایندی دیگر اجرا می‌شود، پس چیزی در لانچر پیدا نمی‌شود و راه روشنی برای بازگشت به آن نیست. به آن میان‌بری در صفحهٔ اصلی بدهید، یا آن را مانند برنامه‌ای معمولی نصب کنید.</string>
     <string name="launcher_prompt_never">دیگر پرسیده نشود</string>
+    <string name="action_invalidate_art_inline_hooks">حالت سازگاری هوک درون‌خطی ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">غیرفعال کردن هوک‌های درون‌خطی ART ویکتور در این برنامه برای بهبود سازگاری. برخی ماژول‌ها ممکن است در اینجا از کار بیفتند و برنامه ممکن است دچار مشکل یا کرش شود. در راه‌اندازی بعدی برنامه اعمال می‌شود.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">حالت سازگاری هوک درون‌خطی ART برای %1$s فعال شد.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">حالت سازگاری هوک درون‌خطی ART برای %1$s غیرفعال شد.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">تغییر حالت سازگاری هوک درون‌خطی ART برای %1$s ممکن نبود.</string>
 </resources>

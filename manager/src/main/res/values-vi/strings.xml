@@ -409,4 +409,9 @@
     <string name="launcher_prompt_title">Vector vẫn chưa có biểu tượng</string>
     <string name="launcher_prompt_body">Vector chạy bên trong một tiến trình khác thay vì được cài đặt, nên không có gì hiện ra trong trình khởi chạy và cũng không có cách quay lại rõ ràng. Hãy tạo cho nó một lối tắt trên màn hình chính, hoặc cài nó như một ứng dụng bình thường.</string>
     <string name="launcher_prompt_never">Đừng hỏi lại</string>
+    <string name="action_invalidate_art_inline_hooks">Chế độ tương thích hook nội tuyến ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Vô hiệu hóa hook nội tuyến ART của Vector trong ứng dụng này để cải thiện khả năng tương thích. Một số mô-đun có thể ngừng hoạt động ở đây và ứng dụng có thể hoạt động sai hoặc bị treo. Có hiệu lực khi ứng dụng khởi động lần tiếp theo.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Đã bật chế độ tương thích hook nội tuyến ART cho %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Đã tắt chế độ tương thích hook nội tuyến ART cho %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Không thể thay đổi chế độ tương thích hook nội tuyến ART cho %1$s.</string>
 </resources>

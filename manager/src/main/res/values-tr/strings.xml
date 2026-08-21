@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector\'ün henüz bir simgesi yok</string>
     <string name="launcher_prompt_body">Vector kurulmak yerine başka bir sürecin içinde çalışır; bu yüzden başlatıcınızda hiçbir şey görünmez ve geri dönmenin bariz bir yolu yoktur. Ona ana ekranda bir kısayol verin ya da sıradan bir uygulama olarak kurun.</string>
     <string name="launcher_prompt_never">Bir daha sorma</string>
+    <string name="action_invalidate_art_inline_hooks">ART satır içi kanca uyumluluk modu</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Uyumluluğu artırmak için bu uygulamada Vector\'ın ART satır içi kancalarını devre dışı bırakır. Bazı modüller burada çalışmayı durdurabilir ve uygulama arızalanabilir veya çökebilir. Uygulamanın bir sonraki başlatılışında geçerli olur.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">%1$s için ART satır içi kanca uyumluluğu etkinleştirildi.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">%1$s için ART satır içi kanca uyumluluğu devre dışı bırakıldı.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">%1$s için ART satır içi kanca uyumluluğu değiştirilemedi.</string>
 </resources>

@@ -410,4 +410,9 @@
     <string name="launcher_prompt_title">Vector 還沒有圖示</string>
     <string name="launcher_prompt_body">Vector 執行在別的程序裡，而不是被安裝到系統中，所以啟動器上看不到它，也沒有明顯的途徑再開啟它。給它一個主畫面捷徑，或者把它安裝成一般的應用程式。</string>
     <string name="launcher_prompt_never">不再詢問</string>
+    <string name="action_invalidate_art_inline_hooks">ART 內聯 HOOK 相容模式</string>
+    <string name="action_invalidate_art_inline_hooks_summary">在此應用程式中停用 Vector 的 ART 內聯 HOOK 以提高相容性。某些模組可能在此處失效，應用程式可能出現異常或崩潰。下次啟動該應用程式時生效。</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">已為 %1$s 啟用 ART 內聯 HOOK 相容模式。</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">已為 %1$s 停用 ART 內聯 HOOK 相容模式。</string>
+    <string name="action_invalidate_art_inline_hooks_failed">無法變更 %1$s 的 ART 內聯 HOOK 相容模式。</string>
 </resources>

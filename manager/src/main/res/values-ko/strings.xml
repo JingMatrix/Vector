@@ -409,4 +409,9 @@
     <string name="launcher_prompt_title">Vector에 아직 아이콘이 없습니다</string>
     <string name="launcher_prompt_body">Vector는 설치되는 대신 다른 프로세스 안에서 실행되므로 런처에 아무것도 나타나지 않고 다시 들어올 뚜렷한 방법도 없습니다. 홈 화면 바로가기를 만들거나, 일반 앱으로 설치하세요.</string>
     <string name="launcher_prompt_never">다시 묻지 않기</string>
+    <string name="action_invalidate_art_inline_hooks">ART 인라인 후크 호환 모드</string>
+    <string name="action_invalidate_art_inline_hooks_summary">이 앱에서 Vector의 ART 인라인 후크를 비활성화하여 호환성을 개선합니다. 일부 모듈이 여기서 작동하지 않을 수 있으며 앱이 오작동하거나 충돌할 수 있습니다. 다음에 앱을 시작할 때 적용됩니다.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">%1$s에 ART 인라인 후크 호환 모드를 사용하도록 설정했습니다.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">%1$s에 ART 인라인 후크 호환 모드를 사용하지 않도록 설정했습니다.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">%1$s의 ART 인라인 후크 호환 모드를 변경할 수 없습니다.</string>
 </resources>
