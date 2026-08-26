@@ -27,14 +27,15 @@
         android:strokeWidth="2.5"
         android:fillColor="#00000000" />
 
-    <!-- 所有circle节点全部包裹在 group 内部，修复编译错误 -->
-    <group>
-        <circle android:cx="136" android:cy="139" android:r="5" android:fillColor="#22F0F8"/>
-        <circle android:cx="151" android:cy="164" android:r="5" android:fillColor="#22F0F8"/>
-        <circle android:cx="151" android:cy="194" android:r="5" android:fillColor="#22F0F8"/>
-        <circle android:cx="217" android:cy="139" android:r="5" android:fillColor="#22F0F8"/>
-        <circle android:cx="202" android:cy="164" android:r="5" android:fillColor="#22F0F8"/>
-        <circle android:cx="202" android:cy="194" android:r="5" android:fillColor="#22F0F8"/>
-    </group>
+    <!-- 用path圆弧绘制6个节点圆点，完全不用circle标签，彻底消除cx/cy/r报错 -->
+    <path android:fillColor="#22F0F8"
+        android:pathData="
+M136,139 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+M151,164 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+M151,194 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+M217,139 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+M202,164 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+M202,194 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
+"/>
 
 </vector>
