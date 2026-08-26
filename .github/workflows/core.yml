@@ -27,6 +27,7 @@ jobs:
       # branch came from a fork, and the checked-out HEAD is an ephemeral merge commit that exists
       # nowhere and cannot be looked up by anyone who reads it off a device. Both head.* values are
       # null outside a pull request, where the defaults are already right.
+      VECTOR_BASE_REMOTE: upstream
       VECTOR_BUILD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       VECTOR_BUILD_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -40,6 +41,12 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          
+      - name: Fetch upstream JingMatrix Vector (only master + tags)
+        run: |
+          git remote add upstream https://github.com/JingMatrix/Vector.git
+          git fetch upstream master:refs/remotes/upstream/master --depth=0
+          git fetch upstream --tags --no-recurse-submodules
 
       # Before anything is built, because it needs nothing but Python and a translator's mistake
       # should not wait twenty minutes to surface. Crowdin owns the content of these files, so what
@@ -57,25 +64,19 @@ jobs:
       # to it and cannot be given one, so a fork builds unsigned, as does any branch that is not
       # master: neither publishes anything.
       - name: Write key
-        if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/master' ) || github.ref_type == 'tag' }}
+        # pull_request事件不注入密钥，其余（workflow_dispatch / push master / tag）都注入
+        if: ${{ github.event_name != 'pull_request' }}
         env:
           KEY_STORE: ${{ secrets.KEY_STORE }}
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           ALIAS: ${{ secrets.ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          IS_UPSTREAM: ${{ github.repository_owner == 'JingMatrix' }}
         run: |
           set -euo pipefail
           if [ -z "$KEY_STORE" ]; then
-            if [ "$IS_UPSTREAM" = "true" ]; then
-              echo "::error::KEY_STORE is empty on ${{ github.ref }}. Refusing to publish an unsigned build."
-              exit 1
-            fi
-            echo "No signing secret on this fork; building unsigned."
+            echo "::warning::No signing secret, building unsigned debug build."
             exit 0
           fi
-          # Through the environment rather than interpolated into the script: a password holding a
-          # quote would otherwise be pasted into a shell word and mangled, or worse, executed.
           {
             echo "androidStorePassword=$KEY_STORE_PASSWORD"
             echo "androidKeyAlias=$ALIAS"
@@ -170,111 +171,3 @@ jobs:
             zygisk/build/symbols
             daemon/build/symbols
             dex2oat/build/symbols
-
-      # --- stable release --------------------------------------------------------------------
-      #
-      # A pushed `v*` tag is a stable release, not a canary. It is published here from the same
-      # signed zips this build produced, so cutting a release is `git tag && git push` with nothing
-      # hand-uploaded afterwards — the hand-assembly is exactly how v2.0's assets came to disagree
-      # with zygisk/update.json (#811), and an automated attach cannot drift from what was built.
-      #
-      # Marked `--latest`, unlike the canaries below: this is what `releases/latest`, and therefore
-      # the manager's update check, resolves to. The body is the module's own zygisk/changelog.md
-      # under a GitHub H1 the release page shows. The changelog itself carries no title line — the
-      # manager renders it beneath its own heading, so a banner there would only read twice.
-      - name: Publish release
-        if: ${{ success() && github.ref_type == 'tag' && startsWith(github.ref_name, 'v') }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          # `%s` arguments, never the format string, so a `%` anywhere in the changelog is literal.
-          notes=$(printf '# 🎉 Vector %s 🎉\n\n%s\n' "${TAG#v}" "$(cat zygisk/changelog.md)")
-
-          # Recreated rather than edited so a re-run replaces the assets instead of appending a
-          # second copy. No `--cleanup-tag`: the release is rebuilt, the pushed release tag is kept.
-          gh release delete "$TAG" --yes 2>/dev/null || true
-          gh release create "$TAG" \
-            --latest \
-            --title "Vector ${TAG}" \
-            --notes "$notes" \
-            zygisk/release/Vector-v*-Release.zip \
-            zygisk/release/Vector-v*-Debug.zip
-
-      # --- canary distribution ---------------------------------------------------------------
-      #
-      # The zips above are also attached to a prerelease, because an Actions artifact cannot be
-      # downloaded without a GitHub account — `GET /actions/artifacts/<id>/zip` answers 401 to an
-      # anonymous caller, while a release asset answers 206. Testing a canary is the lowest-friction
-      # way for an ordinary user to help, so it must not require handing an OAuth grant to anyone,
-      # and it must work for the many users who cannot reach GitHub's login page at all.
-      #
-      # Marked prerelease so `releases/latest` — which is what update checks read — keeps pointing
-      # at the last stable tag.
-      - name: Publish canary prerelease
-        if: >-
-          success() &&
-          (github.event_name == 'workflow_dispatch' ||
-           (github.event_name == 'push' && github.ref == 'refs/heads/master'))
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION_CODE: ${{ steps.prepareArtifact.outputs.versionCode }}
-          VERSION_NAME: ${{ steps.prepareArtifact.outputs.versionName }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
-        run: |
-          set -euo pipefail
-          tag="canary-${VERSION_CODE}"
-          subject=$(git log -1 --pretty=%s)
-          short=$(git rev-parse --short HEAD)
-
-          notes=$(cat <<EOF
-          **${subject}**
-
-          Built from [\`${short}\`](${COMMIT_URL}) by [run ${{ github.run_id }}](${RUN_URL}).
-
-          This is a canary: the current state of \`master\`, tested by CI and nothing else. It is
-          published here rather than left as a workflow artifact so that it can be downloaded
-          without a GitHub account.
-
-          | Build | Use it when |
-          | :-- | :-- |
-          | \`Vector-${VERSION_NAME}-${VERSION_CODE}-Debug.zip\` | You are chasing a bug. Far more logging, and the build maintainers ask for in reports. |
-          | \`Vector-${VERSION_NAME}-${VERSION_CODE}-Release.zip\` | You just want the newest code. |
-
-          Only the five most recent canaries are kept.
-          EOF
-          )
-
-          # Recreated rather than edited: re-running the workflow for the same commit should
-          # replace that build, not append a second copy of every asset to it.
-          gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$tag" \
-            --prerelease \
-            --target "${{ github.sha }}" \
-            --title "Vector ${VERSION_NAME} canary ${VERSION_CODE}" \
-            --notes "$notes" \
-            zygisk/release/Vector-v*-Release.zip \
-            zygisk/release/Vector-v*-Debug.zip
-
-      # Five is what a tester needs: enough to bisect a regression across a few days, few enough
-      # that the releases page is still mostly releases. Sorted by version code, which is the commit
-      # count and therefore monotonic, rather than by date, which reruns and reverts can disorder.
-      - name: Keep only the five most recent canaries
-        if: >-
-          success() &&
-          (github.event_name == 'workflow_dispatch' ||
-           (github.event_name == 'push' && github.ref == 'refs/heads/master'))
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          # `grep` exits 1 when nothing matches, which under `pipefail` would fail the step on a
-          # repository that has no canaries yet. Collected first, then acted on.
-          tags=$(gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^canary-' || true)
-          [ -n "$tags" ] || exit 0
-          echo "$tags" | sort -t- -k2 -n -r | tail -n +6 | while read -r old; do
-            echo "Removing $old"
-            gh release delete "$old" --yes --cleanup-tag
-          done

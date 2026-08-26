@@ -21,17 +21,19 @@ plugins {
 }
 
 /** A ValueSource that executes 'git rev-list --count' to get the total commit count. */
-abstract class GitCommitCountValueSource : ValueSource<String, ValueSourceParameters.None> {
+abstract class GitCommitCountValueSource : ValueSource<String, GitCommitCountValueSource.Parameters> {
+    interface Parameters : ValueSourceParameters {
+        val baseRemoteName: Property<String>
+    }
     @get:Inject abstract val execOperations: ExecOperations
-
     override fun obtain(): String {
+        val remoteName = parameters.baseRemoteName.get()
         val output = ByteArrayOutputStream()
         val result = execOperations.exec {
-            commandLine("git", "rev-list", "--count", "refs/remotes/origin/master")
+            commandLine("git", "rev-list", "--count", "refs/remotes/$remoteName/master")
             standardOutput = output
             isIgnoreExitValue = true
         }
-        // Return the count if successful, otherwise a default of "1".
         return if (result.exitValue == 0 && output.toString().isNotBlank()) {
             output.toString().trim()
         } else {
@@ -39,7 +41,6 @@ abstract class GitCommitCountValueSource : ValueSource<String, ValueSourceParame
         }
     }
 }
-
 /** A ValueSource that executes 'git tag' to get the latest version tag. */
 abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParameters.None> {
     @get:Inject abstract val execOperations: ExecOperations
@@ -202,7 +203,11 @@ abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValue
 // the string here and the property name have to stay in step by hand now.
 //
 // This defers the execution of the git commands and allows Gradle to cache the results.
-val versionCodeProvider = providers.of(GitCommitCountValueSource::class.java) {}
+val versionCodeProvider = providers.of(GitCommitCountValueSource::class.java) {
+    parameters.baseRemoteName.set(
+        providers.environmentVariable("VECTOR_BASE_REMOTE").orElse("origin")
+    )
+}
 val versionHashProvider =
     providers.of(GitCommitHashValueSource::class.java) {
         // Set on every GitHub Actions runner and on nothing else, so the presence of either is
