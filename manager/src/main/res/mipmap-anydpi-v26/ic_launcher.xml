@@ -4,11 +4,11 @@
     <foreground>
         <inset
             android:drawable="@drawable/ic_winged_victory"
-            android:inset="25%" />
+            android:inset="22%" />
     </foreground>
     <monochrome>
         <inset
             android:drawable="@drawable/ic_statue_monochrome"
-            android:inset="25%" />
+            android:inset="22%" />
     </monochrome>
 </adaptive-icon>
