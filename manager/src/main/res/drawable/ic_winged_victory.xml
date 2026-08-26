@@ -1,41 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="353"
-    android:viewportHeight="353">
-
-    <!-- 外层浅青蓝V -->
+    android:height="512dp"
+    android:width="512dp"
+    android:viewportWidth="48.0"
+    android:viewportHeight="48.0">
     <path
-        android:pathData="M111,113 L176.5,259 L242,113 L199,113 L176.5,174 L154,113 Z"
-        android:fillColor="#22F0F8" />
-
-    <!-- 中层薄荷绿V -->
+        android:fillColor="#FFCFD8DC"
+        android:pathData="M39.4,23l-0.8,-4l-12.6,2.6l0,-13.6l-4,0l0,12.3l-13.9,-9l-2.2,3.4l15.2,9.8l-11.7,15.3l3.2,2.4l11.3,-14.8l8.4,12.7l3.4,-2.2l-8.4,-12.5z" />
     <path
-        android:pathData="M126,126 L176.5,244 L227,126 L204,126 L176.5,184 L149,126 Z"
-        android:fillColor="#14D8B0" />
-
-    <!-- 内层深青蓝V -->
+        android:fillColor="#FF3F51B5"
+        android:pathData="M24,24m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
     <path
-        android:pathData="M139,140 L176.5,229 L214,140 L194,140 L176.5,194 L159,140 Z"
-        android:fillColor="#08A8A8" />
-
-    <!-- V内部电路线条 -->
+        android:fillColor="#FF00BCD4"
+        android:pathData="M24,8m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
     <path
-        android:pathData="M136,139 L151,164 L151,194 M217,139 L202,164 L202,194"
-        android:strokeColor="#068080"
-        android:strokeWidth="2.5"
-        android:fillColor="#00000000" />
-
-    <!-- 用path圆弧绘制6个节点圆点，完全不用circle标签，彻底消除cx/cy/r报错 -->
-    <path android:fillColor="#22F0F8"
-        android:pathData="
-M136,139 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-M151,164 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-M151,194 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-M217,139 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-M202,164 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-M202,194 m -5,0 a 5,5 0 1,0 10,0 a 5,5 0 1,0 -10,0
-"/>
-
+        android:fillColor="#FF00BCD4"
+        android:pathData="M39,21m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+    <path
+        android:fillColor="#FF00BCD4"
+        android:pathData="M7,13m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+    <path
+        android:fillColor="#FF00BCD4"
+        android:pathData="M11,41m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
+    <path
+        android:fillColor="#FF00BCD4"
+        android:pathData="M34,39m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0" />
 </vector>
