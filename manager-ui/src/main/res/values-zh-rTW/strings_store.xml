@@ -48,7 +48,6 @@
     <string name="store_open_module">開啟模組頁面</string>
     <!-- Install -->
     <string name="store_install">安裝</string>
-    <string name="store_reinstall">重新安裝</string>
     <string name="store_choose_asset">選擇要安裝的檔案</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d 次下載</item>

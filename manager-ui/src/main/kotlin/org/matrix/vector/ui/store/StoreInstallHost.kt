@@ -23,6 +23,9 @@ interface StoreInstallHost {
     /** Whether the installed copy is a legacy-framework module (its scope names are swapped). */
     val installedIsLegacy: StateFlow<Boolean>
 
+    /** The user id of the installed copy, for the configuration screen; null when nothing is installed. */
+    val installedUserId: StateFlow<Int?>
+
     /** Download and install [asset], recording it against [releaseVersion]. */
     fun install(asset: ReleaseAsset, releaseVersion: RepoVersion?)
 

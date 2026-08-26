@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.di.ServiceLocator
+import org.matrix.vector.ui.module.PER_USER_RANGE
 import org.matrix.vector.ui.store.InstallStep
 import org.matrix.vector.ui.store.ReleaseAsset
 import org.matrix.vector.ui.store.RepoVersion
@@ -37,6 +38,9 @@ class VectorStoreInstallHost(private val packageName: String) : StoreInstallHost
     private val _installedIsLegacy = MutableStateFlow(false)
     override val installedIsLegacy: StateFlow<Boolean> = _installedIsLegacy.asStateFlow()
 
+    private val _installedUserId = MutableStateFlow<Int?>(null)
+    override val installedUserId: StateFlow<Int?> = _installedUserId.asStateFlow()
+
     init {
         refreshScope()
     }
@@ -56,6 +60,7 @@ class VectorStoreInstallHost(private val packageName: String) : StoreInstallHost
                     )
                 _installedScope.value = manifest.scope
                 _installedIsLegacy.value = manifest.isLegacy
+                _installedUserId.value = appInfo.uid / PER_USER_RANGE
             }
         }
     }

@@ -48,7 +48,6 @@
     <string name="store_open_module">モジュールのページを開く</string>
     <!-- Install -->
     <string name="store_install">インストール</string>
-    <string name="store_reinstall">再インストール</string>
     <string name="store_choose_asset">インストールするファイルを選択</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d 回のダウンロード</item>

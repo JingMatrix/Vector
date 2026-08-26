@@ -42,7 +42,6 @@
     <string name="store_open_module">Abrir a página do módulo</string>
 
     <string name="store_install">Instalar</string>
-    <string name="store_reinstall">Reinstalar</string>
     <string name="store_choose_asset">Escolha um arquivo para instalar</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d download</item>

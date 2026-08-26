@@ -50,7 +50,6 @@
     <string name="store_open_module">Modül sayfasını aç</string>
     <!-- Install -->
     <string name="store_install">Kur</string>
-    <string name="store_reinstall">Yeniden kur</string>
     <string name="store_choose_asset">Kurulacak dosyayı seçin</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d indirme</item>

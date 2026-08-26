@@ -93,6 +93,10 @@ class RepoDetailsViewModel(
     val installedIsLegacy: StateFlow<Boolean> =
         host?.installedIsLegacy ?: MutableStateFlow(false).asStateFlow()
 
+    /** The user id of the installed copy, for the configuration screen; null when nothing is installed. */
+    val installedUserId: StateFlow<Int?> =
+        host?.installedUserId ?: MutableStateFlow<Int?>(null).asStateFlow()
+
     private val _detail = MutableStateFlow<OnlineModule?>(null)
     private val _fetch = MutableStateFlow(DetailFetch.Loading)
 
