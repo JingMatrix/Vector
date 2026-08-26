@@ -27,7 +27,7 @@
         android:strokeWidth="2.5"
         android:fillColor="#00000000" />
 
-    <!-- 把所有circle节点全部放到group标签内！修复编译错误 -->
+    <!-- 所有circle节点全部包裹在 group 内部，修复编译错误 -->
     <group>
         <circle android:cx="136" android:cy="139" android:r="5" android:fillColor="#22F0F8"/>
         <circle android:cx="151" android:cy="164" android:r="5" android:fillColor="#22F0F8"/>
