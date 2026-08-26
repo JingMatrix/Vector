@@ -45,7 +45,7 @@ jobs:
       - name: Fetch upstream JingMatrix Vector (only master + tags)
         run: |
           git remote add upstream https://github.com/JingMatrix/Vector.git
-          git fetch upstream master:refs/remotes/upstream/master --depth=0
+          git fetch upstream master
           git fetch upstream --tags --no-recurse-submodules
 
       # Before anything is built, because it needs nothing but Python and a translator's mistake
