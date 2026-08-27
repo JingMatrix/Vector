@@ -686,14 +686,14 @@ private fun QuarterHeadline(feed: CommunityFeed, windowChanged: Boolean) {
         // changed, so what is on screen was re-cut from disk and may not reach as far as the new
         // window does. It takes precedence over the other three because it is the newest fact and
         // the only actionable one.
-        if (windowChanged || feed.offline || feed.fromCache) {
+        // 只保留窗口变更和离线，删除"暂歇中"
+        if (windowChanged || feed.offline) {
             Spacer(Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     when {
                         windowChanged -> Icons.Rounded.Refresh
-                        feed.offline -> Icons.Rounded.CloudOff
-                        else -> Icons.Rounded.Bedtime
+                        else -> Icons.Rounded.CloudOff
                     },
                     contentDescription = null,
                     modifier = Modifier.height(14.dp),
@@ -707,8 +707,7 @@ private fun QuarterHeadline(feed: CommunityFeed, windowChanged: Boolean) {
                         stringResource(
                             when {
                                 windowChanged -> R.string.home_window_changed
-                                feed.offline -> R.string.home_offline
-                                else -> R.string.home_resting
+                                else -> R.string.home_offline
                             }
                         ),
                     style = MaterialTheme.typography.labelSmall,
