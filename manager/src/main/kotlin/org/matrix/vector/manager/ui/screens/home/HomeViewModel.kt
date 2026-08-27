@@ -326,58 +326,39 @@ class HomeViewModel(
 
     init {
         refreshPresence()
-        // The binder may arrive after this ViewModel exists — injection order is not ours to
-        // control — so status is re-derived whenever it changes rather than read once in init.
+        
+        // ==================== 秒开 + 后台自动更新 ====================
+        // 1. 立即从缓存加载（瞬间返回，不等待网络）
+        _feed.value = github.load(GitHubRepository.Freshness.Cached)
+        
+        // 2. 后台异步刷新，不阻塞 UI
         viewModelScope.launch {
-            // Both flows, because a refused binder leaves `service` null and only moves
-            // `peerDescriptor`. Collecting `service` alone would see no change at all — it was
-            // already null — and the header would sit on "not activated" for a framework that is
-            // running and simply out of step with this build.
-            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
-                .collect { service ->
-                    refreshStatus(service)
-                    // Both switches on the status page hold the daemon's state rather than ours,
-                    // and the binder is what they need. This runs for every binder, including one
-                    // already in hand when `refreshPresence` ran above — a second read of two
-                    // idempotent values — and it is here for the one that arrives afterwards,
-                    // which that call found nothing to ask about and returned. Nor is it the last
-                    // such moment: `refreshPresence` asks again whenever a screen that shows them
-                    // is opened, since this flow does not emit a second time while one binder
-                    // stays alive.
-                    if (service != null) refreshToggles()
-                }
+            delay(300)  // 让首页先渲染完成
+            val fresh = github.load(GitHubRepository.Freshness.Revalidate)
+            _feed.value = fresh
+            _refreshing.value = false
+            _windowChanged.value = false
         }
-        // Returning to Home is not a reason to talk to GitHub. The page renders from disk every
-        // time and only occasionally goes and checks — the window it shows changes a few times a
-        // week at most, and the user's battery and their share of an anonymous rate limit are worth
-        // more than redrawing identical rows. Pull-to-refresh is always there when they do want it.
-        //
-        // Opening the app *is* a reason, and the toss used to apply there too: four launches in five
-        // showed whatever was on disk, which after a while is a feed that has quietly stopped
-        // moving — and a cold start is exactly when it has had the longest to go stale. So the first
-        // Home of a process always checks, and the toss governs only the visits after it. Process
-        // scope rather than a timestamp because that is what "since the app was opened" means here:
-        // parasitically the host is `com.android.shell` and is killed constantly, but each of those
-        // deaths is also what makes the next arrival a first launch to the reader.
-        val firstThisProcess = !homeOpenedThisProcess
-        homeOpenedThisProcess = true
-        val checkNow = firstThisProcess || Random.nextFloat() >= FEED_PAUSE_PROBABILITY
-        refreshFeed(
-            if (checkNow) GitHubRepository.Freshness.Revalidate
-            else GitHubRepository.Freshness.Cached
-        )
+        // ============================================================
+        
+        // 3. 监听窗口变化（用户调整时间范围）
         viewModelScope.launch {
-            // drop(1): the value on subscription is the window already rendered.
             ServiceLocator.settings.activityWindowMonths.drop(1).collect {
                 _windowChanged.value = true
-                // From disk, not from GitHub. The archive already holds the commits; the window is
-                // only a view of it, so re-cutting it costs nothing and the feed answers on the
-                // frame after the sheet closes.
                 _feed.value = github.load(GitHubRepository.Freshness.Cached)
             }
         }
+        
+        // 4. 监听框架状态变化
+        viewModelScope.launch {
+            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
+                .collect { service ->
+                    refreshStatus(service)
+                    if (service != null) refreshToggles()
+                }
+        }
     }
-
+    
     private suspend fun refreshStatus(service: IManagerService?) {
         if (service == null || !daemon.isAlive) {
             // A binder did arrive and was refused for speaking a different generation of the
@@ -677,17 +658,6 @@ class HomeViewModel(
     val historyStalled: StateFlow<Boolean> = _exhausted.asStateFlow()
 
     companion object {
-        /** How often *returning* to Home leaves the feed on what is already on disk. */
-        private const val FEED_PAUSE_PROBABILITY = 0.8f
-
-        /**
-         * True once Home has been built in this process, whatever the feed did about it.
-         *
-         * On the companion because that is exactly the scope wanted — one per process, shared by
-         * every HomeViewModel a session builds, and gone when the host is killed. Volatile because
-         * `init` runs on whichever thread built the ViewModel.
-         */
-        @Volatile private var homeOpenedThisProcess = false
 
         /**
          * How many times a day the badge has to be used before it stops explaining itself.
