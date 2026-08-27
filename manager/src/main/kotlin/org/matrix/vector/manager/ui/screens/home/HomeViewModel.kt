@@ -341,15 +341,15 @@ class HomeViewModel(
                 _windowChanged.value = false
             } else {
                 // ========== 无缓存：显示"加载中" ==========
-                _feed.value = CommunityFeed()  // loaded = false → "加载中"
+                _feed.value = CommunityFeed().copy(loaded = false)  // ← 强制 loaded = false
                 
                 viewModelScope.launch {
                     val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-                    // 保持"加载中"直到真正有数据
+                    // 只有真正有数据时才更新，否则保持"加载中"
                     _feed.value = if (fresh.commits.isNotEmpty()) {
                         fresh
                     } else {
-                        CommunityFeed()  // 保持 loaded = false → "加载中"
+                        CommunityFeed().copy(loaded = false)  // ← 强制 loaded = false
                     }
                     _refreshing.value = false
                     _windowChanged.value = false
