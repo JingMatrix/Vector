@@ -339,20 +339,21 @@ class HomeViewModel(
                 _feed.value = fresh
                 _refreshing.value = false
                 _windowChanged.value = false
-                // ==================================
             } else {
                 // ========== 无缓存：显示"加载中" ==========
-                _feed.value = CommunityFeed()
+                _feed.value = CommunityFeed()  // loaded = false → "加载中"
                 
                 viewModelScope.launch {
                     val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-                    // 联网成功 → 显示数据
-                    // 联网失败 → 保持"加载中"（和原始代码一致）
-                    _feed.value = fresh
+                    // 保持"加载中"直到真正有数据
+                    _feed.value = if (fresh.commits.isNotEmpty()) {
+                        fresh
+                    } else {
+                        CommunityFeed()  // 保持 loaded = false → "加载中"
+                    }
                     _refreshing.value = false
                     _windowChanged.value = false
                 }
-                // ========================================
             }
         }
         
