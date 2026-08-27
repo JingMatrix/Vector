@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxWidth
 
 /**
  * `API 101` / `Xposed 93`, with the scale name small and quiet and the number carrying the colour.
