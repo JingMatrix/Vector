@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOn
@@ -327,52 +326,79 @@ class HomeViewModel(
 
     init {
         refreshPresence()
-        
+        // The binder may arrive after this ViewModel exists — injection order is not ours to
+        // control — so status is re-derived whenever it changes rather than read once in init.
+        viewModelScope.launch {
+            // Both flows, because a refused binder leaves `service` null and only moves
+            // `peerDescriptor`. Collecting `service` alone would see no change at all — it was
+            // already null — and the header would sit on "not activated" for a framework that is
+            // running and simply out of step with this build.
+            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
+                .collect { service ->
+                    refreshStatus(service)
+                    // Both switches on the status page hold the daemon's state rather than ours,
+                    // and the binder is what they need. This runs for every binder, including one
+                    // already in hand when `refreshPresence` ran above — a second read of two
+                    // idempotent values — and it is here for the one that arrives afterwards,
+                    // which that call found nothing to ask about and returned. Nor is it the last
+                    // such moment: `refreshPresence` asks again whenever a screen that shows them
+                    // is opened, since this flow does not emit a second time while one binder
+                    // stays alive.
+                    if (service != null) refreshToggles()
+                }
+        }
+
+        // =============================================
+        // Feed 加载逻辑：有缓存秒开，无缓存显示加载中
+        // =============================================
         viewModelScope.launch {
             val cached = github.load(GitHubRepository.Freshness.Cached)
-            
-            if (cached.commits.isNotEmpty() || cached.loaded) {
-                // ========== 有缓存：秒开 ==========
+            if (cached.commits.isNotEmpty()) {
+                // 有缓存：秒开
                 _feed.value = cached
                 delay(300)
-                val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-                _feed.value = fresh
+                try {
+                    val fresh = github.load(GitHubRepository.Freshness.Revalidate)
+                    if (fresh.commits.isNotEmpty()) {
+                        _feed.value = fresh
+                    }
+                } catch (_: Exception) {
+                    // 网络失败，保留缓存
+                }
                 _refreshing.value = false
                 _windowChanged.value = false
             } else {
-                // ========== 无缓存：显示"加载中" ==========
-                _feed.value = CommunityFeed().copy(loaded = false)  // ← 强制 loaded = false
-                
-                viewModelScope.launch {
+                // 无缓存：显示加载中，立即联网
+                _feed.value = CommunityFeed().copy(loaded = false)
+                _refreshing.value = true
+                try {
                     val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-                    // 只有真正有数据时才更新，否则保持"加载中"
-                    _feed.value = if (fresh.commits.isNotEmpty()) {
-                        fresh
+                    if (fresh.commits.isNotEmpty()) {
+                        _feed.value = fresh
                     } else {
-                        CommunityFeed().copy(loaded = false)  // ← 强制 loaded = false
+                        _feed.value = CommunityFeed().copy(loaded = true)
                     }
+                } catch (_: Exception) {
+                    // 网络失败，保持 loaded = false，用户可下拉刷新
+                } finally {
                     _refreshing.value = false
                     _windowChanged.value = false
                 }
             }
         }
-        
+
         viewModelScope.launch {
+            // drop(1): the value on subscription is the window already rendered.
             ServiceLocator.settings.activityWindowMonths.drop(1).collect {
                 _windowChanged.value = true
+                // From disk, not from GitHub. The archive already holds the commits; the window is
+                // only a view of it, so re-cutting it costs nothing and the feed answers on the
+                // frame after the sheet closes.
                 _feed.value = github.load(GitHubRepository.Freshness.Cached)
             }
         }
-        
-        viewModelScope.launch {
-            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
-                .collect { service ->
-                    refreshStatus(service)
-                    if (service != null) refreshToggles()
-                }
-        }
     }
-    
+
     private suspend fun refreshStatus(service: IManagerService?) {
         if (service == null || !daemon.isAlive) {
             // A binder did arrive and was refused for speaking a different generation of the
