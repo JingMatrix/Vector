@@ -332,22 +332,27 @@ class HomeViewModel(
             val cached = github.load(GitHubRepository.Freshness.Cached)
             
             if (cached.commits.isNotEmpty() || cached.loaded) {
+                // ========== 有缓存：秒开 ==========
                 _feed.value = cached
                 delay(300)
                 val fresh = github.load(GitHubRepository.Freshness.Revalidate)
                 _feed.value = fresh
                 _refreshing.value = false
                 _windowChanged.value = false
+                // ==================================
             } else {
+                // ========== 无缓存：显示"加载中" ==========
                 _feed.value = CommunityFeed()
-                val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-                _feed.value = if (fresh.commits.isEmpty() && !fresh.loaded) {
-                    CommunityFeed().copy(loaded = true, offline = true)
-                } else {
-                    fresh
+                
+                viewModelScope.launch {
+                    val fresh = github.load(GitHubRepository.Freshness.Revalidate)
+                    // 联网成功 → 显示数据
+                    // 联网失败 → 保持"加载中"（和原始代码一致）
+                    _feed.value = fresh
+                    _refreshing.value = false
+                    _windowChanged.value = false
                 }
-                _refreshing.value = false
-                _windowChanged.value = false
+                // ========================================
             }
         }
         
