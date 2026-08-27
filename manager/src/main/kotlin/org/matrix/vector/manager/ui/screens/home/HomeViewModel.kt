@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.random.Random
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.data.github.CommunityFeed
 import org.matrix.vector.manager.data.github.GitHubRepository
