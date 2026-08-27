@@ -328,32 +328,55 @@ class HomeViewModel(
     init {
         refreshPresence()
         
-        viewModelScope.launch {
-            // 立即显示缓存
-            _feed.value = github.load(GitHubRepository.Freshness.Cached)
-            // 延迟后刷新
-            delay(300)
-            val fresh = github.load(GitHubRepository.Freshness.Revalidate)
-            _feed.value = fresh
-            _refreshing.value = false
-            _windowChanged.value = false
-        }
+        val cached = github.load(GitHubRepository.Freshness.Cached)
         
-        viewModelScope.launch {
-            ServiceLocator.settings.activityWindowMonths.drop(1).collect {
-                _windowChanged.value = true
-                _feed.value = github.load(GitHubRepository.Freshness.Cached)
+        if (cached.commits.isNotEmpty() || cached.loaded) {
+            // ==================== 有缓存：秒开 ====================
+            _feed.value = cached
+            
+            // 300ms 后后台刷新
+            viewModelScope.launch {
+                delay(300)
+                val fresh = github.load(GitHubRepository.Freshness.Revalidate)
+                _feed.value = fresh
+                _refreshing.value = false
+                _windowChanged.value = false
             }
-        }
-        
-        viewModelScope.launch {
-            combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
-                .collect { service ->
-                    refreshStatus(service)
-                    if (service != null) refreshToggles()
+            // ====================================================
+        } else {
+            // ==================== 无缓存：立即联网 ====================
+            // 显示"加载中..."（和原始代码一样）
+            _feed.value = CommunityFeed()
+            
+            viewModelScope.launch {
+                val fresh = github.load(GitHubRepository.Freshness.Revalidate)
+                // 联网失败时显示"离线"，而不是"没有动态"
+                _feed.value = if (fresh.commits.isEmpty() && !fresh.loaded) {
+                    CommunityFeed().copy(loaded = true, offline = true)
+                } else {
+                    fresh
                 }
+                _refreshing.value = false
+                _windowChanged.value = false
+            }
+            // ====================================================
+        }
+    
+    viewModelScope.launch {
+        ServiceLocator.settings.activityWindowMonths.drop(1).collect {
+            _windowChanged.value = true
+            _feed.value = github.load(GitHubRepository.Freshness.Cached)
         }
     }
+    
+    viewModelScope.launch {
+        combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
+            .collect { service ->
+                refreshStatus(service)
+                if (service != null) refreshToggles()
+            }
+    }
+}
     
     private suspend fun refreshStatus(service: IManagerService?) {
         if (service == null || !daemon.isAlive) {
