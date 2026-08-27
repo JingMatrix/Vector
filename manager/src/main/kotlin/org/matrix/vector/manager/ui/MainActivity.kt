@@ -6,11 +6,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import org.matrix.vector.manager.data.repository.LaunchShortcut
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.navigation.DeepLink
-import org.matrix.vector.manager.ui.screens.splash.SplashGate
 import org.matrix.vector.manager.ui.theme.LocalizedContent
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
 import org.matrix.vector.manager.ui.theme.VectorTheme
@@ -27,9 +25,6 @@ import org.matrix.vector.ui.LocalDialogLocalizer
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Must precede super.onCreate. Handing off from the platform splash is what keeps an
-        // unthemed frame from appearing between the system splash and the Compose one.
-        val splash = installSplashScreen()
 
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -52,8 +47,6 @@ class MainActivity : ComponentActivity() {
 
         // Keep the platform splash up only until the first frame is ready to draw; the Compose
         // splash then plays and decides for itself when the daemon has been given long enough.
-        splash.setKeepOnScreenCondition { false }
-
         // The launch intent can name where to open — the module a notification was about.
         //
         // Offered on every creation, including a restored one. Parasitically the zygisk hooker
@@ -79,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalDialogLocalizer provides { content -> LocalizedOverlay(content) }
                 ) {
-                    VectorTheme { SplashGate { VectorApp() } }
+                    VectorTheme { VectorApp() }
                 }
             }
         }

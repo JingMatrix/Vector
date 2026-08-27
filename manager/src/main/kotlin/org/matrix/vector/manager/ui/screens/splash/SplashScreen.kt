@@ -1,6 +1,5 @@
 package org.matrix.vector.manager.ui.screens.splash
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -23,18 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.vector.manager.R
-import org.matrix.vector.manager.di.ServiceLocator
-import kotlinx.coroutines.flow.first
-import org.matrix.vector.manager.logW
 
 /** How long the animation itself needs, so the statue is never cut off mid-fade. */
-private const val ANIMATION_MS = 800L
-
-/** The longest we wait on the daemon before showing the UI anyway, in its "not activated" state. */
-private const val DAEMON_TIMEOUT_MS = 2_500L
+private const val ANIMATION_MS = 700L
 
 /**
  * The Winged Victory, fading and scaling in — Vector, from *Victoria*.
@@ -46,25 +37,6 @@ private const val DAEMON_TIMEOUT_MS = 2_500L
  * [ANIMATION_MS] is then spent after the handshake rather than overlapped with it, so a binder that
  * resolves instantly still leaves the fade its full length instead of a flash of half-drawn artwork.
  */
-@Composable
-fun SplashGate(content: @Composable () -> Unit) {
-    var ready by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        // The handshake first, under a ceiling; then the artwork's own duration.
-        val bound =
-            withTimeoutOrNull(DAEMON_TIMEOUT_MS) { ServiceLocator.service.first { it != null } }
-        if (bound == null) {
-            logW("splash: no daemon binder after ${DAEMON_TIMEOUT_MS}ms, continuing unactivated")
-        }
-        delay(ANIMATION_MS)
-        ready = true
-    }
-
-    Crossfade(targetState = ready, animationSpec = tween(320), label = "splashHandoff") { done ->
-        if (done) content() else WingedVictory()
-    }
-}
 
 /** The splash artwork, also summoned by the header's easter egg. */
 @Composable
@@ -101,7 +73,7 @@ fun WingedVictory() {
             // The drawable is a 108dp square whose figure runs nearly the full height of its
             // viewport, so it is given 92% of both dimensions and fitted inside — which keeps its
             // proportions in portrait and landscape without stretching or clipping.
-            modifier = Modifier.fillMaxSize(0.92f).scale(scale).alpha(alpha),
+            modifier = Modifier.fillMaxSize(0.82f).scale(scale).alpha(alpha),
         )
     }
 }
