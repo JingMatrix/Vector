@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * `API 101` / `Xposed 93`, with the scale name small and quiet and the number carrying the colour.
@@ -24,7 +26,13 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ApiBadge(label: String, value: String, incompatible: Boolean = false) {
     val colors = MaterialTheme.colorScheme
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .basicMarquee(iterations = 3, repeatDelayMillis = 2000),
+        horizontalArrangement = Arrangement.Center,  // ← 居中
+        verticalAlignment = Alignment.Bottom,
+    ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
@@ -35,6 +43,8 @@ fun ApiBadge(label: String, value: String, incompatible: Boolean = false) {
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = if (incompatible) colors.error else colors.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
         )
     }
 }

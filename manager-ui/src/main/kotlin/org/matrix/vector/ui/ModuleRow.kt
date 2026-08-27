@@ -132,24 +132,29 @@ fun ModuleRow(
         // leaving the list; a bare tap only reports state, since a one-tap toggle would fire whenever
         // a thumb brushed the list.
         Column(
-            modifier =
-                if (onIconClick != null)
-                    Modifier.contextClickable(onClick = onIconClick, onLongClick = onIconLongClick)
-                else Modifier,
-            // Against the text, not centred over the badge: the badge below is wider than the icon,
-            // so centring left a gap between the icon and the edge the names all start from.
-            horizontalAlignment = Alignment.End,
+            modifier = Modifier.width(72.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Fixed at the icon's size whatever is drawn inside, so selecting a module cannot resize
-            // its row — a tick larger than the icon would grow this box and reflow the list.
-            Box(modifier = Modifier.size(ICON_SIZE), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(ICON_SIZE)
+                    .clip(CircleShape)
+                    .then(
+                        if (onIconClick != null)
+                            Modifier.contextClickable(
+                                onClick = onIconClick,
+                                onLongClick = onIconLongClick,
+                            )
+                        else Modifier
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
                 icon()
                 if (selected) {
                     Box(
-                        modifier =
-                            Modifier.fillMaxSize()
-                                .clip(CircleShape)
-                                .background(colors.primary.copy(alpha = 0.85f)),
+                        modifier = Modifier.fillMaxSize()
+                            .clip(CircleShape)
+                            .background(colors.primary.copy(alpha = 0.85f)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -162,7 +167,13 @@ fun ModuleRow(
                 }
             }
             Spacer(Modifier.height(6.dp))
-            apiBadge()
+            // API Badge 固定宽度居中
+            Box(
+                modifier = Modifier.width(60.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                apiBadge()
+            }
         }
 
         Spacer(Modifier.width(16.dp))
