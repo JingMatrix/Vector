@@ -21,14 +21,14 @@ fun ApiBadge(label: String, value: String, incompatible: Boolean = false) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,  // ← 统一用 labelMedium
+            style = MaterialTheme.typography.labelSmall,  // ← 统一用 labelMedium
             color = colors.onSurfaceVariant.copy(alpha = 0.7f),
             maxLines = 1,
             overflow = TextOverflow.Clip,
         )
         Text(
             text = " ",
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = colors.onSurfaceVariant.copy(alpha = 0.7f),
             maxLines = 1,
         )
