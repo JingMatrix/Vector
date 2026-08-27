@@ -139,6 +139,7 @@ fun ModuleRow(
             Box(
                 modifier = Modifier
                     .size(ICON_SIZE)
+                    .clip(RoundedCornerShape(8.dp))
                     .then(
                         if (onIconClick != null)
                             Modifier.contextClickable(
@@ -168,7 +169,7 @@ fun ModuleRow(
             }
             Spacer(Modifier.height(6.dp))
             Box(
-                modifier = Modifier.width(70.dp),
+                modifier = Modifier.width(72.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 apiBadge()

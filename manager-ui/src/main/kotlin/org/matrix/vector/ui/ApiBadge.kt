@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 
 @Composable
 fun ApiBadge(label: String, value: String, incompatible: Boolean = false) {
@@ -20,19 +21,24 @@ fun ApiBadge(label: String, value: String, incompatible: Boolean = false) {
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium,  // ← 统一用 labelMedium
             color = colors.onSurfaceVariant.copy(alpha = 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
         )
         Text(
             text = " ",
             style = MaterialTheme.typography.labelMedium,
             color = colors.onSurfaceVariant.copy(alpha = 0.7f),
+            maxLines = 1,
         )
         Text(
             text = value,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Black,
             color = if (incompatible) colors.error else colors.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
         )
     }
 }
