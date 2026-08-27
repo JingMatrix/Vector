@@ -135,10 +135,10 @@ fun ModuleRow(
             modifier = Modifier.width(72.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // 图标 - 不裁剪，保持应用原生形状
             Box(
                 modifier = Modifier
                     .size(ICON_SIZE)
-                    .clip(CircleShape)
                     .then(
                         if (onIconClick != null)
                             Modifier.contextClickable(
@@ -167,9 +167,8 @@ fun ModuleRow(
                 }
             }
             Spacer(Modifier.height(6.dp))
-            // API Badge 固定宽度居中
             Box(
-                modifier = Modifier.width(60.dp),
+                modifier = Modifier.width(70.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 apiBadge()
