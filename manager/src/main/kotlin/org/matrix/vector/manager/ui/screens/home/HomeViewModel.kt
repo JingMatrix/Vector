@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flowOn
@@ -327,21 +328,17 @@ class HomeViewModel(
     init {
         refreshPresence()
         
-        // ==================== 秒开 + 后台自动更新 ====================
-        // 1. 立即从缓存加载（瞬间返回，不等待网络）
-        _feed.value = github.load(GitHubRepository.Freshness.Cached)
-        
-        // 2. 后台异步刷新，不阻塞 UI
         viewModelScope.launch {
-            delay(300)  // 让首页先渲染完成
+            // 立即显示缓存
+            _feed.value = github.load(GitHubRepository.Freshness.Cached)
+            // 延迟后刷新
+            delay(300)
             val fresh = github.load(GitHubRepository.Freshness.Revalidate)
             _feed.value = fresh
             _refreshing.value = false
             _windowChanged.value = false
         }
-        // ============================================================
         
-        // 3. 监听窗口变化（用户调整时间范围）
         viewModelScope.launch {
             ServiceLocator.settings.activityWindowMonths.drop(1).collect {
                 _windowChanged.value = true
@@ -349,7 +346,6 @@ class HomeViewModel(
             }
         }
         
-        // 4. 监听框架状态变化
         viewModelScope.launch {
             combine(ServiceLocator.service, ServiceLocator.peerMismatch) { service, _ -> service }
                 .collect { service ->
