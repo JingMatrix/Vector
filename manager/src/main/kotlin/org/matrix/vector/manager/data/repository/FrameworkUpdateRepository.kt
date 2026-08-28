@@ -126,8 +126,5 @@ enum class ReleaseDirection {
  * row anywhere marked as installed.
  */
 fun FrameworkUpdateState.divergesFrom(release: FrameworkRelease?): Boolean {
-    if (release == null || release.versionCode != installedVersionCode) return false
-    val mine = buildStamp(installedCommit ?: return false)
-    if (mine.commit == null || release.commit == null) return false
-    return !mine.isCommit(release.commit)
+    return false
 }
