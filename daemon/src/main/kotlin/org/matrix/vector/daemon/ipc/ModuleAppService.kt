@@ -161,11 +161,16 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
             binderExecutor.execute {
               try {
                 val delivered = service.sendBinder(uid)
-                if (deliveryAttempts.isCurrent(uid, attempt) && delivered != null) {
-                  binderFailures.remove(uid)
-                  linkDelivery(uid, delivered, attempt)
-                } else if (deliveryAttempts.isCurrent(uid, attempt)) {
-                  recordFailure(uid, module.packageName)
+                val completion =
+                    deliveryAttempts.complete(
+                        uid = uid,
+                        attempt = attempt,
+                        delivered = delivered != null,
+                        clearFailures = { binderFailures.remove(uid) },
+                        recordFailure = { recordFailure(uid, module.packageName) },
+                    )
+                if (completion == DeliveryCompletion.COMMIT) {
+                  linkDelivery(uid, checkNotNull(delivered), attempt)
                 }
               } finally {
                 deliveryAttempts.finish(uid, attempt)
@@ -231,9 +236,8 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
 
     private fun recordFailure(uid: Int, modulePkg: String) {
       var crossed = false
-      // Read-modify-write in one step. Two threads cannot be here for one uid while
-      // [deliveryAttempts] holds the attempt, but that is an invariant of another field and not
-      // one to build arithmetic on.
+      // Read-modify-write in one step. An attempt invalidated by uidGone and its replacement can
+      // both fail for the same uid; a plain get-then-put would lose one of those failures.
       binderFailures.compute(uid) { _, previous ->
         val now = SystemClock.elapsedRealtime()
         val count =
