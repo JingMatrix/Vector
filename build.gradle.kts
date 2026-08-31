@@ -40,14 +40,16 @@ abstract class GitCommitCountValueSource : ValueSource<String, ValueSourceParame
     }
 }
 
-/** A ValueSource that executes 'git tag' to get the latest version tag. */
+/** A ValueSource that executes 'git tag' to get the latest stable version tag. */
 abstract class GitLatestTagValueSource : ValueSource<String, ValueSourceParameters.None> {
     @get:Inject abstract val execOperations: ExecOperations
 
     override fun obtain(): String {
         val output = ByteArrayOutputStream()
         val result = execOperations.exec {
-            commandLine("git", "tag", "--list", "--sort=-v:refname")
+            // Canary releases create their own tags. Letting one become VERSION_NAME puts its
+            // hyphen into the zip name, which the release workflow then parses as separate fields.
+            commandLine("git", "tag", "--list", "--sort=-v:refname", "v*")
             standardOutput = output
             isIgnoreExitValue = true
         }
@@ -217,6 +219,21 @@ val versionHashProvider =
         parameters.buildCommit.set(providers.environmentVariable("VECTOR_BUILD_COMMIT").orElse(""))
     }
 val versionNameProvider = providers.of(GitLatestTagValueSource::class.java) {}
+
+// This repository always has a canary tag after its first successful master build. Exercising the
+// provider against the real checkout makes a regression in the v* filter fail before packaging can
+// reuse an old canary's version code and overwrite its release.
+tasks.register("checkVersionName") {
+    group = "verification"
+    description = "Checks that canary tags cannot become distribution version names."
+    inputs.property("versionName", versionNameProvider)
+    doLast {
+        val versionName = versionNameProvider.get()
+        check(!versionName.startsWith("canary-")) {
+            "Canary tag selected as the distribution version: $versionName"
+        }
+    }
+}
 
 val injectedPackageName = "com.android.shell"
 val injectedPackageUid = 2000
