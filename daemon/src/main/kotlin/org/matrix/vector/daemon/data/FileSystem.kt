@@ -41,6 +41,16 @@ import org.matrix.vector.daemon.utils.ObfuscationManager
 private const val TAG = "VectorFileSystem"
 
 /**
+ * What the module installer labels the module tree, and what [FileSystem] holds it to.
+ *
+ * Chosen over `xposed_file` because the manager APK is read by whoever receives it: the shipped
+ * `sepolicy.rule` grants `xposed_file` to `shell` but not to `untrusted_app`, so an installed
+ * manager could no longer update itself. The platform allows every `appdomain` and `coredomain`
+ * to read a `system_file`, which covers both.
+ */
+private const val SYSTEM_FILE_CONTEXT = "u:object_r:system_file:s0"
+
+/**
  * What came of trying to load a module APK.
  *
  * The loader used to answer every refusal with the same null, so a module built against libxposed
@@ -86,10 +96,43 @@ object FileSystem {
     runCatching {
           Files.createDirectories(basePath)
           Os.chmod(basePath.toString(), "700".toInt(8))
-          SELinux.setFileContext(basePath.toString(), "u:object_r:system_file:s0")
+          SELinux.setFileContext(basePath.toString(), SYSTEM_FILE_CONTEXT)
           Files.createDirectories(configDirPath)
         }
         .onFailure { Log.e(TAG, "Failed to initialize directories", it) }
+    ensureManagerApkLabel()
+  }
+
+  /**
+   * Reasserts the label the flash gave [managerApkPath].
+   *
+   * The manager APK is the one file in the module directory that leaves it as a descriptor rather
+   * than as bytes: `FrameworkService.openManagerApk` hands it to the host process to inject, and
+   * `ManagerService.getManagerApk` hands it to an installed manager to update itself. The kernel
+   * judges that hand-off by the *receiver* — `selinux_binder_transfer_file` checks the file against
+   * `cred_sid(to)` — so the read is asked of `u:r:shell:s0` for the parasitic host, and of the
+   * app's own domain for an installed one, never of the daemon's root context. Opening the file
+   * here therefore proves nothing about whether it can be passed on.
+   *
+   * The installer leaves the module tree `system_file`, which every `appdomain` and `coredomain`
+   * may read, and that is what makes the hand-off work. Nothing keeps it that way: `/data/adb` is
+   * `adb_data_file` in the platform's `file_contexts`, and init's `restorecon --recursive
+   * --skip-ce /data` walks the tree again whenever the `file_contexts` digest changes — a system
+   * image flashed over a kept /data — which puts the default back. `adb_data_file` is readable by
+   * `adbd` alone, so from then on every launch fails the transfer, the host is handed nothing, and
+   * the manager dies in the host's own activity with a null intent to show for it. Magisk does not
+   * repair this at boot either: its own restorecon only relabels files that are `unlabeled`.
+   */
+  private fun ensureManagerApkLabel() {
+    if (!managerApkPath.exists()) return
+    val path = managerApkPath.toString()
+    runCatching {
+          if (SELinux.getFileContext(path) == SYSTEM_FILE_CONTEXT) return@runCatching
+          if (!SELinux.setFileContext(path, SYSTEM_FILE_CONTEXT)) {
+            Log.w(TAG, "Failed to relabel $path as $SYSTEM_FILE_CONTEXT")
+          }
+        }
+        .onFailure { Log.e(TAG, "Failed to relabel $path", it) }
   }
 
   fun setupCli(): String {
