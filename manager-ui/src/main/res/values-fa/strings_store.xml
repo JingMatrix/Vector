@@ -50,7 +50,6 @@
     <string name="store_open_module">باز کردن صفحهٔ ماژول</string>
     <!-- Install -->
     <string name="store_install">نصب</string>
-    <string name="store_reinstall">نصب دوباره</string>
     <string name="store_choose_asset">پرونده‌ای برای نصب برگزینید</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d بارگیری</item>

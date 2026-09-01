@@ -48,7 +48,6 @@
     <string name="store_open_module">모듈 페이지 열기</string>
     <!-- Install -->
     <string name="store_install">설치</string>
-    <string name="store_reinstall">다시 설치</string>
     <string name="store_choose_asset">설치할 파일 고르기</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">다운로드 %1$d회</item>

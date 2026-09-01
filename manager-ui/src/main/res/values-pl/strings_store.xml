@@ -54,7 +54,6 @@
     <string name="store_open_module">Otwórz stronę modułu</string>
     <!-- Install -->
     <string name="store_install">Zainstaluj</string>
-    <string name="store_reinstall">Zainstaluj ponownie</string>
     <string name="store_choose_asset">Wybierz plik do zainstalowania</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d pobranie</item>

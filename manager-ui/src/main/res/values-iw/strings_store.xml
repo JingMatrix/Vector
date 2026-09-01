@@ -46,7 +46,6 @@
     <string name="store_open_module">פתיחת דף המודול</string>
 
     <string name="store_install">התקנה</string>
-    <string name="store_reinstall">התקנה מחדש</string>
     <string name="store_choose_asset">בחרו קובץ להתקנה</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">הורדה אחת</item>

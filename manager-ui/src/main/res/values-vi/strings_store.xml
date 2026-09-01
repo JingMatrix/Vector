@@ -48,7 +48,6 @@
     <string name="store_open_module">Mở trang của mô-đun</string>
     <!-- Install -->
     <string name="store_install">Cài đặt</string>
-    <string name="store_reinstall">Cài lại</string>
     <string name="store_choose_asset">Chọn tệp để cài</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d lượt tải</item>

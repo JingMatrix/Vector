@@ -54,7 +54,6 @@
     <string name="store_open_module">Відкрити сторінку модуля</string>
     <!-- Install -->
     <string name="store_install">Встановити</string>
-    <string name="store_reinstall">Перевстановити</string>
     <string name="store_choose_asset">Виберіть файл для встановлення</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d завантаження</item>

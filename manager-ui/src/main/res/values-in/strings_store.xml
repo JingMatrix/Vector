@@ -40,7 +40,6 @@
     <string name="store_open_module">Buka halaman modul</string>
 
     <string name="store_install">Pasang</string>
-    <string name="store_reinstall">Pasang ulang</string>
     <string name="store_choose_asset">Pilih berkas untuk dipasang</string>
     <plurals name="store_asset_downloads">
         <item quantity="other">%1$d unduhan</item>

@@ -58,7 +58,6 @@
     <string name="store_open_module">فتح صفحة الوحدة</string>
     <!-- Install -->
     <string name="store_install">تثبيت</string>
-    <string name="store_reinstall">إعادة التثبيت</string>
     <string name="store_choose_asset">اختر ملفًا للتثبيت</string>
     <plurals name="store_asset_downloads">
         <item quantity="zero">لا تنزيلات</item>

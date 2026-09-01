@@ -57,7 +57,6 @@
 
     <!-- Install -->
     <string name="store_install">Install</string>
-    <string name="store_reinstall">Reinstall</string>
     <string name="store_choose_asset">Choose a file to install</string>
     <plurals name="store_asset_downloads">
         <item quantity="one">%1$d download</item>

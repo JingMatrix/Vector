@@ -235,6 +235,7 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
             packageName = route.packageName,
             onNavigateBack = { navigator.back() },
             onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenScope = { packageName, userId -> navigator.go(Scope(packageName, userId)) },
             dataSource = ServiceLocator.store,
             settings = ServiceLocator.settings,
             host = remember(route.packageName) { VectorStoreInstallHost(route.packageName) },

@@ -113,6 +113,7 @@ fun RepoDetailsScreen(
     packageName: String,
     onNavigateBack: () -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenScope: (packageName: String, userId: Int) -> Unit,
     dataSource: StoreDataSource,
     settings: StoreSettings,
     host: StoreInstallHost? = null,
@@ -137,6 +138,7 @@ fun RepoDetailsScreen(
     val installedScope by viewModel.installedScope.collectAsState()
     val installedIsLegacy by viewModel.installedIsLegacy.collectAsState()
     val install by viewModel.installState.collectAsState()
+    val installedUserId by viewModel.installedUserId.collectAsState()
 
     var choosing by remember { mutableStateOf<Release?>(null) }
     var optionsOpen by remember { mutableStateOf(false) }
@@ -204,6 +206,8 @@ fun RepoDetailsScreen(
                         else choosing = release
                     },
                     onAcknowledge = viewModel::acknowledgeInstall,
+                    installedUserId = installedUserId,
+                    onOpenScope = { onOpenScope(packageName, it) },
                 )
             }
         },
@@ -378,6 +382,9 @@ private fun InstallBar(
     install: InstallStep,
     onInstall: (Release) -> Unit,
     onAcknowledge: () -> Unit,
+    /** The installed copy's user id, so the "Manage" button can open the configuration screen. */
+    installedUserId: Int?,
+    onOpenScope: (userId: Int) -> Unit,
 ) {
     val context = LocalContext.current
     val newest = state.releases.firstOrNull { it.apks.isNotEmpty() } ?: return
@@ -449,31 +456,46 @@ private fun InstallBar(
                     }
                 }
                 else -> {
-                    Button(
-                        onClick = {
-                            onAcknowledge()
-                            onInstall(newest)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Icon(
-                            Icons.Rounded.Download,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            when {
-                                state.upgradable ->
-                                    stringResource(
-                                        if (state.sameVersion) UiR.string.store_badge_reinstall
-                                        else UiR.string.store_badge_update,
-                                        state.latest?.versionName.orEmpty(),
-                                    )
-                                state.installed != null -> stringResource(UiR.string.store_reinstall)
-                                else -> stringResource(UiR.string.store_install)
-                            }
-                        )
+                    // Installed and current — the next thing is to configure it, not reinstall it.
+                    if (state.installed != null && !state.upgradable && installedUserId != null) {
+                        FilledTonalButton(
+                            onClick = { onOpenScope(installedUserId) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(
+                                Icons.Rounded.Tune,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(UiR.string.nav_manage))
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                onAcknowledge()
+                                onInstall(newest)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(
+                                Icons.Rounded.Download,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                when {
+                                    state.upgradable ->
+                                        stringResource(
+                                            if (state.sameVersion) UiR.string.store_badge_reinstall
+                                            else UiR.string.store_badge_update,
+                                            state.latest?.versionName.orEmpty(),
+                                        )
+                                    else -> stringResource(UiR.string.store_install)
+                                }
+                            )
+                        }
                     }
                 }
             }
