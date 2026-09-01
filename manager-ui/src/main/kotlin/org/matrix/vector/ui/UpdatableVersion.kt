@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -50,7 +49,7 @@ fun UpdatableVersion(
     text: String,
     hasUpdate: Boolean,
     modifier: Modifier = Modifier,
-    /** Whether an over-long version scrolls past instead of being cut. */
+    /** Whether an over-long version scrolls past, as [ScrollingLabel], instead of being cut. */
     marquee: Boolean = false,
     style: TextStyle = Mono,
     color: Color = LocalContentColor.current,
@@ -81,15 +80,17 @@ fun UpdatableVersion(
             )
             Spacer(Modifier.width(5.dp))
         }
-        Text(
-            text = text,
-            style = style,
-            color = if (hasUpdate) markColor else color,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier =
-                if (marquee) Modifier.basicMarquee(iterations = 1, repeatDelayMillis = 2_000)
-                else Modifier,
-        )
+        val ink = if (hasUpdate) markColor else color
+        // Ellipsised only where it cannot scroll: a marquee draws its own text past the edge, and
+        // an ellipsis on top of that is a full stop in the middle of a moving line.
+        if (marquee) ScrollingLabel(text = text, style = style, color = ink)
+        else
+            Text(
+                text = text,
+                style = style,
+                color = ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
     }
 }
