@@ -32,7 +32,7 @@ import org.matrix.vector.ui.sheetRowColors
 /**
  * Where a version stands relative to the running build — the one distinction each row is marked by.
  *
- * [Installed] is the build actually running (a filled dot, the accent). [Diverged] carries the same
+ * [Installed] is the build actually running (its dot wears the accent). [Diverged] carries the same
  * version number but was not made from this release — another branch, or a working tree with changes
  * — so it looks installed by the number alone and must be told apart. [Older] sits below the running
  * build. [None] is any other version (a newer one on offer, or a sibling channel's build).
@@ -68,8 +68,10 @@ private val STATUS_WIDTH = 96.dp
  * name, date, channel and status, tapping one to switch the screen to it.
  *
  * A scrollable list rather than a dropdown, so an older build carries the same weight as the newest
- * and nothing is hidden past an edge. The rows are marked the way an activity feed marks the commit
- * you are on — a filled dot against hollow ones — so the running build is findable at a glance.
+ * and nothing is hidden past an edge. The dots are a radio group and behave like one: the filled
+ * one is the build the screen is showing, and it moves to whichever row is tapped. What is
+ * *installed* is a separate fact and is told separately — the dot's colour and the status word
+ * beside it — because the two rows are only the same one until the reader picks something else.
  *
  * Localised through [LocalDialogLocalizer] like every shared sheet: a sheet is its own window and
  * drops the host's in-app language override on the way in, so it is re-applied inside.
@@ -99,9 +101,15 @@ fun VersionHistorySheet(
                         supportingContent = {
                             Text(item.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         },
+                        // The filled dot is the row the screen is showing, because that is what a
+                        // list of dots means everywhere else: tapping one moves it. The installed
+                        // build is still marked, by the colour of its dot and by the word in the
+                        // status column — reading it off the fill instead would leave the reader
+                        // who has just tapped an older build with no dot against the row they are
+                        // looking at, and a filled one against a row they are not.
                         leadingContent = {
                             Icon(
-                                if (item.status == VersionStatus.Installed) Icons.Rounded.RadioButtonChecked
+                                if (item.selected) Icons.Rounded.RadioButtonChecked
                                 else Icons.Rounded.RadioButtonUnchecked,
                                 contentDescription = null,
                                 tint =

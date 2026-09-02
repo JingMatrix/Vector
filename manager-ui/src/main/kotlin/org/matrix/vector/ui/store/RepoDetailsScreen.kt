@@ -2,6 +2,7 @@ package org.matrix.vector.ui.store
 
 import org.matrix.vector.ui.R as UiR
 import org.matrix.vector.ui.ToggleRow
+import org.matrix.vector.ui.ScrollingLabel
 import org.matrix.vector.ui.SheetHeading
 import org.matrix.vector.ui.sheetRowColors
 import org.matrix.vector.ui.theme.Mono
@@ -462,17 +463,22 @@ private fun InstallBar(
                             modifier = Modifier.size(18.dp),
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text(
-                            when {
-                                state.upgradable ->
-                                    stringResource(
-                                        if (state.sameVersion) UiR.string.store_badge_reinstall
-                                        else UiR.string.store_badge_update,
-                                        state.latest?.versionName.orEmpty(),
-                                    )
-                                state.installed != null -> stringResource(UiR.string.store_reinstall)
-                                else -> stringResource(UiR.string.store_install)
-                            }
+                        // One line, whatever the version name is: a button that grows a second row
+                        // to fit a build identifier moves the bar under the reader's thumb.
+                        ScrollingLabel(
+                            text =
+                                when {
+                                    state.upgradable ->
+                                        stringResource(
+                                            if (state.sameVersion) UiR.string.store_badge_reinstall
+                                            else UiR.string.store_badge_update,
+                                            state.latest?.versionName.orEmpty(),
+                                        )
+                                    state.installed != null ->
+                                        stringResource(UiR.string.store_reinstall)
+                                    else -> stringResource(UiR.string.store_install)
+                                },
+                            modifier = Modifier.weight(1f, fill = false),
                         )
                     }
                 }
@@ -658,27 +664,39 @@ private fun ReleaseCard(
                     )
                     .padding(vertical = 4.dp),
         ) {
-            // The tag, not the name: it carries the version code, which is what actually decides
-            // whether the platform will accept this over what is installed.
-            release.tagName?.let {
-                Text(text = it, style = Mono, color = colors.onSurfaceVariant, maxLines = 1)
-            }
-            release.publishedAt.asRepositoryDate(locale)?.let {
-                if (release.tagName != null) {
-                    Text(
-                        text = "  ·  ",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.outlineVariant,
+            // The tag and the date share what is left after the chevron, and the date is served
+            // first: it is a fixed handful of characters, while a tag is whatever the publisher
+            // wrote and is regularly longer than the screen. Measured the other way round the tag
+            // would push the date into a column one character wide.
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                // The tag, not the name: it carries the version code, which is what
+                // actually decides whether the platform will accept this over what is
+                // installed.
+                release.tagName?.let {
+                    ScrollingLabel(
+                        text = it,
+                        style = Mono,
+                        color = colors.onSurfaceVariant,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                 }
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = colors.onSurfaceVariant,
-                )
+                release.publishedAt.asRepositoryDate(locale)?.let {
+                    if (release.tagName != null) {
+                        Text(
+                            text = "  ·  ",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.outlineVariant,
+                        )
+                    }
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = colors.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
             }
             if (hasNotes) {
-                Spacer(Modifier.weight(1f))
                 Icon(
                     Icons.Rounded.ExpandMore,
                     contentDescription = disclose,

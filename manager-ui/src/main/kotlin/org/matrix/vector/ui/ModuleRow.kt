@@ -2,7 +2,6 @@ package org.matrix.vector.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -193,16 +192,14 @@ fun ModuleRow(
                 // The title's band. Both halves are fixed and both scroll, so however long a name or
                 // version string becomes neither can reach the other.
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
+                    ScrollingLabel(
                         text = name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        style =
+                            MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
                         color = nameColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Clip,
-                        modifier =
-                            Modifier.weight(1f)
-                                .basicMarquee(iterations = 1, repeatDelayMillis = 3_000),
+                        modifier = Modifier.weight(1f),
                     )
                     if (versionName.isNotBlank()) {
                         Spacer(Modifier.width(10.dp))
