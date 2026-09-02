@@ -111,10 +111,38 @@ bool InstallNativeAPI(const lsplant::HookHandler &handler);
  */
 void RegisterNativeLib(const std::string &library_name);
 
+#if defined(__aarch64__)
+inline void *ResolveOEMVeneer(void *target) {
+    if (!target) return nullptr;
+
+    auto *insn = static_cast<uint32_t *>(target);
+
+    // Check for 'ldr x17, pc+8' (0x58000051) followed by 'br x17' (0xd61f0220)
+    if (insn[0] == 0x58000051 && insn[1] == 0xd61f0220) {
+        void *real_target = *reinterpret_cast<void **>(insn + 2);
+        LOGW("OEM veneer (x17) detected at {}, resolving to {}", target, real_target);
+        return real_target;
+    }
+
+    // Check for 'ldr x16, pc+8' (0x58000050) followed by 'br x16' (0xd61f0200)
+    if (insn[0] == 0x58000050 && insn[1] == 0xd61f0200) {
+        void *real_target = *reinterpret_cast<void **>(insn + 2);
+        LOGW("OEM veneer (x16) detected at {}, resolving to {}", target, real_target);
+        return real_target;
+    }
+
+    return target;
+}
+#else
+inline void *ResolveOEMVeneer(void *target) { return target; }
+#endif
+
 /**
  * @brief A wrapper around DobbyHook.
  */
 inline int HookInline(void *original, void *replace, void **backup) {
+    original = ResolveOEMVeneer(original);
+
     if constexpr (kIsDebugBuild) {
         Dl_info info;
         if (dladdr(original, &info)) {
@@ -132,6 +160,8 @@ inline int HookInline(void *original, void *replace, void **backup) {
  * @brief A wrapper around DobbyDestroy.
  */
 inline int UnhookInline(void *original) {
+    original = ResolveOEMVeneer(original);
+
     if constexpr (kIsDebugBuild) {
         Dl_info info;
         if (dladdr(original, &info)) {
