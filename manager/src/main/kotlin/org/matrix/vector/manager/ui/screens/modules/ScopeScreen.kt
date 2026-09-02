@@ -41,7 +41,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import org.matrix.vector.ui.contextClickable
 import androidx.compose.foundation.shape.CircleShape
@@ -112,6 +111,7 @@ import org.matrix.vector.ui.show
 import org.matrix.vector.manager.ui.components.PackageActionResult
 import org.matrix.vector.manager.ui.components.PackageActionSheet
 import org.matrix.vector.ui.SearchField
+import org.matrix.vector.ui.ScrollingLabel
 import org.matrix.vector.ui.theme.Mono
 
 class ScopeViewModelFactory(private val packageName: String, private val userId: Int) :
@@ -262,20 +262,15 @@ fun ScopeScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(
+                        // The column is a fixed slice of one row, and module names are not.
+                        // Rather than truncate the end of a name — often exactly the part that
+                        // distinguishes two builds of the same module — it scrolls itself.
+                        ScrollingLabel(
                             text = state.moduleName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            softWrap = false,
-                            // The column is a fixed slice of one row, and module names are not.
-                            // Rather than truncate the end of a name — often exactly the part that
-                            // distinguishes two builds of the same module — it scrolls itself.
-                            //
-                            // Finite, not endless: this is a screen someone sits on while working
-                            // through a long list, and a title that never stops moving is a
-                            // distraction. It says its piece and settles.
-                            modifier = Modifier.basicMarquee(iterations = 3),
+                            style =
+                                MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
                         )
                         Text(
                             text = packageName,

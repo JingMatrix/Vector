@@ -10,6 +10,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberBottomSheetState
 import org.matrix.vector.ui.ChoiceRow
+import org.matrix.vector.ui.ScrollingLabel
 import org.matrix.vector.ui.SheetHeading
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -401,6 +402,11 @@ private fun StoreRow(entry: StoreEntry, onClick: () -> Unit) {
                                 entry.latest?.versionName.orEmpty(),
                             ),
                         tint = colors.primary,
+                        // The version name in this badge is the publisher's, and can be
+                        // longer than the row. It takes what is left after the date rather
+                        // than the other way round: the date is a fixed handful of
+                        // characters and the badge is not.
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                 entry.installed != null ->
                     RowBadge(
@@ -422,11 +428,11 @@ private fun StoreRow(entry: StoreEntry, onClick: () -> Unit) {
 }
 
 @Composable
-private fun RowBadge(icon: ImageVector, text: String, tint: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun RowBadge(icon: ImageVector, text: String, tint: Color, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = tint)
         Spacer(Modifier.width(4.dp))
-        Text(text = text, style = MaterialTheme.typography.labelMedium, color = tint)
+        ScrollingLabel(text = text, style = MaterialTheme.typography.labelMedium, color = tint)
     }
 }
 
