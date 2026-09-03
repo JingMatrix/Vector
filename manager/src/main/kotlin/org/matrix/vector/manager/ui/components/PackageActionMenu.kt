@@ -52,6 +52,7 @@ import android.text.format.Formatter
 import androidx.compose.material.icons.rounded.ArrowCircleUp
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.FlashOff
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -361,6 +362,50 @@ LocalizedOverlay {
                     )
                 }
             }
+        }
+
+        // The inverse of re-optimizing, also only for a hook target. Where re-optimizing clears
+        // the inlined-away hooks ART has baked in, this stops Vector from installing ART inline
+        // hooks in the first place — the same silence, but a compatibility escape hatch rather
+        // than a fix: it trades the hooks of every module against an app that otherwise breaks or
+        // crashes. Read and written per package through the daemon, so the switch starts as the
+        // stored value and flips only as far as the daemon agrees.
+        if (!isModule) {
+            var invalidateInlineHooks by remember(packageName) { mutableStateOf<Boolean?>(null) }
+            LaunchedEffect(packageName) {
+                invalidateInlineHooks =
+                    daemon.getInvalidateArtInlineHookPackages().getOrNull()?.contains(packageName)
+            }
+            ActionToggleRow(
+                icon = Icons.Rounded.FlashOff,
+                title = stringResource(R.string.action_invalidate_art_inline_hooks),
+                subtitle = stringResource(R.string.action_invalidate_art_inline_hooks_summary),
+                checked = invalidateInlineHooks == true,
+                onCheckedChange = { enabled ->
+                    finish {
+                        val ok =
+                            daemon
+                                .setInvalidateArtInlineHooks(packageName, enabled)
+                                .onFailure { e ->
+                                    logE(
+                                        "actions: set ART inline hook invalidation for " +
+                                            "$packageName failed",
+                                        e,
+                                    )
+                                }
+                                .getOrDefault(false)
+                        PackageActionResult(
+                            when {
+                                !ok -> R.string.action_invalidate_art_inline_hooks_failed
+                                enabled -> R.string.action_invalidate_art_inline_hooks_enabled
+                                else -> R.string.action_invalidate_art_inline_hooks_disabled
+                            },
+                            appName,
+                            tone = if (ok) SnackbarTone.Success else SnackbarTone.Failure,
+                        )
+                    }
+                },
+            )
         }
 
         if (isModule) {

@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector hat noch kein Symbol</string>
     <string name="launcher_prompt_body">Vector läuft in einem fremden Prozess, statt installiert zu sein — im Launcher erscheint also nichts, und es gibt keinen offensichtlichen Weg zurück. Gib ihm eine Verknüpfung auf dem Startbildschirm, oder installiere es als gewöhnliche App.</string>
     <string name="launcher_prompt_never">Nicht mehr fragen</string>
+    <string name="action_invalidate_art_inline_hooks">ART-Inline-Hook-Kompatibilitätsmodus</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Deaktiviere Vector\'s ART-Inline-Hooks in dieser App, um die Kompatibilität zu verbessern. Einige Module funktionieren hier möglicherweise nicht mehr, und die App kann sich fehlverhalten oder abstürzen. Wirkt beim nächsten Start der App.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">ART-Inline-Hook-Kompatibilität für %1$s aktiviert.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">ART-Inline-Hook-Kompatibilität für %1$s deaktiviert.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">ART-Inline-Hook-Kompatibilität für %1$s konnte nicht geändert werden.</string>
 </resources>

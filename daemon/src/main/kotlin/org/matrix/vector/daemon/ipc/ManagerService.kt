@@ -284,6 +284,12 @@ object ManagerService : IManagerService.Stub() {
     if (isVerboseLogEnabled()) LogcatMonitor.startVerbose() else LogcatMonitor.stopVerbose()
   }
 
+  override fun getInvalidateArtInlineHookPackages(): MutableList<String> =
+      PreferenceStore.getInvalidateArtInlineHookPackages().sorted().toMutableList()
+
+  override fun setInvalidateArtInlineHooks(packageName: String, enabled: Boolean): Boolean =
+      PreferenceStore.setInvalidateArtInlineHooks(packageName, enabled)
+
   override fun getLogParts(verbose: Boolean): List<String> = FileSystem.listLogParts(verbose)
 
   override fun getLogPart(verbose: Boolean, name: String): ParcelFileDescriptor? =

@@ -410,4 +410,9 @@
     <string name="launcher_prompt_title">Vector 还没有图标</string>
     <string name="launcher_prompt_body">Vector 运行在别的进程里，而不是被安装到系统中，所以桌面上看不到它，也没有明显的途径再打开它。给它一个桌面快捷方式，或者把它安装成一个普通应用。</string>
     <string name="launcher_prompt_never">不再询问</string>
+    <string name="action_invalidate_art_inline_hooks">ART 内联 HOOK 兼容模式</string>
+    <string name="action_invalidate_art_inline_hooks_summary">在此应用中禁用 Vector 的 ART 内联 HOOK 以提高兼容性。某些模块可能在此处失效，应用可能出现异常或崩溃。下次启动该应用时生效。</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">已为 %1$s 启用 ART 内联 HOOK 兼容模式。</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">已为 %1$s 禁用 ART 内联 HOOK 兼容模式。</string>
+    <string name="action_invalidate_art_inline_hooks_failed">无法更改 %1$s 的 ART 内联 HOOK 兼容模式。</string>
 </resources>

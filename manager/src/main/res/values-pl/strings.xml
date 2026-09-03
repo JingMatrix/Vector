@@ -482,4 +482,9 @@
     <string name="launcher_prompt_title">Vector nie ma jeszcze ikony</string>
     <string name="launcher_prompt_body">Vector działa w ramach innego procesu i nie jest instalowany, więc nic nie pojawia się w launcherze, więc nie ma oczywistej drogi powrotu. Dodaj skrót na ekranie głównym lub zainstaluj go jako zwykłą aplikację.</string>
     <string name="launcher_prompt_never">Nie pytaj ponownie</string>
+    <string name="action_invalidate_art_inline_hooks">Tryb zgodności hooków inline ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Wyłącza hooki inline ART Vectora w tej aplikacji, aby poprawić zgodność. Niektóre moduły mogą przestać tu działać, a aplikacja może działać nieprawidłowo lub się zawieszać. Działa przy następnym uruchomieniu aplikacji.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Włączono tryb zgodności hooków inline ART dla %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Wyłączono tryb zgodności hooków inline ART dla %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Nie udało się zmienić trybu zgodności hooków inline ART dla %1$s.</string>
 </resources>
