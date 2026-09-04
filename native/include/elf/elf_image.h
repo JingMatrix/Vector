@@ -25,8 +25,9 @@ namespace vector::native {
  * @brief Represents a loaded ELF shared library in the current process.
  *
  * An ElfImage instance is created with the filename of a library (e.g., "libart.so").
- * It automatically finds the library's base address in memory by parsing `/proc/self/maps` and
- * then memory-maps the ELF file from disk to parse its headers.
+ * It automatically finds the library's base address in memory by asking the dynamic linker,
+ * falling back to `/proc/self/maps`, and then memory-maps the ELF file from disk to parse its
+ * headers.
  */
 class ElfImage {
 public:
@@ -99,7 +100,16 @@ public:
     [[nodiscard]] const std::string &GetPath() const { return path_; }
 
 private:
-    // Finds the base address of the library in the current process's memory map.
+    /**
+     * @brief Ask the dynamic linker where the module is loaded.
+     *
+     * dl_iterate_phdr walks the linker's own list, so this needs no /proc/self/maps parsing at
+     * all -- which also avoids a read that is itself detectable.
+     * @return true if the linker knows this module, in which case base_ and path_ are set.
+     */
+    bool findModuleBaseViaLinker();
+
+    // Recovers the base address from /proc/self/maps, for modules the linker does not enumerate.
     bool findModuleBase();
     // Parses the main ELF headers from a given header pointer.
     void parseHeaders(ElfW(Ehdr) * header);

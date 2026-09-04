@@ -7,7 +7,10 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <string>
+#include <string_view>
 #include <utility>  // For std::move
+#include <vector>
 
 #include "common/logging.h"
 
@@ -22,14 +25,19 @@ inline T PtrOffset(void *base, ptrdiff_t offset) {
 }  // namespace
 
 ElfImage::ElfImage(std::string_view lib_name) : path_(lib_name) {
-    if (!findModuleBase()) {
+    // Ask the dynamic linker first; fall back to parsing /proc/self/maps only for objects it
+    // does not enumerate.
+    if (!findModuleBaseViaLinker() && !findModuleBase()) {
         base_ = nullptr;  // Ensure base_ is null on failure.
         return;
     }
 
+    // From here on every failure clears base_: IsValid() must not report an image whose symbol
+    // tables were never parsed, or callers get a null address for every symbol with no clue why.
     int fd = open(path_.c_str(), O_RDONLY | O_CLOEXEC);
     if (fd < 0) {
         PLOGE("Failed to open ELF file: {}", path_.c_str());
+        base_ = nullptr;
         return;
     }
 
@@ -37,6 +45,7 @@ ElfImage::ElfImage(std::string_view lib_name) : path_(lib_name) {
     if (fstat(fd, &file_info) < 0) {
         PLOGE("fstat failed for {}", path_.c_str());
         close(fd);
+        base_ = nullptr;
         return;
     }
     file_size_ = file_info.st_size;
@@ -47,6 +56,16 @@ ElfImage::ElfImage(std::string_view lib_name) : path_(lib_name) {
     if (file_map_ == MAP_FAILED) {
         PLOGE("mmap failed for {}", path_.c_str());
         file_map_ = nullptr;
+        base_ = nullptr;
+        return;
+    }
+
+    // The path is whatever the linker or the maps file named, which is not necessarily an ELF at
+    // all (a library loaded straight out of an APK names the APK). parseHeaders() walks section
+    // headers by offset and would read wild pointers, so check the magic before trusting it.
+    if (file_size_ < sizeof(ElfW(Ehdr)) || memcmp(file_map_, ELFMAG, SELFMAG) != 0) {
+        LOGE("{} is not an ELF file, refusing to parse it", path_.c_str());
+        base_ = nullptr;
         return;
     }
 
@@ -298,10 +317,86 @@ ElfW(Addr) ElfImage::prefixLookupFirst(std::string_view prefix) const {
     return 0;
 }
 
+namespace {
+
+// Payload for the dl_iterate_phdr callback below.
+struct LinkerQuery {
+    std::string_view wanted;  // name or fragment the caller asked for
+    std::string matched_path;
+    uintptr_t base = 0;
+    bool found = false;
+    bool exact = false;  // basename == wanted, so a later inexact hit cannot displace it
+};
+
+std::string_view BasenameOf(std::string_view s) {
+    const auto slash = s.find_last_of('/');
+    return slash == std::string_view::npos ? s : s.substr(slash + 1);
+}
+
+int LinkerCallback(struct dl_phdr_info *info, size_t, void *data) {
+    auto *q = static_cast<LinkerQuery *>(data);
+    if (info->dlpi_name == nullptr || info->dlpi_name[0] == '\0') return 0;
+
+    const std::string_view name{info->dlpi_name};
+    if (name.find(q->wanted) == std::string_view::npos) return 0;
+
+    const bool exact = BasenameOf(name) == q->wanted;
+    if (q->found && (q->exact || !exact)) return 0;  // keep the better match already held
+
+    const ElfW(Phdr) *first_load = nullptr;
+    for (int i = 0; i < info->dlpi_phnum; ++i) {
+        const ElfW(Phdr) *ph = &info->dlpi_phdr[i];
+        if (ph->p_type != PT_LOAD) continue;
+        if (first_load == nullptr || ph->p_vaddr < first_load->p_vaddr) first_load = ph;
+    }
+    if (first_load == nullptr) return 0;
+
+    // dlpi_addr is the load bias, which is the address of file offset 0 only when the first
+    // PT_LOAD has p_vaddr == p_offset -- usual, but not guaranteed, so subtract them out.
+    q->base = static_cast<uintptr_t>(info->dlpi_addr) + first_load->p_vaddr - first_load->p_offset;
+    q->matched_path.assign(name);
+    q->found = true;
+    q->exact = exact;
+    return exact ? 1 : 0;  // an exact basename match ends the walk
+}
+
+}  // namespace
+
+/*
+ * The linker already knows where every library it loaded lives, so ask it rather than reconstruct
+ * the answer from /proc/self/maps.  It is the better source on three counts:
+ *
+ *   * no decoy can fool it.  Extra mappings of the file -- including this class's own MAP_SHARED
+ *     view of it -- are invisible here, because the linker never loaded them.
+ *   * a library that is genuinely loaded twice enumerates in the linker's own order -- solist is
+ *     kept in load order -- so the first hit is the earliest load rather than whichever address
+ *     happens to sort lowest.
+ *   * it does not read /proc/self/maps, a read that is itself detectable.
+ *
+ * One module is not covered: the dynamic linker itself.  Bionic has put it at the head of solist
+ * under its own path on every release we support, but it only fills that entry's program headers
+ * in from API 29 on -- get_libdl_info() began copying linker_si.phdr/phnum in Android 10, and
+ * before that dlpi_phnum is 0 there.  With no PT_LOAD to read the walk yields nothing, so on API
+ * 27 and 28 kLinkerPath falls through to findModuleBase(), which remains the fallback both for
+ * that and for anything else the linker does not list.
+ */
+bool ElfImage::findModuleBaseViaLinker() {
+    LinkerQuery query;
+    query.wanted = path_;
+    dl_iterate_phdr(&LinkerCallback, &query);
+    if (!query.found) return false;
+
+    base_ = reinterpret_cast<void *>(query.base);
+    path_ = std::move(query.matched_path);
+    LOGD("Linker reports {} at {:#x}", path_.c_str(), query.base);
+    return true;
+}
+
 bool ElfImage::findModuleBase() {
-    // A helper struct to hold parsed map entry data.
+    // One mapping line of /proc/self/maps that belongs to the target file.
     struct MapEntry {
-        uintptr_t start_addr;
+        uintptr_t start_addr = 0;
+        uintptr_t file_offset = 0;
         char perms[5] = {0};
         std::string pathname;
     };
@@ -315,24 +410,29 @@ bool ElfImage::findModuleBase() {
     char line_buffer[512];
     std::vector<MapEntry> filtered_list;
 
-    // Filter all entries containing the library name.
     while (fgets(line_buffer, sizeof(line_buffer), maps)) {
-        if (strstr(line_buffer, path_.c_str())) {
-            unsigned long long temp_start;
-            char path_buffer[256] = {0};
-            char p[5] = {0};
-            int items_parsed =
-                sscanf(line_buffer, "%llx-%*x %4s %*x %*s %*d %255s", &temp_start, p, path_buffer);
+        unsigned long long temp_start = 0;
+        unsigned long long temp_offset = 0;
+        char path_buffer[256] = {0};
+        char p[5] = {0};
 
-            if (items_parsed >= 2) {
-                MapEntry entry;
-                entry.start_addr = static_cast<uintptr_t>(temp_start);
-                strncpy(entry.perms, p, 4);
-                if (items_parsed == 3) entry.pathname = path_buffer;
-                filtered_list.push_back(std::move(entry));
-                LOGD("Found module entry: {}", line_buffer);
-            }
-        }
+        // start-end perms offset dev inode pathname.  The offset is kept rather than discarded:
+        // it is what makes the base exact (see below).  A trailing " (deleted)" is dropped for
+        // free, because %255s stops at the space.
+        int items_parsed = sscanf(line_buffer, "%llx-%*llx %4s %llx %*s %*u %255s", &temp_start, p,
+                                  &temp_offset, path_buffer);
+        if (items_parsed != 4) continue;  // anonymous mapping, or no pathname
+
+        // Match against the pathname field only.  Matching the whole line would let the
+        // address, permission or device columns satisfy the test.
+        if (!strstr(path_buffer, path_.c_str())) continue;
+
+        MapEntry entry;
+        entry.start_addr = static_cast<uintptr_t>(temp_start);
+        entry.file_offset = static_cast<uintptr_t>(temp_offset);
+        strncpy(entry.perms, p, 4);
+        entry.pathname = path_buffer;
+        filtered_list.push_back(std::move(entry));
     }
     fclose(maps);
 
@@ -341,41 +441,97 @@ bool ElfImage::findModuleBase() {
         return false;
     }
 
-    const MapEntry *found_block = nullptr;
-
-    // Search for the first `r--p` whose next entry is `r-xp`.
-    // This is the most reliable pattern for `libart.so`.
-    for (size_t i = 0; i + 1 < filtered_list.size(); ++i) {
-        if (strcmp(filtered_list[i].perms, "r--p") == 0 &&
-            strcmp(filtered_list[i + 1].perms, "r-xp") == 0) {
-            found_block = &filtered_list[i];
-            break;
-        }
-    }
-
-    // If the pattern was not found, find the first `r-xp` entry.
-    if (!found_block) {
+    // The name we are given may be a bare soname ("libart.so") or a fragment ("/linker"), so
+    // several distinct FILES can match it -- /system/lib64/libz.so and /vendor/lib64/libz.so both
+    // contain "libz.so", at unrelated addresses.  Mixing their segments together is what makes a
+    // positional heuristic settle on a base belonging to neither, so pick one file first.
+    std::string chosen_path = filtered_list.front().pathname;
+    {
+        // Prefer an exact basename match, then the shorter path, then the lowest address (the
+        // maps file is ordered by address).  Deterministic in every case, so two runs on one
+        // device cannot disagree.
+        const std::string_view needle{path_};
+        bool best_exact = BasenameOf(chosen_path) == needle;
         for (const auto &entry : filtered_list) {
-            if (strcmp(entry.perms, "r-xp") == 0) {
-                found_block = &entry;
-                break;
+            if (entry.pathname == chosen_path) continue;
+            const bool exact = BasenameOf(entry.pathname) == needle;
+            if (exact != best_exact) {
+                if (exact) {
+                    chosen_path = entry.pathname;
+                    best_exact = true;
+                }
+                continue;
             }
+            if (entry.pathname.size() < chosen_path.size()) chosen_path = entry.pathname;
         }
     }
 
-    // If still no match, take the very first entry found.
-    if (!found_block) {
-        found_block = &filtered_list[0];
+    // The base is where file offset 0 of the file is mapped.  The kernel states that outright, so
+    // it does not have to be guessed from segment permissions -- and it cannot be recovered from
+    // an arbitrary segment as start - file_offset, because modern ELFs are linked with a separate
+    // code segment and padded between the two, leaving the executable segment a few pages above
+    // where its file offset alone would put it.
+    //
+    // Two kinds of impostor also map the file at offset 0 without being the load:
+    //
+    //   * a shared mapping, which this class makes itself: the constructor mmaps the whole file
+    //     MAP_SHARED and holds it for the object's lifetime, while SymbolCache keeps ElfImage
+    //     instances alive.  The kernel can place it below the real load base, so it outranks the
+    //     real base under any "lowest address" or "first entry" rule.  Requiring `p` drops it.
+    //   * a private read-only mapping with no code behind it.
+    //
+    // A real load is told apart from both by the same evidence: it has an executable mapping of
+    // the same file at candidate + file_offset, give or take the inter-segment padding.  So take
+    // every private offset-0 mapping as a candidate and rank it by that corroboration.
+    //
+    // Getting this wrong is silent rather than a failed lookup: every symbol resolves to
+    // base_ + offset - bias_, so a wrong base shifts every hook target by the same amount and the
+    // write lands in whatever else is mapped there.
+    // Segments are padded apart by whole alignment units, and AOSP links with
+    // -Wl,-z,max-page-size=16384 by default (4096 on low-memory and pre-VSR-34 devices), so 64 KiB
+    // of slack covers every layout while still being far tighter than the gap to another library.
+    constexpr uintptr_t kMaxSegmentPadding = 0x10000;
+
+    uintptr_t module_base = 0;
+    int best_corroboration = -1;
+    for (const auto &candidate : filtered_list) {
+        if (candidate.pathname != chosen_path) continue;
+        if (candidate.perms[3] != 'p') continue;   // private mappings only
+        if (candidate.file_offset != 0) continue;  // the base is where file offset 0 lands
+
+        int corroboration = 0;
+        for (const auto &seg : filtered_list) {
+            if (seg.pathname != chosen_path) continue;
+            // Executable, but not necessarily readable: Android 10 maps libart.so's code as --xp.
+            if (seg.perms[3] != 'p' || seg.perms[2] != 'x') continue;
+            if (seg.start_addr < candidate.start_addr) continue;
+            const uintptr_t distance = seg.start_addr - candidate.start_addr;
+            if (distance < seg.file_offset) continue;  // below where its own file offset puts it
+            if (distance - seg.file_offset <= kMaxSegmentPadding) corroboration++;
+        }
+
+        // Most corroborated wins; ties go to the lowest address, so a library that is genuinely
+        // loaded twice resolves to the same base on every run.
+        if (corroboration > best_corroboration) {
+            best_corroboration = corroboration;
+            module_base = candidate.start_addr;
+        }
     }
 
-    // Use the starting address of the found block as the base address.
-    base_ = reinterpret_cast<void *>(found_block->start_addr);
-    // Update path to the canonical one from the maps file.
-    if (!found_block->pathname.empty()) {
-        path_ = found_block->pathname;
+    if (best_corroboration < 0) {
+        LOGE("No private offset-0 mapping of {}, so its base cannot be established",
+             chosen_path.c_str());
+        return false;
+    }
+    if (best_corroboration == 0) {
+        LOGW("Base {:#x} for {} is not corroborated by any executable segment", module_base,
+             chosen_path.c_str());
     }
 
-    LOGD("Found base for {} at {:#x}", path_.c_str(), found_block->start_addr);
+    base_ = reinterpret_cast<void *>(module_base);
+    path_ = chosen_path;
+
+    LOGD("Found base for {} at {:#x}", path_.c_str(), module_base);
     return true;
 }
 
