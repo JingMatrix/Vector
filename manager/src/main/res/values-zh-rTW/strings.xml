@@ -410,4 +410,9 @@
     <string name="launcher_prompt_title">Vector 還沒有圖示</string>
     <string name="launcher_prompt_body">Vector 執行在別的程序裡，而不是被安裝到系統中，所以啟動器上看不到它，也沒有明顯的途徑再開啟它。給它一個主畫面捷徑，或者把它安裝成一般的應用程式。</string>
     <string name="launcher_prompt_never">不再詢問</string>
+    <string name="action_install_other_user">為其他使用者安裝</string>
+    <string name="action_install_other_user_summary">把此模組加入尚未安裝它的使用者空間，以便在那裡設定作用域</string>
+    <string name="action_install_other_user_prompt">選擇要為其安裝此模組的使用者。</string>
+    <string name="action_installed_other_user">已為 %1$s 安裝。</string>
+    <string name="action_install_other_user_failed">無法為 %1$s 安裝。</string>
 </resources>

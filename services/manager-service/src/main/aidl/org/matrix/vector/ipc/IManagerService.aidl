@@ -595,6 +595,26 @@ interface IManagerService {
     boolean uninstallPackage(String packageName, int userId);
 
     /**
+     * Installs a package another user already holds into {@code userId}, without an APK.
+     *
+     * <p>Android keeps one APK per package name for the whole device and varies only who has it
+     * installed, so putting a module into a work profile is not a copy - it is the platform's own
+     * {@code installExistingPackageAsUser}, which flips the install state for that user and
+     * nothing else. The module keeps its version, its signature and its uid derivation; only the
+     * user's set of installed packages changes.</p>
+     *
+     * <p>This is what the module list needs to be able to offer at all. A module reaches a
+     * profile's apps only from inside that profile, so a module the owner holds and the profile
+     * does not can never be scoped there - and the manager runs in one user, so without this call
+     * there is nothing in the product that can put it in the other. A profile with no modules is
+     * then a profile that can never get one.</p>
+     *
+     * @return whether the platform reported the install. A user that does not exist, a package no
+     *         user holds, and a device-policy refusal all come back false
+     */
+    boolean installExistingPackageAsUser(String packageName, int userId);
+
+    /**
      * Clears an app's ART profiles and forces a profile-guided recompile.
      *
      * <p>What the manager offers after a module's scope changes: the app's compiled code can hold

@@ -413,4 +413,9 @@
     <string name="launcher_prompt_title">Vector belum punya ikon</string>
     <string name="launcher_prompt_body">Vector berjalan di dalam proses lain alih-alih dipasang, jadi tidak ada yang muncul di launcher Anda dan tidak ada jalan kembali yang jelas. Beri dia pintasan di layar utama, atau pasang sebagai aplikasi biasa.</string>
     <string name="launcher_prompt_never">Jangan tanya lagi</string>
+    <string name="action_install_other_user">Pasang untuk pengguna lain</string>
+    <string name="action_install_other_user_summary">Menambahkan modul ini ke profil yang belum memilikinya, agar cakupannya bisa diatur di sana</string>
+    <string name="action_install_other_user_prompt">Pilih pengguna untuk memasang modul ini.</string>
+    <string name="action_installed_other_user">Terpasang untuk %1$s.</string>
+    <string name="action_install_other_user_failed">Tidak dapat memasang untuk %1$s.</string>
 </resources>
