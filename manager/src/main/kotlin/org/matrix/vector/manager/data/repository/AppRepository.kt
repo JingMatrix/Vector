@@ -1,5 +1,6 @@
 package org.matrix.vector.manager.data.repository
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CancellationException
@@ -15,6 +16,7 @@ import org.matrix.vector.manager.data.model.ModuleDetectionCache
 import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logW
+import org.matrix.vector.ui.module.MATCH_ANY_USER
 
 /** Fetches and caches the list of installed applications from the daemon. */
 class AppRepository(
@@ -63,6 +65,13 @@ class AppRepository(
      */
     private var inFlight: Deferred<List<AppInfo>>? = null
 
+    /** The same arrangement for [moduleScanPackages], which asks the daemon a different question. */
+    @Volatile private var cachedModuleScan: List<PackageInfo>? = null
+
+    private val moduleScanLock = Mutex()
+
+    private var moduleScanInFlight: Deferred<Result<List<PackageInfo>>>? = null
+
     /**
      * Drops the cache so the next read goes back to the daemon.
      *
@@ -73,6 +82,59 @@ class AppRepository(
         generation.incrementAndGet()
         cachedApps = null
         cachedModulePackages = null
+        cachedModuleScan = null
+    }
+
+    /**
+     * The raw package list the Modules panel scans, shared the same way [getInstalledApps] is.
+     *
+     * A second enumeration rather than a filter over the first, because the two ask the daemon
+     * different questions: this one wants `MATCH_ANY_USER` and uninstalled packages so a module
+     * held only by a work profile is still seen, and it must *not* set `filterNoProcess`, because a
+     * module with no components of its own is still a module.
+     *
+     * Shared because the module list is the heaviest caller of it and had nothing stopping it
+     * running against itself. Every package event drops the caches and bumps the revision this
+     * feeds, and that event arrives twice by design — once from the platform, once from the
+     * daemon's re-broadcast — so a single install started two full enumerations, and a device whose
+     * packages churn kept dozens alive at once. That is not a slow path, it is a broken one: each
+     * enumeration pulls every package with its metadata, per user, as a chunked
+     * `ParceledListSlice`, and the daemon's binder heap is a fixed megabyte. One report has 409
+     * `binder_alloc_buf ... failed, no address space` against the daemon, with 687 buffers
+     * outstanding and 577 KB free in blocks too small to hold a 197 KB reply — system_server's
+     * answers failing with ENOSPC not because any one of them was too large, but because sixty
+     * threads were asking at once.
+     *
+     * Answers a [Result] rather than a bare list: a failed enumeration is not a device with no
+     * packages, and the caller has to be able to tell. Only a success is cached.
+     */
+    suspend fun moduleScanPackages(): Result<List<PackageInfo>> {
+        cachedModuleScan?.let {
+            return Result.success(it)
+        }
+        val job =
+            moduleScanLock.withLock {
+                cachedModuleScan?.let {
+                    return Result.success(it)
+                }
+                moduleScanInFlight?.takeIf { it.isActive }
+                    ?: scope.async(Dispatchers.IO) { fetchModuleScanPackages() }
+                        .also { moduleScanInFlight = it }
+            }
+        return job.await()
+    }
+
+    private suspend fun fetchModuleScanPackages(): Result<List<PackageInfo>> {
+        val startedAt = generation.get()
+        val flags =
+            PackageManager.GET_META_DATA or
+                PackageManager.MATCH_UNINSTALLED_PACKAGES or
+                MATCH_ANY_USER
+
+        val result = daemonClient.getInstalledPackagesFromAllUsers(flags, filterNoProcess = false)
+        val packages = result.getOrElse { return result }
+        if (generation.get() == startedAt) cachedModuleScan = packages
+        return Result.success(packages)
     }
 
     suspend fun getInstalledApps(): List<AppInfo> {
