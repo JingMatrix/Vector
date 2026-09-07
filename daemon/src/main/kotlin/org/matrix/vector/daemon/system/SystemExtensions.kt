@@ -197,18 +197,25 @@ private val getInstalledPackagesMethod: Method? by lazy {
       ?.apply { isAccessible = true }
 }
 
-/** Reflectively calls getInstalledPackages and casts to ParceledListSlice. */
+/**
+ * Reflectively calls getInstalledPackages and casts to ParceledListSlice.
+ *
+ * Answers `null` when the query did not happen, which is not the same answer as an empty list and
+ * must never be flattened into one: a user that holds no packages and a user the platform refused
+ * to answer for look identical once both are `emptyList()`, and the caller builds the manager's
+ * whole app list out of this.
+ */
 private fun IPackageManager.getInstalledPackagesReflect(
     flags: Any,
     userId: Int
-): List<PackageInfo> {
-  val method = getInstalledPackagesMethod ?: return emptyList()
+): List<PackageInfo>? {
+  val method = getInstalledPackagesMethod ?: return null
   return runCatching {
         val result = method.invoke(this, flags, userId)
         @Suppress("UNCHECKED_CAST") (result as? ParceledListSlice<PackageInfo>)?.list
       }
       .onFailure { Log.e(TAG, "Reflection call failed", it.cause ?: it) }
-      .getOrNull() ?: emptyList()
+      .getOrNull()
 }
 
 fun IPackageManager.getInstalledPackagesFromAllUsers(
@@ -224,7 +231,20 @@ fun IPackageManager.getInstalledPackagesFromAllUsers(
     val flagParam: Any =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) flags.toLong() else flags
 
-    val infos = getInstalledPackagesReflect(flagParam, user.id)
+    // A user the platform would not answer for fails the whole call, as it did before the daemon
+    // was rewritten in Kotlin: `PackageService.getInstalledPackagesFromAllUsers` was declared
+    // `throws RemoteException` and called `getInstalledPackages` straight, so a dead transaction
+    // came back to the manager as a failure. Catching it per user and carrying on turns that into
+    // a list that is short by one whole profile, and nothing downstream can tell it from the truth
+    // — the manager draws it as the device's apps, so a work profile whose query died is a work
+    // profile the reader is told does not exist. The list is worth having only entire.
+    //
+    // This is reachable on an ordinary device: `getInstalledPackages` returns every package with
+    // its metadata for each user in turn, and on a large one that repeatedly runs the binder
+    // buffer out and answers DeadObjectException.
+    val infos =
+        getInstalledPackagesReflect(flagParam, user.id)
+            ?: throw IllegalStateException("No package list for user ${user.id}")
     if (infos.isEmpty()) continue
 
     val validUserApps =
