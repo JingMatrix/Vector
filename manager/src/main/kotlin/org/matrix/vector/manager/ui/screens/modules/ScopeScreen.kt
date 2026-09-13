@@ -991,6 +991,20 @@ private fun AppRow(
                         color = ring,
                     )
                 }
+                // A property of the app rather than of the scope, so it is stated in its own colour
+                // and on its own line: the origin label above says why the row is in the list, and
+                // this says what the row cannot be expected to behave like. A HyperOS application
+                // runs on the Rust runtime, where none of the Java side of the framework exists, so
+                // what a module hooks there is its native half and nothing else — which is a
+                // difference worth stating before the user wonders why nothing happened.
+                if (app.isHyperOsRuntime) {
+                    Text(
+                        text = stringResource(R.string.scope_hyperos_runtime),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 // Why this row does not behave like the rest: the framework is one process shared
                 // by every user, and a legacy module's own app is in the scope without anyone
                 // having put it there. Both are things a checkbox cannot say.

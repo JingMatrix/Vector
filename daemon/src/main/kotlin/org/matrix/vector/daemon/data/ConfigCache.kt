@@ -437,6 +437,11 @@ object ConfigCache {
 
       Log.d(TAG, "Cache Update Complete. Map Swap successful.")
 
+      // Published right after the swap, because it describes the same set of scopes the swap just
+      // made current: a HyperOS process forked a moment from now has to see the configuration the
+      // daemon is already answering with, not the one it replaced.
+      publishHyosRuntimeIndex(newScopes)
+
       // Targets are removed only after the module set has been published.
       (oldState.modules.keys - newModules.keys).forEach {
         FrameworkService.forgetHotReloadTargets(it)
@@ -454,6 +459,63 @@ object ConfigCache {
       //   modules.forEach { mod -> Log.d(TAG, "\t${mod.packageName}") }
       // }
     }
+  }
+
+  /**
+   * Writes the index a process spawned by the HyperOS Rust Runtime's spawner reads to find the
+   * modules in its scope, and stages the libraries it names.
+   *
+   * This is the only one of the two ways a process learns what to load that does not go through the
+   * daemon's binder: those processes have no JVM, so no daemon service can exist in them, and no
+   * module list can be fetched over IPC. The scope map is the same one every other reader gets, so
+   * what a HyperOS process sees is exactly what an ART process of the same name would.
+   *
+   * Nothing happens on a device without that runtime, and nothing happens for a module that
+   * declares no native libraries — there is no `native_init` to call and so nothing to load.
+   */
+  private fun publishHyosRuntimeIndex(scopes: Map<ProcessScope, List<LoadedModule>>) {
+    if (!FileSystem.hasHyosRuntime()) return
+
+    setupMiscPath()
+    val misc = state.miscPath ?: return
+
+    // Each module is extracted once rather than once per process it is scoped to: extraction is the
+    // expensive half of this, and every reader gets the same file names from the same copy. A null
+    // is a module that ships nothing this ABI can load — an ordinary answer, and one worth
+    // remembering so the next scope does not ask again.
+    val staged =
+        scopes.values
+            .asSequence()
+            .flatten()
+            .filter { !it.code?.moduleLibraryNames.isNullOrEmpty() }
+            .distinctBy { it.packageName }
+            .associate { module ->
+              module.packageName to
+                  FileSystem.stageHyosNativeLibraries(misc, module.packageName, module.apkPath)
+            }
+
+    val index = mutableMapOf<String, List<HyosModuleLibrary>>()
+    scopes.forEach { (scope, modules) ->
+      val libraries =
+          modules.flatMap { module ->
+            val dir = staged[module.packageName] ?: return@flatMap emptyList()
+            module.code?.moduleLibraryNames.orEmpty().mapNotNull { name ->
+              val path = Paths.get(dir, name)
+              if (Files.isReadable(path)) {
+                HyosModuleLibrary(module.packageName, name, path.toString())
+              } else {
+                // The module named a library its APK does not carry for this ABI. It still loads
+                // everywhere else; only this half of it has nothing to load.
+                Log.w(TAG, "Module ${module.packageName} declares $name, which is not in $dir")
+                null
+              }
+            }
+          }
+      if (libraries.isNotEmpty()) index[scope.processName] = libraries
+    }
+
+    FileSystem.pruneHyosNativeLibraries(misc, staged.filterValues { it != null }.keys)
+    FileSystem.publishHyosIndex(index)
   }
 
   fun getModulesForProcess(processName: String, uid: Int): List<LoadedModule> {

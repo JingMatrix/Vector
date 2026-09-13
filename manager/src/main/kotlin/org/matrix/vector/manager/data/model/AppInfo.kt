@@ -9,6 +9,18 @@ data class AppInfo(
     val appName: String,
     val isSystemApp: Boolean,
     val isGame: Boolean,
+    /**
+     * Whether the app announced itself as one that runs on the HyperOS Rust Runtime.
+     *
+     * HyperOS applications carry the name of the runtime library they want loaded in the
+     * `hyperos_app_lib_name` metadata entry of their manifest, and the entry's presence is what
+     * marks them — its value is for the runtime, not for us. That is the same test LSPosed 2.2.0's
+     * manager applies for the same label, recovered from its released build.
+     *
+     * It says nothing about whether the runtime is actually being injected into them; that is a
+     * property of the device, not of the app, and is answered separately.
+     */
+    val isHyperOsRuntime: Boolean = false,
     val isSelectedInScope: Boolean,
     /**
      * In the scope without anyone having put it there, and not removable.
