@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(${VECTOR_ROOT}/native native)
 
-add_library(${PROJECT_NAME} SHARED module.cpp ipc_bridge.cpp)
+add_library(${PROJECT_NAME} SHARED module.cpp ipc_bridge.cpp hyos_runtime.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 target_link_libraries(${PROJECT_NAME} native log)

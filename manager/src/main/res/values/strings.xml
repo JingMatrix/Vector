@@ -255,6 +255,8 @@
     <string name="scope_no_match">No app matches that search or filter.</string>
     <string name="scope_system_apps">System apps</string>
     <string name="scope_games">Games</string>
+    <!-- Shown on an app whose manifest declares the HyperOS Rust Runtime's library entry. -->
+    <string name="scope_hyperos_runtime">HyperOS</string>
     <string name="scope_recommended">Requested by this module</string>
     <string name="scope_static">This module declares a fixed scope and cannot be pointed at other apps.</string>
     <!-- e.g. "3 to add, 1 to remove" -->
