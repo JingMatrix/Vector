@@ -92,6 +92,14 @@ ElfImage::ElfImage(std::string_view lib_name) : path_(lib_name) {
     }
     close(fd);
 
+    if (mprotect(file_map_, file_size_, PROT_READ) != 0) {
+        PLOGE("Failed to make ELF image read-only: {}", path_.c_str());
+        munmap(file_map_, file_size_);
+        file_map_ = nullptr;
+        base_ = nullptr;
+        return;
+    }
+
     // The path is whatever the linker or the maps file named, which is not necessarily an ELF at
     // all (a library loaded straight out of an APK names the APK). parseHeaders() walks section
     // headers by offset and would read wild pointers, so check the magic before trusting it.
