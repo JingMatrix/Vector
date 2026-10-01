@@ -347,6 +347,9 @@ void VectorModule::postAppSpecialize(const zygisk::AppSpecializeArgs *args) {
     auto obfs_map = ipc_bridge.FetchObfuscationMap(env_, binder.get());
     ConfigBridge::GetInstance()->obfuscation_map(std::move(obfs_map));
 
+    auto inline_hook_backend = ipc_bridge.FetchInlineHookBackend(env_, binder.get());
+    vector::native::SetInlineHookBackend(inline_hook_backend);
+
     {
         PreloadedDex dex(dex_fd, dex_size);
         this->LoadDex(env_, std::move(dex));
@@ -441,6 +444,9 @@ void VectorModule::postServerSpecialize(const zygisk::ServerSpecializeArgs *args
 
     auto obfs_map = ipc_bridge.FetchObfuscationMap(env_, effective_binder);
     ConfigBridge::GetInstance()->obfuscation_map(std::move(obfs_map));
+
+    auto inline_hook_backend = ipc_bridge.FetchInlineHookBackend(env_, effective_binder);
+    vector::native::SetInlineHookBackend(inline_hook_backend);
 
     {
         PreloadedDex dex(dex_fd, dex_size);

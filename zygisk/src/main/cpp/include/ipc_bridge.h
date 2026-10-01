@@ -82,6 +82,14 @@ public:
     std::map<std::string, std::string> FetchObfuscationMap(JNIEnv *env, jobject binder);
 
     /**
+     * @brief Fetches the configured inline hook backend via the provided Binder.
+     * @param env JNI environment pointer.
+     * @param binder A live Binder connection to the host service.
+     * @return The backend id, or -1 when the value could not be fetched.
+     */
+    int FetchInlineHookBackend(JNIEnv *env, jobject binder);
+
+    /**
      * @brief Sets up the JNI hook to intercept Binder transactions.
      *
      * This is the core of the IPC interception mechanism.

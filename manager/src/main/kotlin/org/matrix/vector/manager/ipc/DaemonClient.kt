@@ -349,6 +349,12 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
 
     suspend fun getRootImplementation(): Result<Int> = runIpc { it.rootImplementation }
 
+    suspend fun getInlineHookBackend(): Result<Int> = runIpc { it.inlineHookBackend }
+
+    suspend fun setInlineHookBackend(backend: Int): Result<Unit> = runIpc {
+        it.setInlineHookBackend(backend)
+    }
+
     /**
      * Starts a flash and returns as soon as the daemon has accepted it.
      *

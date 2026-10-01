@@ -19,7 +19,7 @@ import org.matrix.vector.util.Utils
  *  2. **Kernel `grapheneos_flags`.** `SELinuxFlags.get` turns the same settings into the
  *     `DENY_EXECMEM`/`DENY_EXECMOD`/… task flags, written to `/proc/self/attr/grapheneos_flags`
  *     during zygote specialization (writable only from the zygote context, so it cannot be undone
- *     later). With `DENY_EXECMEM` set, LSPlant/Dobby cannot allocate executable memory for its
+ *     later). With `DENY_EXECMEM` set, LSPlant/Dobby/ShadowHook cannot allocate executable memory for its
  *     inline hook and the process aborts with `SIGSEGV` / `TSEC_FLAG_DENY_EXECMEM: op denied`.
  *
  * As the manager runs inside [BuildConfig.InjectedPackageName] (`com.android.shell`, a system app)

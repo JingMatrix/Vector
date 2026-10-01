@@ -209,6 +209,9 @@ class HomeViewModel(
     private val _statusNotification = MutableStateFlow(true)
     val statusNotification: StateFlow<Boolean> = _statusNotification.asStateFlow()
 
+    private val _inlineHookBackend = MutableStateFlow(IManagerService.INLINE_HOOK_BACKEND_DOBBY)
+    val inlineHookBackend: StateFlow<Int> = _inlineHookBackend.asStateFlow()
+
     // True is the platform's own default for `show_hidden_icon_apps_enabled`, so the switch shows
     // what the system is doing on a device where nobody has touched it rather than reading "off"
     // until the daemon answers.
@@ -546,6 +549,10 @@ class HomeViewModel(
                 }
             }
             .onFailure { e -> logW("status: notification toggle unread", e) }
+        daemon
+            .getInlineHookBackend()
+            .onSuccess { _inlineHookBackend.value = it }
+            .onFailure { e -> logW("status: inline hook backend unread", e) }
         // Read rather than assumed: this one is a global system setting, so anything on the device
         // can have moved it since the manager last wrote it.
         daemon
@@ -582,6 +589,17 @@ class HomeViewModel(
                 // so a transaction that arrived is not yet a setting that changed.
                 _hiddenIcon.value = daemon.isForcedLauncherIcons().getOrDefault(force)
             }
+        }
+    }
+
+    fun setInlineHookBackend(backend: Int) {
+        viewModelScope.launch {
+            daemon
+                .setInlineHookBackend(backend)
+                .onSuccess { _inlineHookBackend.value = backend }
+                .onFailure { e ->
+                    logE("framework: setting the inline hook backend to $backend failed", e)
+                }
         }
     }
 

@@ -1,8 +1,15 @@
 #pragma once
 
 #include <dlfcn.h>
+#if defined(__aarch64__) || defined(__arm__)
+#include <shadowhook.h>
+#endif
 #include <dobby.h>
 
+#include <atomic>
+#include <cstdint>
+#include <map>
+#include <mutex>
 #include <string>
 #include <utils/hook_helper.hpp>
 
@@ -91,6 +98,69 @@ struct NativeAPIEntries {
 
 namespace vector::native {
 
+inline constexpr int kInlineHookBackendDobby = 0;
+inline constexpr int kInlineHookBackendShadowHook = 1;
+
+inline std::atomic<int> g_inline_hook_backend{kInlineHookBackendDobby};
+
+inline void SetInlineHookBackend(int backend) {
+#if defined(__aarch64__) || defined(__arm__)
+    backend =
+        backend == kInlineHookBackendShadowHook ? kInlineHookBackendShadowHook : kInlineHookBackendDobby;
+#else
+    backend = kInlineHookBackendDobby;
+#endif
+    g_inline_hook_backend.store(backend, std::memory_order_relaxed);
+    LOGD("Inline hook backend set to {}",
+         backend == kInlineHookBackendShadowHook ? "ShadowHook" : "Dobby");
+}
+
+#if defined(__aarch64__) || defined(__arm__)
+inline std::once_flag g_shadowhook_init_once;
+inline int g_shadowhook_init_result = -1;
+inline std::mutex g_shadowhook_mutex;
+inline std::map<uintptr_t, void *> g_shadowhook_stubs;
+
+inline bool shadowhookInit() {
+    std::call_once(g_shadowhook_init_once, [] {
+        g_shadowhook_init_result = shadowhook_init(SHADOWHOOK_MODE_UNIQUE, false);
+        if (g_shadowhook_init_result == 0) {
+            LOGD("ShadowHook engine ready. (mode: unique)");
+        } else {
+            LOGE("ShadowHook init failed: %s",
+                 shadowhook_to_errmsg(shadowhook_get_init_errno()));
+        }
+    });
+    return g_shadowhook_init_result == 0;
+}
+#endif
+
+inline void logHookedSymbol(int backend, void *address) {
+    if constexpr (kIsDebugBuild) {
+        Dl_info info;
+        if (dladdr(address, &info)) {
+            LOGD("{} hooking {} ({}) from {} ({})",
+                 backend == kInlineHookBackendShadowHook ? "ShadowHook" : "Dobby",
+                 info.dli_sname ? info.dli_sname : "(unknown symbol)",
+                 info.dli_saddr ? info.dli_saddr : address,
+                 info.dli_fname ? info.dli_fname : "(unknown file)", info.dli_fbase);
+        }
+    }
+}
+
+inline void logUnhookedSymbol(int backend, void *address) {
+    if constexpr (kIsDebugBuild) {
+        Dl_info info;
+        if (dladdr(address, &info)) {
+            LOGD("{} unhooking {} ({}) from {} ({})",
+                 backend == kInlineHookBackendShadowHook ? "ShadowHook" : "Dobby",
+                 info.dli_sname ? info.dli_sname : "(unknown symbol)",
+                 info.dli_saddr ? info.dli_saddr : address,
+                 info.dli_fname ? info.dli_fname : "(unknown file)", info.dli_fbase);
+        }
+    }
+}
+
 // The entry point function that native modules must export (`native_init`).
 using NativeInit = NativeOnModuleLoaded (*)(const NativeAPIEntries *entries);
 
@@ -112,35 +182,56 @@ bool InstallNativeAPI(const lsplant::HookHandler &handler);
 void RegisterNativeLib(const std::string &library_name);
 
 /**
- * @brief A wrapper around DobbyHook.
+ * @brief A wrapper around the configured inline hook backend.
  */
 inline int HookInline(void *original, void *replace, void **backup) {
-    if constexpr (kIsDebugBuild) {
-        Dl_info info;
-        if (dladdr(original, &info)) {
-            LOGD("Dobby hooking {} ({}) from {} ({})",
-                 info.dli_sname ? info.dli_sname : "(unknown symbol)",
-                 info.dli_saddr ? info.dli_saddr : original,
-                 info.dli_fname ? info.dli_fname : "(unknown file)", info.dli_fbase);
+#if defined(__aarch64__) || defined(__arm__)
+    if (g_inline_hook_backend.load(std::memory_order_relaxed) == kInlineHookBackendShadowHook) {
+        if (shadowhookInit()) {
+            logHookedSymbol(kInlineHookBackendShadowHook, original);
+            void *stub = shadowhook_hook_func_addr(original, replace, backup);
+            if (stub != nullptr) {
+                std::lock_guard<std::mutex> lk(g_shadowhook_mutex);
+                g_shadowhook_stubs[reinterpret_cast<uintptr_t>(original)] = stub;
+                return 0;
+            }
+            LOGE("Inline Hook with ShadowHook failed: %s (%p), falling back to Dobby",
+                 shadowhook_to_errmsg(shadowhook_get_errno()), original);
         }
     }
+#endif
+    logHookedSymbol(kInlineHookBackendDobby, original);
     return DobbyHook(original, reinterpret_cast<dobby_dummy_func_t>(replace),
                      reinterpret_cast<dobby_dummy_func_t *>(backup));
 }
 
 /**
- * @brief A wrapper around DobbyDestroy.
+ * @brief A wrapper around the configured inline hook backend.
  */
 inline int UnhookInline(void *original) {
-    if constexpr (kIsDebugBuild) {
-        Dl_info info;
-        if (dladdr(original, &info)) {
-            LOGD("Dobby unhooking {} ({}) from {} ({})",
-                 info.dli_sname ? info.dli_sname : "(unknown symbol)",
-                 info.dli_saddr ? info.dli_saddr : original,
-                 info.dli_fname ? info.dli_fname : "(unknown file)", info.dli_fbase);
+#if defined(__aarch64__) || defined(__arm__)
+    if (g_inline_hook_backend.load(std::memory_order_relaxed) == kInlineHookBackendShadowHook) {
+        void *stub = nullptr;
+        {
+            std::lock_guard<std::mutex> lk(g_shadowhook_mutex);
+            auto it = g_shadowhook_stubs.find(reinterpret_cast<uintptr_t>(original));
+            if (it != g_shadowhook_stubs.end()) {
+                stub = it->second;
+                g_shadowhook_stubs.erase(it);
+            }
+        }
+        if (stub != nullptr) {
+            if (shadowhook_unhook(stub) == 0) {
+                logUnhookedSymbol(kInlineHookBackendShadowHook, original);
+                return 0;
+            }
+            LOGE("Inline Unhook with ShadowHook failed: %s (%p)",
+                 shadowhook_to_errmsg(shadowhook_get_errno()), original);
+            return -1;
         }
     }
+#endif
+    logUnhookedSymbol(kInlineHookBackendDobby, original);
     return DobbyDestroy(original);
 }
 

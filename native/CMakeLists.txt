@@ -36,13 +36,18 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wpedantic ${IGNORED_WARNINGS})
 # Link against required external and system libraries.
 # PUBLIC libraries are propagated to targets that link against this one.
 # PRIVATE libraries are only used for the compilation of this target.
-target_link_libraries(${PROJECT_NAME} PUBLIC
+set(VECTOR_NATIVE_LINK_LIBS
     dobby_static
     lsplant_static
     xz_static
     log # Android logging library
     fmt-header-only
 )
+if (ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "armeabi-v7a")
+    set(VECTOR_NATIVE_LINK_LIBS ${VECTOR_NATIVE_LINK_LIBS} shadowhook)
+endif ()
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${VECTOR_NATIVE_LINK_LIBS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     dex_builder_static

@@ -92,6 +92,11 @@
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>
     <string name="force_launcher_icons">Stop apps hiding their launcher icons</string>
     <string name="force_launcher_icons_summary">Since Android 10, an app that hides its own launcher icon gets one back that opens its app info page. Turn this off to let it stay hidden — your launcher may not catch up until it restarts. Apps that never had a launcher icon, including most modules, are unaffected.</string>
+    <string name="inline_hook_backend">Inline hook backend</string>
+    <string name="inline_hook_backend_summary">Which engine installs native inline hooks. New processes use the chosen engine; a reboot applies it to everything already running.</string>
+    <string name="inline_hook_backend_dobby">Dobby</string>
+    <string name="inline_hook_backend_shadowhook">ShadowHook</string>
+    <string name="inline_hook_backend_shadowhook_note">ShadowHook is only available on arm64-v8a and armeabi-v7a.</string>
     <!-- Home: the community feed -->
     <string name="home_quarter_title">Recent activity</string>
     <!-- Example: "7 commits by 4 people" -->

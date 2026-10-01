@@ -42,8 +42,9 @@ constexpr auto kModuleTags = std::array{"VectorContext"sv, "VectorLegacyBridge"s
                                         "VectorModuleManager"sv, "XSharedPreferences"sv};
 
 // These route to the 'verbose' stream only.
-constexpr auto kExactTags = std::array{"APatchD"sv, "Dobby"sv,  "KernelSU"sv, "LSPlant"sv,
-                                       "LSPlt"sv,   "Magisk"sv, "SELinux"sv,  "TEESimulator"sv};
+constexpr auto kExactTags = std::array{"APatchD"sv, "Dobby"sv,   "KernelSU"sv, "LSPlant"sv,
+                                       "LSPlt"sv,   "Magisk"sv,  "SELinux"sv,  "TEESimulator"sv,
+                                       "shadowhook_tag"sv};
 
 // Partial matches for dynamic components like Zygisk modules or Vector/LSPosed components.
 constexpr auto kPrefixTags = std::array{"LSPosed"sv, "Vector"sv, "dex2oat"sv, "zygisk"sv};

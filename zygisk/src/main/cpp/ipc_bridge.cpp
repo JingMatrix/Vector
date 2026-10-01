@@ -89,6 +89,7 @@ constexpr auto kBridgeServiceName = "activity"sv;
 constexpr jint kBridgeTransactionCode = ('_' << 24) | ('V' << 16) | ('E' << 8) | 'C';
 constexpr jint kDexTransactionCode = ('_' << 24) | ('D' << 16) | ('E' << 8) | 'X';
 constexpr jint kObfuscationMapTransactionCode = ('_' << 24) | ('O' << 16) | ('B' << 8) | 'F';
+constexpr jint kInlineHookTransactionCode = ('_' << 24) | ('I' << 16) | ('H' << 8) | 'B';
 
 // Action codes sent within a kBridgeTransactionCode transaction.
 constexpr jint kActionGetBinder = 2;
@@ -451,6 +452,33 @@ std::map<std::string, std::string> IPCBridge::FetchObfuscationMap(JNIEnv *env, j
 
     LOGV("Fetched obfuscation map with {} entries.", result_map.size());
     return result_map;
+}
+
+int IPCBridge::FetchInlineHookBackend(JNIEnv *env, jobject binder) {
+    if (!initialized_ || !binder) {
+        return -1;
+    }
+
+    ParcelWrapper parcels(env, this);
+    bool success = lsplant::JNI_CallBooleanMethod(env, binder, transact_method_,
+                                                  kInlineHookTransactionCode, parcels.data.get(),
+                                                  parcels.reply.get(), 0);
+
+    if (!success) {
+        LOGW("Inline hook backend fetch transaction failed.");
+        return -1;
+    }
+
+    lsplant::JNI_CallVoidMethod(env, parcels.reply.get(), read_exception_method_);
+    if (env->ExceptionCheck()) {
+        LOGW("Remote exception received while fetching inline hook backend.");
+        env->ExceptionClear();
+        return -1;
+    }
+
+    int backend = lsplant::JNI_CallIntMethod(env, parcels.reply.get(), read_int_method_);
+    LOGV("Fetched inline hook backend: {}", backend);
+    return backend;
 }
 
 jboolean IPCBridge::ExecTransact_Replace(jboolean *res, JNIEnv *env, jobject obj, va_list args) {

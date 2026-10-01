@@ -28,6 +28,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
@@ -97,6 +100,7 @@ fun SystemStatusScreen(
     val context = LocalContext.current
     val statusNotification by viewModel.statusNotification.collectAsStateWithLifecycle()
     val hiddenIcon by viewModel.hiddenIcon.collectAsStateWithLifecycle()
+    val inlineHookBackend by viewModel.inlineHookBackend.collectAsStateWithLifecycle()
     val presence by viewModel.presence.collectAsStateWithLifecycle()
     val managerInstall by viewModel.managerInstall.collectAsStateWithLifecycle()
 
@@ -226,6 +230,14 @@ fun SystemStatusScreen(
                     checked = hiddenIcon,
                     enabled = daemonAlive,
                     onCheckedChange = viewModel::setForcedLauncherIcons,
+                )
+            }
+            item {
+                InlineHookBackendSetting(
+                    backend = inlineHookBackend,
+                    shadowHookSupported = isShadowHookSupported(device.abi),
+                    enabled = daemonAlive,
+                    onSelect = viewModel::setInlineHookBackend,
                 )
             }
 
@@ -886,6 +898,81 @@ private fun FrameworkToggle(
         }
         Spacer(Modifier.width(12.dp))
         Switch(checked = checked, onCheckedChange = null, enabled = enabled)
+    }
+}
+
+private fun isShadowHookSupported(abi: String): Boolean =
+    abi == "arm64-v8a" || abi == "armeabi-v7a"
+
+/**
+ * The engine that installs native inline hooks, chosen from the engines this device ships.
+ *
+ * ShadowHook is only built for arm ABIs, so on any other device the row reports Dobby alone and
+ * explains why rather than offering a choice that could not be honoured. Dimmed and inert while
+ * there is no daemon, for the same reason as [FrameworkToggle].
+ */
+@Composable
+private fun InlineHookBackendSetting(
+    backend: Int,
+    shadowHookSupported: Boolean,
+    enabled: Boolean,
+    onSelect: (Int) -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    val engineCount = if (shadowHookSupported) 2 else 1
+    Column(
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(vertical = 10.dp)
+                .alpha(if (enabled) 1f else 0.38f),
+    ) {
+        Text(stringResource(R.string.inline_hook_backend), style = MaterialTheme.typography.bodyLarge)
+        Text(
+            stringResource(R.string.inline_hook_backend_summary),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
+                selected = backend == IManagerService.INLINE_HOOK_BACKEND_DOBBY,
+                onClick = { onSelect(IManagerService.INLINE_HOOK_BACKEND_DOBBY) },
+                enabled = enabled,
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = engineCount),
+                icon = {},
+            ) {
+                Text(
+                    stringResource(R.string.inline_hook_backend_dobby),
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (shadowHookSupported) {
+                SegmentedButton(
+                    selected = backend == IManagerService.INLINE_HOOK_BACKEND_SHADOWHOOK,
+                    onClick = { onSelect(IManagerService.INLINE_HOOK_BACKEND_SHADOWHOOK) },
+                    enabled = enabled,
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = engineCount),
+                    icon = {},
+                ) {
+                    Text(
+                        stringResource(R.string.inline_hook_backend_shadowhook),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        if (!shadowHookSupported) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.inline_hook_backend_shadowhook_note),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+            )
+        }
     }
 }
 

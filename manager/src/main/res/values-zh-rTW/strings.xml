@@ -377,6 +377,11 @@
     <string name="crash_unreadable">無法讀取這次當機。請原樣複製並附在回報中。</string>
     <string name="force_launcher_icons">阻止應用程式隱藏自己的啟動器圖示</string>
     <string name="force_launcher_icons_summary">自 Android 10 起，隱藏了自己啟動器圖示的應用程式會被補上一個圖示，點按它會開啟該應用程式的應用程式資訊頁面。關閉此項可讓它維持隱藏——你的啟動器可能要等重新啟動之後才會更新。本來就沒有啟動器圖示的應用程式不受影響，大多數模組都屬於此類。</string>
+    <string name="inline_hook_backend">內聯 Hook 後端</string>
+    <string name="inline_hook_backend_summary">用於安裝原生內聯 Hook 的引擎。新啟動的行程會使用所選引擎；重新啟動後會對所有行程生效。</string>
+    <string name="inline_hook_backend_dobby">Dobby</string>
+    <string name="inline_hook_backend_shadowhook">ShadowHook</string>
+    <string name="inline_hook_backend_shadowhook_note">ShadowHook 僅支援 arm64-v8a 與 armeabi-v7a。</string>
     <string name="action_force_stop_failed">無法停止 %1$s。</string>
     <string name="modules_load_unsupported_api">已啟用，但針對 libxposed API 100 建置，此框架已不再載入該版本。</string>
     <string name="update_root_unknown">此框架建置不會回報已安裝的是哪一種 root 實作。</string>
