@@ -226,7 +226,7 @@ val androidTargetSdkVersion = 37
 val androidMinSdkVersion = 27
 val androidBuildToolsVersion = "37.0.0"
 val androidCompileSdkVersion = 37
-val androidCompileNdkVersion = "29.0.14206865"
+val androidCompileNdkVersion = "30.0.16248370"
 val androidSourceCompatibility = JavaVersion.VERSION_21
 val androidTargetCompatibility = JavaVersion.VERSION_21
 
