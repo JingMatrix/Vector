@@ -464,4 +464,9 @@
     <string name="launcher_prompt_title">ليس لـ Vector أيقونة بعد</string>
     <string name="launcher_prompt_body">يعمل Vector داخل عملية أخرى بدل أن يكون مثبَّتًا، فلا يظهر شيء في المشغّل ولا توجد طريقة واضحة للعودة إليه. امنحه اختصارًا على الشاشة الرئيسية، أو ثبِّته كتطبيق عادي.</string>
     <string name="launcher_prompt_never">عدم السؤال مجددًا</string>
+    <string name="action_install_other_user">تثبيت لمستخدم آخر</string>
+    <string name="action_install_other_user_summary">يضيف هذه الوحدة إلى ملف تعريف لا يملكها، ليتسنّى تحديد نطاقها هناك</string>
+    <string name="action_install_other_user_prompt">اختر المستخدم الذي تريد تثبيت هذه الوحدة له.</string>
+    <string name="action_installed_other_user">تم التثبيت لـ %1$s.</string>
+    <string name="action_install_other_user_failed">تعذّر التثبيت لـ %1$s.</string>
 </resources>

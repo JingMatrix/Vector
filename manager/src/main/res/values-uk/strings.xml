@@ -462,4 +462,9 @@
     <string name="launcher_prompt_title">У Vector ще немає значка</string>
     <string name="launcher_prompt_body">Vector працює всередині чужого процесу, а не встановлений, тому в лаунчері нічого не з\'являється і очевидного шляху назад немає. Додайте ярлик на головний екран або встановіть Vector як звичайний застосунок.</string>
     <string name="launcher_prompt_never">Більше не питати</string>
+    <string name="action_install_other_user">Встановити для іншого користувача</string>
+    <string name="action_install_other_user_summary">Додає модуль до профілю, де його немає, щоб задати там його область дії</string>
+    <string name="action_install_other_user_prompt">Виберіть користувача, для якого встановити модуль.</string>
+    <string name="action_installed_other_user">Встановлено для %1$s.</string>
+    <string name="action_install_other_user_failed">Не вдалося встановити для %1$s.</string>
 </resources>

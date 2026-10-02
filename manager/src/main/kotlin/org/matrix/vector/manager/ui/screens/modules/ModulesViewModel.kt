@@ -20,7 +20,6 @@ import org.matrix.vector.ipc.DeviceUser
 import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.manager.data.model.InstalledModule
 import org.matrix.vector.ui.REACH_PREVIEW_LIMIT
-import org.matrix.vector.ui.module.MATCH_ANY_USER
 import org.matrix.vector.ui.module.PER_USER_RANGE
 import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.ui.store.StoreEntry
@@ -483,18 +482,17 @@ class ModulesViewModel(
         _daemonAvailable.value = usersResult.isSuccess
         val users = usersResult.getOrNull() ?: emptyList()
 
-        val flags =
-            PackageManager.GET_META_DATA or
-                PackageManager.MATCH_UNINSTALLED_PACKAGES or
-                MATCH_ANY_USER
-
+        // Through the repository rather than straight to the daemon, so that concurrent rescans
+        // join one enumeration instead of each starting their own. This collector is driven by a
+        // package event that is delivered twice on purpose, and the daemon's binder heap is a
+        // fixed megabyte that a handful of these in flight together will exhaust — at which point
+        // it stops being a performance question and becomes a wrong answer, because a per-user
+        // query that fails takes that whole profile out of the list.
         val packages =
-            daemonClient
-                .getInstalledPackagesFromAllUsers(flags, filterNoProcess = false)
-                .getOrElse { e ->
-                    logE("modules: installed package list unavailable, showing no modules", e)
-                    emptyList()
-                }
+            ServiceLocator.apps.moduleScanPackages().getOrElse { e ->
+                logE("modules: installed package list unavailable, showing no modules", e)
+                emptyList()
+            }
 
         // Through the cache, not straight to ModuleDetection: inspecting a package means opening
         // its APK and every split as a zip, and there are ~550 of those on a normal device. Keyed

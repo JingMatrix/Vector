@@ -264,6 +264,16 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     suspend fun uninstallPackage(packageName: String, userId: Int): Result<Boolean> = runIpc { it.uninstallPackage(packageName, userId)
     }
 
+    /**
+     * Installs a module another user already holds into [userId].
+     *
+     * No APK travels: the device keeps one copy per package name and this flips whether [userId]
+     * has it. It is the only way the manager can put a module into a profile it does not run in,
+     * and so the only way a profile with no modules ever gets its first one.
+     */
+    suspend fun installExistingPackageAsUser(packageName: String, userId: Int): Result<Boolean> =
+        runIpc { it.installExistingPackageAsUser(packageName, userId) }
+
     suspend fun isSepolicyLoaded(): Result<Boolean> = runIpc { it.isSepolicyLoaded }
 
     suspend fun getUsers(): Result<List<org.matrix.vector.ipc.DeviceUser>> = runIpc { it.users

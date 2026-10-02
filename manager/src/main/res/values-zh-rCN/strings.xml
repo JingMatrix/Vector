@@ -410,4 +410,9 @@
     <string name="launcher_prompt_title">Vector 还没有图标</string>
     <string name="launcher_prompt_body">Vector 运行在别的进程里，而不是被安装到系统中，所以桌面上看不到它，也没有明显的途径再打开它。给它一个桌面快捷方式，或者把它安装成一个普通应用。</string>
     <string name="launcher_prompt_never">不再询问</string>
+    <string name="action_install_other_user">为其他用户安装</string>
+    <string name="action_install_other_user_summary">把此模块添加到尚未安装它的用户空间，以便在那里设置作用域</string>
+    <string name="action_install_other_user_prompt">选择要为其安装此模块的用户。</string>
+    <string name="action_installed_other_user">已为 %1$s 安装。</string>
+    <string name="action_install_other_user_failed">无法为 %1$s 安装。</string>
 </resources>

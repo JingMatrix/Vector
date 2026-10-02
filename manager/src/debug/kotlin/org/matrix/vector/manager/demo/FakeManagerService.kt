@@ -257,6 +257,9 @@ class FakeManagerService(
     override fun uninstallPackage(packageName: String?, userId: Int): Boolean =
         real?.uninstallPackage(packageName, userId) ?: false
 
+    override fun installExistingPackageAsUser(packageName: String?, userId: Int): Boolean =
+        real?.installExistingPackageAsUser(packageName, userId) ?: false
+
     override fun getUsers(): MutableList<DeviceUser> = real?.users ?: mutableListOf()
 
     override fun startActivityAsUser(intent: Intent?, userId: Int, noUserSwitch: Boolean): Int =

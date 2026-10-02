@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector\'ün henüz bir simgesi yok</string>
     <string name="launcher_prompt_body">Vector kurulmak yerine başka bir sürecin içinde çalışır; bu yüzden başlatıcınızda hiçbir şey görünmez ve geri dönmenin bariz bir yolu yoktur. Ona ana ekranda bir kısayol verin ya da sıradan bir uygulama olarak kurun.</string>
     <string name="launcher_prompt_never">Bir daha sorma</string>
+    <string name="action_install_other_user">Başka kullanıcı için yükle</string>
+    <string name="action_install_other_user_summary">Bu modülü, onda olmayan bir profile ekler; böylece orada kapsam verilebilir</string>
+    <string name="action_install_other_user_prompt">Bu modülün yükleneceği kullanıcıyı seçin.</string>
+    <string name="action_installed_other_user">%1$s için yüklendi.</string>
+    <string name="action_install_other_user_failed">%1$s için yüklenemedi.</string>
 </resources>

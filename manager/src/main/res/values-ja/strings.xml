@@ -399,4 +399,9 @@
     <string name="launcher_prompt_title">Vector のアイコンはまだありません</string>
     <string name="launcher_prompt_body">Vector はインストールされるのではなく、別のプロセス内で実行されるため、ランチャーには何も表示されず、Vector に戻ってくる手段もありません。ホーム画面にショートカットを作成するか、通常のアプリとしてインストールしてください。</string>
     <string name="launcher_prompt_never">今後表示しない</string>
+    <string name="action_install_other_user">他のユーザーにインストール</string>
+    <string name="action_install_other_user_summary">このモジュールを持っていないプロファイルに追加し、そこでスコープを設定できるようにします</string>
+    <string name="action_install_other_user_prompt">このモジュールをインストールするユーザーを選択してください。</string>
+    <string name="action_installed_other_user">%1$s にインストールしました。</string>
+    <string name="action_install_other_user_failed">%1$s にインストールできませんでした。</string>
 </resources>

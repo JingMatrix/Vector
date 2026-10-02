@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector هنوز نمادی ندارد</string>
     <string name="launcher_prompt_body">Vector به‌جای آنکه نصب شده باشد درون فرایندی دیگر اجرا می‌شود، پس چیزی در لانچر پیدا نمی‌شود و راه روشنی برای بازگشت به آن نیست. به آن میان‌بری در صفحهٔ اصلی بدهید، یا آن را مانند برنامه‌ای معمولی نصب کنید.</string>
     <string name="launcher_prompt_never">دیگر پرسیده نشود</string>
+    <string name="action_install_other_user">نصب برای کاربر دیگر</string>
+    <string name="action_install_other_user_summary">این ماژول را به نمایه‌ای که آن را ندارد اضافه می‌کند تا بتوان دامنه‌اش را آنجا تعیین کرد</string>
+    <string name="action_install_other_user_prompt">کاربری را که می‌خواهید این ماژول برایش نصب شود انتخاب کنید.</string>
+    <string name="action_installed_other_user">برای %1$s نصب شد.</string>
+    <string name="action_install_other_user_failed">نصب برای %1$s ممکن نشد.</string>
 </resources>
