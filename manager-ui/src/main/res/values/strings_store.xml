@@ -78,6 +78,8 @@
     <string name="store_confirming">Waiting for the system prompt…</string>
     <string name="store_install_failed">Could not install %1$s</string>
     <string name="store_install_failed_reason">Could not install %1$s: %2$s</string>
+    <!-- The hand-off route's reason, interpolated into the one above. -->
+    <string name="store_install_unconfirmed">the external installer did not confirm within %1$d minutes</string>
     <string name="store_cancel">Cancel</string>
 
     <!-- Information tab -->
