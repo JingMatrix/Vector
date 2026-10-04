@@ -1,0 +1,1 @@
+path=/system_ext/bin/hyos_spawner companion zygisk/arm64-v8a.so

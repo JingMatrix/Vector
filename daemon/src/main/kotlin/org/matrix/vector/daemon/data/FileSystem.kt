@@ -9,6 +9,7 @@ import android.os.Process
 import android.os.RemoteException
 import android.os.SELinux
 import android.os.SharedMemory
+import android.os.SystemProperties
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
@@ -51,6 +52,52 @@ private const val TAG = "VectorFileSystem"
 private const val SYSTEM_FILE_CONTEXT = "u:object_r:system_file:s0"
 
 /**
+ * The properties the HyperOS Rust Runtime advertises itself with.
+ *
+ * Read rather than looking for `/system_ext/bin/hyos_spawner`: the runtime can be switched off on a
+ * device that still ships that binary, and an index nothing will ever read is work done for
+ * nothing. These are the same two properties LSPosed 2.2.0 reads for the same decision, in its
+ * daemon's `ILSPManagerService` transaction 67; they were recovered from its released daemon.
+ */
+private const val HYOS_ACTIVE_PROPERTY = "rust.runtime_active"
+private const val HYOS_VERSION_PROPERTY = "rust.runtime_version"
+
+/**
+ * The index of what each HyperOS Runtime process should load.
+ *
+ * It sits inside Vector's own tree rather than in the shared /data/misc, because nothing but the
+ * companion reads it: the per-process libraries are looked up by the companion and handed to the
+ * spawner before it forks, so the file never has to be reachable by the application it describes.
+ * That is the whole reason there is no pointer file any more and no path published anywhere — the
+ * channel is the companion connection, not the filesystem.
+ *
+ * Magisk holds /data/adb at mode 0700 owned by root, so this subtree is root-only by construction.
+ */
+private const val HYOS_INDEX_DIR = "hyos"
+private const val HYOS_GENERATION_NAME = ".generation"
+
+/**
+ * The first line of every index, and the version of the format it describes.
+ *
+ * A file that does not start with it is not one of ours, which is the only thing between a
+ * half-written file and the spawner acting on it. The two sides of this format are this file and
+ * `zygisk/src/main/cpp/hyos_runtime.cpp`, and nothing else reads it.
+ */
+private const val HYOS_INDEX_MAGIC = "vector-hyos 1"
+
+/**
+ * The subdirectory of the misc root holding copies of module libraries that a process cannot map
+ * out of the module's APK.
+ *
+ * Two of them, because the two readers have different lifetimes and each prunes what it no longer
+ * needs. system_server's copies are pruned down to the modules still bound for system_server; the
+ * HyperOS Runtime's, to the modules still in some scope. Sharing one directory would have each
+ * pass delete the other's copies, leaving whichever reader ran first with nothing to load.
+ */
+private const val STAGED_LIBRARY_DIR = "lib"
+private const val HYOS_LIBRARY_DIR = "libhyos"
+
+/**
  * What came of trying to load a module APK.
  *
  * The loader used to answer every refusal with the same null, so a module built against libxposed
@@ -73,6 +120,16 @@ sealed interface ModuleLoad {
 /** The APK when it loaded and null when it did not, for callers with nothing to say about why. */
 val ModuleLoad.apkOrNull: ModuleCode?
   get() = (this as? ModuleLoad.Loaded)?.apk
+
+/**
+ * One native library the index names for one process: which module asked for it, the name that
+ * module declared, and the absolute path the process should load it from.
+ */
+data class HyosModuleLibrary(
+    val modulePackage: String,
+    val libraryName: String,
+    val libraryPath: String,
+)
 
 object FileSystem {
   val basePath: Path = Paths.get("/data/adb/lspd")
@@ -488,11 +545,19 @@ object FileSystem {
    *
    * Returns null when the module ships nothing for this ABI or the copy failed, in which case the
    * module still loads and only its native part fails, exactly as it does today.
+   *
+   * [dirName] selects which of the readers the copy is for; see [STAGED_LIBRARY_DIR]. The two sets
+   * are kept apart because each is pruned against a different notion of "still needed".
    */
-  fun stageNativeLibraries(root: Path, packageName: String, apkPath: String): String? =
+  fun stageNativeLibraries(
+      root: Path,
+      packageName: String,
+      apkPath: String,
+      dirName: String = STAGED_LIBRARY_DIR,
+  ): String? =
       runCatching {
             val apk = File(apkPath)
-            val dir = root.resolve("lib").resolve(packageName)
+            val dir = root.resolve(dirName).resolve(packageName)
 
             // Re-extract only when the APK behind the copy changed. Getting this wrong in the
             // lenient direction would leave system_server running a module's superseded native
@@ -546,10 +611,14 @@ object FileSystem {
    * Drops staged libraries belonging to modules that are no longer bound for system_server, so an
    * uninstalled or rescoped module does not leave a copy of its native code behind for good.
    */
-  fun pruneStagedNativeLibraries(root: Path?, keep: Set<String>) {
+  fun pruneStagedNativeLibraries(
+      root: Path?,
+      keep: Set<String>,
+      dirName: String = STAGED_LIBRARY_DIR,
+  ) {
     if (root == null) return
     runCatching {
-          val libRoot = root.resolve("lib")
+          val libRoot = root.resolve(dirName)
           if (!libRoot.isDirectory()) return
           Files.list(libRoot).use { stream ->
             stream
@@ -558,6 +627,101 @@ object FileSystem {
           }
         }
         .onFailure { Log.e(TAG, "Failed to prune staged native libraries", it) }
+  }
+
+  /** Whether this device runs applications on the HyperOS Rust Runtime at all. */
+  fun hasHyosRuntime(): Boolean =
+      SystemProperties.getBoolean(HYOS_ACTIVE_PROPERTY, false) &&
+          SystemProperties.get(HYOS_VERSION_PROPERTY).orEmpty().isNotEmpty()
+
+  /**
+   * Stages a module's native libraries for the HyperOS Runtime's reader rather than system_server's.
+   *
+   * A process there cannot be told a search path the way an injected ART process can, so it is
+   * handed absolute paths in the index below and needs the libraries to exist at those paths. The
+   * APK itself would do — /data/app is readable and mappable by any app domain — but the entry has
+   * to be STORED inside the zip for the loader to open it, and a module that compressed its
+   * libraries would silently lose its native part. A copy has neither problem.
+   */
+  fun stageHyosNativeLibraries(root: Path, packageName: String, apkPath: String): String? =
+      stageNativeLibraries(root, packageName, apkPath, HYOS_LIBRARY_DIR)
+
+  /** Drops HyperOS-staged libraries of modules that are in no scope any more. */
+  fun pruneHyosNativeLibraries(root: Path?, keep: Set<String>) {
+    pruneStagedNativeLibraries(root, keep, HYOS_LIBRARY_DIR)
+  }
+
+  /**
+   * Publishes what each HyperOS Runtime process should load.
+   *
+   * Written 0600 inside Vector's own root-owned tree: the only reader is the companion, which runs
+   * as root, and the only consumer is the spawner, which inherits the answer through the fork. No
+   * application is meant to see this, and none can reach the directory to try.
+   *
+   * A process with no file is in nobody's scope. Files for processes that stopped being in scope
+   * are removed, and the generation stamp is rewritten last, so a reader that refreshes on a
+   * changed generation never sees a half-written set.
+   */
+  fun publishHyosIndex(index: Map<String, List<HyosModuleLibrary>>) {
+    runCatching {
+          val dir = basePath.resolve(HYOS_INDEX_DIR)
+          Files.createDirectories(dir)
+          Os.chmod(dir.toString(), "700".toInt(8))
+
+          val written = mutableSetOf<String>()
+          index.forEach { (processName, libraries) ->
+            // A process name is a manifest string that becomes a file name here. Android's own
+            // validation is not something to lean on for a write performed as root, so anything
+            // that is not a plain name is refused rather than resolved.
+            if (processName.isEmpty() || processName.contains('/') || processName == "." ||
+                processName == "..") {
+              Log.w(TAG, "Refusing to publish an index under the name '$processName'")
+              return@forEach
+            }
+            val target = dir.resolve(processName)
+            val text =
+                buildString {
+                  appendLine(HYOS_INDEX_MAGIC)
+                  libraries.forEach {
+                    append(it.modulePackage)
+                    append('\t')
+                    append(it.libraryName)
+                    append('\t')
+                    append(it.libraryPath)
+                    append('\n')
+                  }
+                }
+            Files.writeString(
+                target,
+                text,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING,
+            )
+            Os.chmod(target.toString(), "600".toInt(8))
+            written.add(processName)
+          }
+
+          Files.list(dir).use { stream ->
+            stream
+                .filter {
+                  val name = it.fileName.toString()
+                  name != HYOS_GENERATION_NAME && name !in written
+                }
+                .forEach { it.toFile().delete() }
+          }
+
+          // Written last, and only after the entries are in place: it is what a reader keys on, so
+          // a generation that has moved promises a set that is already complete.
+          val generation = dir.resolve(HYOS_GENERATION_NAME)
+          Files.writeString(
+              generation,
+              System.currentTimeMillis().toString(),
+              StandardOpenOption.CREATE,
+              StandardOpenOption.TRUNCATE_EXISTING,
+          )
+          Os.chmod(generation.toString(), "600".toInt(8))
+        }
+        .onFailure { Log.e(TAG, "Failed to publish the HyperOS Runtime index", it) }
   }
 
   fun toGlobalNamespace(path: String): File {
