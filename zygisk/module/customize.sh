@@ -82,9 +82,17 @@ esac
 ui_print "- Device platform: $ARCH ($ABI32 / $ABI64)"
 
 ui_print "- Extracting root module files"
-for file in module.prop action.sh service.sh uninstall.sh sepolicy.rule framework/vector.dex cli daemon.apk daemon manager.apk zn_modules.txt; do
+for file in module.prop action.sh service.sh uninstall.sh sepolicy.rule framework/vector.dex cli daemon.apk daemon manager.apk; do
     extract "$ZIPFILE" "$file" "$MODPATH"
 done
+
+if [ "$IS64BIT" = true ]; then
+    extract "$ZIPFILE" "zn_modules.$ABI64.txt" "$MODPATH"
+    mv "$MODPATH/zn_modules.$ABI64.txt" "$MODPATH/zn_modules.txt"
+else
+    extract "$ZIPFILE" "zn_modules.$ABI32.txt" "$MODPATH"
+    mv "$MODPATH/zn_modules.$ABI32.txt" "$MODPATH/zn_modules.txt"
+fi
 
 ui_print "- Extracting Zygisk libraries"
 mkdir -p "$MODPATH/zygisk"
