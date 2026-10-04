@@ -515,7 +515,7 @@ object ConfigCache {
     }
 
     FileSystem.pruneHyosNativeLibraries(misc, staged.filterValues { it != null }.keys)
-    FileSystem.publishHyosIndex(misc, index)
+    FileSystem.publishHyosIndex(index)
   }
 
   fun getModulesForProcess(processName: String, uid: Int): List<LoadedModule> {

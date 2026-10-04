@@ -63,22 +63,26 @@ private const val HYOS_ACTIVE_PROPERTY = "rust.runtime_active"
 private const val HYOS_VERSION_PROPERTY = "rust.runtime_version"
 
 /**
- * The index a process spawned by the HyperOS Rust Runtime's spawner reads to find the modules in
- * its scope.
+ * The index of what each HyperOS Runtime process should load.
  *
- * Everything here has a counterpart in `zygisk/src/main/cpp/hyos_runtime.cpp`, which is the only
- * reader; the two sets of constants have to agree or the feature quietly does nothing.
+ * It sits inside Vector's own tree rather than in the shared /data/misc, because nothing but the
+ * companion reads it: the per-process libraries are looked up by the companion and handed to the
+ * spawner before it forks, so the file never has to be reachable by the application it describes.
+ * That is the whole reason there is no pointer file any more and no path published anywhere — the
+ * channel is the companion connection, not the filesystem.
  *
- * The pointer file is the part that makes the random directory findable without listing /data/misc,
- * which an app-domain process may not do. It sits directly in /data/misc because that directory
- * belongs to the system uid with mode 0771: nothing running as an application can create an entry
- * there, and the file itself is mode 0600, so only root — which is what the companion runs as — can
- * read it. An application therefore cannot learn where the index is, and so cannot ask whether it
- * is being hooked.
+ * Magisk holds /data/adb at mode 0700 owned by root, so this subtree is root-only by construction.
  */
-private const val HYOS_POINTER_PATH = "/data/misc/vector.hyos"
 private const val HYOS_INDEX_DIR = "hyos"
-private const val HYOS_INDEX_MARKER = ".version"
+private const val HYOS_GENERATION_NAME = ".generation"
+
+/**
+ * The first line of every index, and the version of the format it describes.
+ *
+ * A file that does not start with it is not one of ours, which is the only thing between a
+ * half-written file and the spawner acting on it. The two sides of this format are this file and
+ * `zygisk/src/main/cpp/hyos_runtime.cpp`, and nothing else reads it.
+ */
 private const val HYOS_INDEX_MAGIC = "vector-hyos 1"
 
 /**
@@ -648,21 +652,21 @@ object FileSystem {
   }
 
   /**
-   * Publishes the index a process spawned by the HyperOS Rust Runtime reads to find the modules in its
-   * scope.
+   * Publishes what each HyperOS Runtime process should load.
    *
-   * The whole file lives inside the daemon's random directory and is readable by path to anything
-   * that knows the path, which is deliberate: the reader is a process with no binder and no JVM, so
-   * a file is the only channel there is. What keeps the list private is that the path is not
-   * discoverable — see [HYOS_POINTER_PATH] for the half of that which the companion reads.
+   * Written 0600 inside Vector's own root-owned tree: the only reader is the companion, which runs
+   * as root, and the only consumer is the spawner, which inherits the answer through the fork. No
+   * application is meant to see this, and none can reach the directory to try.
    *
-   * A process with no entry is in nobody's scope, and files for processes that stopped being in
-   * scope are removed, so the index always describes exactly the current configuration.
+   * A process with no file is in nobody's scope. Files for processes that stopped being in scope
+   * are removed, and the generation stamp is rewritten last, so a reader that refreshes on a
+   * changed generation never sees a half-written set.
    */
-  fun publishHyosIndex(miscPath: Path, index: Map<String, List<HyosModuleLibrary>>) {
+  fun publishHyosIndex(index: Map<String, List<HyosModuleLibrary>>) {
     runCatching {
-          val dir = miscPath.resolve(HYOS_INDEX_DIR)
+          val dir = basePath.resolve(HYOS_INDEX_DIR)
           Files.createDirectories(dir)
+          Os.chmod(dir.toString(), "700".toInt(8))
 
           val written = mutableSetOf<String>()
           index.forEach { (processName, libraries) ->
@@ -693,40 +697,29 @@ object FileSystem {
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING,
             )
-            Os.chmod(target.toString(), "644".toInt(8))
+            Os.chmod(target.toString(), "600".toInt(8))
             written.add(processName)
           }
-
-          val marker = dir.resolve(HYOS_INDEX_MARKER)
-          Files.writeString(
-              marker,
-              "$HYOS_INDEX_MAGIC\n",
-              StandardOpenOption.CREATE,
-              StandardOpenOption.TRUNCATE_EXISTING,
-          )
-          Os.chmod(marker.toString(), "644".toInt(8))
 
           Files.list(dir).use { stream ->
             stream
                 .filter {
                   val name = it.fileName.toString()
-                  name != HYOS_INDEX_MARKER && name !in written
+                  name != HYOS_GENERATION_NAME && name !in written
                 }
                 .forEach { it.toFile().delete() }
           }
 
-          // The daemon runs with a zero umask, so every mode here is set rather than inherited. The
-          // directory is searchable but not listable, the way the rest of the staged tree is, and
-          // the label is what lets a process running as an application read it at all.
-          Os.chmod(dir.toString(), "711".toInt(8))
-          setSelinuxContextRecursive(dir, "u:object_r:xposed_data:s0")
-
-          val pointer = File(HYOS_POINTER_PATH)
-          pointer.writeText("misc=$miscPath\n")
-          // 0600 and owned by the daemon: the companion, which is root, is the only reader meant to
-          // have this. An application that could read it would learn where the index is and could
-          // then ask whether it is being hooked.
-          Os.chmod(pointer.absolutePath, "600".toInt(8))
+          // Written last, and only after the entries are in place: it is what a reader keys on, so
+          // a generation that has moved promises a set that is already complete.
+          val generation = dir.resolve(HYOS_GENERATION_NAME)
+          Files.writeString(
+              generation,
+              System.currentTimeMillis().toString(),
+              StandardOpenOption.CREATE,
+              StandardOpenOption.TRUNCATE_EXISTING,
+          )
+          Os.chmod(generation.toString(), "600".toInt(8))
         }
         .onFailure { Log.e(TAG, "Failed to publish the HyperOS Runtime index", it) }
   }

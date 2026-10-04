@@ -12,9 +12,12 @@
 #include <atomic>
 #include <cerrno>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
+#include <map>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "common/logging.h"
@@ -61,69 +64,62 @@ namespace vector::native::hyos {
 
 namespace {
 
-// --- The published state, and where to find it ------------------------------------------------
+// --- The published state, and how it reaches this process --------------------------------------
 
 /**
- * A fixed path the daemon writes the real location into, because there is nothing to list.
+ * Where the daemon writes what each HyperOS Runtime process should load.
  *
- * /data/misc belongs to the system uid with mode 0771, so only root and the daemon can create
- * entries in it, and this file is mode 0600. That combination is deliberate: a process running as
- * an application cannot read it, so an application cannot learn the directory the index lives in
- * and therefore cannot ask whether it is being hooked. The companion is the only reader, and it
- * runs as root.
+ * Inside Vector's own tree rather than in the shared /data/misc, because nobody but the companion
+ * reads it: the answer is looked up by the companion and handed to the spawner over the connection
+ * the two already share, long before any fork. Nothing here has to be reachable by the application
+ * the index describes, which is why there is no pointer file any more and no path published
+ * anywhere -- the channel is the companion connection, not the filesystem.
+ *
+ * Magisk holds /data/adb at mode 0700 owned by root, so this subtree is root-only by construction.
  */
-constexpr auto kPointerPath = "/data/misc/vector.hyos";
-
-/// The prefix of the single line the pointer file carries.
-constexpr std::string_view kPointerKey = "misc=";
-
-/// Where the random Vector directory lives, for the fallback that has to go looking.
-constexpr auto kMiscRootPath = "/data/misc";
-
-/// The index directory the daemon creates inside its random directory, and its marker file.
-constexpr std::string_view kIndexDirName = "hyos";
-constexpr std::string_view kIndexMarkerName = ".version";
+constexpr auto kIndexDir = "/data/adb/lspd/hyos";
+constexpr std::string_view kGenerationName = ".generation";
 constexpr std::string_view kIndexMagic = "vector-hyos 1";
 
-/// The socket message that asks the companion for the index location.
-constexpr char kRequestMiscRoot = 'M';
+/// The two things the companion can be asked for.
+constexpr char kRequestGeneration = 'G';
+constexpr char kRequestTable = 'T';
 
-/// Longest reply accepted from the companion, so a confused peer cannot exhaust memory.
-constexpr size_t kMaxReplyLength = 4096;
+/// Refuse a table larger than this rather than believe a length field.
+constexpr uint32_t kMaxTableLength = 8u << 20;
 
 /**
- * Where the companion reports whether this process's hyperos support is actually working.
+ * The one socket this side of the runtime is reached through.
  *
- * A client connects and reads one byte: `1` means the Zygisk Next Runtime API was registered and
- * applications will be specialized, anything else means the runtime did not want us. It is the
- * whole interface, and it exists because the daemon has no other way to ask: the daemon is a Java
- * process, and the connection the spawner holds is not one it can reach.
+ * The Vector daemon connects and reads a single byte: `1` means the Zygisk Next Runtime API was
+ * registered and applications will be specialized, anything else means the runtime did not want us.
  *
- * The path is the same one LSPosed 2.2.0 uses, recovered from its released daemon -- its
+ * The path and the leading byte are LSPosed 2.2.0's, recovered from its released daemon -- its
  * `ILSPManagerService` transaction 67 connects here and reads exactly that byte, and its manager
- * turns the answer into the "HyperOS Runtime injection failed" notice the user sees. Being under
- * /data/adb/lspd, which is mode 0700 owned by root, is deliberate: the companion and the daemon are
- * both root, and nothing running as an application may ask.
+ * turns the answer into the notice the user sees.
+ *
+ * Only root can reach it, and that is a property of the tree rather than of this file: Magisk holds
+ * /data/adb at mode 0700 owned by root and labels it adb_data_file, so no application process can
+ * traverse it whatever mode the socket is given -- LSPosed's own copy is chmod 0600 on top of that.
+ * The daemon is therefore the only caller this socket will ever have, and the status byte is the
+ * whole of what it is asked. A process the runtime spawned cannot come here for its libraries and
+ * does not try: those arrive over the connection the spawner holds to the companion, the one
+ * channel a forked child already has.
  */
 constexpr auto kMonitorPath = "/data/adb/lspd/hyos_monitor";
 
 /// How long the companion waits for the spawner's status byte before assuming the worst.
 constexpr time_t kStatusByteTimeoutSeconds = 2;
 
+/// How long either side waits on the companion connection.
+constexpr time_t kCompanionTimeoutSeconds = 2;
+
 // --- The Zygisk Next view of this process -----------------------------------------------------
 
 const ZygiskNextAPI *g_api = nullptr;
 
-// How long a child waits for the companion before giving up on it.
-//
-// This runs inside application startup, ahead of everything the application does, so a companion
-// that has wedged must cost a bounded delay rather than the launch itself. The reply is a path
-// string written by a process that is already running, so anything above milliseconds means the
-// companion is not coming.
-constexpr time_t kCompanionReplyTimeoutSeconds = 1;
-
-// The companion connection, established by the spawner before any fork and inherited by every
-// child. -1 when the companion could not be started, which costs the callback delivery.
+// The companion connection, established by the spawner before any fork. -1 when the companion could
+// not be started, which costs everything: the status byte, and the table itself.
 int g_companion_fd = -1;
 
 // Whether the HyperOS Runtime API was actually registered here. Zygisk Next's Runtime API is an
@@ -138,12 +134,27 @@ bool g_registered = false;
 // threads of one process, which is why it is atomic rather than plain.
 std::atomic<char> g_injection_status{0};
 
+/// One module native library to load into this process.
+struct LibraryEntry {
+    std::string module_package;
+    std::string library_name;
+    std::string library_path;
+};
+
+// What the spawner fetched, and which generation of the daemon's index it came from. Built before
+// the fork, read after it: a process the runtime spawns looks its own name up in this and does no
+// I/O at all, which is the point -- the callback runs in a child of a multithreaded parent, where
+// reaching for a file or a socket means reaching for a lock some other thread may have held.
+std::map<std::string, std::vector<LibraryEntry>> g_index;
+uint64_t g_generation = 0;
+bool g_index_loaded = false;
+
 // Whether this process has already done its work. A child is forked once and specializes once, but
 // a runtime is free to call the callback again, and loading a module's libraries twice would run
 // its native_init twice.
 bool g_specialized = false;
 
-// --- Reading files without assuming anything --------------------------------------------------
+// --- Small I/O helpers -------------------------------------------------------------------------
 
 /// Reads a whole file, up to a sane bound. False when it cannot be read at all.
 bool ReadFile(const std::string &path, std::string &out) {
@@ -161,7 +172,6 @@ bool ReadFile(const std::string &path, std::string &out) {
         }
         if (n == 0) break;
         out.append(buf, static_cast<size_t>(n));
-        // Every file read here is a few hundred bytes of text; a larger one is not one of ours.
         if (out.size() > (1u << 20)) {
             close(fd);
             out.clear();
@@ -183,122 +193,28 @@ bool WriteAll(int fd, const std::string &data) {
     return true;
 }
 
-/// The first line of `text`, without its terminator.
-std::string FirstLine(const std::string &text) {
-    const auto end = text.find('\n');
-    std::string line = text.substr(0, end == std::string::npos ? text.size() : end);
-    if (!line.empty() && line.back() == '\r') line.pop_back();
-    return line;
+/// Reads exactly `length` bytes, or reports that it could not.
+bool ReadAll(int fd, void *data, size_t length) {
+    auto *out = static_cast<char *>(data);
+    size_t read_so_far = 0;
+    while (read_so_far < length) {
+        const ssize_t n = read(fd, out + read_so_far, length - read_so_far);
+        if (n <= 0) return false;
+        read_so_far += static_cast<size_t>(n);
+    }
+    return true;
 }
 
-/**
- * @brief Whether a directory really is the one the Vector daemon publishes into.
- *
- * The random name is the whole point of the directory, so finding one by looking means finding
- * somebody else's directory just as easily. The marker is what tells them apart.
- */
-bool IsVectorMiscRoot(const std::string &root) {
-    std::string content;
-    const std::string marker =
-        root + "/" + std::string(kIndexDirName) + "/" + std::string(kIndexMarkerName);
-    if (!ReadFile(marker, content)) return false;
-    return FirstLine(content) == kIndexMagic;
+void AppendU32(std::string &out, uint32_t value) {
+    out.append(reinterpret_cast<const char *>(&value), sizeof(value));
 }
 
-/**
- * @brief Finds the index location.
- *
- * The pointer file first, because it needs no directory listing at all. Failing that, look inside
- * /data/misc, where the daemon's directory is the only one carrying the marker. Both run in the
- * companion, which is root; an application process could do neither.
- */
-std::string ResolveMiscRoot() {
-    std::string pointer;
-    if (ReadFile(kPointerPath, pointer)) {
-        const std::string line = FirstLine(pointer);
-        const std::string_view view{line};
-        if (view.rfind(kPointerKey, 0) == 0) {
-            std::string root{view.substr(kPointerKey.size())};
-            if (!root.empty() && root.back() == '/') root.pop_back();
-            if (IsVectorMiscRoot(root)) return root;
-            LOGW("The published Vector directory '{}' carries no index marker.", root.c_str());
-        } else {
-            LOGW("{} does not name a Vector directory.", kPointerPath);
-        }
-    } else {
-        LOGD("No published Vector directory at {}.", kPointerPath);
-    }
-
-    // Fallback: it is a random name under /data/misc, so the marker is the only way to recognise
-    // it. Reached when the pointer file is missing, or names something that is not there.
-    DIR *dir = opendir(kMiscRootPath);
-    if (dir == nullptr) {
-        LOGW("Cannot look for the Vector directory in {}: {}.", kMiscRootPath, strerror(errno));
-        return {};
-    }
-    std::string found;
-    while (struct dirent *entry = readdir(dir)) {
-        if (entry->d_name[0] == '.') continue;
-        std::string candidate = std::string(kMiscRootPath) + "/" + entry->d_name;
-        if (IsVectorMiscRoot(candidate)) {
-            found = std::move(candidate);
-            break;
-        }
-    }
-    closedir(dir);
-    if (!found.empty()) LOGI("Found the Vector directory by marker: {}", found.c_str());
-    return found;
+bool TakeU32(const std::string &in, size_t &pos, uint32_t &value) {
+    if (pos + sizeof(value) > in.size()) return false;
+    memcpy(&value, in.data() + pos, sizeof(value));
+    pos += sizeof(value);
+    return true;
 }
-
-// --- The application process ------------------------------------------------------------------
-
-/**
- * @brief Asks the companion where the daemon published its state.
- *
- * Read one byte at a time up to the first newline rather than a whole buffer, because the socket
- * is shared with every sibling process and a longer read could swallow a reply that was never
- * meant for this one. Every reply is the same string, so the first line is always the answer.
- */
-std::string AskCompanionForMiscRoot() {
-    if (g_companion_fd < 0) {
-        LOGW("VectorHyperRuntime: no companion connection; cannot locate the Vector directory.");
-        return {};
-    }
-    const char request = kRequestMiscRoot;
-    if (write(g_companion_fd, &request, 1) != 1) {
-        LOGW("VectorHyperRuntime: cannot ask the companion: {}.", strerror(errno));
-        return {};
-    }
-
-    std::string line;
-    bool complete = false;
-    while (line.size() < kMaxReplyLength) {
-        char c = 0;
-        const ssize_t n = read(g_companion_fd, &c, 1);
-        if (n <= 0) break;
-        if (c == '\n') {
-            complete = true;
-            break;
-        }
-        line.push_back(c);
-    }
-    if (!complete) {
-        // A half-read path would be worse than none: it would name a directory that does not exist
-        // and be reported as a scope miss. The read is also where the timeout lands, so this is the
-        // branch a wedged companion produces.
-        LOGW("VectorHyperRuntime: the companion did not answer in time; skipping injection.");
-        return {};
-    }
-    if (line.empty()) LOGW("VectorHyperRuntime: the companion knows no Vector directory yet.");
-    return line;
-}
-
-/// One module native library to load into this process.
-struct LibraryEntry {
-    std::string module_package;
-    std::string library_name;
-    std::string library_path;
-};
 
 /// Splits one index line into its three tab-separated fields.
 bool ParseIndexLine(const std::string &line, LibraryEntry &out) {
@@ -313,24 +229,9 @@ bool ParseIndexLine(const std::string &line, LibraryEntry &out) {
     return !out.library_name.empty() && !out.library_path.empty();
 }
 
-/**
- * @brief Reads the libraries the daemon listed for `key`.
- *
- * A missing file is the ordinary answer for a process that is in nobody's scope, so it is not
- * reported as a failure.
- */
-std::vector<LibraryEntry> ReadIndex(const std::string &misc_root, const std::string &key) {
+/// Turns one published index into the libraries it names. The first line is the format's marker.
+std::vector<LibraryEntry> ParseIndex(const std::string &content) {
     std::vector<LibraryEntry> entries;
-    if (misc_root.empty() || key.empty()) return entries;
-
-    const std::string path =
-        misc_root + "/" + std::string(kIndexDirName) + "/" + key;
-    std::string content;
-    if (!ReadFile(path, content)) {
-        LOGD("VectorHyperRuntime: no index for '{}'.", key.c_str());
-        return entries;
-    }
-
     bool first = true;
     for (size_t start = 0; start < content.size();) {
         const auto end = content.find('\n', start);
@@ -341,14 +242,14 @@ std::vector<LibraryEntry> ReadIndex(const std::string &misc_root, const std::str
         if (first) {
             first = false;
             if (line == kIndexMagic) continue;
-            LOGE("VectorHyperRuntime: {} is not a Vector index; ignoring it.", path.c_str());
+            LOGE("VectorHyperRuntime: an index does not start with its marker; ignoring it.");
             return {};
         }
         if (line.empty() || line[0] == '#') continue;
 
         LibraryEntry entry;
         if (!ParseIndexLine(line, entry)) {
-            LOGW("VectorHyperRuntime: skipping a malformed line in {}.", path.c_str());
+            LOGW("VectorHyperRuntime: skipping a malformed index line.");
             continue;
         }
         entries.push_back(std::move(entry));
@@ -356,9 +257,143 @@ std::vector<LibraryEntry> ReadIndex(const std::string &misc_root, const std::str
     return entries;
 }
 
+// --- The companion's half ----------------------------------------------------------------------
+
+/// The daemon's generation stamp, which moves whenever the published set changes.
+uint64_t ReadGeneration() {
+    std::string content;
+    const std::string path = std::string(kIndexDir) + "/" + std::string(kGenerationName);
+    if (!ReadFile(path, content)) return 0;
+    return strtoull(content.c_str(), nullptr, 10);
+}
+
 /**
- * @brief Brings the native API, and every module library the daemon listed, into this process.
+ * @brief Packs every published index into one blob.
+ *
+ * Sent as a whole rather than answered per name, because the spawner does not know which name it
+ * will be asked about: the runtime picks the package after the fork, so the only safe moment to
+ * learn the answer is before it. One transfer per generation, into memory the fork then shares.
  */
+std::string BuildTable() {
+    std::vector<std::pair<std::string, std::string>> records;
+
+    DIR *dir = opendir(kIndexDir);
+    if (dir != nullptr) {
+        while (struct dirent *entry = readdir(dir)) {
+            if (entry->d_name[0] == '.') continue;
+            std::string content;
+            const std::string path = std::string(kIndexDir) + "/" + entry->d_name;
+            if (ReadFile(path, content)) records.emplace_back(entry->d_name, std::move(content));
+        }
+        closedir(dir);
+    }
+
+    std::string payload;
+    AppendU32(payload, static_cast<uint32_t>(records.size()));
+    for (const auto &record : records) {
+        AppendU32(payload, static_cast<uint32_t>(record.first.size()));
+        payload += record.first;
+        AppendU32(payload, static_cast<uint32_t>(record.second.size()));
+        payload += record.second;
+    }
+    return payload;
+}
+
+/**
+ * @brief Serves the spawner: a generation to compare against, or the table itself.
+ *
+ * One client only -- the spawner -- so the exchange needs no correlation and no care about replies
+ * arriving out of order. The companion is also the only reader of the index, and it runs as root.
+ */
+void *ServeCompanion(void *arg) {
+    const int fd = static_cast<int>(reinterpret_cast<intptr_t>(arg));
+    for (;;) {
+        char request = 0;
+        if (read(fd, &request, 1) != 1) break;
+
+        if (request == kRequestGeneration) {
+            const uint64_t generation = ReadGeneration();
+            if (!WriteAll(fd, std::string(reinterpret_cast<const char *>(&generation),
+                                          sizeof(generation)))) {
+                break;
+            }
+            continue;
+        }
+        if (request == kRequestTable) {
+            const std::string payload = BuildTable();
+            const uint32_t length = static_cast<uint32_t>(payload.size());
+            std::string framed(reinterpret_cast<const char *>(&length), sizeof(length));
+            framed += payload;
+            if (!WriteAll(fd, framed)) break;
+            LOGI("VectorHyperRuntime: published {} bytes to the spawner.", payload.size());
+            continue;
+        }
+        LOGD("VectorHyperRuntime: ignoring request {}.", static_cast<int>(request));
+    }
+    close(fd);
+    return nullptr;
+}
+
+/**
+ * @brief Rebuilds the lookup the spawned processes will read, if the daemon has published since.
+ *
+ * Runs in the spawner, and on the parent side of the fork, because that is the last moment at which
+ * this process may still open a socket: what it produces is memory, and memory is what the fork
+ * copies. The generation stamp is asked for first and is eight bytes, so the ordinary case -- a
+ * fork with nothing republished since the last one -- costs one round trip and no payload.
+ */
+void RefreshIndex() {
+    if (g_companion_fd < 0) return;
+
+    const char request = kRequestGeneration;
+    if (write(g_companion_fd, &request, 1) != 1) return;
+    uint64_t generation = 0;
+    if (!ReadAll(g_companion_fd, &generation, sizeof(generation))) return;
+    if (generation == 0) {
+        LOGD("VectorHyperRuntime: the daemon has published nothing yet.");
+        return;
+    }
+    if (g_index_loaded && generation == g_generation) return;
+
+    const char fetch = kRequestTable;
+    if (write(g_companion_fd, &fetch, 1) != 1) return;
+    uint32_t length = 0;
+    if (!ReadAll(g_companion_fd, &length, sizeof(length)) || length > kMaxTableLength) {
+        LOGW("VectorHyperRuntime: the companion sent no usable table.");
+        return;
+    }
+    std::string payload(length, '\0');
+    if (!ReadAll(g_companion_fd, payload.data(), length)) return;
+
+    size_t pos = 0;
+    uint32_t count = 0;
+    if (!TakeU32(payload, pos, count)) return;
+    std::map<std::string, std::vector<LibraryEntry>> parsed;
+    for (uint32_t i = 0; i < count; i++) {
+        uint32_t key_length = 0;
+        if (!TakeU32(payload, pos, key_length) || pos + key_length > payload.size()) return;
+        std::string key = payload.substr(pos, key_length);
+        pos += key_length;
+
+        uint32_t content_length = 0;
+        if (!TakeU32(payload, pos, content_length) || pos + content_length > payload.size()) {
+            return;
+        }
+        parsed[key] = ParseIndex(payload.substr(pos, content_length));
+        pos += content_length;
+    }
+
+    g_index = std::move(parsed);
+    g_generation = generation;
+    g_index_loaded = true;
+    LOGI("VectorHyperRuntime: holding scopes for {} process name(s).", g_index.size());
+}
+
+/// Runs in the parent, before the fork that creates the next application process.
+void PrepareIndex() {
+    if (g_registered) RefreshIndex();
+}
+
 void LoadModuleLibraries(const std::vector<LibraryEntry> &entries) {
     // The interception of the loader was installed by the spawner before it forked, so it is
     // already in place here and inherited. InstallNativeAPI is idempotent and reports that state.
@@ -405,9 +440,11 @@ void LoadModuleLibraries(const std::vector<LibraryEntry> &entries) {
  * @brief Called once per specialized application process, after its uid, gid, groups and SELinux
  *        context have been applied.
  *
- * This runs in a process forked from a possibly multithreaded parent, so the work is kept to
- * reading two small files and loading libraries: no threads are started, and no lock the parent
- * could have caught at fork time is taken beyond the ones the loader itself takes.
+ * This runs in a process forked from a possibly multithreaded parent, so it does no I/O and starts
+ * no threads: the answer was fetched by the spawner before the fork and is already in memory, and
+ * all this does with it is look the process up and dlopen what it names. Nothing here reaches for a
+ * file or a socket, which is deliberate -- a lock the parent held at fork time is held forever in
+ * the child, and the launch would hang on it with nothing to report.
  */
 void OnAppSpecialized(const ZnHyosAppSpecializeArgs *args) {
     if (!g_registered) return;
@@ -421,53 +458,28 @@ void OnAppSpecialized(const ZnHyosAppSpecializeArgs *args) {
     LOGI("VectorHyperRuntime: specializing process '{}' (package '{}').", args->process_name,
          args->package_name);
 
-    const std::string misc_root = AskCompanionForMiscRoot();
-    if (misc_root.empty()) return;
-
-    // The daemon publishes per process name, because that is what a scope is keyed by, and the
-    // process name is what this process actually is. It is the first choice for that reason, not
-    // the second: a package with more than one process has a different scope in each, and looking
-    // the package up first would hand the main process's modules to the secondary one.
-    //
-    // The package name is the fallback, for a runtime that gave us a process name we cannot use --
-    // an inherited one, or one truncated to the kernel's fifteen characters. It always resolves to
-    // the package's main process, so a secondary process that falls back here is served the main
-    // process's list rather than nothing; erring towards loading is the lesser mistake, because a
-    // module that meant to hook the main process and hooks a secondary one of the same app has at
-    // least been given what it asked for, while a module that is silently absent looks broken.
-    std::vector<LibraryEntry> entries;
-    if (args->process_name != nullptr) entries = ReadIndex(misc_root, args->process_name);
-    if (entries.empty()) entries = ReadIndex(misc_root, args->package_name);
-    if (entries.empty()) {
+    // The process name first, because that is what a scope is keyed by and what this process
+    // actually is: a package with more than one process has a different scope in each. The package
+    // name is the fallback, for a runtime that gave us a name we cannot use -- an inherited one, or
+    // one truncated to the kernel's fifteen characters -- and it always resolves to the main
+    // process, which is the more useful of the two wrong answers.
+    const std::vector<LibraryEntry> *entries = nullptr;
+    if (args->process_name != nullptr) {
+        const auto found = g_index.find(args->process_name);
+        if (found != g_index.end()) entries = &found->second;
+    }
+    if (entries == nullptr) {
+        const auto found = g_index.find(args->package_name);
+        if (found != g_index.end()) entries = &found->second;
+    }
+    if (entries == nullptr || entries->empty()) {
         LOGD("VectorHyperRuntime: '{}' is in no module's scope.", args->package_name);
         return;
     }
 
     LOGI("VectorHyperRuntime: '{}' has {} module librar{} to load.", args->package_name,
-         entries.size(), entries.size() == 1 ? "y" : "ies");
-    LoadModuleLibraries(entries);
-}
-
-/**
- * @brief Serves the index location to children over the inherited socket.
- *
- * Every reply is the same string, which is what makes one shared connection safe: children are
- * separate processes holding the same socket, so two of them asking at once can each read the
- * other's reply -- and it is still the right answer. The loop ends when the peer does.
- */
-void *ServeCompanion(void *arg) {
-    const int fd = static_cast<int>(reinterpret_cast<intptr_t>(arg));
-    for (;;) {
-        char request = 0;
-        if (read(fd, &request, 1) != 1) break;
-        if (request != kRequestMiscRoot) continue;
-
-        std::string reply = ResolveMiscRoot();
-        reply.push_back('\n');
-        if (!WriteAll(fd, reply)) break;
-    }
-    close(fd);
-    return nullptr;
+         entries->size(), entries->size() == 1 ? "y" : "ies");
+    LoadModuleLibraries(*entries);
 }
 
 /**
@@ -624,9 +636,9 @@ void OnModuleLoaded(void *self_handle, const ZygiskNextAPI *api) {
              "loaded on specialization, but later loads will be invisible to them.");
     }
 
-    // One connection, made now and inherited by every child. Children must not ask again: the
-    // companion serves a single connection, and a second one would arrive at a companion already
-    // busy with this.
+    // One connection, made now and kept for the life of the process. The spawner is its only
+    // client -- a child never touches it -- so the exchange on it needs no correlation and no
+    // protection against replies crossing.
     if (api->connectCompanion == nullptr) {
         LOGW("VectorHyperRuntime: the loader offers no companion connection; applications spawned "
              "here will run unhooked.");
@@ -641,7 +653,7 @@ void OnModuleLoaded(void *self_handle, const ZygiskNextAPI *api) {
         // shares and setting it once is enough. The child's read is on the application's startup
         // path; without a bound, a companion that stopped answering would hold the launch open.
         struct timeval timeout{};
-        timeout.tv_sec = kCompanionReplyTimeoutSeconds;
+        timeout.tv_sec = kCompanionTimeoutSeconds;
         if (setsockopt(g_companion_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0) {
             LOGW("VectorHyperRuntime: cannot bound the companion reply: {}.", strerror(errno));
         }
@@ -656,6 +668,12 @@ void OnModuleLoaded(void *self_handle, const ZygiskNextAPI *api) {
             LOGW("VectorHyperRuntime: cannot report the injection status to the companion: {}.",
                  strerror(errno));
         }
+
+        // The table is fetched now so that the first fork has something to hand down, and again on
+        // the parent side of every later fork. The hook is registered here rather than in the child
+        // for the same reason the loader hook is: this runs before main, on one thread.
+        pthread_atfork(PrepareIndex, nullptr, nullptr);
+        RefreshIndex();
     }
 }
 
