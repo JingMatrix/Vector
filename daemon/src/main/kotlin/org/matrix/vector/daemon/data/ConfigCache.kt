@@ -39,6 +39,34 @@ object ConfigCache {
   // Absent means the module places no restriction on its scope.
   @Volatile private var staticScopes: Map<String, Set<String>> = emptyMap()
 
+  private const val PER_USER_RANGE = 100000
+  private const val FIRST_APP_ZYGOTE_ISOLATED_UID = 90000
+  private const val LAST_ISOLATED_UID = 99999
+
+  /**
+   * Resolve the modules for [scope]. Isolated services have a transient UID and a generated
+   * process suffix, so they cannot have a stable database row of their own. In that case inherit
+   * the base package's explicit scope for the same Android user.
+   */
+  private fun modulesForScope(scope: ProcessScope): List<LoadedModule>? {
+    state.scopes[scope]?.let { return it }
+
+    val appId = scope.uid % PER_USER_RANGE
+    if (appId !in FIRST_APP_ZYGOTE_ISOLATED_UID..LAST_ISOLATED_UID) return null
+
+    val basePackage = scope.processName.substringBefore(':')
+    if (basePackage == scope.processName) return null
+    val userId = scope.uid / PER_USER_RANGE
+    val inherited =
+        state.scopes.entries.firstOrNull { (candidate, _) ->
+          candidate.processName == basePackage && candidate.uid / PER_USER_RANGE == userId
+        }
+    if (inherited != null) {
+      Log.i(TAG, "Inherited $basePackage scope for isolated process ${scope.processName}/${scope.uid}")
+    }
+    return inherited?.value
+  }
+
   /** The packages [modulePackage] claims, or null when it does not fix its scope. */
   fun staticScopeOf(modulePackage: String): Set<String>? = staticScopes[modulePackage]
 
@@ -462,7 +490,7 @@ object ConfigCache {
       Log.w(TAG, "Skip unexpected module queries for $processName")
       return emptyList()
     }
-    return state.scopes[ProcessScope(processName, uid)] ?: emptyList()
+    return modulesForScope(ProcessScope(processName, uid)) ?: emptyList()
   }
 
   fun getModuleByUid(uid: Int): LoadedModule? =
@@ -603,7 +631,7 @@ object ConfigCache {
 
   fun shouldSkipProcess(scope: ProcessScope): Boolean {
     ensureCacheReady()
-    return !state.scopes.containsKey(scope)
+    return modulesForScope(scope) == null
   }
 
   fun getPrefsPath(packageName: String, uid: Int): String {
