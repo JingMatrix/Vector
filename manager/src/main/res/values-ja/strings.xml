@@ -399,4 +399,9 @@
     <string name="launcher_prompt_title">Vector のアイコンはまだありません</string>
     <string name="launcher_prompt_body">Vector はインストールされるのではなく、別のプロセス内で実行されるため、ランチャーには何も表示されず、Vector に戻ってくる手段もありません。ホーム画面にショートカットを作成するか、通常のアプリとしてインストールしてください。</string>
     <string name="launcher_prompt_never">今後表示しない</string>
+    <string name="action_invalidate_art_inline_hooks">ART インラインフック互換モード</string>
+    <string name="action_invalidate_art_inline_hooks_summary">選択した各アプリで Vector の ART インラインフックをグローバルに無効化します。対象にするモジュールやフックの数には依存しません。一部のモジュールが動作しなくなり、アプリが誤動作またはクラッシュする可能性があります。各アプリの次回起動時に適用されます。</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">%1$s の ART インラインフック互換モードを有効にしました。</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">%1$s の ART インラインフック互換モードを無効にしました。</string>
+    <string name="action_invalidate_art_inline_hooks_failed">%1$s の ART インラインフック互換モードを変更できませんでした。</string>
 </resources>

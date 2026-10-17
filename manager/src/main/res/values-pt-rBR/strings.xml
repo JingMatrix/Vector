@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">O Vector ainda não tem ícone</string>
     <string name="launcher_prompt_body">O Vector roda dentro de outro processo em vez de estar instalado, então nada aparece no seu launcher e não há um caminho óbvio de volta. Dê a ele um atalho na tela inicial, ou instale-o como um app comum.</string>
     <string name="launcher_prompt_never">Não perguntar de novo</string>
+    <string name="action_invalidate_art_inline_hooks">Modo de compatibilidade de hooks inline do ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Invalida globalmente os hooks inline do ART do Vector em cada app selecionado, independentemente de quantos módulos ou hooks o atinjam. Alguns módulos podem parar de funcionar e os apps podem apresentar falhas ou travar. Aplica-se na próxima inicialização de cada app.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Compatibilidade de hooks inline do ART ativada para %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Compatibilidade de hooks inline do ART desativada para %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Não foi possível alterar a compatibilidade de hooks inline do ART para %1$s.</string>
 </resources>

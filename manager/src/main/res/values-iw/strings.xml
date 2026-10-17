@@ -446,4 +446,9 @@
     <string name="launcher_prompt_title">ל-Vector עדיין אין סמל</string>
     <string name="launcher_prompt_body">Vector פועל בתוך תהליך אחר במקום להיות מותקן, ולכן שום דבר לא מופיע במסך הבית ואין דרך ברורה לחזור אליו. תנו לו קיצור דרך במסך הבית, או התקינו אותו כאפליקציה רגילה.</string>
     <string name="launcher_prompt_never">לא לשאול שוב</string>
+    <string name="action_invalidate_art_inline_hooks">מצב תאימות Hook קוויים של ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">ביטול גלובלי של ה-hooks המוטמעים של ART של Vector בכל אפליקציה שנבחרה, ללא תלות במספר המודולים או ה-hooks שמכוונים אליה. חלק מהמודולים עשויים להפסיק לעבוד, ואפליקציות עלולות לפעול באופן שגוי או לקרוס. השינוי חל בהפעלה הבאה של כל אפליקציה.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">תאימות ה-hooks הקוויים של ART הופעלה עבור %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">תאימות ה-hooks הקוויים של ART הושבתה עבור %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">לא ניתן היה לשנות את תאימות ה-hooks הקוויים של ART עבור %1$s.</string>
 </resources>
