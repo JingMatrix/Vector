@@ -10,6 +10,8 @@ import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.Process
+import android.os.SystemProperties
 import android.telephony.TelephonyManager
 import android.util.Log
 import hidden.HiddenApiBridge
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.ipc.IVectorDaemon
 import org.matrix.vector.ipc.IFrameworkService
+import org.matrix.vector.ipc.IModuleService
 import org.matrix.vector.daemon.data.ConfigCache
 import org.matrix.vector.daemon.data.ModuleDatabase
 import org.matrix.vector.daemon.data.PreferenceStore
@@ -25,6 +28,7 @@ import org.matrix.vector.daemon.data.ProcessScope
 import org.matrix.vector.daemon.ipc.FrameworkService
 import org.matrix.vector.daemon.ipc.ManagerService
 import org.matrix.vector.daemon.ipc.ModuleAppService
+import org.matrix.vector.daemon.ipc.SystemServerService
 import org.matrix.vector.daemon.system.*
 
 private const val TAG = "VectorService"
@@ -32,6 +36,7 @@ private const val TAG = "VectorService"
 object VectorService : IVectorDaemon.Stub() {
 
   private var bootCompleted = false
+  private var contextOwner: IBinder? = null
 
   /**
    * What the dialer broadcasts when a secret code is entered, which changed name in Q.
@@ -49,18 +54,22 @@ object VectorService : IVectorDaemon.Stub() {
   /** Dial *#*#832867#*#* ("VECTOR" on the keypad) to open the manager. */
   private const val SECRET_CODE = "832867"
 
+  @Synchronized
   override fun dispatchSystemServerContext(
       appThread: IBinder?,
       activityToken: IBinder?,
   ) {
-    appThread?.let { SystemContext.appThread = IApplicationThread.Stub.asInterface(it) }
+    if (Binder.getCallingUid() != Process.SYSTEM_UID || appThread == null) return
+    if (contextOwner == appThread) return
+    SystemContext.appThread = IApplicationThread.Stub.asInterface(appThread)
     SystemContext.token = activityToken
 
     // Initialize OS Observers using Coroutines for the dispatch blocks
     registerReceivers()
+    contextOwner = appThread
 
-    if (VectorDaemon.isLateInject) {
-      Log.i(TAG, "Late injection detected. Forcing boot completed event.")
+    if (VectorDaemon.isLateInject || SystemProperties.get("sys.boot_completed") == "1") {
+      Log.i(TAG, "Connected to an already booted system server.")
       dispatchBootCompleted()
     }
   }
@@ -69,17 +78,22 @@ object VectorService : IVectorDaemon.Stub() {
       uid: Int,
       pid: Int,
       processName: String,
-      heartBeat: IBinder
+      heartBeat: IBinder,
   ): IFrameworkService? {
     if (Binder.getCallingUid() != 1000) {
       Log.w(TAG, "Unauthorized attachProcess call")
       return null
     }
+    if (processName == "system") {
+      return SystemServerService.attachProcess(uid, pid, processName, heartBeat)
+    }
     if (FrameworkService.hasRegister(uid, pid)) return null
 
     val scope = ProcessScope(processName, uid)
-    if (!ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
-        ConfigCache.shouldSkipProcess(scope)) {
+    if (
+        !ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
+            ConfigCache.shouldSkipProcess(scope)
+    ) {
       Log.d(TAG, "Skipped $processName/$uid")
       return null
     }
@@ -90,6 +104,13 @@ object VectorService : IVectorDaemon.Stub() {
   }
 
   override fun preStartManager() = ManagerService.preStartManager()
+
+  override fun reconnectSystemModule(
+      packageName: String,
+      loadedVersionCode: Long,
+      hotReloadable: Boolean,
+  ): IModuleService? =
+      FrameworkService.reconnectSystemModule(packageName, loadedVersionCode, hotReloadable)
 
   private fun createReceiver() =
       object : IIntentReceiver.Stub() {

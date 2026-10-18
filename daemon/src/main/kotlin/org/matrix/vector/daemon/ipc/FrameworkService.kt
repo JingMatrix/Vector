@@ -13,8 +13,10 @@ import java.util.concurrent.atomic.AtomicLong
 import org.matrix.vector.ipc.LoadedModule
 import org.matrix.vector.ipc.IProcessChannel
 import org.matrix.vector.ipc.IFrameworkService
+import org.matrix.vector.ipc.IModuleService
 import org.matrix.vector.daemon.data.ConfigCache
 import org.matrix.vector.daemon.data.FileSystem
+import org.matrix.vector.daemon.data.ModuleDatabase
 import org.matrix.vector.daemon.system.FIRST_APPLICATION_UID
 import org.matrix.vector.daemon.system.PER_USER_RANGE
 import org.matrix.vector.daemon.utils.InstallerVerifier
@@ -45,6 +47,7 @@ object FrameworkService : IFrameworkService.Stub() {
   data class ProcessKey(val uid: Int, val pid: Int)
 
   private val processes = ConcurrentHashMap<ProcessKey, ProcessInfo>()
+  private val processRegistrationLock = Any()
 
   /** One module generation loaded into one process: what a hot reload request addresses. */
   class HotReloadTarget(
@@ -57,6 +60,7 @@ object FrameworkService : IFrameworkService.Stub() {
       val hotReloadable: Boolean,
   ) {
     val state = AtomicInteger(HookedProcess.TARGET_STATE_UP_TO_DATE)
+    @Volatile var mayBackfillVersion = true
   }
 
   private val hotReloadTargets = ConcurrentHashMap<Long, HotReloadTarget>()
@@ -70,15 +74,13 @@ object FrameworkService : IFrameworkService.Stub() {
 
     @Volatile var hotReloadBinder: IProcessChannel? = null
 
-    init {
-      heartBeat.linkToDeath(this, 0)
-      processes[key] = this
-    }
-
     override fun binderDied() {
-      heartBeat.unlinkToDeath(this, 0)
-      processes.remove(key)
-      targetIds.values.forEach { hotReloadTargets.remove(it) }
+      synchronized(processRegistrationLock) {
+        runCatching { heartBeat.unlinkToDeath(this, 0) }
+        if (processes.remove(key, this)) {
+          targetIds.values.forEach { hotReloadTargets.remove(it) }
+        }
+      }
     }
   }
 
@@ -156,7 +158,7 @@ object FrameworkService : IFrameworkService.Stub() {
   // system_server records its targets before PMS exists, so they start without a version.
   fun backfillLoadedVersions() {
     hotReloadTargets.values
-        .filter { it.loadedVersionCode == 0L }
+        .filter { it.loadedVersionCode == 0L && it.mayBackfillVersion }
         .forEach { target ->
           ConfigCache.state.modules[target.modulePackageName]
               ?.versionCode
@@ -246,11 +248,67 @@ object FrameworkService : IFrameworkService.Stub() {
   }
 
   fun registerHeartBeat(uid: Int, pid: Int, processName: String, heartBeat: IBinder): Boolean {
-    return runCatching {
-          ProcessInfo(ProcessKey(uid, pid), processName, heartBeat)
-          true
-        }
-        .getOrDefault(false)
+    return synchronized(processRegistrationLock) {
+      val key = ProcessKey(uid, pid)
+      processes[key]?.let {
+        // A repeated system-server handshake must retain its process channel and module targets.
+        if (it.heartBeat.isBinderAlive) return@synchronized it.processName == processName
+        // Death delivery may be queued while a new process has already reused the PID.
+        it.binderDied()
+      }
+      runCatching {
+            val info = ProcessInfo(key, processName, heartBeat)
+            heartBeat.linkToDeath(info, 0)
+            if (!heartBeat.isBinderAlive) {
+              heartBeat.unlinkToDeath(info, 0)
+              false
+            } else {
+              processes[key] = info
+              true
+            }
+          }
+          .getOrDefault(false)
+    }
+  }
+
+  fun isSystemServerRegistered(): Boolean =
+      processes.values.any {
+        it.key.uid == Process.SYSTEM_UID && it.processName == "system" && it.heartBeat.isBinderAlive
+      }
+
+  fun reconnectSystemModule(
+      packageName: String,
+      loadedVersionCode: Long,
+      hotReloadable: Boolean,
+  ): IModuleService? {
+    val info = ensureRegistered()
+    if (info.key.uid != Process.SYSTEM_UID || info.processName != "system") {
+      throw SecurityException("Only system_server may restore its module connection")
+    }
+    require(loadedVersionCode >= 0) { "Invalid loaded module version" }
+    ConfigCache.ensureCacheReady()
+    if (!ConfigCache.state.isCacheReady) throw RemoteException("Module cache is not ready")
+    if (ModuleDatabase.systemServerModuleRows().none { it.packageName == packageName }) return null
+    // Reuse the cache-owned service: it receives subsequent preference updates. Do not parse
+    // another APK or stage native libraries merely to reconnect code that is already loaded.
+    val module =
+        ConfigCache.state.modules[packageName]?.takeUnless { it.code.legacy } ?: return null
+    info.targetIds.computeIfAbsent(packageName) {
+      val id = nextHotReloadTargetId.getAndIncrement()
+      hotReloadTargets[id] =
+          HotReloadTarget(
+                  id,
+                  packageName,
+                  info.processName,
+                  info.key.uid,
+                  info.key.pid,
+                  loadedVersionCode,
+                  hotReloadable,
+              )
+              .apply { mayBackfillVersion = false }
+      id
+    }
+    return module.service
   }
 
   fun hasRegister(uid: Int, pid: Int): Boolean = processes.containsKey(ProcessKey(uid, pid))

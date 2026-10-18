@@ -418,19 +418,14 @@ void VectorModule::postServerSpecialize(const zygisk::ServerSpecializeArgs *args
     std::string bridgeServiceName = "serial";
     bool is_late_inject = (args->runtime_flags & RuntimeFlags::LATE_INJECT) != 0;
     if (is_late_inject) bridgeServiceName = "serial_vector";
-    auto system_binder = ipc_bridge.RequestSystemServerBinder(env_, bridgeServiceName);
-    if (!system_binder) {
+    auto manager_binder = ipc_bridge.RequestSystemServerBinder(env_, bridgeServiceName);
+    if (!manager_binder) {
         LOGE("Failed to get system server IPC binder. Aborting injection.");
         SetAllowUnload(true);  // Allow unload on failure.
         return;
     }
 
-    auto manager_binder =
-        ipc_bridge.RequestManagerBinderFromSystemServer(env_, system_binder.get());
-
-    // Use either the direct manager binder if available,
-    // otherwise proxy through the system binder.
-    jobject effective_binder = manager_binder ? manager_binder.get() : system_binder.get();
+    jobject effective_binder = manager_binder.get();
 
     auto [dex_fd, dex_size] = ipc_bridge.FetchFrameworkDex(env_, effective_binder);
     if (dex_fd < 0) {
