@@ -296,11 +296,12 @@ data class StoreCatalog(
     val page: Int = 1,
     val pageCount: Int = 1,
     val total: Int = 0,
-    val isLoadingMore: Boolean = false,
+    val isSyncing: Boolean = false,
+    val syncProgress: Float = 0f,
 ) {
     val isEmpty: Boolean
         get() = modules.isEmpty()
 
-    val hasMore: Boolean
-        get() = page < pageCount
+    val isFullySynced: Boolean
+        get() = page >= pageCount && pageCount > 0
 }
