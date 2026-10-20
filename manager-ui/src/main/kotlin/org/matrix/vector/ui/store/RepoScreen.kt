@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CloudOff
@@ -46,11 +47,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -153,8 +156,22 @@ fun RepoScreen(
                 return@Column
             }
 
+            val listState = rememberLazyListState()
+            LaunchedEffect(listState, catalog.hasMore, catalog.isLoadingMore) {
+                snapshotFlow {
+                    val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                    val totalItems = listState.layoutInfo.totalItemsCount
+                    lastVisibleItem >= totalItems - 5
+                }.collect { nearBottom ->
+                    if (nearBottom && catalog.hasMore && !catalog.isLoadingMore) {
+                        viewModel.loadMore()
+                    }
+                }
+            }
+
             PullToRefreshBox(isRefreshing = refreshing, onRefresh = viewModel::refresh) {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 20.dp),
                 ) {
@@ -173,6 +190,16 @@ fun RepoScreen(
                         items(entries, key = { it.module.name }) { entry ->
                             StoreRow(entry = entry, onClick = { onModuleClick(entry.module.name) })
                             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        }
+                        if (catalog.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                }
+                            }
                         }
                     }
                 }
@@ -194,11 +221,12 @@ private fun StoreHeader(
         actions = actions,
         description = {
             if (catalog.modules.isNotEmpty()) {
+                val count = if (catalog.total > 0) catalog.total else catalog.modules.size
                 val total =
                     context.resources.getQuantityString(
                         R.plurals.store_module_count,
-                        catalog.modules.size,
-                        catalog.modules.size,
+                        count,
+                        count,
                     )
                 // "Up to date" is stated in words rather than as a zero, because a zero in a row
                 // of counts reads as a failure to load rather than as good news.
