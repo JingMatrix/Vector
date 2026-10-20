@@ -104,6 +104,8 @@ fun RepoScreen(
     val priorities by viewModel.priorities.collectAsState()
     val channel by viewModel.channel.collectAsState()
 
+    val searchSuggestions by viewModel.searchSuggestions.collectAsState()
+
     Scaffold { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             StoreHeader(
@@ -114,6 +116,33 @@ fun RepoScreen(
             )
 
             Spacer(Modifier.height(4.dp))
+
+            // When user is searching, display real-time global search suggestions from search.json
+            if (query.isNotBlank()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 20.dp),
+                ) {
+                    if (searchSuggestions.isEmpty() && entries.isEmpty()) {
+                        item {
+                            EmptyState(
+                                modifier = Modifier.fillParentMaxSize(),
+                                catalog = catalog,
+                                filtered = true,
+                            )
+                        }
+                    } else {
+                        items(searchSuggestions, key = { it.name }) { item ->
+                            SearchSuggestionRow(
+                                item = item,
+                                onClick = { onModuleClick(item.name) },
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        }
+                    }
+                }
+                return@Column
+            }
 
             // Nothing has ever loaded and a fetch is running: the one moment a spinner says
             // something the list could not say better itself.
@@ -137,7 +166,7 @@ fun RepoScreen(
                             EmptyState(
                                 modifier = Modifier.fillParentMaxSize(),
                                 catalog = catalog,
-                                filtered = query.isNotBlank(),
+                                filtered = false,
                             )
                         }
                     } else {
@@ -423,6 +452,49 @@ private fun StoreRow(entry: StoreEntry, onClick: () -> Unit) {
                     color = colors.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SearchSuggestionRow(item: StoreSearchItem, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier =
+            Modifier.fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = item.title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = item.name,
+            style = Mono,
+            color = colors.onSurfaceVariant,
+        )
+        if (!item.summary.isNullOrBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = item.summary,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (!item.authors.isNullOrBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = item.authors,
+                style = MaterialTheme.typography.labelSmall,
+                color = colors.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

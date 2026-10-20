@@ -17,6 +17,10 @@ interface StoreDataSource {
     /** Installed module versions on this device, keyed by package name. */
     val installedVersions: StateFlow<Map<String, RepoVersion>>
 
+    /** Complete search index for all modules, used for instant suggestion and search. */
+    val searchIndex: StateFlow<List<StoreSearchItem>>
+        get() = kotlinx.coroutines.flow.MutableStateFlow(emptyList())
+
     /** Reload the catalogue from the network; [force] bypasses any cache. */
     suspend fun refresh(force: Boolean = false)
 

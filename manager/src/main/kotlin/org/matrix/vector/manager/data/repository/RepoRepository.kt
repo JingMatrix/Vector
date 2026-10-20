@@ -20,6 +20,7 @@ import org.matrix.vector.ui.store.StoreDataSource
 import org.matrix.vector.ui.store.OnlineModule
 import org.matrix.vector.ui.store.RepoVersion
 import org.matrix.vector.ui.store.StoreCatalog
+import org.matrix.vector.ui.store.StoreSearchItem
 import org.matrix.vector.manager.data.model.versionCodeCompat
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ipc.DaemonClient
@@ -56,6 +57,9 @@ class RepoRepository(
 
     private val _isRefreshing = MutableStateFlow(false)
     override val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _searchIndex = MutableStateFlow<List<StoreSearchItem>>(emptyList())
+    override val searchIndex: StateFlow<List<StoreSearchItem>> = _searchIndex.asStateFlow()
 
     private val _installed = MutableStateFlow<Map<String, RepoVersion>>(emptyMap())
 
@@ -102,6 +106,7 @@ class RepoRepository(
                             .maxAge(CATALOG_MAX_AGE_MINUTES, TimeUnit.MINUTES)
                             .build()
 
+                launch { fetchSearchIndex(freshness) }
                 val fetched = LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, freshness) }
                 if (fetched != null) {
                     _catalog.value = fetched
@@ -239,6 +244,41 @@ class RepoRepository(
             logW("store: $url unavailable", e)
             null
         }
+    }
+
+    private fun fetchSearchIndex(cacheControl: CacheControl) {
+        val url = "https://modules.lsposed.org/search.json"
+        try {
+            client.newCall(request(url, cacheControl)).execute().use { response ->
+                if (response.isSuccessful) {
+                    val parsed = parseSearchIndex(response)
+                    if (parsed.isNotEmpty()) {
+                        logI("store: loaded ${parsed.size} search items from $url")
+                        _searchIndex.value = parsed
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logW("store: search index from $url unavailable", e)
+            // Try cache fallback
+            if (cacheControl != CacheControl.FORCE_CACHE) {
+                fetchSearchIndex(CacheControl.FORCE_CACHE)
+            }
+        }
+    }
+
+    private fun parseSearchIndex(response: Response): List<StoreSearchItem> {
+        val items = ArrayList<StoreSearchItem>(1200)
+        JsonReader(response.body.charStream()).use { reader ->
+            reader.beginArray()
+            while (reader.hasNext()) {
+                val element = JsonParser.parseReader(reader)
+                val item = runCatching { gson.fromJson(element, StoreSearchItem::class.java) }
+                if (item.isSuccess) item.getOrNull()?.let(items::add)
+            }
+            reader.endArray()
+        }
+        return items
     }
 
     private fun request(url: String, cacheControl: CacheControl): Request =
