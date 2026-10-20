@@ -50,30 +50,6 @@ data class OnlineModule(
         get() = url ?: "https://github.com/Xposed-Modules-Repo/$name"
 }
 
-/**
- * An entry from `https://modules.lsposed.org/search.json`.
- *
- * Provides a lightweight index of all available modules for instant client-side
- * global search and auto-complete.
- */
-data class StoreSearchItem(
-    @SerializedName("name") val name: String,
-    @SerializedName("description") val description: String? = null,
-    @SerializedName("summary") val summary: String? = null,
-    @SerializedName("readmeExcerpt") val readmeExcerpt: String? = null,
-    @SerializedName("authors") val authors: String? = null,
-) {
-    val title: String
-        get() = description?.takeIf { it.isNotBlank() } ?: name
-
-    fun matches(query: String): Boolean {
-        if (query.isBlank()) return false
-        return title.contains(query, ignoreCase = true) ||
-            name.contains(query, ignoreCase = true) ||
-            summary?.contains(query, ignoreCase = true) == true ||
-            authors?.contains(query, ignoreCase = true) == true
-    }
-}
 
 data class Collaborator(
     @SerializedName("login") val login: String?,
