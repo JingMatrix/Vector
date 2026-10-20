@@ -30,9 +30,7 @@ import org.matrix.vector.manager.logW
  * The Store's data: the online catalogue, and what this device already has of it.
  *
  * **The mirror list is two lists, and that is not an oversight.** The full `modules.json` is served
- * by exactly one host today: `modules.lsposed.org` answers that path with a 403. Per-module
- * `module/<package>.json` *is* served by both hosts, so the public site is a real fallback there
- * and only there. Merging these two lists back into one would quietly take the Store offline.
+ * Per-module `module/<package>.json` is served by both hosts, with `modules.lsposed.org` providing the latest data and `backup.modules.lsposed.org` serving as fallback.
  *
  * **Caching is declared, not hoped for.** Every request states its own freshness, so the 16 MB disk
  * cache in `HttpClientFactory` is actually used: the catalogue revalidates against the server's own
@@ -298,9 +296,9 @@ class RepoRepository(
          */
         val LIST_MIRRORS = listOf("https://backup.modules.lsposed.org/")
 
-        /** Detail is served by both hosts, so here the public site is a genuine fallback. */
+        /** Detail is served by both hosts; primary site carries the latest data while backup is fallback. */
         val DETAIL_MIRRORS =
-            listOf("https://backup.modules.lsposed.org/", "https://modules.lsposed.org/")
+            listOf("https://modules.lsposed.org/", "https://backup.modules.lsposed.org/")
 
         /** Matches the server's own `cache-control: max-age=600`, so revalidation stays free. */
         const val CATALOG_MAX_AGE_MINUTES = 10
