@@ -58,6 +58,7 @@ class RepoRepository(
     override val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _installed = MutableStateFlow<Map<String, RepoVersion>>(emptyMap())
+    private var lastFullSyncTimeMillis: Long = 0L
 
     /**
      * What each package on this device is at, keyed by package name.
@@ -94,6 +95,17 @@ class RepoRepository(
         try {
             _isRefreshing.value = true
             withContext(Dispatchers.IO) {
+                // If not forcing a refresh, check if we already have a fully synced catalog within 1 hour
+                if (!force) {
+                    val current = _catalog.value
+                    val ageMillis = System.currentTimeMillis() - lastFullSyncTimeMillis
+                    val isFresh = lastFullSyncTimeMillis > 0L && ageMillis < TimeUnit.MINUTES.toMillis(CATALOG_MAX_AGE_MINUTES.toLong())
+                    if (current.isFullySynced && isFresh) {
+                        logI("store: catalog is fresh (age: ${TimeUnit.MILLISECONDS.toMinutes(ageMillis)}m), skipping sync")
+                        return@withContext
+                    }
+                }
+
                 val freshness =
                     if (force) CacheControl.FORCE_NETWORK
                     else
@@ -115,6 +127,8 @@ class RepoRepository(
                     // If more pages exist, sync them sequentially in the background
                     if (firstPage.page < firstPage.pageCount) {
                         syncRemainingPages(firstPage, freshness)
+                    } else {
+                        lastFullSyncTimeMillis = System.currentTimeMillis()
                     }
                     return@withContext
                 }
@@ -159,6 +173,9 @@ class RepoRepository(
             }
         }
         _catalog.value = _catalog.value.copy(isSyncing = false, syncProgress = 1f)
+        if (_catalog.value.isFullySynced) {
+            lastFullSyncTimeMillis = System.currentTimeMillis()
+        }
     }
 
     /**
