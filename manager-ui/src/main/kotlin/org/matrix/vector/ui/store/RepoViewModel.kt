@@ -170,18 +170,6 @@ class RepoViewModel(
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /**
-     * Real-time search suggestions over the complete index of all ~1,180+ modules.
-     * When query is empty, suggestions are empty.
-     */
-    val searchSuggestions: StateFlow<List<StoreSearchItem>> =
-        combine(dataSource.searchIndex, _query) { index, query ->
-            if (query.isBlank()) emptyList()
-            else index.filter { it.matches(query) }.take(20)
-        }
-        .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
     init {
         // The catalogue outlives this ViewModel — switching tabs destroys the nav entry — so a
         // return to the Store paints from what is already in memory and only fetches when there is
