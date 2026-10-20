@@ -93,8 +93,7 @@ class RepoRepository(
      * because a user who pulls is telling us they think what they are looking at is stale.
      */
     override suspend fun refresh(force: Boolean) {
-        // A second caller during a refresh is a no-op rather than a queued duplicate of a 1.2 MB
-        // download.
+        // A second caller during a refresh is a no-op rather than a queued duplicate
         if (!refreshing.tryLock()) return
         try {
             _isRefreshing.value = true
@@ -107,56 +106,65 @@ class RepoRepository(
                             .build()
 
                 launch { fetchSearchIndex(freshness) }
-                val fetched = fetchPaginatedCatalog(1, freshness)
+
+                // Fetch page 1 immediately to show the initial modules instantly
+                val firstPage = fetchPaginatedCatalog(1, freshness)
                     ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, freshness) }
-                if (fetched != null) {
-                    _catalog.value = fetched
+
+                if (firstPage != null) {
+                    val initialCatalog = firstPage.copy(
+                        isSyncing = firstPage.page < firstPage.pageCount,
+                        syncProgress = if (firstPage.pageCount > 0) 1f / firstPage.pageCount else 1f,
+                    )
+                    _catalog.value = initialCatalog
+
+                    // If more pages exist, sync them sequentially in the background
+                    if (firstPage.page < firstPage.pageCount) {
+                        syncRemainingPages(firstPage, freshness)
+                    }
                     return@withContext
                 }
 
-                // Every mirror failed. Before reporting nothing, ask the cache — the bytes from
-                // the last successful visit are usually still on disk, and a stale catalogue is
-                // far more use than an empty screen.
+                // If network failed, check cache for page 1
                 val cached = fetchPaginatedCatalog(1, CacheControl.FORCE_CACHE)
                     ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, CacheControl.FORCE_CACHE) }
+
                 when {
-                    cached != null -> _catalog.value = cached.copy(fromCache = true)
-                    // Nothing on the network and nothing on disk. `loaded` still flips, so the
-                    // screen can say the repository is unreachable instead of sitting forever on
-                    // a spinner that means nothing.
-                    else -> _catalog.value = _catalog.value.copy(loaded = true)
+                    cached != null -> _catalog.value = cached.copy(fromCache = true, isSyncing = false)
+                    else -> _catalog.value = _catalog.value.copy(loaded = true, isSyncing = false)
                 }
             }
         } finally {
-            // In a `finally` rather than after the block: a cancelled `viewModelScope` — a
-            // rotation mid-refresh — would otherwise strand the flag at true, and with
-            // pull-to-refresh reading it that is a spinner that never stops.
             _isRefreshing.value = false
             refreshing.unlock()
         }
     }
 
-    override suspend fun loadMore() {
-        val current = _catalog.value
-        if (!current.hasMore || current.isLoadingMore) return
-        _catalog.value = current.copy(isLoadingMore = true)
-        withContext(Dispatchers.IO) {
-            val nextPage = current.page + 1
-            val freshness = CacheControl.Builder().maxAge(CATALOG_MAX_AGE_MINUTES, TimeUnit.MINUTES).build()
-            val result = fetchPaginatedCatalog(nextPage, freshness)
-            if (result != null) {
-                val combined = (current.modules + result.modules).distinctBy { it.name }
-                _catalog.value = current.copy(
-                    modules = combined,
-                    page = result.page,
-                    pageCount = result.pageCount,
-                    total = result.total,
-                    isLoadingMore = false,
+    private suspend fun syncRemainingPages(initial: StoreCatalog, cacheControl: CacheControl) {
+        var accumulated = initial.modules.toMutableList()
+        val totalPages = initial.pageCount
+        for (p in (initial.page + 1)..totalPages) {
+            val pageResult = fetchPaginatedCatalog(p, cacheControl)
+            if (pageResult != null) {
+                accumulated.addAll(pageResult.modules)
+                val distinct = usable(accumulated)
+                accumulated = distinct.toMutableList()
+                val progress = p.toFloat() / totalPages
+                _catalog.value = _catalog.value.copy(
+                    modules = distinct,
+                    page = p,
+                    pageCount = totalPages,
+                    total = pageResult.total,
+                    isSyncing = p < totalPages,
+                    syncProgress = progress,
                 )
             } else {
-                _catalog.value = current.copy(isLoadingMore = false)
+                // If a page fails, stop syncing and keep current state
+                _catalog.value = _catalog.value.copy(isSyncing = false)
+                break
             }
         }
+        _catalog.value = _catalog.value.copy(isSyncing = false, syncProgress = 1f)
     }
 
     /**
@@ -416,8 +424,8 @@ class RepoRepository(
         val DETAIL_MIRRORS =
             listOf("https://modules.lsposed.org/", "https://backup.modules.lsposed.org/")
 
-        /** Matches the server's own `cache-control: max-age=600`, so revalidation stays free. */
-        const val CATALOG_MAX_AGE_MINUTES = 10
+        /** Matches 1 hour cache duration so full catalogue sync only happens once an hour or on pull-to-refresh. */
+        const val CATALOG_MAX_AGE_MINUTES = 60
 
         /** Longer: a module's release history changes far less often than the index does. */
         const val DETAIL_MAX_AGE_MINUTES = 60

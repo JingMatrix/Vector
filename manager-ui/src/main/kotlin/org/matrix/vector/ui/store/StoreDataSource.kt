@@ -24,9 +24,6 @@ interface StoreDataSource {
     /** Reload the catalogue from the network; [force] bypasses any cache. */
     suspend fun refresh(force: Boolean = false)
 
-    /** Load the next page of modules in the catalogue. */
-    suspend fun loadMore() {}
-
     /** The full record for one module (README, all releases); null when unreachable. */
     suspend fun details(packageName: String): OnlineModule?
 
