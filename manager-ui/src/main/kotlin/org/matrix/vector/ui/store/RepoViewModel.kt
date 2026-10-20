@@ -213,6 +213,10 @@ class RepoViewModel(
         viewModelScope.launch { dataSource.refresh(force = true) }
     }
 
+    fun loadMore() {
+        viewModelScope.launch { dataSource.loadMore() }
+    }
+
     /** The three controls that reorder the list, as one value so `combine` stays readable. */
     private data class View(
         val sort: StoreSort,

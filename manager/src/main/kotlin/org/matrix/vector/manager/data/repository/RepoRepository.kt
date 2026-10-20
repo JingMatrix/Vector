@@ -107,7 +107,8 @@ class RepoRepository(
                             .build()
 
                 launch { fetchSearchIndex(freshness) }
-                val fetched = LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, freshness) }
+                val fetched = fetchPaginatedCatalog(1, freshness)
+                    ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, freshness) }
                 if (fetched != null) {
                     _catalog.value = fetched
                     return@withContext
@@ -116,8 +117,8 @@ class RepoRepository(
                 // Every mirror failed. Before reporting nothing, ask the cache — the bytes from
                 // the last successful visit are usually still on disk, and a stale catalogue is
                 // far more use than an empty screen.
-                val cached =
-                    LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, CacheControl.FORCE_CACHE) }
+                val cached = fetchPaginatedCatalog(1, CacheControl.FORCE_CACHE)
+                    ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, CacheControl.FORCE_CACHE) }
                 when {
                     cached != null -> _catalog.value = cached.copy(fromCache = true)
                     // Nothing on the network and nothing on disk. `loaded` still flips, so the
@@ -132,6 +133,29 @@ class RepoRepository(
             // pull-to-refresh reading it that is a spinner that never stops.
             _isRefreshing.value = false
             refreshing.unlock()
+        }
+    }
+
+    override suspend fun loadMore() {
+        val current = _catalog.value
+        if (!current.hasMore || current.isLoadingMore) return
+        _catalog.value = current.copy(isLoadingMore = true)
+        withContext(Dispatchers.IO) {
+            val nextPage = current.page + 1
+            val freshness = CacheControl.Builder().maxAge(CATALOG_MAX_AGE_MINUTES, TimeUnit.MINUTES).build()
+            val result = fetchPaginatedCatalog(nextPage, freshness)
+            if (result != null) {
+                val combined = (current.modules + result.modules).distinctBy { it.name }
+                _catalog.value = current.copy(
+                    modules = combined,
+                    page = result.page,
+                    pageCount = result.pageCount,
+                    total = result.total,
+                    isLoadingMore = false,
+                )
+            } else {
+                _catalog.value = current.copy(isLoadingMore = false)
+            }
         }
     }
 
@@ -281,6 +305,59 @@ class RepoRepository(
         return items
     }
 
+    private fun fetchPaginatedCatalog(page: Int, cacheControl: CacheControl): StoreCatalog? {
+        val url = "https://modules.lsposed.org/module-list/$page.json"
+        return try {
+            client.newCall(request(url, cacheControl)).execute().use { response ->
+                if (!response.isSuccessful) {
+                    if (response.networkResponse != null) {
+                        logW("store: $url returned HTTP ${response.code}")
+                    }
+                    return null
+                }
+                val parsed = parsePaginatedCatalog(response) ?: return null
+                logI("store: page ${parsed.page}/${parsed.pageCount} (${parsed.modules.size} modules) from $url")
+                StoreCatalog(
+                    modules = usable(parsed.modules),
+                    loaded = true,
+                    loadedAtMillis = response.receivedResponseAtMillis,
+                    page = parsed.page,
+                    pageCount = parsed.pageCount,
+                    total = parsed.total,
+                )
+            }
+        } catch (e: Exception) {
+            logW("store: $url unavailable", e)
+            null
+        }
+    }
+
+    private data class PaginatedResponse(
+        val modules: List<OnlineModule> = emptyList(),
+        val page: Int = 1,
+        val pageCount: Int = 1,
+        val total: Int = 0,
+    )
+
+    private fun parsePaginatedCatalog(response: Response): PaginatedResponse? {
+        return try {
+            val json = JsonParser.parseReader(response.body.charStream()).asJsonObject
+            val page = json.get("page")?.asInt ?: 1
+            val pageCount = json.get("pageCount")?.asInt ?: 1
+            val total = json.get("total")?.asInt ?: 0
+            val modulesArray = json.getAsJsonArray("modules") ?: return null
+            val modules = ArrayList<OnlineModule>(modulesArray.size())
+            for (element in modulesArray) {
+                val module = runCatching { gson.fromJson(element, OnlineModule::class.java) }
+                if (module.isSuccess) module.getOrNull()?.let(modules::add)
+            }
+            PaginatedResponse(modules = modules, page = page, pageCount = pageCount, total = total)
+        } catch (e: Exception) {
+            logW("store: failed to parse paginated catalog", e)
+            null
+        }
+    }
+
     private fun request(url: String, cacheControl: CacheControl): Request =
         Request.Builder().url(url).cacheControl(cacheControl).build()
 
@@ -318,14 +395,13 @@ class RepoRepository(
      *
      * `distinctBy` is not superstition about today's data — it is what stops a mirror serving the
      * same package twice from crashing the Store's `LazyColumn`, which is keyed by package name.
-     * Entries with no release at all are dropped because there is nothing to install and nothing to
-     * say about them.
+     * Entries with no release or latestRelease are dropped.
      */
     private fun usable(parsed: List<OnlineModule>): List<OnlineModule> =
         parsed
             .asSequence()
             .filter { it.hide != true }
-            .filter { !it.releases.isNullOrEmpty() }
+            .filter { !it.releases.isNullOrEmpty() || !it.latestRelease.isNullOrBlank() }
             .distinctBy { it.name }
             .toList()
 

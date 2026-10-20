@@ -293,7 +293,14 @@ data class StoreCatalog(
     val loaded: Boolean = false,
     val fromCache: Boolean = false,
     val loadedAtMillis: Long = 0L,
+    val page: Int = 1,
+    val pageCount: Int = 1,
+    val total: Int = 0,
+    val isLoadingMore: Boolean = false,
 ) {
     val isEmpty: Boolean
         get() = modules.isEmpty()
+
+    val hasMore: Boolean
+        get() = page < pageCount
 }
