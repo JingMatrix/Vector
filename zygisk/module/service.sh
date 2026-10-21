@@ -57,11 +57,16 @@ elif unshare --propagation slave -m true >/dev/null 2>&1; then
   trace "starting vectord with unshare --propagation slave -m"
   VECTOR_MOUNTNS_ISOLATED=1 unshare --propagation slave -m "$DAEMON" --system-server-max-retry=3 "$@" &
 elif unshare -m /system/bin/sh -c '
-    mount --make-rprivate / 2>/dev/null || mount --make-rslave / 2>/dev/null
+    mount --make-rprivate / 2>/dev/null || mount --make-rslave / 2>/dev/null || exit 1
+    ! grep -q " shared:" /proc/self/mountinfo
   ' >/dev/null 2>&1; then
   trace "starting vectord with unshare -m and a private mount tree"
-  VECTOR_MOUNTNS_ISOLATED=1 unshare -m /system/bin/sh -c '
-    mount --make-rprivate / 2>/dev/null || mount --make-rslave / 2>/dev/null || exit 1
+  unshare -m /system/bin/sh -c '
+    if mount --make-rprivate / 2>/dev/null || mount --make-rslave / 2>/dev/null; then
+      if ! grep -q " shared:" /proc/self/mountinfo; then
+        export VECTOR_MOUNTNS_ISOLATED=1
+      fi
+    fi
     exec "$0" "$@"
   ' "$DAEMON" --system-server-max-retry=3 "$@" &
 elif unshare -m true >/dev/null 2>&1; then
