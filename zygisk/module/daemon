@@ -26,8 +26,11 @@ if [ "$debug" = "true" ]; then
 fi
 
 # Mount an empty temporary file system over /data/resource-cache to avoid possible overlay conflicts.
-# Note that this script runs inside an isolated mount namespace (via unshare).
-mount tmpfs -t tmpfs /data/resource-cache
+# Only when service.sh has established a mount namespace that cannot propagate this mount back to the
+# host: without one it would hide the real resource cache from every process on the device.
+if [ "${VECTOR_MOUNTNS_ISOLATED:-0}" = 1 ]; then
+  mount tmpfs -t tmpfs /data/resource-cache
+fi
 
 # Wait for Zygote socket using a polling loop
 if [ ! -S "/dev/socket/zygote" ]; then
