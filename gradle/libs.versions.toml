@@ -1,6 +1,6 @@
 [versions]
 agp = "9.4.1"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 okhttp = "5.5.0"
 ktfmt = "0.27.0"
 coroutines = "1.11.0"
@@ -11,7 +11,7 @@ coil = "3.6.3"
 # BOM, which resolves material3 to 1.4.0.
 m3 = "1.5.0-alpha29"
 nav3 = "1.2.0"
-navigationevent = "1.1.2"
+navigationevent = "1.2.0"
 # Governs every androidx.compose.* artifact below; none of them pin a version.
 compose-bom = "2026.09.00"
 
@@ -57,7 +57,7 @@ androidx-navigationevent-compose = { group = "androidx.navigationevent", name = 
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.11.0" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.12.0" }
 
 rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version = "2.0.1" }
 
