@@ -231,6 +231,7 @@
     </plurals>
     <string name="settings_open_externally">Open links in a browser</string>
     <string name="settings_open_externally_summary">Off: GitHub pages open inside Vector.</string>
+    <string name="settings_open_externally_summary_on">On: GitHub pages open in your browser.</string>
 
     <!-- Scope editor -->
     <string name="scope_use_recommended">Use what the module asks for</string>

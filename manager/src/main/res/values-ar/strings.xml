@@ -166,6 +166,7 @@
     </plurals>
     <string name="settings_open_externally">فتح الروابط في المتصفح</string>
     <string name="settings_open_externally_summary">عند الإيقاف: تُفتح صفحات GitHub داخل Vector.</string>
+    <string name="settings_open_externally_summary_on">عند التشغيل: تُفتح صفحات GitHub في المتصفح.</string>
 
     <string name="scope_use_recommended">استخدام ما تطلبه الوحدة</string>
     <string name="scope_select_visible">تحديد كل ما هو ظاهر</string>

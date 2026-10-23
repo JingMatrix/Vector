@@ -142,6 +142,7 @@
     </plurals>
     <string name="settings_open_externally">Abrir los enlaces en un navegador</string>
     <string name="settings_open_externally_summary">Desactivado: las páginas de GitHub se abren dentro de Vector.</string>
+    <string name="settings_open_externally_summary_on">Activado: las páginas de GitHub se abren en el navegador.</string>
 
     <string name="scope_use_recommended">Usar lo que el módulo pide</string>
     <string name="scope_select_visible">Seleccionar todo lo que se muestra</string>

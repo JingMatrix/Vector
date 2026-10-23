@@ -158,6 +158,7 @@
     </plurals>
     <string name="settings_open_externally">פתיחת קישורים בדפדפן</string>
     <string name="settings_open_externally_summary">כבוי: דפי GitHub נפתחים בתוך Vector.</string>
+    <string name="settings_open_externally_summary_on">מופעל: דפי GitHub נפתחים בדפדפן.</string>
 
     <string name="scope_use_recommended">להשתמש במה שהמודול מבקש</string>
     <string name="scope_select_visible">בחירת כל מה שמוצג</string>

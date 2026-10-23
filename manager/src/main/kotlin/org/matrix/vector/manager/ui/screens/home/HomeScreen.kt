@@ -1,8 +1,5 @@
 package org.matrix.vector.manager.ui.screens.home
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -145,7 +142,6 @@ fun HomeScreen(
     val status by viewModel.status.collectAsStateWithLifecycle()
     val feed by viewModel.feed.collectAsStateWithLifecycle()
     val refreshing by viewModel.refreshing.collectAsStateWithLifecycle()
-    val openExternally by viewModel.openLinksExternally.collectAsStateWithLifecycle()
     val feedItems by viewModel.feedItems.collectAsStateWithLifecycle()
     val loadingHistory by viewModel.loadingHistory.collectAsStateWithLifecycle()
     val historyStalled by viewModel.historyStalled.collectAsStateWithLifecycle()
@@ -156,7 +152,6 @@ fun HomeScreen(
     val presence by viewModel.presence.collectAsStateWithLifecycle()
     val promptDismissed by viewModel.launcherPromptDismissed.collectAsStateWithLifecycle()
     val hintStatus by viewModel.statusBadgeHint.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     var showSplash by rememberSaveable { mutableStateOf(false) }
     var showAppearance by rememberSaveable { mutableStateOf(false) }
     var showLanguage by rememberSaveable { mutableStateOf(false) }
@@ -200,25 +195,6 @@ fun HomeScreen(
                 haptics.performHapticFeedback(HapticFeedbackType.Confirm)
                 showSplash = true
             }
-        }
-    }
-
-    // Every GitHub link goes through the in-app viewer by default; the setting sends them to a
-    // browser instead for users who would rather stay in one.
-    fun open(url: String) {
-        if (openExternally) {
-            try {
-                context.startActivity(
-                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            } catch (_: ActivityNotFoundException) {
-                // Nothing on the device took the intent. Falling back to the built-in viewer beats
-                // a link tap that does nothing at all.
-                onOpenUrl(url)
-            }
-        } else {
-            onOpenUrl(url)
         }
     }
 
@@ -284,12 +260,12 @@ fun HomeScreen(
                     // is effectively unreachable without a long scroll.
                     item {
                         TakePartSection(
-                            onOpen = ::open,
+                            onOpen = onOpenUrl,
                             onCanary = onOpenCanary,
                             onReport = onOpenReport,
                         )
                         Spacer(Modifier.height(14.dp))
-                        ProjectFooter(feed = feed, onClick = { open(GitHubRepository.REPO_URL) })
+                        ProjectFooter(feed, onClick = { onOpenUrl(GitHubRepository.REPO_URL) })
                         Spacer(Modifier.height(26.dp))
                     }
 
@@ -303,9 +279,9 @@ fun HomeScreen(
                         onLoadMoreHistory = viewModel::loadMoreHistory,
                         onToggleAuthor = viewModel::toggleAuthorFilter,
                         onClearAuthors = viewModel::clearAuthorFilter,
-                        onOpenCommit = { c -> open(c.htmlUrl ?: GitHubRepository.REPO_URL) },
-                        onOpenPullRequest = { pr -> open("${GitHubRepository.REPO_URL}/pull/$pr") },
-                        onOpenProfile = { c -> open(c.profileUrl ?: GitHubRepository.REPO_URL) },
+                        onOpenCommit = { onOpenUrl(it.htmlUrl ?: GitHubRepository.REPO_URL) },
+                        onOpenPullRequest = { onOpenUrl("${GitHubRepository.REPO_URL}/pull/$it") },
+                        onOpenProfile = { onOpenUrl(it.profileUrl ?: GitHubRepository.REPO_URL) },
                     )
 
                     item { Spacer(Modifier.height(24.dp)) }
@@ -377,8 +353,8 @@ fun HomeScreen(
         LanguageSheet(
             controller = VectorLocaleController,
             onDismiss = { showLanguage = false },
-            onHelpTranslate = { open(CROWDIN_URL) },
-            onOpenUrl = ::open,
+            onHelpTranslate = { onOpenUrl(CROWDIN_URL) },
+            onOpenUrl = onOpenUrl,
         )
     }
 

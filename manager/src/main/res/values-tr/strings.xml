@@ -142,6 +142,7 @@
     </plurals>
     <string name="settings_open_externally">Bağlantıları tarayıcıda aç</string>
     <string name="settings_open_externally_summary">Kapalı: GitHub sayfaları Vector içinde açılır.</string>
+    <string name="settings_open_externally_summary_on">Açık: GitHub sayfaları tarayıcıda açılır.</string>
 
     <string name="scope_use_recommended">Modülün istediğini kullan</string>
     <string name="scope_select_visible">Görünenlerin tümünü seç</string>

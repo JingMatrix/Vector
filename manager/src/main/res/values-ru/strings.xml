@@ -142,6 +142,7 @@
     </plurals>
     <string name="settings_open_externally">Открывать ссылки в браузере</string>
     <string name="settings_open_externally_summary">Выключено: страницы GitHub открываются внутри Vector.</string>
+    <string name="settings_open_externally_summary_on">Включено: страницы GitHub открываются в браузере.</string>
     <string name="scope_use_recommended">Взять то, что просит модуль</string>
     <string name="scope_select_visible">Выбрать всё показанное</string>
     <string name="scope_clear_visible">Снять со всего показанного</string>

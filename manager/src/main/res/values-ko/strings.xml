@@ -136,6 +136,7 @@
     </plurals>
     <string name="settings_open_externally">링크를 브라우저에서 열기</string>
     <string name="settings_open_externally_summary">꺼두면 GitHub 페이지가 Vector 안에서 열립니다.</string>
+    <string name="settings_open_externally_summary_on">켜두면 GitHub 페이지가 브라우저에서 열립니다.</string>
 
     <string name="scope_use_recommended">모듈이 요청한 대로 두기</string>
     <string name="scope_select_visible">표시된 항목 모두 선택</string>

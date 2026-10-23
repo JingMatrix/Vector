@@ -136,6 +136,7 @@
     </plurals>
     <string name="settings_open_externally">用浏览器打开链接</string>
     <string name="settings_open_externally_summary">关闭时：GitHub 页面在 Vector 内打开。</string>
+    <string name="settings_open_externally_summary_on">开启时：GitHub 页面在浏览器中打开。</string>
 
     <string name="scope_use_recommended">使用模块建议的范围</string>
     <string name="scope_select_visible">选中当前显示的全部</string>
