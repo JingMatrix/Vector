@@ -59,12 +59,33 @@ private val artMethodField: Field? by lazy {
 class VectorContext(
     private val packageName: String,
     private val applicationInfo: ApplicationInfo,
-    private val service: IModuleService,
+    @Volatile private var service: IModuleService,
     // What ExceptionMode.DEFAULT resolves to for this module, from module.prop.
     private val defaultExceptionMode: ExceptionMode = ExceptionMode.PROTECTIVE,
 ) : XposedInterface {
 
     private val remotePrefs = ConcurrentHashMap<String, SharedPreferences>()
+    private val serviceLock = Any()
+
+    // Reconnection is serialized by VectorServiceClient. Take a snapshot under the creation lock,
+    // then release it before IPC or listener callbacks, which may ask this context for preferences.
+    internal fun reconnectService(replacement: IModuleService): Boolean {
+        val preferences =
+            synchronized(serviceLock) {
+                service = replacement
+                remotePrefs.values.toList()
+            }
+        var restored = true
+        preferences.forEach {
+            runCatching { (it as VectorRemotePreferences).reconnect(replacement) }
+                .onFailure {
+                    restored = false
+                    Log.e(TAG, "Cannot reconnect remote preferences for $packageName", it)
+                }
+        }
+        return restored
+    }
+
     @Volatile private var frozen = false
 
     fun freeze() {
@@ -163,7 +184,9 @@ class VectorContext(
     override fun getModuleApplicationInfo(): ApplicationInfo = applicationInfo
 
     override fun getRemotePreferences(name: String): SharedPreferences {
-        return remotePrefs.getOrPut(name) { VectorRemotePreferences(service, name) }
+        return synchronized(serviceLock) {
+            remotePrefs.getOrPut(name) { VectorRemotePreferences(service, name) }
+        }
     }
 
     override fun listRemoteFiles(): Array<String> {

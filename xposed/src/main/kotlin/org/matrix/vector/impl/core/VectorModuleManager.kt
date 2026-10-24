@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import org.matrix.vector.ipc.HotReloadOutcome
 import org.matrix.vector.ipc.LoadedModule
+import org.matrix.vector.ipc.IVectorDaemon
 import org.matrix.vector.util.Log
 import org.matrix.vector.impl.VectorContext
 import org.matrix.vector.impl.VectorLifecycleManager
@@ -39,6 +40,8 @@ object VectorModuleManager {
         entries: List<XposedModule>,
         val isSystemServer: Boolean,
         val processName: String,
+        val loadedVersionCode: Long,
+        val hotReloadable: Boolean,
     ) {
         private val entryRefs = entries.map { WeakReference(it) }
 
@@ -52,10 +55,34 @@ object VectorModuleManager {
     private val reloadLocks = ConcurrentHashMap<String, ReentrantLock>()
 
     /** The class loader a loaded module runs in, or null if no generation is loaded for it. */
-    fun getModuleClassLoader(packageName: String): ClassLoader? = generations[packageName]?.classLoader
+    fun getModuleClassLoader(packageName: String): ClassLoader? =
+        generations[packageName]?.classLoader
 
     /** Packages of the modules currently loaded in this process. */
     fun loadedModulePackages(): Set<String> = generations.keys.toSet()
+
+    internal fun reconnectSystemServerServices(daemon: IVectorDaemon): Boolean {
+        var restored = true
+        generations.forEach { (packageName, generation) ->
+            if (!generation.isSystemServer) return@forEach
+            runCatching {
+                val replacement =
+                    daemon.reconnectSystemModule(
+                        packageName,
+                        generation.loadedVersionCode,
+                        generation.hotReloadable,
+                    )
+                if (replacement != null && generations[packageName] === generation) {
+                    if (!generation.context.reconnectService(replacement)) restored = false
+                }
+            }
+                .onFailure {
+                    restored = false
+                    Log.e(TAG, "Cannot reconnect module service for $packageName", it)
+                }
+        }
+        return restored
+    }
 
     /**
      * Loads a module APK, instantiates its entry classes, and binds them to the Vector framework.
@@ -195,7 +222,15 @@ object VectorModuleManager {
             }
 
             val generation =
-                Generation(moduleClassLoader, vectorContext, entries, isSystemServer, processName)
+                Generation(
+                    moduleClassLoader,
+                    vectorContext,
+                    entries,
+                    isSystemServer,
+                    processName,
+                    module.versionCode,
+                    module.code.moduleClassNames.size == 1,
+                )
             return generation to entries
         } catch (e: Throwable) {
             Log.e(TAG, "Fatal error loading module ${module.packageName}", e)

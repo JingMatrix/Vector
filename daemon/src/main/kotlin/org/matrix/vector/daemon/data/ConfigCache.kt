@@ -65,7 +65,7 @@ object ConfigCache {
     applySqliteHelperWorkaround()
   }
 
-  private fun ensureCacheReady() {
+  internal fun ensureCacheReady() {
     if (!state.isCacheReady && packageManager?.asBinder()?.isBinderAlive == true) {
       // The rebuild lock, not `this`: this is the one place that starts a rebuild without going
       // through the channel, so it has to queue behind a rebuild already in flight rather than

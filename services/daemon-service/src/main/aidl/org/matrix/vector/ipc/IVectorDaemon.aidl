@@ -1,6 +1,7 @@
 package org.matrix.vector.ipc;
 
 import org.matrix.vector.ipc.IFrameworkService;
+import org.matrix.vector.ipc.IModuleService;
 
 /**
  * The daemon's front door, reached from a newly specialized process through the zygisk bridge.
@@ -26,6 +27,9 @@ interface IVectorDaemon {
      * this process, which is most of them; or the registration itself failed. A process that is
      * answered null simply carries on unhooked.</p>
      *
+     * <p>The authenticated system_server may repeat its own attachment after a daemon restart.
+     * An existing live registration keeps its process channel and module targets.</p>
+     *
      * @param uid            the process uid, as the daemon will re-derive it from the binder call
      * @param pid            the process id
      * @param processName    the Android process name, which is what module scope is keyed on
@@ -43,4 +47,12 @@ interface IVectorDaemon {
 
     /** Asks the daemon to bring the manager up before it is needed. */
     boolean preStartManager();
+
+    /**
+     * Rebinds an already loaded modern module after the daemon restarts. Only a registered
+     * system_server may call this. The reported version is the generation still in memory;
+     * this does not load code or claim that an updated APK has already been applied.
+     */
+    @nullable IModuleService reconnectSystemModule(String packageName, long loadedVersionCode,
+                                                   boolean hotReloadable);
 }

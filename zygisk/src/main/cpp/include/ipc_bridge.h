@@ -47,10 +47,10 @@ public:
     lsplant::ScopedLocalRef<jobject> RequestAppBinder(JNIEnv *env, jstring nice_name);
 
     /**
-     * @brief Requests the system_server's dedicated Binder from the host service.
+     * @brief Waits for the rendezvous and completes system_server's framework handshake.
      * @param env JNI environment pointer.
      * @param bridgeServiceName rendezvous point used by the system_server
-     * @return A ScopedLocalRef to the Binder object, or nullptr on failure.
+     * @return The registered framework Binder, or nullptr on failure.
      */
     lsplant::ScopedLocalRef<jobject> RequestSystemServerBinder(JNIEnv *env,
                                                                std::string bridgeServiceName);
