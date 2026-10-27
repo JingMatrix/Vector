@@ -140,6 +140,7 @@
     </plurals>
     <string name="settings_open_externally">Buka tautan di peramban</string>
     <string name="settings_open_externally_summary">Mati: halaman GitHub dibuka di dalam Vector.</string>
+    <string name="settings_open_externally_summary_on">Hidup: halaman GitHub dibuka di peramban.</string>
 
     <string name="scope_use_recommended">Pakai yang diminta modul</string>
     <string name="scope_select_visible">Pilih semua yang tampil</string>

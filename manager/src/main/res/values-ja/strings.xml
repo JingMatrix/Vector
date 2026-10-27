@@ -136,6 +136,7 @@
     </plurals>
     <string name="settings_open_externally">リンクをブラウザで開く</string>
     <string name="settings_open_externally_summary">オフのとき、GitHub のページは Vector 内で開きます。</string>
+    <string name="settings_open_externally_summary_on">オンのとき、GitHub のページはブラウザで開きます。</string>
 
     <string name="scope_use_recommended">モジュールの要求どおりにする</string>
     <string name="scope_select_visible">表示中のすべてを選択</string>

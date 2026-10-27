@@ -250,7 +250,9 @@ LocalizedOverlay {
             ToggleRow(
                 title = stringResource(R.string.settings_open_externally),
                 icon = Icons.Rounded.OpenInBrowser,
-                subtitle = stringResource(R.string.settings_open_externally_summary),
+                subtitle =
+                    if (openExternally) stringResource(R.string.settings_open_externally_summary_on)
+                    else stringResource(R.string.settings_open_externally_summary),
                 checked = openExternally,
                 onCheckedChange = settings::setOpenLinksExternally,
             )

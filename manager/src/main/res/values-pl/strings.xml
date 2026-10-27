@@ -234,6 +234,7 @@
     </plurals>
     <string name="settings_open_externally">Otwieraj linki w przeglądarce</string>
     <string name="settings_open_externally_summary">Wyłączone: strony GitHuba otwierają się wewnątrz Vectora.</string>
+    <string name="settings_open_externally_summary_on">Włączone: strony GitHuba otwierają się w przeglądarce.</string>
     <!-- Scope editor -->
     <string name="scope_use_recommended">Użyj tego, czego wymaga moduł</string>
     <string name="scope_select_visible">Zaznacz wszystko, co jest pokazane</string>

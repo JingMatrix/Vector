@@ -136,6 +136,7 @@
     </plurals>
     <string name="settings_open_externally">以瀏覽器開啟連結</string>
     <string name="settings_open_externally_summary">關閉時：GitHub 頁面在 Vector 內開啟。</string>
+    <string name="settings_open_externally_summary_on">開啟時：GitHub 頁面在瀏覽器中開啟。</string>
 
     <string name="scope_use_recommended">使用模組建議的範圍</string>
     <string name="scope_select_visible">選取目前顯示的全部</string>

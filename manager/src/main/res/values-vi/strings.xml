@@ -136,6 +136,7 @@
     </plurals>
     <string name="settings_open_externally">Mở liên kết bằng trình duyệt</string>
     <string name="settings_open_externally_summary">Tắt: các trang GitHub mở ngay trong Vector.</string>
+    <string name="settings_open_externally_summary_on">Bật: các trang GitHub mở bằng trình duyệt.</string>
 
     <string name="scope_use_recommended">Dùng đúng những gì mô-đun yêu cầu</string>
     <string name="scope_select_visible">Chọn hết những mục đang hiện</string>
