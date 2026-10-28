@@ -12,7 +12,7 @@
 </div>
 
 ---
-中文, 请查看 [README.CN](README-CN.md)  
+简体中文, 请查看 [README.CN](README-CN.md)  
 
 
 ### Introduction
