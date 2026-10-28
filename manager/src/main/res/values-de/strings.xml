@@ -42,6 +42,7 @@
     <string name="info_loaded">Geladen</string>
     <string name="info_not_loaded">Nicht geladen</string>
     <string name="info_injected">Injiziert</string>
+    <string name="info_mounted">Eingehängt</string>
     <string name="info_not_injected">Nicht injiziert</string>
     <string name="status_notification">Statusbenachrichtigung</string>
     <string name="status_notification_summary">Eine dauerhafte Benachrichtigung, die anzeigt, dass Vector läuft.</string>

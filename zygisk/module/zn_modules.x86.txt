@@ -1,0 +1,2 @@
+name=artd companion zygisk/x86.so
+name=installd companion zygisk/x86.so
