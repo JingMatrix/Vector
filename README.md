@@ -12,6 +12,8 @@
 </div>
 
 ---
+中文, 请查看 [README.CN](README.CN)  
+
 
 ### Introduction
 
