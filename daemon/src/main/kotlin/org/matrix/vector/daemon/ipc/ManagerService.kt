@@ -284,6 +284,15 @@ object ManagerService : IManagerService.Stub() {
     if (isVerboseLogEnabled()) LogcatMonitor.startVerbose() else LogcatMonitor.stopVerbose()
   }
 
+  override fun getInlineHookBackend() = PreferenceStore.getInlineHookBackend()
+
+  override fun setInlineHookBackend(backend: Int) {
+    if (backend == IManagerService.INLINE_HOOK_BACKEND_DOBBY ||
+        backend == IManagerService.INLINE_HOOK_BACKEND_SHADOWHOOK) {
+      PreferenceStore.setInlineHookBackend(backend)
+    }
+  }
+
   override fun getLogParts(verbose: Boolean): List<String> = FileSystem.listLogParts(verbose)
 
   override fun getLogPart(verbose: Boolean, name: String): ParcelFileDescriptor? =

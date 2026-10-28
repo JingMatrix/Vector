@@ -25,3 +25,6 @@
 [submodule "external/axml/manifest-editor"]
 	path = external/axml/manifest-editor
 	url = https://github.com/JingMatrix/ManifestEditor.git
+[submodule "external/shadowhook"]
+	path = external/shadowhook
+	url = https://github.com/bytedance/android-inline-hook.git

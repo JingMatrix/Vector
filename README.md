@@ -99,7 +99,7 @@ This project is made possible by the following open-source contributions:
 *   [Magisk](https://github.com/topjohnwu/Magisk/): The foundation of Android customization.
 *   [LSPlant](https://github.com/JingMatrix/LSPlant): The core ART hooking engine.
 *   [XposedBridge](https://github.com/rovo89/XposedBridge): The standard Xposed APIs.
-*   [Dobby](https://github.com/JingMatrix/Dobby): Inline hooking implementation.
+*   [Dobby](https://github.com/JingMatrix/Dobby) and [ShadowHook](https://github.com/bytedance/android-inline-hook): Inline hooking implementation.
 *   [LSPosed](https://github.com/LSPosed/LSPosed): Upstream source.
 *   [EdXposed](https://github.com/ElderDrivers/EdXposed): Upstream source, before LSPosed.
 *   [xz-embedded](https://github.com/tukaani-project/xz-embedded): Library decompression utilities.
