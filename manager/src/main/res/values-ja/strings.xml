@@ -42,6 +42,7 @@
     <string name="info_loaded">読み込まれています</string>
     <string name="info_not_loaded">読み込まれていません</string>
     <string name="info_injected">注入されています</string>
+    <string name="info_mounted">マウント済み</string>
     <string name="info_not_injected">注入されていません</string>
     <string name="status_notification">ステータス通知</string>
     <string name="status_notification_summary">Vector が実行中であることを示す常時表示の通知です。</string>

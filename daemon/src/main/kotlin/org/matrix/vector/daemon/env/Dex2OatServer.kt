@@ -1,9 +1,13 @@
 package org.matrix.vector.daemon.env
 
 import android.net.LocalServerSocket
+import android.net.LocalSocket
+import android.net.LocalSocketAddress
 import android.os.Build
 import android.os.FileObserver
 import android.os.SELinux
+import android.os.SystemClock
+import android.os.SystemProperties
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
@@ -25,6 +29,7 @@ val DEX2OAT_MOUNT_FAILED = IManagerService.DEX2OAT_MOUNT_FAILED
 val DEX2OAT_SEPOLICY_INCORRECT = IManagerService.DEX2OAT_SEPOLICY_INCORRECT
 val DEX2OAT_SELINUX_PERMISSIVE = IManagerService.DEX2OAT_SELINUX_PERMISSIVE
 val DEX2OAT_CRASHED = IManagerService.DEX2OAT_CRASHED
+val DEX2OAT_INJECTED = IManagerService.DEX2OAT_INJECTED
 
 object Dex2OatServer {
   private const val WRAPPER32 = "bin/dex2oat32"
@@ -85,6 +90,7 @@ object Dex2OatServer {
 
   private fun onSelinuxEvent() {
     synchronized(this) {
+      if (compatibility == DEX2OAT_INJECTED) return
       if (compatibility == DEX2OAT_CRASHED) {
         SelinuxObserver.stopWatching()
         return
@@ -209,7 +215,87 @@ object Dex2OatServer {
     doMountNative(enabled, dex2oatArray[0], dex2oatArray[1], dex2oatArray[2], dex2oatArray[3])
   }
 
+  private fun injectionTargetName(): String {
+    val useArtService = SystemProperties.get("dalvik.vm.useartservice")
+    return if (Build.VERSION.SDK_INT >= 35 ||
+        (Build.VERSION.SDK_INT == 34 && (useArtService == "true" || useArtService == "1")))
+        "artd"
+    else "installd"
+  }
+
+  private fun processExists(name: String): Boolean {
+    val entries = File("/proc").list() ?: return false
+    for (entry in entries) {
+      if (entry.isEmpty() || !entry[0].isDigit()) continue
+      val command =
+          runCatching {
+                File("/proc/$entry/cmdline").readBytes().toString(Charsets.UTF_8)
+              }
+              .getOrNull() ?: continue
+      val executable = command.substringBefore('\u0000')
+      if (executable.isNotEmpty() && File(executable).name == name) return true
+    }
+    return false
+  }
+
+  private fun probeMonitor(name: String): Boolean {
+    val path = "/data/adb/lspd/dex2oat_monitor_$name"
+    val deadline = SystemClock.uptimeMillis() + 1000L
+    do {
+      var socket: LocalSocket? = null
+      try {
+        socket = LocalSocket()
+        socket.connect(LocalSocketAddress(path, LocalSocketAddress.Namespace.FILESYSTEM))
+        runCatching { socket.setSoTimeout(250) }
+        val status = socket.inputStream.read()
+        if (status == 1) return true
+        if (status >= 0) return false
+      } catch (_: Throwable) {
+      } finally {
+        runCatching { socket?.close() }
+      }
+      try {
+        Thread.sleep(25L)
+      } catch (_: InterruptedException) {
+        return false
+      }
+    } while (SystemClock.uptimeMillis() < deadline)
+    return false
+  }
+
+  private fun probeInjection(): Boolean {
+    val preferred = injectionTargetName()
+    if (processExists(preferred)) return probeMonitor(preferred)
+    val fallback = if (preferred == "artd") "installd" else "artd"
+    if (processExists(fallback)) return probeMonitor(fallback)
+    return probeMonitor(preferred) || probeMonitor(fallback)
+  }
+
+  fun onSoftReboot() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+    if (probeInjection()) {
+      if (!notMounted()) doMount(false)
+      if (notMounted()) {
+        compatibility = DEX2OAT_INJECTED
+        return
+      }
+    }
+    if (compatibility == DEX2OAT_INJECTED) return
+    doMount(false)
+    doMount(true)
+    compatibility = if (notMounted()) DEX2OAT_MOUNT_FAILED else DEX2OAT_OK
+  }
+
   fun start() {
+    if (probeInjection()) {
+      if (!notMounted()) doMount(false)
+      if (notMounted()) {
+        compatibility = DEX2OAT_INJECTED
+        Log.i(TAG, "dex2oat injection is active; wrapper stays off")
+        return
+      }
+    }
+
     if (notMounted()) {
       doMount(true)
       if (notMounted()) {

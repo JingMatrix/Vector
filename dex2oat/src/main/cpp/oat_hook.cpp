@@ -211,6 +211,8 @@ void register_hook(dev_t dev, ino_t inode, const char* symbol, void* new_func, v
 #define PLT_HOOK_REGISTER(DEV, INODE, NAME) PLT_HOOK_REGISTER_SYM(DEV, INODE, #NAME, NAME)
 
 __attribute__((constructor)) static void initialize() {
+    if (getenv("VECTOR_INJECTED") != nullptr) return;
+
     dev_t dev = 0;
     ino_t inode = 0;
 
@@ -227,7 +229,7 @@ __attribute__((constructor)) static void initialize() {
     }
 
     if (dev == 0) {
-        LOGE("Could not locate dex2oat memory map");
+        LOGD("Could not locate dex2oat memory map");
         return;
     }
 

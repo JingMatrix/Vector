@@ -1,0 +1,2 @@
+name=artd companion zygisk/arm64-v8a.so
+name=installd companion zygisk/arm64-v8a.so

@@ -239,6 +239,8 @@ interface IManagerService {
      */
     const int DEX2OAT_SEPOLICY_INCORRECT = 4;
 
+    const int DEX2OAT_INJECTED = 5;
+
     // ---- module configuration ---------------------------------------------------------------------
 
     /**
