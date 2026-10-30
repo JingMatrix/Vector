@@ -33,10 +33,10 @@ import androidx.annotation.RequiresApi;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
@@ -66,9 +66,16 @@ public class XResources extends XResourcesSuperClass {
 	// TT is the type of the resource;
 	// NNNN is the name of the resource in that type.
 	// For applications resources, PP is always 0x7f.
-	private static final byte[] sSystemReplacementsCache = new byte[256]; // bitmask: 0x000700ff => 2048 bit => 256 bytes
-	private byte[] mReplacementsCache; // bitmask: 0x0007007f => 1024 bit => 128 bytes
-	private static final HashMap<String, byte[]> sReplacementsCacheMap = new HashMap<>();
+	//
+	// Which ids are worth a lookup, one bit each, a bit standing for several ids. Ints rather than
+	// bytes because an AtomicIntegerArray element is read with a volatile load: the thread that
+	// registers a replacement is rarely the thread that reads the resource, and a plain array read
+	// is free to miss the other thread's write for as long as it likes, which here means serving
+	// the original resource for as long as it likes. The per-directory one is final so that the
+	// array is in place for every thread that can see the object at all.
+	private static final AtomicIntegerArray sSystemReplacementsCache = new AtomicIntegerArray(64); // 0x000700ff => 2048 bits
+	private final AtomicIntegerArray mReplacementsCache; // 0x0007007f => 1024 bits
+	private static final HashMap<String, AtomicIntegerArray> sReplacementsCacheMap = new HashMap<>();
 	private static final SparseArray<ColorStateList> sColorStateListCache = new SparseArray<>(0);
 
 	private static final SparseArray<HashMap<String, CopyOnWriteSortedSet<XC_LayoutInflated>>> sLayoutCallbacks = new SparseArray<>();
@@ -93,19 +100,20 @@ public class XResources extends XResourcesSuperClass {
 		this.mResDir = resDir;
 		this.mPackageName = getPackageName(resDir);
 
+		AtomicIntegerArray cache = null;
 		if (resDir != null) {
 			synchronized (sReplacementsCacheMap) {
 				// Not computeIfAbsent: its mapping function would be a lambda, which this class may
 				// not create. See the note above [includedLayouts]. Under this lock the two spellings
 				// describe the same operation.
-				byte[] cache = sReplacementsCacheMap.get(resDir);
+				cache = sReplacementsCacheMap.get(resDir);
 				if (cache == null) {
-					cache = new byte[128];
+					cache = new AtomicIntegerArray(32);
 					sReplacementsCacheMap.put(resDir, cache);
 				}
-				mReplacementsCache = cache;
 			}
 		}
+		mReplacementsCache = cache;
 	}
 
 	/**
@@ -169,7 +177,7 @@ public class XResources extends XResourcesSuperClass {
 			for (int i = 0; i < sReplacements.size(); i++) {
 				sReplacements.valueAt(i).remove(mResDir);
 			}
-			Arrays.fill(mReplacementsCache, (byte) 0);
+			clearCacheBits(mReplacementsCache);
 			return true;
 		}
 	}
@@ -605,19 +613,6 @@ public class XResources extends XResourcesSuperClass {
 		if (replacement instanceof Drawable)
 			throw new IllegalArgumentException("Drawable replacements are deprecated since Xposed 2.1. Use DrawableLoader instead.");
 
-		// Cache that we have a replacement for this ID, false positives are accepted to save memory.
-		if (id < 0x7f000000) {
-			int cacheKey = (id & 0x00070000) >> 11 | (id & 0xf8) >> 3;
-			synchronized (sSystemReplacementsCache) {
-				sSystemReplacementsCache[cacheKey] |= 1 << (id & 7);
-			}
-		} else {
-			int cacheKey = (id & 0x00070000) >> 12 | (id & 0x78) >> 3;
-			synchronized (res.mReplacementsCache) {
-				res.mReplacementsCache[cacheKey] |= 1 << (id & 7);
-			}
-		}
-
 		synchronized (sReplacements) {
 			HashMap<String, Object> inner = sReplacements.get(id);
 			if (inner == null) {
@@ -625,7 +620,51 @@ public class XResources extends XResourcesSuperClass {
 				sReplacements.put(id, inner);
 			}
 			inner.put(resDir, replacement);
+
+			// Under the same lock as the row, because isFirstLoad drops a directory's rows and
+			// clears its bits while holding it: a bit set outside the lock can be cleared while
+			// the row it stands for is written, and the replacement then answers nothing, for good.
+			// False positives are accepted to save memory, false negatives are not survivable.
+			if (id < 0x7f000000)
+				setCacheBit(sSystemReplacementsCache, systemCacheBit(id));
+			else
+				setCacheBit(res.mReplacementsCache, appCacheBit(id));
 		}
+	}
+
+	/** The cache bit standing for a framework id, that is {@code 0x000700ff} of it. */
+	private static int systemCacheBit(int id) {
+		return (id & 0x00070000) >> 8 | (id & 0xff);
+	}
+
+	/** The cache bit standing for an app id, that is {@code 0x0007007f} of it. */
+	private static int appCacheBit(int id) {
+		return (id & 0x00070000) >> 9 | (id & 0x7f);
+	}
+
+	private static boolean hasCacheBit(AtomicIntegerArray cache, int bit) {
+		return (cache.get(bit >> 5) & (1 << (bit & 31))) != 0;
+	}
+
+	/**
+	 * Sets [bit], retrying until the word carries it.
+	 *
+	 * A loop rather than getAndUpdate, whose lambda would name this class. See the note above
+	 * [includedLayouts].
+	 */
+	private static void setCacheBit(AtomicIntegerArray cache, int bit) {
+		int index = bit >> 5;
+		int mask = 1 << (bit & 31);
+		for (;;) {
+			int word = cache.get(index);
+			if ((word & mask) != 0 || cache.compareAndSet(index, word, word | mask))
+				return;
+		}
+	}
+
+	private static void clearCacheBits(AtomicIntegerArray cache) {
+		for (int i = 0; i < cache.length(); i++)
+			cache.set(i, 0);
 	}
 
 	// =======================================================
@@ -638,12 +677,10 @@ public class XResources extends XResourcesSuperClass {
 
 		// Check the cache whether it's worth looking for replacements
 		if (id < 0x7f000000) {
-			int cacheKey = (id & 0x00070000) >> 11 | (id & 0xf8) >> 3;
-			if ((sSystemReplacementsCache[cacheKey] & (1 << (id & 7))) == 0)
+			if (!hasCacheBit(sSystemReplacementsCache, systemCacheBit(id)))
 				return null;
 		} else if (mResDir != null) {
-			int cacheKey = (id & 0x00070000) >> 12 | (id & 0x78) >> 3;
-			if ((mReplacementsCache[cacheKey] & (1 << (id & 7))) == 0)
+			if (!hasCacheBit(mReplacementsCache, appCacheBit(id)))
 				return null;
 		}
 
