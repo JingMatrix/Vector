@@ -464,4 +464,9 @@
     <string name="launcher_prompt_title">ليس لـ Vector أيقونة بعد</string>
     <string name="launcher_prompt_body">يعمل Vector داخل عملية أخرى بدل أن يكون مثبَّتًا، فلا يظهر شيء في المشغّل ولا توجد طريقة واضحة للعودة إليه. امنحه اختصارًا على الشاشة الرئيسية، أو ثبِّته كتطبيق عادي.</string>
     <string name="launcher_prompt_never">عدم السؤال مجددًا</string>
+    <string name="action_invalidate_art_inline_hooks">وضع توافق ربط ART المضمّن</string>
+    <string name="action_invalidate_art_inline_hooks_summary">إبطال روابط ART المضمّنة الخاصة بـ Vector عالميًا في كل تطبيق محدد، بغض النظر عن عدد الوحدات أو الروابط التي تستهدفه. قد تتوقف بعض الوحدات عن العمل، وقد تتعطل التطبيقات أو تنهار. يُطبّق عند التشغيل التالي لكل تطبيق.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">تم تفعيل توافق ربط ART المضمّن لـ %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">تم تعطيل توافق ربط ART المضمّن لـ %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">تعذّر تغيير توافق ربط ART المضمّن لـ %1$s.</string>
 </resources>

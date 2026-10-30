@@ -3,6 +3,7 @@ import kotlinx.coroutines.CancellationException
 import org.matrix.vector.manager.data.repository.FrameworkUpdateState
 import org.matrix.vector.manager.data.repository.LaunchShortcut
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
+import android.content.pm.ApplicationInfo
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlin.random.Random
 import kotlinx.coroutines.launch
 import org.matrix.vector.ipc.IManagerService
+import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.data.github.CommunityFeed
 import org.matrix.vector.manager.data.github.GitHubRepository
 import org.matrix.vector.manager.data.model.ManagerCopy
@@ -29,6 +31,8 @@ import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.ui.components.FrameworkState
+
+private const val SYSTEM_UI_VIRTUAL_PACKAGE = "system"
 
 /** A specific reason the framework is degraded, so the UI never has to say merely "something". */
 enum class HealthIssue {
@@ -167,6 +171,24 @@ data class DeviceInfo(
     val abi: String = Build.SUPPORTED_ABIS.firstOrNull() ?: "",
 )
 
+/** One package in the global ART inline-hook compatibility selector. */
+data class InlineHookAppOption(
+    val packageName: String,
+    val appName: String,
+    val applicationInfo: ApplicationInfo?,
+)
+
+/** Everything the selector needs, kept together so a refresh cannot expose a half-new list. */
+data class InlineHookInvalidationState(
+    val apps: List<InlineHookAppOption> = emptyList(),
+    val selectedPackages: Set<String> = emptySet(),
+    val savingPackages: Set<String> = emptySet(),
+    val loading: Boolean = false,
+    val loaded: Boolean = false,
+    val loadFailed: Boolean = false,
+    val saveErrorPackage: String? = null,
+)
+
 class HomeViewModel(
     private val daemon: DaemonClient,
     private val github: GitHubRepository,
@@ -214,6 +236,10 @@ class HomeViewModel(
     // until the daemon answers.
     private val _hiddenIcon = MutableStateFlow(true)
     val hiddenIcon: StateFlow<Boolean> = _hiddenIcon.asStateFlow()
+
+    private val _inlineHookInvalidation = MutableStateFlow(InlineHookInvalidationState())
+    val inlineHookInvalidation: StateFlow<InlineHookInvalidationState> =
+        _inlineHookInvalidation.asStateFlow()
 
     /**
      * How this manager can be opened, and how it currently is.
@@ -344,7 +370,10 @@ class HomeViewModel(
                     // such moment: `refreshPresence` asks again whenever a screen that shows them
                     // is opened, since this flow does not emit a second time while one binder
                     // stays alive.
-                    if (service != null) refreshToggles()
+                    if (service != null) {
+                        refreshToggles()
+                        refreshInlineHookInvalidation()
+                    }
                 }
         }
         // Returning to Home is not a reason to talk to GitHub. The page renders from disk every
@@ -583,6 +612,150 @@ class HomeViewModel(
                 _hiddenIcon.value = daemon.isForcedLauncherIcons().getOrDefault(force)
             }
         }
+    }
+
+    /**
+     * Rebuilds the one package-wide compatibility list shared by every module.
+     *
+     * Installed copies from multiple Android users collapse to one row because the daemon stores
+     * this setting by package name, not by module or user. The synthetic `system` row follows the
+     * daemon's own convention and targets `system:ui`; system_server itself is deliberately never
+     * eligible for executable-byte invalidation.
+     */
+    fun refreshInlineHookInvalidation() {
+        val flow = _inlineHookInvalidation
+        val current = flow.value
+        if (!daemon.isAlive || current.loading || current.savingPackages.isNotEmpty()) return
+
+        flow.update {
+            it.copy(loading = true, loadFailed = false, saveErrorPackage = null)
+        }
+        viewModelScope.launch {
+            val selectedResult = daemon.getInvalidateArtInlineHookPackages()
+            val selected = selectedResult.getOrNull()?.toSet()
+            if (selected == null) {
+                selectedResult.exceptionOrNull()?.let {
+                    logW("framework: process compatibility list unavailable", it)
+                }
+                flow.update {
+                    it.copy(loading = false, loaded = false, loadFailed = true)
+                }
+                return@launch
+            }
+
+            val installed = runCatching {
+                ServiceLocator.apps.getInstalledApps()
+            }
+                .onFailure { logW("framework: installed apps unavailable", it) }
+                .getOrDefault(emptyList())
+
+            // Lowest user id wins only as the representative icon and label. The choice itself is
+            // package-wide, and PreferenceStore resolves it against whichever user's process is
+            // being specialized.
+            val byPackage = linkedMapOf<String, org.matrix.vector.manager.data.model.AppInfo>()
+            installed
+                .sortedBy { it.userId }
+                .forEach { app ->
+                    byPackage.putIfAbsent(app.packageName, app)
+                }
+            val android = byPackage.remove("android")
+            byPackage.remove(SYSTEM_UI_VIRTUAL_PACKAGE)
+            byPackage.remove(BuildConfig.MANAGER_PACKAGE_NAME)
+
+            val options = buildList {
+                add(
+                    InlineHookAppOption(
+                        packageName = SYSTEM_UI_VIRTUAL_PACKAGE,
+                        appName = android?.appName.orEmpty(),
+                        applicationInfo = android?.applicationInfo,
+                    )
+                )
+                byPackage.values.forEach { app ->
+                    add(
+                        InlineHookAppOption(
+                            packageName = app.packageName,
+                            appName = app.appName,
+                            applicationInfo = app.applicationInfo,
+                        )
+                    )
+                }
+
+                // Keep an uninstalled but configured package visible so it can still be unticked.
+                // Otherwise its preference would survive forever with no UI capable of removing
+                // it after the package disappeared.
+                val visible = asSequence().map { it.packageName }.toSet()
+                selected
+                    .filterNot { it in visible }
+                    .forEach { packageName ->
+                        add(
+                            InlineHookAppOption(
+                                packageName = packageName,
+                                appName = packageName,
+                                applicationInfo = null,
+                            )
+                        )
+                    }
+            }
+                .sortedWith(
+                    compareBy<InlineHookAppOption> { it.appName.lowercase() }
+                        .thenBy { it.packageName }
+                )
+
+            flow.value =
+                InlineHookInvalidationState(
+                    apps = options,
+                    selectedPackages = selected,
+                    loaded = true,
+                )
+        }
+    }
+
+    /** Persists one checkbox immediately; a rejected write leaves the old selection intact. */
+    fun setInvalidateArtInlineHooks(packageName: String, enabled: Boolean) {
+        val flow = _inlineHookInvalidation
+        val current = flow.value
+        if (
+            !current.loaded ||
+                packageName in current.savingPackages ||
+                (packageName in current.selectedPackages) == enabled
+        ) {
+            return
+        }
+
+        flow.update {
+            it.copy(
+                savingPackages = it.savingPackages + packageName,
+                saveErrorPackage = null,
+            )
+        }
+        viewModelScope.launch {
+            val result = daemon.setInvalidateArtInlineHooks(packageName, enabled)
+            val stored = result.getOrDefault(false)
+            result.exceptionOrNull()?.let {
+                logE(
+                    "framework: setting process compatibility for $packageName failed",
+                    it,
+                )
+            }
+            if (!stored && result.exceptionOrNull() == null) {
+                logW("framework: daemon refused process compatibility for $packageName")
+            }
+
+            flow.update { state ->
+                state.copy(
+                    selectedPackages =
+                        if (!stored) state.selectedPackages
+                        else if (enabled) state.selectedPackages + packageName
+                        else state.selectedPackages - packageName,
+                    savingPackages = state.savingPackages - packageName,
+                    saveErrorPackage = if (stored) null else packageName,
+                )
+            }
+        }
+    }
+
+    fun clearInlineHookSaveError() {
+        _inlineHookInvalidation.update { it.copy(saveErrorPackage = null) }
     }
 
     fun refreshFeed(freshness: GitHubRepository.Freshness) {

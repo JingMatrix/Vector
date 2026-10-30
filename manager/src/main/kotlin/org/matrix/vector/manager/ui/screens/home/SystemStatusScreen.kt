@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -97,13 +98,18 @@ fun SystemStatusScreen(
     val context = LocalContext.current
     val statusNotification by viewModel.statusNotification.collectAsStateWithLifecycle()
     val hiddenIcon by viewModel.hiddenIcon.collectAsStateWithLifecycle()
+    val inlineHookInvalidation by viewModel.inlineHookInvalidation.collectAsStateWithLifecycle()
+    var inlineHookPickerOpen by rememberSaveable { mutableStateOf(false) }
     val presence by viewModel.presence.collectAsStateWithLifecycle()
     val managerInstall by viewModel.managerInstall.collectAsStateWithLifecycle()
 
     // Both the shortcut and the install can be undone from outside the app while it is open —
     // dragged off the home screen, uninstalled from Settings — so what the rows offer is re-read on
     // arrival rather than trusted from whenever the ViewModel was built.
-    LaunchedEffect(Unit) { viewModel.refreshPresence() }
+    LaunchedEffect(Unit) {
+        viewModel.refreshPresence()
+        viewModel.refreshInlineHookInvalidation()
+    }
 
     val sections = buildSections(status, device, context)
     // The same page again, in English, for the clipboard.
@@ -133,6 +139,17 @@ fun SystemStatusScreen(
     val copied = stringResource(UiR.string.copied)
     val shortcutRefused = stringResource(R.string.launcher_shortcut_refused)
     val installDone = stringResource(R.string.launcher_install_done)
+
+    LaunchedEffect(inlineHookInvalidation.saveErrorPackage) {
+        val packageName = inlineHookInvalidation.saveErrorPackage ?: return@LaunchedEffect
+        val option = inlineHookInvalidation.apps.firstOrNull { it.packageName == packageName }
+        val label = option?.appName?.takeIf { it.isNotBlank() } ?: packageName
+        snackbars.show(
+            context.getString(R.string.action_invalidate_art_inline_hooks_failed, label),
+            SnackbarTone.Failure,
+        )
+        viewModel.clearInlineHookSaveError()
+    }
 
     Scaffold(
         snackbarHost = { SharedSnackbarHost(snackbars) },
@@ -211,6 +228,16 @@ fun SystemStatusScreen(
                 Spacer(Modifier.height(4.dp))
             }
             item {
+                InlineHookInvalidationRow(
+                    state = inlineHookInvalidation,
+                    enabled = daemonAlive,
+                    onClick = {
+                        inlineHookPickerOpen = true
+                        viewModel.refreshInlineHookInvalidation()
+                    },
+                )
+            }
+            item {
                 FrameworkToggle(
                     title = stringResource(R.string.status_notification),
                     subtitle = stringResource(R.string.status_notification_summary),
@@ -252,6 +279,15 @@ fun SystemStatusScreen(
                 }
             }
         }
+    }
+
+    if (inlineHookPickerOpen) {
+        InlineHookInvalidationPicker(
+            state = inlineHookInvalidation,
+            onDismiss = { inlineHookPickerOpen = false },
+            onRetry = viewModel::refreshInlineHookInvalidation,
+            onToggle = viewModel::setInvalidateArtInlineHooks,
+        )
     }
 
     // Success only. A failure stays on the card, where it can still be read by someone who was not

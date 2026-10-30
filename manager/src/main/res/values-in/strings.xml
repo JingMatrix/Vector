@@ -413,4 +413,9 @@
     <string name="launcher_prompt_title">Vector belum punya ikon</string>
     <string name="launcher_prompt_body">Vector berjalan di dalam proses lain alih-alih dipasang, jadi tidak ada yang muncul di launcher Anda dan tidak ada jalan kembali yang jelas. Beri dia pintasan di layar utama, atau pasang sebagai aplikasi biasa.</string>
     <string name="launcher_prompt_never">Jangan tanya lagi</string>
+    <string name="action_invalidate_art_inline_hooks">Mode kompatibilitas hook inline ART</string>
+    <string name="action_invalidate_art_inline_hooks_summary">Membatalkan hook inline ART Vector secara global di setiap aplikasi yang dipilih, berapa pun jumlah modul atau hook yang menargetkannya. Beberapa modul mungkin berhenti bekerja, dan aplikasi dapat bermasalah atau mogok. Berlaku saat setiap aplikasi dimulai berikutnya.</string>
+    <string name="action_invalidate_art_inline_hooks_enabled">Kompatibilitas hook inline ART diaktifkan untuk %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_disabled">Kompatibilitas hook inline ART dinonaktifkan untuk %1$s.</string>
+    <string name="action_invalidate_art_inline_hooks_failed">Tidak dapat mengubah kompatibilitas hook inline ART untuk %1$s.</string>
 </resources>

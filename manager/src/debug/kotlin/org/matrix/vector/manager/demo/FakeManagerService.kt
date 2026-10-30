@@ -224,6 +224,12 @@ class FakeManagerService(
         real?.setVerboseLogEnabled(enabled)
     }
 
+    override fun getInvalidateArtInlineHookPackages(): MutableList<String> =
+        real?.invalidateArtInlineHookPackages.orEmpty().sorted().toMutableList()
+
+    override fun setInvalidateArtInlineHooks(packageName: String, enabled: Boolean): Boolean =
+        real?.setInvalidateArtInlineHooks(packageName, enabled) ?: false
+
     override fun getLiveLogPart(verbose: Boolean): ParcelFileDescriptor? =
         real?.getLiveLogPart(verbose)
 

@@ -219,6 +219,25 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     }
 
     /**
+     * Every package opted into ART inline-hook invalidation, sorted.
+     *
+     * Empty against a daemon too old to answer the call, in which case the manager shows none.
+     */
+    suspend fun getInvalidateArtInlineHookPackages(): Result<List<String>> = runIpc {
+        it.invalidateArtInlineHookPackages.orEmpty()
+    }
+
+    /**
+     * Sets whether a package invalidates Vector's native ART inline hooks after injection.
+     *
+     * [Result] carries the daemon's own answer: it stores the choice and reports whether the write
+     * landed, so a blank package name or a refused write reaches the caller rather than reading as a
+     * silent success.
+     */
+    suspend fun setInvalidateArtInlineHooks(packageName: String, enabled: Boolean): Result<Boolean> =
+        runIpc { it.setInvalidateArtInlineHooks(packageName, enabled) }
+
+    /**
      * The rotated parts the daemon still holds for one of the two logs, oldest first.
      *
      * Empty against a daemon too old to answer the call, in which case the manager shows the live

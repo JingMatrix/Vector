@@ -73,7 +73,7 @@ interface IManagerService {
      * transaction ids follow declaration order, this number is the only thing standing between a
      * mismatched pair and a call that lands on the wrong method.</p>
      */
-    const int PROTOCOL_VERSION = 1;
+    const int PROTOCOL_VERSION = 2;
 
     /**
      * Which generation of this interface the daemon implements, never below 1.
@@ -405,6 +405,30 @@ interface IManagerService {
      * what is captured from here on changes.</p>
      */
     void setVerboseLogEnabled(boolean enabled);
+
+    // ---- ART inline hook compatibility mode -----------------------------------------------------
+
+    /**
+     * Every package opted into ART inline-hook invalidation, sorted.
+     *
+     * <p>Also names {@code system} when the system UI (whose process is {@code system:ui}) is on
+     * the list, and names nothing else synthetic: the configured set is returned verbatim. The
+     * empty set is the ordinary answer on a device where nobody has touched the setting.</p>
+     */
+    List<String> getInvalidateArtInlineHookPackages();
+
+    /**
+     * Sets whether a package invalidates Vector's native ART inline hooks after injection.
+     *
+     * <p>Opting in makes a process restore libart.so's file-backed executable image and its own
+     * pre-injection modifications after the framework bootstrap, leaving LSPlant/Dobby metadata
+     * intact. It is a compatibility operation for apps whose protection rejects the temporary
+     * patches; the framework's own maintenance hooks no longer run afterwards.</p>
+     *
+     * @return whether the daemon stored it, which is not whether the call arrived. False means the
+     *         package name was blank - nothing else is refused
+     */
+    boolean setInvalidateArtInlineHooks(String packageName, boolean enabled);
 
     // ---- logs -------------------------------------------------------------------------------------
 
