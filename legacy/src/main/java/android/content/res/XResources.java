@@ -974,7 +974,10 @@ public class XResources extends XResourcesSuperClass {
 			}
 			if (callbacks != null) {
 				String variant = "layout";
-				TypedValue value = (TypedValue) getObjectField(this, "mTmpValue");
+				// Resources' mTmpValue is a one-slot pool, emptied by obtainTempTypedValue
+				// until its holder releases it, so a lookup in flight on these Resources
+				// leaves nothing there to read this through.
+				TypedValue value = new TypedValue();
 				getValue(id, value, true);
 				if (value.type == TypedValue.TYPE_STRING) {
 					String[] components = value.string.toString().split("/", 3);
