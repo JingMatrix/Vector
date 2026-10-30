@@ -330,8 +330,8 @@ public class XResources extends XResourcesSuperClass {
 		return new ResourceNames(
 				id,
 				getResourcePackageName(id),
-				getResourceTypeName(id),
-				getResourceEntryName(id));
+				getResourceEntryName(id),
+				getResourceTypeName(id));
 	}
 
 	private static ResourceNames getSystemResourceNames(int id) {
@@ -339,8 +339,8 @@ public class XResources extends XResourcesSuperClass {
 		return new ResourceNames(
 				id,
 				sysRes.getResourcePackageName(id),
-				sysRes.getResourceTypeName(id),
-				sysRes.getResourceEntryName(id));
+				sysRes.getResourceEntryName(id),
+				sysRes.getResourceTypeName(id));
 	}
 
 	private static void putResourceNames(String resDir, ResourceNames resNames) {
