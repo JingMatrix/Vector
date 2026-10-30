@@ -19,7 +19,6 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.channels.Channels
 import java.nio.channels.FileChannel
-import java.nio.channels.FileLock
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -89,8 +88,6 @@ object FileSystem {
 
   private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault())
   private val lockPath: Path = basePath.resolve("lock")
-  private var fileLock: FileLock? = null
-  private var lockChannel: FileChannel? = null
 
   init {
     runCatching {
@@ -156,16 +153,46 @@ object FileSystem {
     return cliSocket
   }
 
-  /** Tries to lock the daemon lockfile. Returns false if another daemon is running. */
+  /**
+   * Tries to lock the daemon lockfile. Returns false if another daemon is running.
+   *
+   * The lock lives in the open descriptor, so the descriptor has to outlive this method, and that
+   * is harder than storing it: a `FileChannel` nothing refers to is closed by its own finalizer,
+   * and closing *any* descriptor for a file drops every POSIX lock the process holds on that file,
+   * including one taken through a descriptor that is still open. Two fields of our own used to
+   * hold the pair, which worked in a debug build and in no release build: nothing read them, the
+   * shrinker deletes a private field nothing reads, and the channel was then collected a fraction
+   * of a second into every boot. From there any later `service.sh` — every KernelSU soft reboot
+   * replays one — started a second daemon past this check, both claimed the same rendezvous name,
+   * each latched the other as `SystemServerService.originService`, and the pair forwarded one
+   * transaction back and forth until a binder thread's stack gave out (issue #878).
+   *
+   * A shutdown hook is where the reference goes instead. The platform holds the hook and the hook
+   * reads both halves, so no shrinking can reach them and no keep rule has to be remembered, and
+   * an orderly exit hands the lock back rather than leaving it to the kernel.
+   */
   fun tryLock(): Boolean {
     return runCatching {
           val permissions =
               PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"))
-          lockChannel =
+          val channel =
               FileChannel.open(
                   lockPath, setOf(StandardOpenOption.CREATE, StandardOpenOption.WRITE), permissions)
-          fileLock = lockChannel?.tryLock()
-          fileLock?.isValid == true
+          val lock = runCatching { channel.tryLock() }.getOrNull()
+          if (lock?.isValid != true) {
+            // A daemon that loses the race exits in a moment anyway, but it closes its own
+            // descriptor on the way rather than leave that to the finalizer this method exists
+            // not to depend on.
+            channel.close()
+            return@runCatching false
+          }
+          Runtime.getRuntime()
+              .addShutdownHook(
+                  Thread {
+                    runCatching { lock.release() }
+                    runCatching { channel.close() }
+                  })
+          true
         }
         .getOrDefault(false)
   }
