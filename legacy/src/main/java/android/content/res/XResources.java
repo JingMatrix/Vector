@@ -987,7 +987,7 @@ public class XResources extends XResourcesSuperClass {
 						XposedBridge.log("Unexpected resource path \"" + value.string.toString()
 								+ "\" for resource id 0x" + Integer.toHexString(id));
 				} else {
-					XposedBridge.log(new NotFoundException("Could not find file name for resource id 0x") + Integer.toHexString(id));
+					XposedBridge.log(new NotFoundException("Could not find file name for resource id 0x" + Integer.toHexString(id)));
 				}
 
 				synchronized (sXmlInstanceDetails) {
@@ -995,7 +995,13 @@ public class XResources extends XResourcesSuperClass {
 						HashMap<String, ResourceNames> resNamesInner = sResourceNames.get(id);
 						if (resNamesInner != null) {
 							synchronized (resNamesInner) {
-								XMLInstanceDetails details = new XMLInstanceDetails(resNamesInner.get(mResDir), variant, callbacks);
+								// Both keys, as the callbacks above were looked up under: a
+								// system-wide hook files its names under null, and the layouts it
+								// hooks are inflated by apps, whose resource directory is not null.
+								ResourceNames resNames = resNamesInner.get(mResDir);
+								if (resNames == null && mResDir != null)
+									resNames = resNamesInner.get(null);
+								XMLInstanceDetails details = new XMLInstanceDetails(resNames, variant, callbacks);
 								sXmlInstanceDetails.put(result, details);
 
 								// if we were called inside LayoutInflater.parseInclude, store the details for it
@@ -1806,6 +1812,11 @@ public class XResources extends XResourcesSuperClass {
 			}
 		}
 
+		// Ahead of the callbacks, because an inflation reads the two in the other order: it takes
+		// the callbacks and then the names, and one that finds callbacks with no names records
+		// nothing for the document it is about to return, so later callbacks miss it too.
+		putResourceNames(resDir, resNames);
+
 		HashMap<String, CopyOnWriteSortedSet<XC_LayoutInflated>> inner;
 		synchronized (sLayoutCallbacks) {
 			inner = sLayoutCallbacks.get(id);
@@ -1815,18 +1826,18 @@ public class XResources extends XResourcesSuperClass {
 			}
 		}
 
-		CopyOnWriteSortedSet<XC_LayoutInflated> callbacks;
 		synchronized (inner) {
-			callbacks = inner.get(resDir);
+			CopyOnWriteSortedSet<XC_LayoutInflated> callbacks = inner.get(resDir);
 			if (callbacks == null) {
+				// Filled before it is published: a set that can be found while it is still empty
+				// is a hook that is registered and does not run.
 				callbacks = new CopyOnWriteSortedSet<>();
+				callbacks.add(callback);
 				inner.put(resDir, callbacks);
+			} else {
+				callbacks.add(callback);
 			}
 		}
-
-		callbacks.add(callback);
-
-		putResourceNames(resDir, resNames);
 
 		return callback.new Unhook(resDir, id);
 	}
