@@ -409,4 +409,9 @@
     <string name="launcher_prompt_title">Vector vẫn chưa có biểu tượng</string>
     <string name="launcher_prompt_body">Vector chạy bên trong một tiến trình khác thay vì được cài đặt, nên không có gì hiện ra trong trình khởi chạy và cũng không có cách quay lại rõ ràng. Hãy tạo cho nó một lối tắt trên màn hình chính, hoặc cài nó như một ứng dụng bình thường.</string>
     <string name="launcher_prompt_never">Đừng hỏi lại</string>
+    <string name="action_install_other_user">Cài cho người dùng khác</string>
+    <string name="action_install_other_user_summary">Thêm mô-đun này vào hồ sơ chưa có nó, để có thể đặt phạm vi ở đó</string>
+    <string name="action_install_other_user_prompt">Chọn người dùng để cài mô-đun này.</string>
+    <string name="action_installed_other_user">Đã cài cho %1$s.</string>
+    <string name="action_install_other_user_failed">Không thể cài cho %1$s.</string>
 </resources>

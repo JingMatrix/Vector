@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.rounded.PersonAdd
+import org.matrix.vector.ipc.DeviceUser
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
@@ -113,6 +115,15 @@ fun PackageActionSheet(
      * module and has no page. Null there rather than a row that leads nowhere.
      */
     onOpenStore: ((String) -> Unit)? = null,
+    /**
+     * The users that already hold this package, when the caller knows.
+     *
+     * Null from the Scope screen, where the sheet is over a hook target rather than a module and
+     * installing it elsewhere is not an act that screen is about. Given from the module list,
+     * where it is the difference between offering a profile that needs this module and offering
+     * one that already has it.
+     */
+    installedUserIds: Set<Int>? = null,
 ) {
     // The framework is a scope target, not an app. It has no launcher entry, no settings page in
     // Settings, and nothing ART could re-optimize, so those three rows would lead nowhere. What it
@@ -133,6 +144,26 @@ fun PackageActionSheet(
                 .getOrNull() != null
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
+
+    // The users this module could still be put into. Asked once with the sheet, and only for a
+    // module the caller told us about — the list is short and the call is cheap, but it is an IPC
+    // and the Scope screen has no use for the answer.
+    var installTargets by
+        remember(packageName) { mutableStateOf<List<DeviceUser>>(emptyList()) }
+    var choosingUser by remember { mutableStateOf(false) }
+    // Bound to a local so the lambda below closes over a plain Set rather than relying on the
+    // parameter still being non-null across the coroutine boundary.
+    val holders = installedUserIds
+    if (isModule && holders != null && !isSystemFramework) {
+        LaunchedEffect(packageName, holders) {
+            installTargets =
+                ServiceLocator.daemon
+                    .getUsers()
+                    .onFailure { e -> logW("actions: user list for $packageName failed", e) }
+                    .getOrDefault(emptyList())
+                    .filter { it.id !in holders }
+        }
+    }
 
     // Deliberately not `rememberCoroutineScope()`. Every action on this sheet dismisses it before
     // it starts working, and the dismissal takes this composable out of the composition — which
@@ -188,6 +219,64 @@ fun PackageActionSheet(
     fun finish(block: suspend () -> PackageActionResult) {
         onDismiss()
         scope.launch(Dispatchers.Main) { onResult(block()) }
+    }
+
+    // A list rather than a confirmation, because the question is *which* user and there is no
+    // sensible default to preselect: on a device with a work profile and a private space, either
+    // may be the one meant.
+    if (choosingUser) {
+        SharedAlertDialog(
+            onDismissRequest = { choosingUser = false },
+            icon = { Icon(Icons.Rounded.PersonAdd, contentDescription = null) },
+            title = { Text(stringResource(R.string.action_install_other_user)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.action_install_other_user_prompt))
+                    Spacer(Modifier.height(8.dp))
+                    installTargets.forEach { target ->
+                        TextButton(
+                            onClick = {
+                                choosingUser = false
+                                finish {
+                                    val result =
+                                        daemon.installExistingPackageAsUser(packageName, target.id)
+                                    val ok = result.getOrDefault(false)
+                                    // A device-policy refusal and a user that has gone away both
+                                    // come back as a plain false, which onFailure never sees.
+                                    if (!ok) {
+                                        logE(
+                                            "actions: install of $packageName for user " +
+                                                "${target.id} failed",
+                                            result.exceptionOrNull(),
+                                        )
+                                    }
+                                    PackageActionResult(
+                                        if (ok) R.string.action_installed_other_user
+                                        else R.string.action_install_other_user_failed,
+                                        target.name ?: target.id.toString(),
+                                        tone =
+                                            if (ok) SnackbarTone.Success
+                                            else SnackbarTone.Failure,
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = target.name ?: target.id.toString(),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { choosingUser = false }) {
+                    Text(stringResource(UiR.string.store_cancel))
+                }
+            },
+        )
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
@@ -360,6 +449,21 @@ LocalizedOverlay {
                         tone = if (ok) SnackbarTone.Success else SnackbarTone.Failure,
                     )
                 }
+            }
+        }
+
+        // Only when there is a user this module is not already in. A module every profile holds
+        // would otherwise carry a row whose whole function is to report that there is nowhere to
+        // send it, and on a single-user device — which is most of them — the row would never do
+        // anything at all.
+        if (installTargets.isNotEmpty()) {
+            ActionDrawerItem(
+                icon = Icons.Rounded.PersonAdd,
+                title = stringResource(R.string.action_install_other_user),
+                subtitle = stringResource(R.string.action_install_other_user_summary),
+                tint = colors.primary,
+            ) {
+                choosingUser = true
             }
         }
 

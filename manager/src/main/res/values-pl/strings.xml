@@ -482,4 +482,9 @@
     <string name="launcher_prompt_title">Vector nie ma jeszcze ikony</string>
     <string name="launcher_prompt_body">Vector działa w ramach innego procesu i nie jest instalowany, więc nic nie pojawia się w launcherze, więc nie ma oczywistej drogi powrotu. Dodaj skrót na ekranie głównym lub zainstaluj go jako zwykłą aplikację.</string>
     <string name="launcher_prompt_never">Nie pytaj ponownie</string>
+    <string name="action_install_other_user">Zainstaluj dla innego użytkownika</string>
+    <string name="action_install_other_user_summary">Dodaje ten moduł do profilu, który go nie ma, aby można było określić tam jego zakres</string>
+    <string name="action_install_other_user_prompt">Wybierz użytkownika, dla którego zainstalować ten moduł.</string>
+    <string name="action_installed_other_user">Zainstalowano dla %1$s.</string>
+    <string name="action_install_other_user_failed">Nie udało się zainstalować dla %1$s.</string>
 </resources>

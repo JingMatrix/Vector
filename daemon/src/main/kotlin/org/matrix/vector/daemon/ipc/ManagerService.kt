@@ -61,6 +61,15 @@ object ManagerService : IManagerService.Stub() {
    */
   private const val UNINSTALL_TIMEOUT_SECONDS = 60L
 
+  /**
+   * `PackageManager.INSTALL_SUCCEEDED`, which is hidden and so cannot be named from here.
+   *
+   * The one non-negative code the installer answers with; every failure is a negative
+   * `INSTALL_FAILED_*`. Written out rather than tested as `>= 0` so that a future code that is
+   * neither is treated as the refusal it would be.
+   */
+  private const val INSTALL_SUCCEEDED = 1
+
 
   private var managerPid = -1
   private var pendingManager = false
@@ -312,6 +321,42 @@ object ManagerService : IManagerService.Stub() {
 
   override fun forceStopPackage(packageName: String, userId: Int) {
     activityManager?.forceStopPackage(packageName, userId)
+  }
+
+  /**
+   * Puts a package an existing user already holds into another user.
+   *
+   * The platform grew a fifth parameter in Android 10 — the permissions to allowlist — and the
+   * daemon still runs on 8.1, so the call is split on the version the parameter arrived in.
+   * Passing `null` for that list is what the shell's own `pm install-existing` passes: it means
+   * "allowlist nothing extra", not "grant nothing", and the package keeps the grants its install
+   * state already implies.
+   *
+   * `INSTALL_REASON_USER` rather than `UNKNOWN`, because a person tapped this in the module list.
+   * The platform records the reason and shows it in `dumpsys package`.
+   */
+  override fun installExistingPackageAsUser(packageName: String, userId: Int): Boolean {
+    val pm = packageManager ?: return false
+    return runCatching {
+          val status =
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                pm.installExistingPackageAsUser(
+                    packageName, userId, 0, PackageManager.INSTALL_REASON_USER, null)
+              } else {
+                pm.installExistingPackageAsUser(
+                    packageName, userId, 0, PackageManager.INSTALL_REASON_USER)
+              }
+          // The platform answers with an INSTALL_* code, where the single success is
+          // INSTALL_SUCCEEDED (1) and every refusal is negative. Anything else is a refusal we
+          // have no name for, and reporting it as success would leave the manager claiming a
+          // module is in a profile that never received it.
+          if (status != INSTALL_SUCCEEDED) {
+            Log.w(TAG, "install-existing of $packageName for user $userId answered $status")
+          }
+          status == INSTALL_SUCCEEDED
+        }
+        .onFailure { Log.e(TAG, "Failed to install $packageName for user $userId", it) }
+        .getOrDefault(false)
   }
 
   override fun softReboot() = VectorDaemon.softReboot()

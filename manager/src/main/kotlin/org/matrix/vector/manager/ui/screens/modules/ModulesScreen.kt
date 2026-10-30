@@ -156,6 +156,20 @@ fun ModulesScreen(
     viewModel: ModulesViewModel = viewModel(factory = ModulesViewModelFactory()),
 ) {
     val tabs by viewModel.userModulesTabs.collectAsStateWithLifecycle()
+
+    // Which users already hold a given module, read off the tabs rather than asked of the daemon:
+    // the tabs are built from the same per-user scan, so this costs nothing and cannot disagree
+    // with what the list is showing. A user with no modules has no tab and therefore holds none,
+    // which is the right answer for every package — and is exactly the user the install action
+    // below exists to reach.
+    val holdersOf: (String) -> Set<Int> =
+        remember(tabs) {
+            { pkg ->
+                tabs.filter { tab -> tab.modules.any { it.packageName == pkg } }
+                    .map { it.user.id }
+                    .toSet()
+            }
+        }
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
@@ -411,7 +425,7 @@ fun ModulesScreen(
                             stickyHeader(key = "h:active") {
                                 SectionHeader(stringResource(R.string.modules_section_active), active.size)
                             }
-                            moduleRows(active, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(active, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                         if (inactive.isNotEmpty()) {
                             stickyHeader(key = "h:inactive") {
@@ -420,10 +434,10 @@ fun ModulesScreen(
                                     inactive.size,
                                 )
                             }
-                            moduleRows(inactive, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(inactive, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                     } else {
-                        moduleRows(modules, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                        moduleRows(modules, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                     }
                 }
               }
@@ -904,6 +918,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
     facts: Map<ModuleKey, ModuleFacts>,
     selection: Set<ModuleKey>,
     upgradable: Set<String>,
+    holdersOf: (String) -> Set<Int>,
     onModuleClick: (String, Int) -> Unit,
     onOpenStore: (String) -> Unit,
     onSelect: (InstalledModule) -> Unit,
@@ -916,6 +931,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
             hasUpdate = module.packageName in upgradable,
             selected = ModuleKey(module.packageName, module.userId) in selection,
             selectionActive = selection.isNotEmpty(),
+            holders = holdersOf(module.packageName),
             onClick = { onModuleClick(module.packageName, module.userId) },
             onOpenStore = { onOpenStore(module.packageName) },
             onSelect = { onSelect(module) },
@@ -947,6 +963,7 @@ private fun ModuleListItem(
     hasUpdate: Boolean,
     selected: Boolean,
     selectionActive: Boolean,
+    holders: Set<Int>,
     onClick: () -> Unit,
     onOpenStore: () -> Unit,
     onSelect: () -> Unit,
@@ -982,6 +999,7 @@ private fun ModuleListItem(
             appName = module.appName,
             applicationInfo = module.applicationInfo,
             isModule = true,
+            installedUserIds = holders,
             onDismiss = { menuOpen = false },
             onResult = onAction,
             onOpenStore = { onOpenStore() },

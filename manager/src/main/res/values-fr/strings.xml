@@ -420,4 +420,9 @@
     <string name="launcher_prompt_title">Vector n\'a pas encore d\'icône</string>
     <string name="launcher_prompt_body">Vector s\'exécute dans un autre processus au lieu d\'être installé : rien n\'apparaît dans votre lanceur et il n\'y a pas de moyen évident d\'y revenir. Donnez-lui un raccourci sur l\'écran d\'accueil, ou installez-le comme une application ordinaire.</string>
     <string name="launcher_prompt_never">Ne plus demander</string>
+    <string name="action_install_other_user">Installer pour un autre utilisateur</string>
+    <string name="action_install_other_user_summary">Ajoute ce module à un profil qui ne l’a pas, afin de lui donner une portée là-bas</string>
+    <string name="action_install_other_user_prompt">Choisissez l’utilisateur pour lequel installer ce module.</string>
+    <string name="action_installed_other_user">Installé pour %1$s.</string>
+    <string name="action_install_other_user_failed">Impossible d’installer pour %1$s.</string>
 </resources>
