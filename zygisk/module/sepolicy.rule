@@ -5,14 +5,19 @@ allow shell shell dir write
 
 type xposed_file file_type
 typeattribute xposed_file mlstrustedobject
-allow {dex2oat installd isolated_app shell} xposed_file {file dir} *
+allow {dex2oat installd isolated_app shell artd} xposed_file {file dir} *
 
 allow dex2oat {unlabeled tmpfs} file *
 allow zygote dex2oat unix_stream_socket *
+
+allow artd dex2oat process2 nosuid_transition
+allow installd dex2oat process2 nosuid_transition
+
+allow artd artd process execmem
+allow installd installd process execmem
 
 type xposed_data file_type
 typeattribute xposed_data mlstrustedobject
 allow * xposed_data {file dir} *
 
-# `serial_vector` is in no service_contexts, so it is labelled default_android_service
 allow system_server default_android_service service_manager find

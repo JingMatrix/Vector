@@ -299,6 +299,7 @@ object VectorDaemon {
    */
   fun softReboot() {
     Log.w(TAG, "Soft reboot: restarting the primary zygote")
+    Dex2OatServer.onSoftReboot()
     forgetDeliberateBoot()
     SystemProperties.set("ctl.restart", "zygote")
   }

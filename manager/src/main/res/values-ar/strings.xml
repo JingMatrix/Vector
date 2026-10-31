@@ -42,6 +42,7 @@
     <string name="info_loaded">محمَّلة</string>
     <string name="info_not_loaded">غير محمَّلة</string>
     <string name="info_injected">محقون</string>
+    <string name="info_mounted">مُركّب</string>
     <string name="info_not_injected">غير محقون</string>
     <string name="status_notification">إشعار الحالة</string>
     <string name="status_notification_summary">إشعار دائم يبيّن أن Vector يعمل.</string>

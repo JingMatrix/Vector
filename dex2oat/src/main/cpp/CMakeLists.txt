@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(dex2oat)
 
 add_executable(dex2oat dex2oat.cpp)
-add_library(oat_hook SHARED oat_hook.cpp)
+add_library(oat_hook SHARED oat_hook.cpp compiler_options.cpp)
 
 OPTION(LSPLT_BUILD_SHARED OFF)
 add_subdirectory(${VECTOR_ROOT}/external/lsplt/lsplt/src/main/jni external)
