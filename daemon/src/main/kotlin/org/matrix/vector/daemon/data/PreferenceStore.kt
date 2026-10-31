@@ -3,6 +3,7 @@ package org.matrix.vector.daemon.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import org.apache.commons.lang3.SerializationUtilsX
+import org.matrix.vector.ipc.IManagerService
 
 private const val TAG = "VectorPreferenceStore"
 
@@ -100,4 +101,11 @@ object PreferenceStore {
   fun isScopeRequestBlocked(pkg: String): Boolean =
       (getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<*>)?.contains(pkg) ==
           true
+
+  fun getInlineHookBackend(): Int =
+      getModulePrefs("lspd", 0, "config")["inline_hook_backend"] as? Int
+          ?: IManagerService.INLINE_HOOK_BACKEND_DOBBY
+
+  fun setInlineHookBackend(backend: Int) =
+      updateModulePref("lspd", 0, "config", "inline_hook_backend", backend)
 }

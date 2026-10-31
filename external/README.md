@@ -8,6 +8,9 @@ They are included as git submodules to ensure version consistency and timely upd
 -   [Dobby](https://github.com/JingMatrix/Dobby): 
     A lightweight, multi-platform inline hooking framework. It serves as the backend for all native function hooking (`HookInline`).
 
+-   [ShadowHook](https://github.com/bytedance/android-inline-hook): 
+    ShadowHook is an Android inline hook library. It also serves as the backend for all native function hooking (`HookInline`).
+
 -   [fmt](https://github.com/fmtlib/fmt):
     A modern formatting library used for high-performance, type-safe logging throughout the native code.
 
@@ -28,3 +31,7 @@ They are included as git submodules to ensure version consistency and timely upd
 -   [axml/manifest-editor](https://github.com/JingMatrix/ManifestEditor):
     A a tool used to modify Android Manifest binary file. It is to parse manifestation files of Xposed modules.
 
+## Patches
+
+-   [patches/shadowhook](patches/shadowhook):
+    Used to remove the mandatory dependency on `libshadowhook_nothing.so`.

@@ -305,6 +305,13 @@ class FakeManagerService(
 
     override fun setIncludeNewApps(packageName: String?, enable: Boolean): Boolean =
         real?.setIncludeNewApps(packageName, enable) ?: false
+
+    override fun getInlineHookBackend(): Int =
+        real?.inlineHookBackend ?: IManagerService.INLINE_HOOK_BACKEND_DOBBY
+
+    override fun setInlineHookBackend(backend: Int) {
+        real?.setInlineHookBackend(backend)
+    }
 }
 
 /**

@@ -730,6 +730,23 @@ interface IManagerService {
     @nullable ParcelFileDescriptor getManagerApk();
 
     /**
+     * Which engine installs native inline hooks, one of the INLINE_HOOK_BACKEND_* constants.
+     */
+    int getInlineHookBackend();
+
+    /**
+     * Sets that. Dobby is available on every ABI; ShadowHook is built for arm64-v8a and
+     * armeabi-v7a only. Processes already running keep the engine they started with.
+     */
+    void setInlineHookBackend(int backend);
+
+    /** The Dobby inline hook engine. */
+    const int INLINE_HOOK_BACKEND_DOBBY = 0;
+
+    /** The ShadowHook inline hook engine. */
+    const int INLINE_HOOK_BACKEND_SHADOWHOOK = 1;
+
+    /**
      * The daemon did not say which root implementation is installed.
      *
      * <p>Takes 0 because 0 is also what a binder proxy hands back for a transaction the daemon does

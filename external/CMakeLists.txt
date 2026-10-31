@@ -20,6 +20,42 @@ option(LSPLANT_BUILD_SHARED OFF)
 option(Plugin.SymbolResolver OFF)
 option(FMT_INSTALL OFF)
 
+if (ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "armeabi-v7a")
+    enable_language(ASM)
+    set(SHADOWHOOK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/shadowhook/shadowhook/src/main/cpp)
+    if (ANDROID_ABI STREQUAL "arm64-v8a")
+        set(SHADOWHOOK_ARCH "arm64")
+    else ()
+        set(SHADOWHOOK_ARCH "arm")
+    endif ()
+    file(GLOB SHADOWHOOK_SOURCES
+        ${SHADOWHOOK_SRC}/*.c
+        ${SHADOWHOOK_SRC}/arch/${SHADOWHOOK_ARCH}/*.c
+        ${SHADOWHOOK_SRC}/arch/${SHADOWHOOK_ARCH}/*.S
+        ${SHADOWHOOK_SRC}/common/*.c
+        ${SHADOWHOOK_SRC}/third_party/*/*.c
+    )
+	list(REMOVE_ITEM SHADOWHOOK_SOURCES ${SHADOWHOOK_SRC}/sh_linker.c)
+    list(APPEND SHADOWHOOK_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/patches/shadowhook/sh_linker.c)
+    add_library(shadowhook STATIC ${SHADOWHOOK_SOURCES})
+    target_include_directories(shadowhook PUBLIC
+        ${SHADOWHOOK_SRC}
+        ${SHADOWHOOK_SRC}/include
+        ${SHADOWHOOK_SRC}/arch/${SHADOWHOOK_ARCH}
+        ${SHADOWHOOK_SRC}/common
+        ${SHADOWHOOK_SRC}/third_party/xdl
+        ${SHADOWHOOK_SRC}/third_party/bsd
+        ${SHADOWHOOK_SRC}/third_party/lss
+    )
+    target_compile_options(shadowhook PRIVATE
+        -Wno-unused-parameter
+        -Wno-unused-but-set-variable
+        -Wno-unused-variable
+        -Wno-unused-function
+    )
+endif ()
+
 add_subdirectory(dobby)
 add_subdirectory(fmt)
 add_subdirectory(lsplant/lsplant/src/main/jni)
