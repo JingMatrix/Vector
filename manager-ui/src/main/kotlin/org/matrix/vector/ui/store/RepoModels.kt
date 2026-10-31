@@ -50,6 +50,7 @@ data class OnlineModule(
         get() = url ?: "https://github.com/Xposed-Modules-Repo/$name"
 }
 
+
 data class Collaborator(
     @SerializedName("login") val login: String?,
     @SerializedName("name") val name: String?,
@@ -268,7 +269,15 @@ data class StoreCatalog(
     val loaded: Boolean = false,
     val fromCache: Boolean = false,
     val loadedAtMillis: Long = 0L,
+    val page: Int = 1,
+    val pageCount: Int = 1,
+    val total: Int = 0,
+    val isSyncing: Boolean = false,
+    val syncProgress: Float = 0f,
 ) {
     val isEmpty: Boolean
         get() = modules.isEmpty()
+
+    val isFullySynced: Boolean
+        get() = page >= pageCount && pageCount > 0
 }
