@@ -96,6 +96,7 @@
     <string name="egg_one_more">Una vez más…</string>
 
     <string name="modules_empty">No hay módulos instalados.</string>
+    <string name="modules_scan_failed">No se pudo leer la lista de paquetes instalados, así que no se sabe qué módulos tiene este dispositivo. Tira para volver a intentarlo.</string>
     <string name="modules_active_of">%1$d de %2$d activos</string>
     <string name="modules_no_match">Ningún módulo coincide con esa búsqueda o ese filtro.</string>
     <string name="modules_backup">Guardar copia de los módulos</string>
@@ -153,6 +154,7 @@
     <string name="scope_modules">Otros módulos</string>
     <string name="scope_include_new_apps">Añadir apps nuevas automáticamente</string>
     <string name="scope_include_new_apps_summary">Las apps que se instalen a partir de ahora entrarán en el ámbito de este módulo.</string>
+    <string name="scope_include_new_apps_summary_user">Las apps que se instalen para este usuario a partir de ahora entrarán en el ámbito de este módulo. Cada usuario se configura por separado.</string>
     <string name="scope_backup">Guardar copia de este ámbito</string>
     <string name="scope_restore">Restaurar este ámbito</string>
     <string name="scope_sort_package">Por nombre de paquete</string>
@@ -420,4 +422,14 @@
     <string name="launcher_prompt_title">Vector todavía no tiene icono</string>
     <string name="launcher_prompt_body">Vector se ejecuta dentro de otro proceso en lugar de estar instalado, así que no aparece nada en tu launcher y no hay una forma evidente de volver. Dale un acceso directo en la pantalla de inicio, o instálalo como una app normal.</string>
     <string name="launcher_prompt_never">No volver a preguntar</string>
+    <string name="action_install_other_user">Instalar para otro usuario</string>
+    <string name="action_install_other_user_summary">Añade este módulo a un perfil que no lo tiene, para poder darle un ámbito allí</string>
+    <string name="action_install_other_user_summary_app">Añade esta app a un perfil que no la tiene, para que un módulo de ese perfil pueda alcanzarla</string>
+    <string name="action_reorder">Reordenar estas acciones</string>
+    <string name="action_move_up">Subir</string>
+    <string name="action_move_down">Bajar</string>
+    <string name="action_install_other_user_prompt">Elige el usuario para el que instalar este módulo.</string>
+    <string name="action_install_other_user_prompt_app">Elige el usuario para el que instalar esta app.</string>
+    <string name="action_installed_other_user">Instalado para %1$s.</string>
+    <string name="action_install_other_user_failed">No se pudo instalar para %1$s.</string>
 </resources>

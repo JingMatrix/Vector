@@ -8,7 +8,7 @@ import java.io.File
 import org.matrix.vector.daemon.utils.FakeContext
 
 private const val TAG = "VectorDatabase"
-private const val DB_VERSION = 4
+private const val DB_VERSION = 5
 
 class Database(context: Context? = FakeContext()) :
     SQLiteOpenHelper(context, FileSystem.dbPath.absolutePath, null, DB_VERSION) {
@@ -30,12 +30,10 @@ class Database(context: Context? = FakeContext()) :
             module_pkg_name text NOT NULL UNIQUE,
             apk_path text NOT NULL,
             enabled BOOLEAN DEFAULT 0 CHECK (enabled IN (0, 1)),
-            -- `include new apps` everywhere else: when set, a package installed from now on is
-            -- added to this module's scope. The column keeps the older name on purpose. SQLite
-            -- gained ALTER TABLE RENAME COLUMN in 3.25 and this project supports API 27, whose
-            -- SQLite is older, so renaming means rebuilding the table behind a version bump —
-            -- and onDowngrade wipes the module configuration, so anyone who then flashed an
-            -- older build would lose theirs. That is a real cost for a name no user ever sees.
+            -- Dead since v5, read by nothing: `include new apps` is per user now and lives in
+            -- the table below, which this column cannot be -- one row per package is one answer
+            -- for every user at once. Kept because SQLite gained DROP COLUMN in 3.35 and this
+            -- supports API 27, so removing it means rebuilding the table.
             auto_include BOOLEAN DEFAULT 0 CHECK (auto_include IN (0, 1))
         );
         """
@@ -65,6 +63,21 @@ class Database(context: Context? = FakeContext()) :
             user_id integer NOT NULL,
             PRIMARY KEY (mid, app_pkg_name, user_id),
             CONSTRAINT scope_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
+        );
+        """
+            .trimIndent())
+
+    db.execSQL(
+        """
+        CREATE TABLE IF NOT EXISTS auto_include (
+            -- One row per (module, user) that is auto-including; its existence is the whole
+            -- value, with no `enabled` column to disagree with it. Per user because a module two
+            -- profiles hold is two scopes, so it is two answers here too. Keyed by mid, so
+            -- uninstalling takes these rows with it exactly as it takes the module's scope.
+            mid integer NOT NULL,
+            user_id integer NOT NULL,
+            PRIMARY KEY (mid, user_id),
+            CONSTRAINT auto_include_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
         );
         """
             .trimIndent())
@@ -195,6 +208,31 @@ class Database(context: Context? = FakeContext()) :
         db.execSQL(
             "ALTER TABLE modules ADD COLUMN auto_include BOOLEAN DEFAULT 0 CHECK (auto_include IN (0, 1));")
       }
+    }
+    if (oldVersion < 5) {
+      db.execSQL(
+          """
+          CREATE TABLE IF NOT EXISTS auto_include (
+              mid integer NOT NULL,
+              user_id integer NOT NULL,
+              PRIMARY KEY (mid, user_id),
+              CONSTRAINT auto_include_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
+          );
+          """
+              .trimIndent())
+      // The old column meant every user in effect, so one row per user preserves it. The users
+      // come from `scope`, the only table naming any, unioned with user 0 -- not from
+      // `IUserManager`: a migration runs wherever the database is first opened, which is early,
+      // and one that silently found no users would read as a setting nobody ever made.
+      db.execSQL(
+          """
+          INSERT OR IGNORE INTO auto_include (mid, user_id)
+          SELECT m.mid, u.user_id
+          FROM modules m
+          JOIN (SELECT DISTINCT user_id FROM scope UNION SELECT 0 AS user_id) u
+          WHERE m.auto_include = 1;
+          """
+              .trimIndent())
     }
   }
 }

@@ -73,7 +73,7 @@ interface IManagerService {
      * transaction ids follow declaration order, this number is the only thing standing between a
      * mismatched pair and a call that lands on the wrong method.</p>
      */
-    const int PROTOCOL_VERSION = 1;
+    const int PROTOCOL_VERSION = 3;
 
     /**
      * Which generation of this interface the daemon implements, never below 1.
@@ -312,21 +312,29 @@ interface IManagerService {
     boolean setModuleScope(String packageName, in List<ScopeEntry> scope);
 
     /**
-     * Whether a module is given each newly installed app automatically.
+     * Whether this copy of a module is given each newly installed app automatically.
+     *
+     * <p>{@code userId} names which copy is being asked about, not which apps it would take. A
+     * module two profiles hold is two copies with two scopes, so it is two answers here, and a new
+     * app is offered only to the copies in the user it arrived in. One flag for the whole device
+     * until it was keyed by user.</p>
      *
      * @return false for a package the daemon holds no module row for, and for the framework's own
      *         pseudo-module - so a false here is not evidence that a module exists
      */
-    boolean getIncludeNewApps(String packageName);
+    boolean getIncludeNewApps(String packageName, int userId);
 
     /**
-     * Sets that flag.
+     * Sets that flag for one user.
+     *
+     * <p>Changes no other user's copy and no scope that already exists: it decides what the next
+     * install does, and switching it off leaves behind the rows it added.</p>
      *
      * @return whether the daemon stored it, which is not whether the call arrived: no row is
      *         written for a package that is not a known module, or for the framework's own
-     *         pseudo-module. Writing the value the row already held still answers true
+     *         pseudo-module. Writing the value the table already held still answers true
      */
-    boolean setIncludeNewApps(String packageName, boolean enable);
+    boolean setIncludeNewApps(String packageName, int userId, boolean enable);
 
     /**
      * Every module that is installed and switched on and that the framework still cannot load, with
@@ -535,6 +543,25 @@ interface IManagerService {
      */
     List<DeviceUser> getUsers();
 
+    /**
+     * Which of those users hold this package, by id.
+     *
+     * <p>Asked per user rather than derived from a package list, so it answers for a package no
+     * list the manager caches would carry - each is filtered for its own purpose. The predicate is
+     * the one {@link #getInstalledPackagesFromAllUsers} filters each user's rows by.</p>
+     *
+     * <p>Empty both for a package no user holds and for a user service out of reach. Subtract it
+     * from {@link #getUsers}, which is empty under the same failure, and the difference is too.</p>
+     */
+    int[] getPackageUsers(String packageName);
+
+    /**
+     * The photo a user has, as a readable descriptor, or null when it has none - which is most
+     * users, and the ordinary case rather than a failure. A descriptor rather than the bytes,
+     * since opening a file the manager cannot reach is the whole of the daemon's part.
+     */
+    @nullable ParcelFileDescriptor getUserIcon(int userId);
+
     // ---- things done to the device on the manager's behalf ------------------------------------------
 
     /**
@@ -593,6 +620,19 @@ interface IManagerService {
      *         still installed, only that nothing confirmed it is gone
      */
     boolean uninstallPackage(String packageName, int userId);
+
+    /**
+     * Installs a package another user already holds into {@code userId}, without an APK.
+     *
+     * <p>Android keeps one APK per package name and varies only who has it installed, so this is
+     * no copy: the package keeps its version, signature and uid derivation, and only the user's
+     * set of installed packages changes. Without it nothing in the product can put a module into
+     * a profile that lacks one, and a module reaches a profile's apps only from inside it.</p>
+     *
+     * @return whether the platform reported the install. A user that does not exist, a package no
+     *         user holds, and a device-policy refusal all come back false
+     */
+    boolean installExistingPackageAsUser(String packageName, int userId);
 
     /**
      * Clears an app's ART profiles and forces a profile-guided recompile.

@@ -163,6 +163,7 @@ fun ModulesScreen(
     val facts by viewModel.facts.collectAsStateWithLifecycle()
     val counts by viewModel.counts.collectAsStateWithLifecycle()
     val daemonAvailable by viewModel.daemonAvailable.collectAsStateWithLifecycle()
+    val scanFailed by viewModel.scanFailed.collectAsStateWithLifecycle()
 
     val selection by viewModel.selection.collectAsStateWithLifecycle()
     val upgradable by viewModel.upgradable.collectAsStateWithLifecycle()
@@ -351,13 +352,32 @@ fun ModulesScreen(
             }
 
             if (tabs.isEmpty() || tabs.all { it.modules.isEmpty() }) {
-                // A filter empties the list exactly as a search does, so both count as narrowing.
-                // Otherwise picking "Inactive" on a device where everything is on would say "you
-                // have no modules installed" over a list the filter had just hidden.
-                EmptyState(
-                    daemonAvailable = daemonAvailable,
-                    filtered = query.isNotBlank() || filter != ModuleFilter.All,
-                )
+                // Pullable like the list is, because this is the state that most needs a retry:
+                // a scan the daemon could not answer says to pull, and there would otherwise be
+                // nothing here to pull. It costs the other two states nothing.
+                PullToRefreshBox(
+                    isRefreshing = isLoading,
+                    onRefresh = { viewModel.loadModules(refresh = true) },
+                ) {
+                    // In a lazy list holding one full-height item, not a plain Box: the pull is
+                    // seen through nested scroll, and something that does not scroll dispatches
+                    // nothing to see. Measured on the device -- over a Box the indicator never
+                    // appeared, however far down the gesture went.
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item {
+                            // A filter empties the list exactly as a search does, so both count
+                            // as narrowing. Otherwise picking "Inactive" on a device where
+                            // everything is on would say "you have no modules installed" over a
+                            // list the filter had just hidden.
+                            EmptyState(
+                                daemonAvailable = daemonAvailable,
+                                scanFailed = scanFailed,
+                                filtered = query.isNotBlank() || filter != ModuleFilter.All,
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
+                        }
+                    }
+                }
                 return@Column
             }
 
@@ -379,7 +399,9 @@ fun ModulesScreen(
               // that catches it does not fire for every route in.
               PullToRefreshBox(
                 isRefreshing = isLoading,
-                onRefresh = { viewModel.loadModules() },
+                // Past the shared cache, which only a package broadcast drops: a pull is the
+                // gesture for the change no broadcast brought.
+                onRefresh = { viewModel.loadModules(refresh = true) },
               ) {
                 val modules = tabs[page].modules
                 // Sections only make sense when the order is by state. Under any other sort the
@@ -857,8 +879,13 @@ private fun ApiBadge(module: InstalledModule, incompatible: Boolean) {
 }
 
 @Composable
-private fun EmptyState(daemonAvailable: Boolean, filtered: Boolean) {
-    Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+private fun EmptyState(
+    daemonAvailable: Boolean,
+    scanFailed: Boolean,
+    filtered: Boolean,
+    modifier: Modifier = Modifier.fillMaxSize(),
+) {
+    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Rounded.Extension,
@@ -872,6 +899,9 @@ private fun EmptyState(daemonAvailable: Boolean, filtered: Boolean) {
                     stringResource(
                         when {
                             !daemonAvailable -> R.string.modules_no_daemon
+                            // Before the filter: "no modules match" would invite the reader to
+                            // widen it and find nothing.
+                            scanFailed -> R.string.modules_scan_failed
                             filtered -> R.string.modules_no_match
                             else -> R.string.modules_empty
                         }

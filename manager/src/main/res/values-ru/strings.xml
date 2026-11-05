@@ -97,6 +97,7 @@
     <string name="egg_two_more">Ещё два раза…</string>
     <string name="egg_one_more">Ещё раз…</string>
     <string name="modules_empty">Модули не установлены.</string>
+    <string name="modules_scan_failed">Не удалось прочитать список установленных пакетов, поэтому неизвестно, какие модули есть на этом устройстве. Потяните, чтобы повторить.</string>
     <string name="modules_active_of">%1$d из %2$d активны</string>
     <string name="modules_no_match">Ни один модуль не подходит под этот запрос или фильтр.</string>
     <string name="modules_backup">Сохранить модули</string>
@@ -152,6 +153,7 @@
     <string name="scope_modules">Другие модули</string>
     <string name="scope_include_new_apps">Добавлять новые приложения автоматически</string>
     <string name="scope_include_new_apps_summary">Приложения, установленные с этого момента, попадут в область действия модуля.</string>
+    <string name="scope_include_new_apps_summary_user">Приложения, установленные для этого пользователя с этого момента, попадут в область действия модуля. Для каждого пользователя задаётся отдельно.</string>
     <string name="scope_backup">Сохранить эту область</string>
     <string name="scope_restore">Восстановить эту область</string>
     <string name="scope_sort_package">По имени пакета</string>
@@ -425,4 +427,14 @@
     <string name="launcher_prompt_title">У Vector пока нет значка</string>
     <string name="launcher_prompt_body">Vector работает внутри чужого процесса, а не установлен, поэтому в лаунчере ничего не появляется и очевидного пути обратно нет. Добавьте ярлык на главный экран или установите Vector как обычное приложение.</string>
     <string name="launcher_prompt_never">Больше не спрашивать</string>
+    <string name="action_install_other_user">Установить для другого пользователя</string>
+    <string name="action_install_other_user_summary">Добавляет модуль в профиль, где его нет, чтобы задать там его область действия</string>
+    <string name="action_install_other_user_summary_app">Добавляет это приложение в профиль, где его нет, чтобы модуль в том профиле мог до него дотянуться</string>
+    <string name="action_reorder">Изменить порядок действий</string>
+    <string name="action_move_up">Переместить вверх</string>
+    <string name="action_move_down">Переместить вниз</string>
+    <string name="action_install_other_user_prompt">Выберите пользователя, для которого установить модуль.</string>
+    <string name="action_install_other_user_prompt_app">Выберите пользователя, для которого установить приложение.</string>
+    <string name="action_installed_other_user">Установлено для %1$s.</string>
+    <string name="action_install_other_user_failed">Не удалось установить для %1$s.</string>
 </resources>

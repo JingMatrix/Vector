@@ -9,23 +9,37 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Launch
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
@@ -37,13 +51,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.rounded.PersonAdd
+import org.matrix.vector.ipc.DeviceUser
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
 import org.matrix.vector.manager.ui.theme.LocalizedOverlay
@@ -57,6 +79,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.matrix.vector.ui.ActionDrawerItem
 import org.matrix.vector.ui.store.ConfirmInstall
@@ -70,6 +94,23 @@ import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel
 import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel.Companion.SYSTEM_FRAMEWORK_PACKAGE
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.ui.theme.Mono
+
+/**
+ * The actions the long-press sheet can offer, named so an order can outlive them.
+ *
+ * Declaration order is the default order. A stored order names ids, so an action added or retired
+ * in a later build leaves the rest where they are: one nobody has moved keeps its place here, and
+ * a name this build no longer has is ignored when the order is read back.
+ */
+private enum class ActionId {
+    Open,
+    AppInfo,
+    SoftReboot,
+    ForceStop,
+    Reoptimize,
+    InstallOtherUser,
+    Uninstall,
+}
 
 /** What a long press did, and how it went. */
 data class PackageActionResult(
@@ -134,6 +175,37 @@ fun PackageActionSheet(
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
+    var reordering by remember { mutableStateOf(false) }
+
+    // Every user the device has, less the ones already holding this package. Asked of the
+    // daemon about *this* package rather than filtered from a cached list, since each of those is
+    // filtered for its own purpose — and the module list's tabs cover only users it draws, while
+    // a profile holding no modules has no tab and is exactly the one worth offering.
+    var installTargets by remember(packageName) { mutableStateOf<List<DeviceUser>>(emptyList()) }
+    var choosingUser by remember { mutableStateOf(false) }
+    // Not the framework: it is a scope target rather than an installed package, so there is no
+    // install state for another user to be missing.
+    if (!isSystemFramework) {
+        LaunchedEffect(packageName) {
+            val daemonService = ServiceLocator.daemon
+            val users =
+                daemonService
+                    .getUsers()
+                    .onFailure { e -> logW("actions: user list for $packageName failed", e) }
+                    .getOrDefault(emptyList())
+            // Subtracted from the user list rather than inverted: the daemon answers empty
+            // both for "no user holds it" and for a user service out of reach, and under that
+            // failure the user list is empty too, so the difference stays empty.
+            val holders =
+                daemonService
+                    .getPackageUsers(packageName)
+                    .onFailure { e -> logW("actions: holders of $packageName failed", e) }
+                    .getOrDefault(emptyList())
+                    .toSet()
+            installTargets = users.filter { it.id !in holders }
+        }
+    }
+
     // Deliberately not `rememberCoroutineScope()`. Every action on this sheet dismisses it before
     // it starts working, and the dismissal takes this composable out of the composition — which
     // cancels the scope a composition remembered for it. The work launched into that scope then
@@ -179,9 +251,22 @@ fun PackageActionSheet(
     val colors = MaterialTheme.colorScheme
     // Every value left enabled, rather than dropping PartiallyExpanded: that stop is the only
     // thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than half the
-    // screen would open at full height and could not be made smaller. Material caps the stop at
-    // the sheet's own height, so short sheets still open at that height and gain no useless drag.
+    // screen would open at full height and could not be made smaller.
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+
+    // Never shorter than the stop it opens at.
+    //
+    // Material offers the PartiallyExpanded anchor only to a sheet taller than half its container
+    // and places it at exactly half. Three rows below wait on a binder call, so the sheet is first
+    // measured without them, lands short of that line and is given no anchor: it retargets to
+    // Expanded, the rows arrive mid-animation, and the correction lands as a snap. Measured at
+    // 1131px without them and 1483 with, against a stop at 1200. A floor at the stop makes the
+    // first target the one it keeps, whatever has answered by then. Dragging up is untouched.
+    val minSheetHeight =
+        with(LocalDensity.current) {
+            // One pixel past half, because the anchor is offered to a sheet *taller* than half.
+            (LocalWindowInfo.current.containerSize.height / 2 + 1).toDp()
+        }
 
     // `Dispatchers.Main` because [onResult] reaches a snackbar on the screen underneath, and
     // because that is the thread the composition scope this replaces used to resume on.
@@ -190,7 +275,72 @@ fun PackageActionSheet(
         scope.launch(Dispatchers.Main) { onResult(block()) }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    fun install(target: DeviceUser, label: String) = finish {
+        val result = daemon.installExistingPackageAsUser(packageName, target.id)
+        val ok = result.getOrDefault(false)
+        // A device-policy refusal and a user that has gone away both come back as a plain false,
+        // which onFailure never sees.
+        if (!ok) {
+            logE("actions: install of $packageName for user ${target.id} failed", result.exceptionOrNull())
+        }
+        PackageActionResult(
+            if (ok) R.string.action_installed_other_user
+            else R.string.action_install_other_user_failed,
+            label,
+            tone = if (ok) SnackbarTone.Success else SnackbarTone.Failure,
+        )
+    }
+
+    // A list rather than a confirmation, because the question is *which* user and there is no
+    // sensible default to preselect: on a device with a work profile and a private space, either
+    // may be the one meant.
+    if (choosingUser) {
+        SharedAlertDialog(
+            onDismissRequest = { choosingUser = false },
+            icon = { Icon(Icons.Rounded.PersonAdd, contentDescription = null) },
+            title = { Text(stringResource(R.string.action_install_other_user)) },
+            text = {
+                Column {
+                    Text(
+                        stringResource(
+                            if (isModule) R.string.action_install_other_user_prompt
+                            else R.string.action_install_other_user_prompt_app
+                        )
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // A row rather than a text button: a profile is recognised by its picture
+                    // before its name.
+                    installTargets.forEach { target ->
+                        val label = target.name ?: target.id.toString()
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.large)
+                                    .clickable { choosingUser = false; install(target, label) }
+                                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                        ) {
+                            UserAvatar(userId = target.id, name = label)
+                            Spacer(Modifier.width(16.dp))
+                            Text(text = label, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { choosingUser = false }) {
+                    Text(stringResource(UiR.string.store_cancel))
+                }
+            },
+        )
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.heightIn(min = minSheetHeight),
+        sheetState = sheetState,
+    ) {
 LocalizedOverlay {
 
         Row(
@@ -214,6 +364,26 @@ LocalizedOverlay {
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            // Every sheet but the framework's carries at least three rows -- app info, force
+            // stop, and either uninstall or re-optimize -- so there is always an order to change.
+            // The framework's has one row and no use for this. Deliberately not `rows.size`: the
+            // list is filled below this point, so reading it here sees the previous composition.
+            if (!isSystemFramework) {
+                IconButton(onClick = { reordering = !reordering }) {
+                    Icon(
+                        if (reordering) Icons.Rounded.Check else Icons.Rounded.SwapVert,
+                        // The check means "finished", not "reorder", and a screen reader reads
+                        // only this. `panels_done` is the same word the navigation bar's own
+                        // reorder ends on, and is already translated.
+                        contentDescription =
+                            stringResource(
+                                if (reordering) UiR.string.panels_done
+                                else R.string.action_reorder
+                            ),
+                        tint = if (reordering) colors.primary else colors.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         HorizontalDivider(Modifier.padding(horizontal = 24.dp))
@@ -228,11 +398,22 @@ LocalizedOverlay {
             )
         }
 
+        // Collected rather than emitted where written, so the order can be the reader's. Each
+        // keeps its own condition: an unusable row is absent, not present and inert.
+        //
+        // Declared here, in the same scope as the calls that fill it, and not in the function
+        // body above: this lambda is its own recomposition scope and runs without the body
+        // around it, so a list made out there would be filled twice and draw every row twice.
+        val rows = mutableListOf<Pair<ActionId, @Composable () -> Unit>>()
+        fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
+            if (show) rows.add(id to content)
+        }
+
         // A module is not an app you "open" — most have nothing to look at. What it may have is a
         // companion: the screen its author wrote to configure it, which is what the Xposed settings
         // category marks. Naming it that way is the difference between a control that looks
         // pointless and one that says what it is for.
-        if (!isSystemFramework && openable == true)
+        row(ActionId.Open, !isSystemFramework && openable == true) {
         ActionDrawerItem(
             icon = Icons.AutoMirrored.Rounded.Launch,
             title =
@@ -260,7 +441,9 @@ LocalizedOverlay {
             }
         }
 
-        if (!isSystemFramework)
+        }
+
+        row(ActionId.AppInfo, !isSystemFramework) {
         ActionDrawerItem(icon = Icons.Rounded.Info, title = stringResource(R.string.action_app_info)) {
             finish {
                 val intent =
@@ -288,13 +471,14 @@ LocalizedOverlay {
                 PackageActionResult(R.string.action_opened_info)
             }
         }
+        }
 
         // Force-stopping the framework is a soft reboot, and calling it anything else would hide
         // what the button does: the daemon restarts the primary zygote, so `system_server` and
         // every app forked from it go down together. Named and explained accordingly, and
         // confirmed first — this is the one action on this sheet that ends what the reader is
         // doing everywhere else on the phone.
-        if (isSystemFramework) {
+        row(ActionId.SoftReboot, isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.RestartAlt,
                 title = stringResource(R.string.action_soft_reboot),
@@ -303,7 +487,9 @@ LocalizedOverlay {
             ) {
                 confirmSoftReboot = true
             }
-        } else {
+        }
+
+        row(ActionId.ForceStop, !isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.Stop,
                 title = stringResource(R.string.action_force_stop),
@@ -330,7 +516,7 @@ LocalizedOverlay {
         // Only for a hook target. Re-optimizing recompiles an app so that ART stops inlining the
         // methods a module wants to hook — which is about the app being hooked, not about the
         // module doing the hooking, so on a module it would be an expensive button for nothing.
-        if (!isModule && !isSystemFramework) {
+        row(ActionId.Reoptimize, !isModule && !isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.Bolt,
                 title = stringResource(R.string.action_optimize),
@@ -363,7 +549,26 @@ LocalizedOverlay {
             }
         }
 
-        if (isModule) {
+        // Only when some user lacks it. Otherwise the row's whole function is to report that
+        // there is nowhere to send it, and on a single-user device it would never do anything.
+        row(ActionId.InstallOtherUser, installTargets.isNotEmpty()) {
+            ActionDrawerItem(
+                icon = Icons.Rounded.PersonAdd,
+                title = stringResource(R.string.action_install_other_user),
+                // Opposite ends of the same relation: a module goes into a profile to be
+                // scoped there, an app so a module already there can reach it.
+                subtitle =
+                    stringResource(
+                        if (isModule) R.string.action_install_other_user_summary
+                        else R.string.action_install_other_user_summary_app
+                    ),
+                tint = colors.primary,
+            ) {
+                choosingUser = true
+            }
+        }
+
+        row(ActionId.Uninstall, isModule) {
             HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
             ActionDrawerItem(
                 icon = Icons.Rounded.Delete,
@@ -390,9 +595,101 @@ LocalizedOverlay {
             }
         }
 
+        OrderedActions(
+            kind = if (isModule) "module" else "app",
+            reordering = reordering,
+            rows = rows.toList(),
+        )
+
         Spacer(Modifier.height(24.dp))
     }
 }
+}
+
+/**
+ * The collected rows, in the reader's order, with a way to change it.
+ *
+ * Arrows behind a toggle, rather than the drag `PanelBar` reorders the navigation panels with. A
+ * drag works there because the bar itself does not move, so the others can be watched stepping
+ * aside. This sheet is draggable, and it wins the gesture: stray sideways and it takes the pointer
+ * back, which ends the reorder as a cancel. The toggle is that screen's edit mode by another name,
+ * and buttons have the side benefit of working for a screen reader, which no drag does.
+ *
+ * The rows keep their ordinary appearance while being moved, so what is reordered is what the
+ * reader sees. They are only made inert: in this mode a tap belongs to the arrows.
+ */
+@Composable
+private fun ColumnScope.OrderedActions(
+    kind: String,
+    reordering: Boolean,
+    rows: List<Pair<ActionId, @Composable () -> Unit>>,
+) {
+    val settings = ServiceLocator.settings
+    val revision by settings.actionOrderRevision.collectAsStateWithLifecycle()
+    // Sorted by where the stored order names each id, with anything it does not name kept in
+    // declaration order behind what it does.
+    var order by
+        remember(rows.map { it.first }, revision) {
+            val stored = settings.actionOrder(kind)
+            mutableStateOf(
+                rows.map { it.first }.sortedBy { id ->
+                    stored.indexOf(id.name).takeIf { it >= 0 } ?: (stored.size + id.ordinal)
+                }
+            )
+        }
+
+    fun move(id: ActionId, by: Int) {
+        val at = order.indexOf(id)
+        val to = at + by
+        if (at < 0 || to !in order.indices) return
+        order = order.toMutableList().apply { add(to, removeAt(at)) }
+        settings.setActionOrder(kind, order.map { it.name })
+    }
+
+    val content = rows.toMap()
+    order.forEachIndexed { index, id ->
+        val draw = content[id] ?: return@forEachIndexed
+        if (!reordering) {
+            draw()
+            return@forEachIndexed
+        }
+        Box(contentAlignment = Alignment.CenterEnd) {
+            // In a Column, because an entry may emit more than the row itself -- uninstall brings
+            // its own divider -- and a Box would stack them on top of one another. Narrowed by
+            // the width of the two buttons, so a long subtitle wraps clear of them rather than
+            // running underneath; the row reflowing is also what says the mode is on.
+            Column(Modifier.padding(end = 96.dp)) { draw() }
+            // The row keeps its own look and is only made inert: this box swallows the tap it
+            // would otherwise take, since here a tap belongs to the arrows.
+            Box(
+                Modifier.matchParentSize()
+                    // No semantics of its own: it exists to swallow a touch, and an unlabelled
+                    // button announced over every row would be noise to a screen reader.
+                    .clearAndSetSemantics {}
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) {}
+            )
+            Row(
+                modifier = Modifier.padding(end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = { move(id, -1) }, enabled = index > 0) {
+                    Icon(
+                        Icons.Rounded.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.action_move_up),
+                    )
+                }
+                IconButton(onClick = { move(id, 1) }, enabled = index < order.lastIndex) {
+                    Icon(
+                        Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.action_move_down),
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -586,6 +883,53 @@ private fun ModuleUpdateSection(
                 onDismiss()
                 onResult(PackageActionResult(R.string.action_update_started))
             },
+        )
+    }
+}
+
+/**
+ * A user's photo, or a letter in a circle when it has none — which is most users, so the circle is
+ * the ordinary case. Its colour comes from the user id, so one profile looks the same every time.
+ */
+@Composable
+private fun UserAvatar(userId: Int, name: String) {
+    var photo by remember(userId) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(userId) {
+        photo =
+            ServiceLocator.daemon
+                .getUserIcon(userId)
+                .onFailure { e -> logW("actions: photo of user $userId unavailable", e) }
+                .getOrNull()
+                ?.asImageBitmap()
+    }
+
+    val shown = photo
+    if (shown != null) {
+        Image(
+            bitmap = shown,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(36.dp).clip(CircleShape),
+        )
+        return
+    }
+
+    val colors = MaterialTheme.colorScheme
+    val tones: List<Pair<Color, Color>> =
+        listOf(
+            colors.primaryContainer to colors.onPrimaryContainer,
+            colors.tertiaryContainer to colors.onTertiaryContainer,
+            colors.secondaryContainer to colors.onSecondaryContainer,
+        )
+    val (fill, ink) = tones[userId.mod(tones.size)]
+    Box(
+        modifier = Modifier.size(36.dp).clip(CircleShape).background(fill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = name.firstOrNull()?.uppercase() ?: "?",
+            style = MaterialTheme.typography.titleMedium,
+            color = ink,
         )
     }
 }

@@ -61,6 +61,12 @@ object ManagerService : IManagerService.Stub() {
    */
   private const val UNINSTALL_TIMEOUT_SECONDS = 60L
 
+  /**
+   * `PackageManager.INSTALL_SUCCEEDED`, which is hidden. Written out rather than tested as `>= 0`,
+   * so a future code that is neither success nor a negative `INSTALL_FAILED_*` reads as refusal.
+   */
+  private const val INSTALL_SUCCEEDED = 1
+
 
   private var managerPid = -1
   private var pendingManager = false
@@ -314,6 +320,34 @@ object ManagerService : IManagerService.Stub() {
     activityManager?.forceStopPackage(packageName, userId)
   }
 
+  /**
+   * Puts a package an existing user already holds into another user.
+   *
+   * Android 10 grew a fifth parameter, the permissions to allowlist, and this runs on 8.1 too.
+   * `null` there is what `pm install-existing` passes: allowlist nothing extra, not grant nothing.
+   */
+  override fun installExistingPackageAsUser(packageName: String, userId: Int): Boolean {
+    val pm = packageManager ?: return false
+    return runCatching {
+          val status =
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                pm.installExistingPackageAsUser(
+                    packageName, userId, 0, PackageManager.INSTALL_REASON_USER, null)
+              } else {
+                pm.installExistingPackageAsUser(
+                    packageName, userId, 0, PackageManager.INSTALL_REASON_USER)
+              }
+          // Reporting an unnamed code as success would leave the manager claiming a module is
+          // in a profile that never received it.
+          if (status != INSTALL_SUCCEEDED) {
+            Log.w(TAG, "install-existing of $packageName for user $userId answered $status")
+          }
+          status == INSTALL_SUCCEEDED
+        }
+        .onFailure { Log.e(TAG, "Failed to install $packageName for user $userId", it) }
+        .getOrDefault(false)
+  }
+
   override fun softReboot() = VectorDaemon.softReboot()
 
   /**
@@ -422,6 +456,37 @@ object ManagerService : IManagerService.Stub() {
     } ?: emptyList()
   }
 
+  /**
+   * The users holding [packageName], by the same `isPackageAvailable` predicate
+   * [getInstalledPackagesFromAllUsers] filters each user's rows by, so both mean one thing by
+   * "holds". One transaction per user: enumerating every package of every user to answer a
+   * question about one package is what exhausts this process's binder heap.
+   *
+   * Empty both for "no user holds it" and for a user service out of reach, which is why callers
+   * subtract it from [getUsers] rather than inverting it.
+   */
+  override fun getPackageUsers(packageName: String): IntArray {
+    val pm = packageManager ?: return IntArray(0)
+    val users = userManager?.getRealUsers() ?: return IntArray(0)
+    return users.filter { pm.isPackageAvailable(packageName, it.id, true) }.map { it.id }.toIntArray()
+  }
+
+  /**
+   * The user's photo, opened for the manager to read. Null for a user that has none, which is most.
+   *
+   * Reflectively: the `IUserManager` stub is a plain Java library with no Android SDK on its
+   * classpath, so it can name only the classes it declares and `ParcelFileDescriptor` is not one.
+   */
+  override fun getUserIcon(userId: Int): ParcelFileDescriptor? {
+    val manager = userManager ?: return null
+    return runCatching {
+          manager.javaClass
+              .getMethod("getUserIcon", Int::class.javaPrimitiveType)
+              .invoke(manager, userId) as? ParcelFileDescriptor
+        }
+        .getOrNull()
+  }
+
   override fun isSystemServerAttached() = SystemServerService.systemServerRequested
 
   override fun startActivityAsUser(intent: Intent, userId: Int, noUserSwitch: Boolean): Int {
@@ -522,10 +587,11 @@ object ManagerService : IManagerService.Stub() {
   override fun getDex2OatWrapperState() =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Dex2OatServer.compatibility else 0
 
-  override fun setIncludeNewApps(packageName: String, enabled: Boolean) =
-      ModuleDatabase.setIncludeNewApps(packageName, enabled)
+  override fun setIncludeNewApps(packageName: String, userId: Int, enabled: Boolean) =
+      ModuleDatabase.setIncludeNewApps(packageName, userId, enabled)
 
-  override fun getIncludeNewApps(packageName: String) = ModuleDatabase.getIncludeNewApps(packageName)
+  override fun getIncludeNewApps(packageName: String, userId: Int) =
+      ModuleDatabase.getIncludeNewApps(packageName, userId)
 
   override fun getRootImplementation() = RootImplementation.implementation
 

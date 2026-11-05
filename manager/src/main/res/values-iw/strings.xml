@@ -110,6 +110,7 @@
     <string name="egg_one_more">עוד פעם אחת…</string>
 
     <string name="modules_empty">לא מותקנים מודולים.</string>
+    <string name="modules_scan_failed">לא ניתן היה לקרוא את רשימת החבילות המותקנות, ולכן לא ידוע אילו מודולים יש במכשיר הזה. משכו כדי לנסות שוב.</string>
     <string name="modules_active_of">%1$d מתוך %2$d פעילים</string>
     <string name="modules_no_match">אין מודול שתואם לחיפוש הזה או לסינון הזה.</string>
     <string name="modules_backup">גיבוי המודולים</string>
@@ -169,6 +170,7 @@
     <string name="scope_modules">מודולים אחרים</string>
     <string name="scope_include_new_apps">הוספת אפליקציות חדשות אוטומטית</string>
     <string name="scope_include_new_apps_summary">אפליקציות שיותקנו מעכשיו יצטרפו לטווח של המודול הזה.</string>
+    <string name="scope_include_new_apps_summary_user">אפליקציות שיותקנו למשתמש הזה מעכשיו יצטרפו לטווח של המודול הזה. כל משתמש מוגדר בנפרד.</string>
     <string name="scope_backup">גיבוי התחום הזה</string>
     <string name="scope_restore">שחזור התחום הזה</string>
     <string name="scope_sort_package">לפי שם החבילה</string>
@@ -446,4 +448,14 @@
     <string name="launcher_prompt_title">ל-Vector עדיין אין סמל</string>
     <string name="launcher_prompt_body">Vector פועל בתוך תהליך אחר במקום להיות מותקן, ולכן שום דבר לא מופיע במסך הבית ואין דרך ברורה לחזור אליו. תנו לו קיצור דרך במסך הבית, או התקינו אותו כאפליקציה רגילה.</string>
     <string name="launcher_prompt_never">לא לשאול שוב</string>
+    <string name="action_install_other_user">התקנה עבור משתמש אחר</string>
+    <string name="action_install_other_user_summary">מוסיף את המודול הזה לפרופיל שאין לו אותו, כדי שאפשר יהיה להגדיר לו טווח שם</string>
+    <string name="action_install_other_user_summary_app">מוסיף את האפליקציה הזאת לפרופיל שאין לו אותה, כדי שמודול באותו פרופיל יוכל להגיע אליה</string>
+    <string name="action_reorder">שינוי סדר הפעולות האלה</string>
+    <string name="action_move_up">העלאה</string>
+    <string name="action_move_down">הורדה</string>
+    <string name="action_install_other_user_prompt">בחר את המשתמש שעבורו להתקין את המודול הזה.</string>
+    <string name="action_install_other_user_prompt_app">בחר את המשתמש שעבורו להתקין את האפליקציה הזאת.</string>
+    <string name="action_installed_other_user">הותקן עבור %1$s.</string>
+    <string name="action_install_other_user_failed">לא ניתן היה להתקין עבור %1$s.</string>
 </resources>

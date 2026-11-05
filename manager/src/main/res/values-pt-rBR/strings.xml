@@ -96,6 +96,7 @@
     <string name="egg_one_more">Mais uma vez…</string>
 
     <string name="modules_empty">Nenhum módulo instalado.</string>
+    <string name="modules_scan_failed">Não foi possível ler a lista de pacotes instalados, então não se sabe quais módulos este dispositivo tem. Puxe para tentar de novo.</string>
     <string name="modules_active_of">%1$d de %2$d ativos</string>
     <string name="modules_no_match">Nenhum módulo corresponde a essa busca ou filtro.</string>
     <string name="modules_backup">Fazer backup dos módulos</string>
@@ -153,6 +154,7 @@
     <string name="scope_modules">Outros módulos</string>
     <string name="scope_include_new_apps">Adicionar novos apps automaticamente</string>
     <string name="scope_include_new_apps_summary">Apps instalados de agora em diante entram no escopo deste módulo.</string>
+    <string name="scope_include_new_apps_summary_user">Apps instalados para este usuário de agora em diante entram no escopo deste módulo. Cada usuário é definido separadamente.</string>
     <string name="scope_backup">Fazer backup deste escopo</string>
     <string name="scope_restore">Restaurar este escopo</string>
     <string name="scope_sort_package">Por nome do pacote</string>
@@ -420,4 +422,14 @@
     <string name="launcher_prompt_title">O Vector ainda não tem ícone</string>
     <string name="launcher_prompt_body">O Vector roda dentro de outro processo em vez de estar instalado, então nada aparece no seu launcher e não há um caminho óbvio de volta. Dê a ele um atalho na tela inicial, ou instale-o como um app comum.</string>
     <string name="launcher_prompt_never">Não perguntar de novo</string>
+    <string name="action_install_other_user">Instalar para outro usuário</string>
+    <string name="action_install_other_user_summary">Adiciona este módulo a um perfil que não o tem, para que possa ter escopo ali</string>
+    <string name="action_install_other_user_summary_app">Adiciona este app a um perfil que não o tem, para que um módulo nesse perfil possa alcançá-lo</string>
+    <string name="action_reorder">Reordenar estas ações</string>
+    <string name="action_move_up">Mover para cima</string>
+    <string name="action_move_down">Mover para baixo</string>
+    <string name="action_install_other_user_prompt">Escolha o usuário para instalar este módulo.</string>
+    <string name="action_install_other_user_prompt_app">Escolha o usuário para instalar este app.</string>
+    <string name="action_installed_other_user">Instalado para %1$s.</string>
+    <string name="action_install_other_user_failed">Não foi possível instalar para %1$s.</string>
 </resources>

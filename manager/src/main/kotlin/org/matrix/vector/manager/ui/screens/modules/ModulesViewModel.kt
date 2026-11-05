@@ -20,7 +20,6 @@ import org.matrix.vector.ipc.DeviceUser
 import org.matrix.vector.ipc.ScopeEntry
 import org.matrix.vector.manager.data.model.InstalledModule
 import org.matrix.vector.ui.REACH_PREVIEW_LIMIT
-import org.matrix.vector.ui.module.MATCH_ANY_USER
 import org.matrix.vector.ui.module.PER_USER_RANGE
 import org.matrix.vector.manager.data.repository.ModuleRepository
 import org.matrix.vector.ui.store.StoreEntry
@@ -118,6 +117,16 @@ class ModulesViewModel(
      */
     private val _daemonAvailable = MutableStateFlow(true)
     val daemonAvailable: StateFlow<Boolean> = _daemonAvailable.asStateFlow()
+
+    /**
+     * Whether the last scan failed to read the installed packages at all.
+     *
+     * Separate from [daemonAvailable], which comes from the user list: the daemon can answer that
+     * and still fail to enumerate, since enumerating is the half that runs its binder heap out.
+     * Both arrive as no modules, and "no modules installed" is a claim neither supports.
+     */
+    private val _scanFailed = MutableStateFlow(false)
+    val scanFailed: StateFlow<Boolean> = _scanFailed.asStateFlow()
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
@@ -367,7 +376,9 @@ class ModulesViewModel(
                 }
             }
             moduleRepository.refresh()
-            loadModules()
+            // Forced: the package broadcast that drops the shared cache has not arrived yet, so an
+            // ordinary reload would redraw the modules this call just uninstalled.
+            loadModules(refresh = true)
             _selection.value = emptySet()
             onResult(BatchOutcome(changed = removed, already = 0, failed = failed))
         }
@@ -383,10 +394,14 @@ class ModulesViewModel(
         }
     }
 
-    fun loadModules() {
+    /**
+     * Rediscovers the installed modules. [refresh] says "not from the cache", and is set by a pull
+     * and by the reload after an uninstall — the two callers that know the cache is behind.
+     */
+    fun loadModules(refresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.update { true }
-            val tabs = withContext(Dispatchers.IO) { discover() }
+            val tabs = withContext(Dispatchers.IO) { discover(refresh) }
             _discovered.update { tabs }
             _isLoading.update { false }
             loadFacts(tabs)
@@ -475,7 +490,7 @@ class ModulesViewModel(
         }
     }
 
-    private suspend fun discover(): List<UserModulesState> {
+    private suspend fun discover(refresh: Boolean): List<UserModulesState> {
         val usersResult = daemonClient.getUsers()
         usersResult.onFailure { e ->
             logW("modules: user list unavailable, treating the daemon as unreachable", e)
@@ -483,18 +498,14 @@ class ModulesViewModel(
         _daemonAvailable.value = usersResult.isSuccess
         val users = usersResult.getOrNull() ?: emptyList()
 
-        val flags =
-            PackageManager.GET_META_DATA or
-                PackageManager.MATCH_UNINSTALLED_PACKAGES or
-                MATCH_ANY_USER
-
-        val packages =
-            daemonClient
-                .getInstalledPackagesFromAllUsers(flags, filterNoProcess = false)
-                .getOrElse { e ->
-                    logE("modules: installed package list unavailable, showing no modules", e)
-                    emptyList()
-                }
+        // Through the repository, so concurrent rescans join one enumeration. The package
+        // event driving this is delivered twice on purpose, and a handful of enumerations at once
+        // exhausts the daemon's binder heap — at which point a failed per-user query takes a whole
+        // profile out of the list.
+        val scan = ServiceLocator.apps.moduleScanPackages(refresh)
+        scan.onFailure { e -> logE("modules: installed package list unavailable", e) }
+        _scanFailed.value = scan.isFailure
+        val packages = scan.getOrDefault(emptyList())
 
         // Through the cache, not straight to ModuleDetection: inspecting a package means opening
         // its APK and every split as a zip, and there are ~550 of those on a normal device. Keyed
@@ -531,7 +542,10 @@ class ModulesViewModel(
                 )
             }
 
-        detection.flush(packages.mapNotNull { it.packageName }.toSet())
+        // Not on a failed scan: `flush` keeps only the keys whose package is in the set handed
+        // to it, so flushing the empty set writes an empty cache and makes the next good scan
+        // reopen every APK on the device.
+        if (scan.isSuccess) detection.flush(packages.mapTo(mutableSetOf()) { it.packageName })
         // The one number that explains a slow Modules panel: how many APKs this scan had to open.
         // Everything else is a map lookup, so a large figure here on a second run means the cache
         // key is wrong rather than that the device is slow.

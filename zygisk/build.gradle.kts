@@ -32,6 +32,15 @@ val injectedPackageName = rootProject.extra["injectedPackageName"] as String
 val injectedPackageUid = rootProject.extra["injectedPackageUid"] as Int
 val defaultManagerPackageName = rootProject.extra["defaultManagerPackageName"] as String
 
+// Read rather than repeated: the install directory below is named by it, and a copy here that
+// drifted from module.prop would push the manager into a directory no daemon is running from.
+val moduleId =
+    file("$projectDir/module/module.prop")
+        .readLines()
+        .first { it.startsWith("id=") }
+        .removePrefix("id=")
+        .trim()
+
 android {
     namespace = "org.matrix.vector"
 
@@ -227,6 +236,69 @@ androidComponents {
                 dependsOn(installTask)
                 commandLine("adb", "reboot")
             }
+        }
+
+        // The manager alone, for the edit-build-look loop.
+        //
+        // Every root provider's install stages into /data/adb/modules_update and lets the next
+        // boot promote it, while the daemon resolves the manager APK beside its own - in
+        // /data/adb/modules, the live one. So a one-line Compose change costs a reboot. These
+        // three put the APK where the daemon reads it and restart the process holding it.
+        //
+        // Not solved by teaching the daemon to prefer modules_update: that pairs a new manager
+        // with the daemon still running from the last boot, which PROTOCOL_VERSION would refuse.
+        // A daemon, AIDL or native change still needs a full install and a reboot.
+        val pushManagerTask =
+            tasks.register<Exec>("pushManagerApk$variantCapped") {
+                group = "Zygisk Module Installation"
+                description = "Pushes the ${variant.name} manager APK to the device."
+                dependsOn(prepareModuleFilesTask)
+                commandLine(
+                    "adb",
+                    "push",
+                    tempModuleDir.get().asFile.resolve("manager.apk"),
+                    "/data/local/tmp/manager.apk",
+                )
+            }
+
+        val replaceManagerTask =
+            tasks.register<Exec>("replaceManager$variantCapped") {
+                group = "Zygisk Module Installation"
+                description = "Swaps the live ${variant.name} manager APK for the pushed one."
+                dependsOn(pushManagerTask)
+                // Written *through* the existing file, so its owner and SELinux label survive:
+                // the daemon only reasserts that label at startup, the reboot being avoided.
+                // Quoted so the redirection reaches the shell `su` starts: `adb shell` joins
+                // its arguments and runs them as `shell`, which cannot create that file.
+                //
+                // The pushed copy is left where it is when a daemon is being run from
+                // /data/local/tmp, because that daemon resolves the manager beside its own class
+                // path and would otherwise go on serving the APK from before this task ran.
+                commandLine(
+                    "adb",
+                    "shell",
+                    "su",
+                    "-c",
+                    "'cat /data/local/tmp/manager.apk > /data/adb/modules/$moduleId/manager.apk && " +
+                        "{ [ -r /data/local/tmp/daemon.apk ] || rm -f /data/local/tmp/manager.apk; }'",
+                )
+            }
+
+        // Stopping the host unloads the old APK; the category brings the manager back rather
+        // than the host's own activity, as module/action.sh does.
+        tasks.register<Exec>("restartManager$variantCapped") {
+            group = "Zygisk Module Installation"
+            description = "Replaces the live ${variant.name} manager APK and restarts it."
+            dependsOn(replaceManagerTask)
+            commandLine(
+                "adb",
+                "shell",
+                "su",
+                "-c",
+                "am force-stop $injectedPackageName; " +
+                    "am start -c $defaultManagerPackageName.LAUNCH_MANAGER " +
+                    "$injectedPackageName/.BugreportWarningActivity",
+            )
         }
 
         createInstallTasks("Magisk", "magisk --install-module")

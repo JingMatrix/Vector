@@ -257,7 +257,16 @@ class FakeManagerService(
     override fun uninstallPackage(packageName: String?, userId: Int): Boolean =
         real?.uninstallPackage(packageName, userId) ?: false
 
+    override fun installExistingPackageAsUser(packageName: String?, userId: Int): Boolean =
+        real?.installExistingPackageAsUser(packageName, userId) ?: false
+
     override fun getUsers(): MutableList<DeviceUser> = real?.users ?: mutableListOf()
+
+    override fun getUserIcon(userId: Int): android.os.ParcelFileDescriptor? =
+        real?.getUserIcon(userId)
+
+    override fun getPackageUsers(packageName: String?): IntArray =
+        real?.getPackageUsers(packageName) ?: IntArray(0)
 
     override fun startActivityAsUser(intent: Intent?, userId: Int, noUserSwitch: Boolean): Int =
         // -1, not 0: the AIDL documents 0..99 as "the activity started", so a benign-looking
@@ -300,11 +309,11 @@ class FakeManagerService(
         real?.setStatusNotificationEnabled(enabled)
     }
 
-    override fun getIncludeNewApps(packageName: String?): Boolean =
-        real?.getIncludeNewApps(packageName) ?: false
+    override fun getIncludeNewApps(packageName: String?, userId: Int): Boolean =
+        real?.getIncludeNewApps(packageName, userId) ?: false
 
-    override fun setIncludeNewApps(packageName: String?, enable: Boolean): Boolean =
-        real?.setIncludeNewApps(packageName, enable) ?: false
+    override fun setIncludeNewApps(packageName: String?, userId: Int, enable: Boolean): Boolean =
+        real?.setIncludeNewApps(packageName, userId, enable) ?: false
 }
 
 /**

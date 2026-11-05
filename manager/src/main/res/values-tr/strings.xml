@@ -96,6 +96,7 @@
     <string name="egg_one_more">Bir kez daha…</string>
 
     <string name="modules_empty">Kurulu modül yok.</string>
+    <string name="modules_scan_failed">Kurulu paketlerin listesi okunamadı, bu yüzden bu cihazda hangi modüllerin bulunduğu bilinmiyor. Yeniden denemek için çekin.</string>
     <string name="modules_active_of">%2$d modülden %1$d tanesi etkin</string>
     <string name="modules_no_match">Bu arama veya süzgeçle eşleşen modül yok.</string>
     <string name="modules_backup">Modülleri yedekle</string>
@@ -153,6 +154,7 @@
     <string name="scope_modules">Diğer modüller</string>
     <string name="scope_include_new_apps">Yeni uygulamaları otomatik ekle</string>
     <string name="scope_include_new_apps_summary">Bundan sonra kurulan uygulamalar bu modülün kapsamına girer.</string>
+    <string name="scope_include_new_apps_summary_user">Bundan sonra bu kullanıcıya kurulan uygulamalar bu modülün kapsamına girer. Her kullanıcı ayrı ayarlanır.</string>
     <string name="scope_backup">Bu kapsamı yedekle</string>
     <string name="scope_restore">Bu kapsamı geri yükle</string>
     <string name="scope_sort_package">Paket adına göre</string>
@@ -420,4 +422,14 @@
     <string name="launcher_prompt_title">Vector\'ün henüz bir simgesi yok</string>
     <string name="launcher_prompt_body">Vector kurulmak yerine başka bir sürecin içinde çalışır; bu yüzden başlatıcınızda hiçbir şey görünmez ve geri dönmenin bariz bir yolu yoktur. Ona ana ekranda bir kısayol verin ya da sıradan bir uygulama olarak kurun.</string>
     <string name="launcher_prompt_never">Bir daha sorma</string>
+    <string name="action_install_other_user">Başka kullanıcı için yükle</string>
+    <string name="action_install_other_user_summary">Bu modülü, onda olmayan bir profile ekler; böylece orada kapsam verilebilir</string>
+    <string name="action_install_other_user_summary_app">Bu uygulamayı, ona sahip olmayan bir profile ekler; böylece o profildeki bir modül ona erişebilir</string>
+    <string name="action_reorder">Bu eylemleri yeniden sırala</string>
+    <string name="action_move_up">Yukarı taşı</string>
+    <string name="action_move_down">Aşağı taşı</string>
+    <string name="action_install_other_user_prompt">Bu modülün yükleneceği kullanıcıyı seçin.</string>
+    <string name="action_install_other_user_prompt_app">Bu uygulamanın yükleneceği kullanıcıyı seçin.</string>
+    <string name="action_installed_other_user">%1$s için yüklendi.</string>
+    <string name="action_install_other_user_failed">%1$s için yüklenemedi.</string>
 </resources>

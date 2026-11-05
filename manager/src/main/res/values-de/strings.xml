@@ -96,6 +96,7 @@
     <string name="egg_one_more">Noch ein Mal…</string>
 
     <string name="modules_empty">Keine Module installiert.</string>
+    <string name="modules_scan_failed">Die Liste der installierten Pakete konnte nicht gelesen werden, deshalb ist unbekannt, welche Module dieses Gerät hat. Zum erneuten Versuch ziehen.</string>
     <string name="modules_active_of">%1$d von %2$d aktiv</string>
     <string name="modules_no_match">Kein Modul passt zu dieser Suche oder diesem Filter.</string>
     <string name="modules_backup">Module sichern</string>
@@ -153,6 +154,7 @@
     <string name="scope_modules">Andere Module</string>
     <string name="scope_include_new_apps">Neue Apps automatisch hinzufügen</string>
     <string name="scope_include_new_apps_summary">Ab jetzt installierte Apps kommen in den Geltungsbereich dieses Moduls.</string>
+    <string name="scope_include_new_apps_summary_user">Ab jetzt für diesen Benutzer installierte Apps kommen in den Geltungsbereich dieses Moduls. Jeder Benutzer wird einzeln eingestellt.</string>
     <string name="scope_backup">Diesen Geltungsbereich sichern</string>
     <string name="scope_restore">Diesen Geltungsbereich wiederherstellen</string>
     <string name="scope_sort_package">Nach Paketname</string>
@@ -420,4 +422,14 @@
     <string name="launcher_prompt_title">Vector hat noch kein Symbol</string>
     <string name="launcher_prompt_body">Vector läuft in einem fremden Prozess, statt installiert zu sein — im Launcher erscheint also nichts, und es gibt keinen offensichtlichen Weg zurück. Gib ihm eine Verknüpfung auf dem Startbildschirm, oder installiere es als gewöhnliche App.</string>
     <string name="launcher_prompt_never">Nicht mehr fragen</string>
+    <string name="action_install_other_user">Für anderen Nutzer installieren</string>
+    <string name="action_install_other_user_summary">Fügt dieses Modul einem Profil hinzu, das es noch nicht hat, damit es dort einen Geltungsbereich bekommen kann</string>
+    <string name="action_install_other_user_summary_app">Fügt diese App einem Profil hinzu, das sie nicht hat, damit ein Modul in jenem Profil sie erreichen kann</string>
+    <string name="action_reorder">Diese Aktionen neu anordnen</string>
+    <string name="action_move_up">Nach oben</string>
+    <string name="action_move_down">Nach unten</string>
+    <string name="action_install_other_user_prompt">Wähle den Nutzer, für den dieses Modul installiert werden soll.</string>
+    <string name="action_install_other_user_prompt_app">Wähle den Nutzer, für den diese App installiert werden soll.</string>
+    <string name="action_installed_other_user">Für %1$s installiert.</string>
+    <string name="action_install_other_user_failed">Konnte nicht für %1$s installiert werden.</string>
 </resources>

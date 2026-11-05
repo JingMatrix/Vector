@@ -91,6 +91,7 @@
     <string name="egg_one_more">还差一次…</string>
 
     <string name="modules_empty">尚未安装任何模块。</string>
+    <string name="modules_scan_failed">无法读取已安装的软件包列表，因此无从得知本设备有哪些模块。下拉可重试。</string>
     <string name="modules_active_of">%2$d 个模块中有 %1$d 个已启用</string>
     <string name="modules_no_match">没有符合该搜索或筛选条件的模块。</string>
     <string name="modules_backup">备份模块</string>
@@ -147,6 +148,7 @@
     <string name="scope_modules">其他模块</string>
     <string name="scope_include_new_apps">自动加入新安装的应用</string>
     <string name="scope_include_new_apps_summary">此后安装的应用会自动加入此模块的作用域。</string>
+    <string name="scope_include_new_apps_summary_user">此后为该用户安装的应用会自动加入此模块的作用域。每个用户分别设置。</string>
     <string name="scope_backup">备份此作用域</string>
     <string name="scope_restore">恢复此作用域</string>
     <string name="scope_sort_package">按包名</string>
@@ -410,4 +412,14 @@
     <string name="launcher_prompt_title">Vector 还没有图标</string>
     <string name="launcher_prompt_body">Vector 运行在别的进程里，而不是被安装到系统中，所以桌面上看不到它，也没有明显的途径再打开它。给它一个桌面快捷方式，或者把它安装成一个普通应用。</string>
     <string name="launcher_prompt_never">不再询问</string>
+    <string name="action_install_other_user">为其他用户安装</string>
+    <string name="action_install_other_user_summary">把此模块添加到尚未安装它的用户空间，以便在那里设置作用域</string>
+    <string name="action_install_other_user_summary_app">将此应用添加到尚未拥有它的配置文件，使该配置文件中的模块可以作用于它</string>
+    <string name="action_reorder">重新排列这些操作</string>
+    <string name="action_move_up">上移</string>
+    <string name="action_move_down">下移</string>
+    <string name="action_install_other_user_prompt">选择要为其安装此模块的用户。</string>
+    <string name="action_install_other_user_prompt_app">选择要为其安装此应用的用户。</string>
+    <string name="action_installed_other_user">已为 %1$s 安装。</string>
+    <string name="action_install_other_user_failed">无法为 %1$s 安装。</string>
 </resources>

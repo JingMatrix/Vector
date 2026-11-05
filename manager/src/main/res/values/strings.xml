@@ -158,6 +158,7 @@
 
     <!-- Modules -->
     <string name="modules_empty">No modules installed.</string>
+    <string name="modules_scan_failed">The list of installed packages could not be read, so which modules this device has is unknown. Pull down to try again.</string>
     <plurals name="modules_updates">
         <item quantity="one">%1$d module can be updated</item>
         <item quantity="other">%1$d modules can be updated</item>
@@ -243,6 +244,7 @@
     <string name="scope_modules">Other modules</string>
     <string name="scope_include_new_apps">Add new apps automatically</string>
     <string name="scope_include_new_apps_summary">Apps installed from now on join this module\'s scope.</string>
+    <string name="scope_include_new_apps_summary_user">Apps installed into this user from now on join this module\'s scope. Each user is set separately.</string>
     <string name="scope_backup">Back up this scope</string>
     <string name="scope_restore">Restore this scope</string>
     <string name="scope_sort_package">By package name</string>
@@ -464,4 +466,14 @@
     <string name="launcher_prompt_title">Vector has no icon yet</string>
     <string name="launcher_prompt_body">Vector runs inside another process rather than being installed, so nothing appears in your launcher and there is no obvious way back in. Give it a home screen shortcut, or install it as an ordinary app.</string>
     <string name="launcher_prompt_never">Don\'t ask again</string>
+    <string name="action_install_other_user">Install for another user</string>
+    <string name="action_install_other_user_summary">Puts this module into a profile that does not have it, so it can be scoped there</string>
+    <string name="action_install_other_user_summary_app">Puts this app into a profile that does not have it, so a module in that profile can reach it</string>
+    <string name="action_reorder">Reorder these actions</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
+    <string name="action_install_other_user_prompt">Choose the user to install this module for.</string>
+    <string name="action_install_other_user_prompt_app">Choose the user to install this app for.</string>
+    <string name="action_installed_other_user">Installed for %1$s.</string>
+    <string name="action_install_other_user_failed">Could not install for %1$s.</string>
 </resources>

@@ -197,18 +197,23 @@ private val getInstalledPackagesMethod: Method? by lazy {
       ?.apply { isAccessible = true }
 }
 
-/** Reflectively calls getInstalledPackages and casts to ParceledListSlice. */
+/**
+ * Reflectively calls getInstalledPackages and casts to ParceledListSlice.
+ *
+ * Null when the query did not happen, which an empty list would flatten into "this user holds
+ * nothing" — and the manager builds its whole app list out of this.
+ */
 private fun IPackageManager.getInstalledPackagesReflect(
     flags: Any,
     userId: Int
-): List<PackageInfo> {
-  val method = getInstalledPackagesMethod ?: return emptyList()
+): List<PackageInfo>? {
+  val method = getInstalledPackagesMethod ?: return null
   return runCatching {
         val result = method.invoke(this, flags, userId)
         @Suppress("UNCHECKED_CAST") (result as? ParceledListSlice<PackageInfo>)?.list
       }
       .onFailure { Log.e(TAG, "Reflection call failed", it.cause ?: it) }
-      .getOrNull() ?: emptyList()
+      .getOrNull()
 }
 
 fun IPackageManager.getInstalledPackagesFromAllUsers(
@@ -216,15 +221,24 @@ fun IPackageManager.getInstalledPackagesFromAllUsers(
     filterNoProcess: Boolean
 ): List<PackageInfo> {
   val result = mutableListOf<PackageInfo>()
-  // Assuming userManager is available in this scope as in original code
-  val users = userManager?.getRealUsers() ?: emptyList()
+  // `getRealUsers` swallows a null binder and any failure into an empty list, and no device has
+  // no users, so an empty one is a question that could not be asked rather than an answer.
+  // `ConfigCache.rebuild` refuses it for the same reason.
+  val users = userManager?.getRealUsers().orEmpty()
+  if (users.isEmpty()) throw IllegalStateException("No users to enumerate packages for")
+
+  // Any, so the reflective invoke boxes it as Long or Int to match.
+  val flagParam: Any =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) flags.toLong() else flags
 
   for (user in users) {
-    // We pass flags as Any so the reflective invoke handles Long or Int correctly
-    val flagParam: Any =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) flags.toLong() else flags
-
-    val infos = getInstalledPackagesReflect(flagParam, user.id)
+    // A user the platform will not answer for fails the whole call, as it did before the Kotlin
+    // rewrite: carrying on leaves a list short by a whole profile that nothing downstream can
+    // tell from the truth. Reachable on an ordinary device, where enumerating every package per
+    // user runs the binder buffer out and answers DeadObjectException.
+    val infos =
+        getInstalledPackagesReflect(flagParam, user.id)
+            ?: throw IllegalStateException("No package list for user ${user.id}")
     if (infos.isEmpty()) continue
 
     val validUserApps =

@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 import org.matrix.vector.ipc.IFrameworkInstallReceiver
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
@@ -264,7 +266,28 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     suspend fun uninstallPackage(packageName: String, userId: Int): Result<Boolean> = runIpc { it.uninstallPackage(packageName, userId)
     }
 
+    /**
+     * Installs a package another user already holds into [userId]. No APK travels: the device
+     * keeps one copy per package name and this flips whether [userId] has it.
+     */
+    suspend fun installExistingPackageAsUser(packageName: String, userId: Int): Result<Boolean> =
+        runIpc { it.installExistingPackageAsUser(packageName, userId) }
+
     suspend fun isSepolicyLoaded(): Result<Boolean> = runIpc { it.isSepolicyLoaded }
+
+    /**
+     * Which users hold [packageName]. Asked of the daemon rather than read from a cached list,
+     * since each of those is filtered for its own purpose. Empty also means a user service out of
+     * reach, which is why callers subtract it from [getUsers] rather than inverting it.
+     */
+    suspend fun getPackageUsers(packageName: String): Result<List<Int>> = runIpc {
+        it.getPackageUsers(packageName).toList()
+    }
+
+    /** A user's photo, decoded, or null when it has none. Decoded here so no descriptor escapes. */
+    suspend fun getUserIcon(userId: Int): Result<Bitmap?> = runIpc { service ->
+        service.getUserIcon(userId)?.use { BitmapFactory.decodeFileDescriptor(it.fileDescriptor) }
+    }
 
     suspend fun getUsers(): Result<List<org.matrix.vector.ipc.DeviceUser>> = runIpc { it.users
     }
@@ -333,19 +356,26 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
         it.setForcedLauncherIcons(force)
     }
 
-    suspend fun getIncludeNewApps(packageName: String): Result<Boolean> = runIpc { it.getIncludeNewApps(packageName)
+    /**
+     * Whether this module's copy in [userId] takes newly installed apps. [userId] is the module's
+     * own user, not a user whose apps are being asked about.
+     */
+    suspend fun getIncludeNewApps(packageName: String, userId: Int): Result<Boolean> = runIpc {
+        it.getIncludeNewApps(packageName, userId)
     }
 
     /**
      * Returns whether the daemon stored it, which is not the same as whether the call arrived.
      *
-     * `ModuleDatabase.setIncludeNewApps` answers false when no row was updated — the package is
-     * not a known module, or it is the framework itself — and the switch has to follow that answer
-     * rather than assume the write landed.
+     * `ModuleDatabase.setIncludeNewApps` answers false when it has no module row to hang the
+     * setting on — the package is not a known module, or it is the framework itself — and the
+     * switch has to follow that answer rather than assume the write landed.
      */
-    suspend fun setIncludeNewApps(packageName: String, enable: Boolean): Result<Boolean> = runIpc {
-        it.setIncludeNewApps(packageName, enable)
-    }
+    suspend fun setIncludeNewApps(
+        packageName: String,
+        userId: Int,
+        enable: Boolean
+    ): Result<Boolean> = runIpc { it.setIncludeNewApps(packageName, userId, enable) }
 
     suspend fun getRootImplementation(): Result<Int> = runIpc { it.rootImplementation }
 
