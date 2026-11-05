@@ -99,7 +99,7 @@ import org.matrix.vector.ui.theme.Mono
  * The actions the long-press sheet can offer, named so an order can outlive them.
  *
  * Declaration order is the default order. A stored order names ids, so an action added or retired
- * in a later build leaves the rest where they are: one nobody has dragged keeps its place here, and
+ * in a later build leaves the rest where they are: one nobody has moved keeps its place here, and
  * a name this build no longer has is ignored when the order is read back.
  */
 private enum class ActionId {
