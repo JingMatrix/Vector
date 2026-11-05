@@ -118,7 +118,7 @@
     <string name="home_offline">Showing saved activity — could not reach GitHub.</string>
     <string name="home_bumps">%1$d dependency updates</string>
     <string name="home_contribute">Take part</string>
-    <string name="home_test_canary">Try a canary</string>
+    <string name="home_test_canary">Nightly builds</string>
     <string name="home_open_issue">Report a problem</string>
     <string name="home_discussions">Discussions</string>
     <string name="home_review_prs">Review a change</string>
@@ -138,7 +138,7 @@
         <item quantity="one">%1$d commit newer than yours</item>
         <item quantity="other">%1$d commits newer than yours</item>
     </plurals>
-    <string name="home_your_build">your build %1$d</string>
+    <string name="home_your_build">build %1$d</string>
     <plurals name="home_quiet_days">
         <item quantity="one">%1$d day quiet</item>
         <item quantity="other">%1$d days quiet</item>
@@ -177,7 +177,7 @@
     <string name="modules_update_ignored">Ignored</string>
     <string name="modules_update_selected">Update %1$d</string>
     <string name="modules_active_of">%1$d of %2$d active</string>
-    <string name="modules_no_match">No module matches that search or filter.</string>
+    <string name="modules_no_match">No search results</string>
     <string name="modules_api_scale_legacy" translatable="false">Xposed</string>
     <string name="modules_api_scale_modern" translatable="false">API</string>
     <string name="modules_backup">Back up modules</string>
@@ -233,16 +233,16 @@
     <string name="settings_open_externally_summary">Off: GitHub pages open inside Vector.</string>
 
     <!-- Scope editor -->
-    <string name="scope_use_recommended">Use what the module asks for</string>
-    <string name="scope_select_visible">Select everything shown</string>
-    <string name="scope_clear_visible">Clear everything shown</string>
+    <string name="scope_use_recommended">Use recommended</string>
+    <string name="scope_select_visible">Select all visible</string>
+    <string name="scope_clear_visible">Deselect all visible</string>
     <string name="scope_backup_done">Scope saved.</string>
     <string name="scope_backup_failed">Could not read or write that file.</string>
     <string name="scope_select">Selection</string>
     <string name="scope_sort">Sort</string>
     <string name="scope_modules">Other modules</string>
     <string name="scope_include_new_apps">Add new apps automatically</string>
-    <string name="scope_include_new_apps_summary">Apps installed from now on join this module\'s scope.</string>
+    <string name="scope_include_new_apps_summary">Any newly installed apps will be added too</string>
     <string name="scope_backup">Back up this scope</string>
     <string name="scope_restore">Restore this scope</string>
     <string name="scope_sort_package">By package name</string>
@@ -252,23 +252,23 @@
     <string name="scope_sort_relevance">Selected first</string>
     <string name="scope_sort_name">By name</string>
     <string name="scope_search_hint">Search apps</string>
-    <string name="scope_no_match">No app matches that search or filter.</string>
+    <string name="scope_no_match">No search results</string>
     <string name="scope_system_apps">System apps</string>
     <string name="scope_games">Games</string>
     <string name="scope_recommended">Requested by this module</string>
     <string name="scope_static">This module declares a fixed scope and cannot be pointed at other apps.</string>
     <!-- e.g. "3 to add, 1 to remove" -->
     <string name="scope_pending">%1$d to add, %2$d to remove</string>
-    <string name="scope_apply_effect">Each app picks this up the next time it starts.</string>
+    <string name="scope_apply_effect">Restart apps to apply changes.</string>
     <string name="scope_apply">Apply</string>
     <string name="scope_discard">Discard</string>
     <string name="scope_applied">Scope applied.</string>
     <string name="scope_apply_failed">The framework refused the new scope.</string>
     <string name="scope_toggle_failed">The framework refused that change.</string>
-    <string name="scope_empty_title">Nothing to hook</string>
-    <string name="scope_empty_message">This module is enabled but has no apps selected, so it will not do anything. Disable it, or choose some apps.</string>
+    <string name="scope_empty_title">Disable module?</string>
+    <string name="scope_empty_message">With no apps selected, this module won\'t do anything. Disable it?</string>
     <string name="scope_empty_disable">Disable the module</string>
-    <string name="scope_empty_keep">Leave it enabled</string>
+    <string name="scope_empty_keep">Keep editing</string>
 
     <!-- Long-press actions on a package -->
     <string name="action_not_in_store">Not in the store</string>
@@ -281,7 +281,7 @@
     <string name="action_update_choose">Several builds — choose one in the store</string>
     <string name="action_update_started">Update started</string>
     <string name="action_open_companion">Open companion app</string>
-    <string name="action_open_companion_summary">The screen this module\'s author wrote to configure it</string>
+    <string name="action_open_companion_summary">Access configuration options</string>
     <string name="action_open_store">Open in store</string>
     <string name="action_launch">Open</string>
     <string name="action_app_info">App info</string>
@@ -313,9 +313,9 @@
     <string name="modules_collapse">Show less</string>
     <string name="action_optimize_summary">Recompiles the app so ART stops inlining the methods a module needs to hook</string>
     <string name="modules_scope_framework">Hooks the system framework</string>
-    <string name="scope_origin_locked">Fixed by the module</string>
+    <string name="scope_origin_locked">Recommended</string>
     <string name="scope_origin_chosen">Your choice</string>
-    <string name="scope_origin_derived">Always in scope</string>
+    <string name="scope_origin_derived">Always enabled</string>
     <string name="modules_selection_clear">Clear the selection</string>
     <plurals name="modules_selected">
         <item quantity="one">%1$d selected</item>
@@ -354,19 +354,19 @@
     <string name="modules_batch_partial">Only %1$s of them worked</string>
     <string name="modules_uninstall_title">Uninstall these modules?</string>
     <plurals name="modules_uninstall_body">
-        <item quantity="one">The module and everything it has configured will be removed. This cannot be undone.</item>
-        <item quantity="other">All %1$d modules and everything they have configured will be removed. This cannot be undone.</item>
+        <item quantity="one">The module will be removed. This cannot be undone.</item>
+        <item quantity="other">%1$d modules will be removed. This cannot be undone.</item>
     </plurals>
     <!-- Canary builds: choosing which nightly to test, and why it is worth an evening -->
     <string name="canary_open_actions">Open on GitHub</string>
     <string name="canary_none">No canary builds published yet.</string>
-    <string name="canary_what_title">What a canary is</string>
-    <string name="canary_what_body">The current state of master, built and checked by CI and nothing else. Fixes land here days or weeks before they reach a release.</string>
+    <string name="canary_what_title">About nightlies</string>
+    <string name="canary_what_body">Nightly builds come from the master branch. They haven\'t had extensive manual testing, but fixes and features will be available much sooner than in release builds.</string>
     <!-- %1$d is how many canaries CI keeps -->
-    <string name="canary_keep_body">The newest %1$d are kept, and any build page can move you between them or back to the last release. Nothing here is a one-way door.</string>
+    <string name="canary_keep_body">You can use any of these %1$d newest builds, or switch back to the last release.</string>
     <plurals name="canary_since_commits">
-        <item quantity="one">%1$d commit has landed since your build.</item>
-        <item quantity="other">%1$d commits have landed since your build.</item>
+        <item quantity="one">%1$d new commit since since your build.</item>
+        <item quantity="other">%1$d new commits since your build.</item>
     </plurals>
     <!-- Heads the list of issues closed since the reader's build -->
     <plurals name="canary_fixed_since">
@@ -382,11 +382,11 @@
     <!-- The build number, shown in monospace: "canary 3049" -->
     <string name="canary_build">canary %1$d</string>
     <string name="canary_report_title">Found something?</string>
-    <string name="canary_report_body">A canary that misbehaves is the whole point of running one — a report is what turns it into a fix. Take the Debug zip if you are chasing a bug: it logs far more, and it is what a report needs.</string>
+    <string name="canary_report_body">Please report problems in nightlies so they can be fixed sooner! If you use a debug version, your reports will have more detail.</string>
     <string name="home_contributors_by_commits">Most commits</string>
     <string name="home_contributors_by_recent">Most recent</string>
-    <string name="scope_recommended_only">What the module asks for</string>
-    <string name="home_resting">Taking a rest — saved activity. Pull to refresh.</string>
+    <string name="scope_recommended_only">Use recommended</string>
+    <string name="home_resting">Pull to refresh</string>
     <string name="report_title">Before you report</string>
     <string name="report_step_canary">Try the latest canary first</string>
     <string name="report_step_canary_body">It may already be fixed, and a debug build is what maintainers need to help you. Stay on master — pull-request builds are unstable.</string>
@@ -404,7 +404,7 @@
     <string name="home_custom_build">Custom build — ahead of master</string>
     <string name="language_title">Language</string>
     <string name="language_system">System default</string>
-    <string name="language_system_summary">Follow the language your phone is set to</string>
+    <string name="language_system_summary">Use your device\'s language</string>
 
     <string name="language_help_short">Translate</string>
     <string name="language_help">Help translate Vector</string>
@@ -428,7 +428,7 @@
     <string name="update_failed_download">The update could not be downloaded.</string>
     <string name="update_failed_exit">The installer failed (exit %1$d).</string>
     <string name="scope_framework_shared">One process shared by every user, so this affects the whole device</string>
-    <string name="scope_self_hook">This module is loaded into its own app, which is how it reports that it is active</string>
+    <string name="scope_self_hook">Affects its own app</string>
     <string name="update_no_output">The installer produced no output.</string>
     <string name="update_versions">All versions</string>
     <string name="update_installed">Installed</string>
@@ -439,8 +439,8 @@
     <string name="update_rollback_warning">Older than what you have. If it uses an older database, rolling back resets which modules are on and what they hook — back your modules up first.</string>
     <string name="settings_window_all">From the start</string>
     <string name="update_diverged">Same version number, different build — what is running was not built from this release</string>
-    <string name="scope_framework_restart_title">The framework has not picked this up yet</string>
-    <string name="scope_framework_restart_body">System Framework is loaded once, when Android starts it. This change reaches it only when the framework restarts — every running app closes, and the phone itself stays on.</string>
+    <string name="scope_framework_restart_title">Restart apps to apply changes</string>
+    <string name="scope_framework_restart_body">This won\'t reboot the device, so you keep tethered root.</string>
     <string name="scope_framework_restart_later">Later</string>
     <!-- Getting back into Vector, which parasitically has no launcher icon of its own -->
     <string name="launcher_title">How to open Vector</string>

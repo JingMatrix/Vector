@@ -27,7 +27,7 @@
         <item quantity="one">%1$d update</item>
         <item quantity="other">%1$d updates</item>
     </plurals>
-    <string name="store_all_current">everything you have is current</string>
+    <string name="store_all_current">no updates</string>
 
     <!-- Rows -->
     <string name="store_badge_update">Update to %1$s</string>
@@ -38,9 +38,9 @@
     <string name="store_updated_on">Updated %1$s</string>
 
     <!-- Empty states, which must never render identically -->
-    <string name="store_unreachable">Could not reach the module repository, and nothing is saved on this device yet.</string>
-    <string name="store_no_match">No module matches that search.</string>
-    <string name="store_empty">The repository returned no modules.</string>
+    <string name="store_unreachable">Could not reach the module repository</string>
+    <string name="store_no_match">No search results</string>
+    <string name="store_empty">The repository returned no modules</string>
 
     <!-- Detail tabs -->
     <string name="store_tab_readme">Readme</string>
@@ -69,8 +69,8 @@
          has to name the module, the version, the file and its size before anything is fetched. -->
     <string name="store_confirm_title">Install %1$s?</string>
     <string name="store_confirm_body">%1$s (%2$s) will be downloaded from the module repository and installed as %3$s.</string>
-    <string name="store_confirm_trust">A module runs with the framework\'s privileges inside the apps it hooks. Install one only if you trust its author.</string>
-    <string name="store_confirm_silent">Vector installs this itself and the system will not ask again.</string>
+    <string name="store_confirm_trust">Modules have full control over apps. Only install modules if you trust the author.</string>
+    <string name="store_confirm_silent">You won't be prompted again.</string>
 
     <!-- Progress. Example: "Downloading 1.2 MB of 3.4 MB" -->
     <string name="store_downloading">Downloading %1$s of %2$s</string>
@@ -101,7 +101,7 @@
 
     <!-- Moved from strings.xml: nav label + store options -->
     <string name="nav_store">Store</string>
-    <string name="store_mute_updates">Ignore updates for this module</string>
+    <string name="store_mute_updates">Ignore module updates</string>
     <string name="store_mute_updates_summary">It stops counting as out of date, here and on the modules list</string>
     <string name="store_options">Options</string>
 
