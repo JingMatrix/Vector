@@ -417,7 +417,9 @@
     <string name="launcher_prompt_never">Jangan tanya lagi</string>
     <string name="action_install_other_user">Pasang untuk pengguna lain</string>
     <string name="action_install_other_user_summary">Menambahkan modul ini ke profil yang belum memilikinya, agar cakupannya bisa diatur di sana</string>
+    <string name="action_install_other_user_summary_app">Menambahkan aplikasi ini ke profil yang belum memilikinya, agar modul di profil itu bisa menjangkaunya</string>
     <string name="action_install_other_user_prompt">Pilih pengguna untuk memasang modul ini.</string>
+    <string name="action_install_other_user_prompt_app">Pilih pengguna untuk memasang aplikasi ini.</string>
     <string name="action_installed_other_user">Terpasang untuk %1$s.</string>
     <string name="action_install_other_user_failed">Tidak dapat memasang untuk %1$s.</string>
 </resources>

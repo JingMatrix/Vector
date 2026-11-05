@@ -262,6 +262,9 @@ class FakeManagerService(
 
     override fun getUsers(): MutableList<DeviceUser> = real?.users ?: mutableListOf()
 
+    override fun getPackageUsers(packageName: String?): IntArray =
+        real?.getPackageUsers(packageName) ?: IntArray(0)
+
     override fun startActivityAsUser(intent: Intent?, userId: Int, noUserSwitch: Boolean): Int =
         // -1, not 0: the AIDL documents 0..99 as "the activity started", so a benign-looking
         // 0 would report a successful start with no daemon behind it.

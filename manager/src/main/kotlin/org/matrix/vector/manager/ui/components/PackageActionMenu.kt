@@ -115,15 +115,6 @@ fun PackageActionSheet(
      * module and has no page. Null there rather than a row that leads nowhere.
      */
     onOpenStore: ((String) -> Unit)? = null,
-    /**
-     * The users that already hold this package, when the caller knows.
-     *
-     * Null from the Scope screen, where the sheet is over a hook target rather than a module and
-     * installing it elsewhere is not an act that screen is about. Given from the module list,
-     * where it is the difference between offering a profile that needs this module and offering
-     * one that already has it.
-     */
-    installedUserIds: Set<Int>? = null,
 ) {
     // The framework is a scope target, not an app. It has no launcher entry, no settings page in
     // Settings, and nothing ART could re-optimize, so those three rows would lead nowhere. What it
@@ -145,23 +136,41 @@ fun PackageActionSheet(
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
-    // The users this module could still be put into. Asked once with the sheet, and only for a
-    // module the caller told us about — the list is short and the call is cheap, but it is an IPC
-    // and the Scope screen has no use for the answer.
-    var installTargets by
-        remember(packageName) { mutableStateOf<List<DeviceUser>>(emptyList()) }
+    // The users this package could still be put into: every user the device has, less the ones
+    // already holding it. Both halves come from the daemon, which is the only side that can see
+    // another profile at all — and which is asked about *this* package rather than handed a list
+    // to filter, because every package list the manager caches is filtered for its own purpose.
+    // The module list's own tabs would have answered for a module, but only for the users it
+    // draws: a profile holding no modules has no tab, and that is exactly the profile worth
+    // offering.
+    //
+    // Offered for an app as well as a module. A profile cannot be given a module it lacks from
+    // anywhere else in the product, and it cannot be given an app to hook either; the sheet is
+    // where a package's own actions already live.
+    var installTargets by remember(packageName) { mutableStateOf<List<DeviceUser>>(emptyList()) }
     var choosingUser by remember { mutableStateOf(false) }
-    // Bound to a local so the lambda below closes over a plain Set rather than relying on the
-    // parameter still being non-null across the coroutine boundary.
-    val holders = installedUserIds
-    if (isModule && holders != null && !isSystemFramework) {
-        LaunchedEffect(packageName, holders) {
-            installTargets =
-                ServiceLocator.daemon
+    // Not the framework: it is a scope target rather than an installed package, so there is no
+    // install state for another user to be missing.
+    if (!isSystemFramework) {
+        LaunchedEffect(packageName) {
+            val daemonService = ServiceLocator.daemon
+            val users =
+                daemonService
                     .getUsers()
                     .onFailure { e -> logW("actions: user list for $packageName failed", e) }
                     .getOrDefault(emptyList())
-                    .filter { it.id !in holders }
+            // Subtracted from the user list rather than inverted on its own, because the daemon
+            // answers empty both for "no user holds it" and for a user service it cannot reach.
+            // Under that failure the user list is empty too, so the difference is empty and the
+            // row stays away — where inverting an empty holder set against a user list of our own
+            // would offer every user on the device.
+            val holders =
+                daemonService
+                    .getPackageUsers(packageName)
+                    .onFailure { e -> logW("actions: holders of $packageName failed", e) }
+                    .getOrDefault(emptyList())
+                    .toSet()
+            installTargets = users.filter { it.id !in holders }
         }
     }
 
@@ -231,7 +240,12 @@ fun PackageActionSheet(
             title = { Text(stringResource(R.string.action_install_other_user)) },
             text = {
                 Column {
-                    Text(stringResource(R.string.action_install_other_user_prompt))
+                    Text(
+                        stringResource(
+                            if (isModule) R.string.action_install_other_user_prompt
+                            else R.string.action_install_other_user_prompt_app
+                        )
+                    )
                     Spacer(Modifier.height(8.dp))
                     installTargets.forEach { target ->
                         TextButton(
@@ -452,15 +466,22 @@ LocalizedOverlay {
             }
         }
 
-        // Only when there is a user this module is not already in. A module every profile holds
-        // would otherwise carry a row whose whole function is to report that there is nowhere to
-        // send it, and on a single-user device — which is most of them — the row would never do
+        // Only when there is a user this package is not already in. One every profile holds would
+        // otherwise carry a row whose whole function is to report that there is nowhere to send
+        // it, and on a single-user device — which is most of them — the row would never do
         // anything at all.
         if (installTargets.isNotEmpty()) {
             ActionDrawerItem(
                 icon = Icons.Rounded.PersonAdd,
                 title = stringResource(R.string.action_install_other_user),
-                subtitle = stringResource(R.string.action_install_other_user_summary),
+                // A module is put into a profile so it can be scoped there; an app is put there so
+                // a module already in that profile can reach it. Same call, opposite ends of the
+                // same relation, so saying "this module" over a hook target would be wrong.
+                subtitle =
+                    stringResource(
+                        if (isModule) R.string.action_install_other_user_summary
+                        else R.string.action_install_other_user_summary_app
+                    ),
                 tint = colors.primary,
             ) {
                 choosingUser = true

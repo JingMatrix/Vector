@@ -546,6 +546,24 @@ interface IManagerService {
      */
     List<DeviceUser> getUsers();
 
+    /**
+     * Which of those users hold this package, by id.
+     *
+     * <p>Asked of the platform per user rather than derived from a package list, so it is cheap and
+     * it answers for a package no list the manager holds would carry: {@link
+     * #getInstalledPackagesFromAllUsers} filtered to apps with a process does not include a module
+     * that ships no components, and neither list says anything about a package the caller has not
+     * enumerated. The predicate is the one that call filters each user's rows by, so a user here
+     * and a user whose apps the manager draws are the same notion of "holds".</p>
+     *
+     * <p>Empty for a package no user holds, and empty when the user service cannot be reached -
+     * the two are not distinguished, and a caller that offers an action per user it is missing from
+     * would offer every user on a device whose daemon has just lost that service. Subtract it from
+     * {@link #getUsers}, which is empty under the same failure, and the difference is empty too.
+     * </p>
+     */
+    int[] getPackageUsers(String packageName);
+
     // ---- things done to the device on the manager's behalf ------------------------------------------
 
     /**

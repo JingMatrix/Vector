@@ -429,7 +429,9 @@
     <string name="launcher_prompt_never">Больше не спрашивать</string>
     <string name="action_install_other_user">Установить для другого пользователя</string>
     <string name="action_install_other_user_summary">Добавляет модуль в профиль, где его нет, чтобы задать там его область действия</string>
+    <string name="action_install_other_user_summary_app">Добавляет это приложение в профиль, где его нет, чтобы модуль в том профиле мог до него дотянуться</string>
     <string name="action_install_other_user_prompt">Выберите пользователя, для которого установить модуль.</string>
+    <string name="action_install_other_user_prompt_app">Выберите пользователя, для которого установить приложение.</string>
     <string name="action_installed_other_user">Установлено для %1$s.</string>
     <string name="action_install_other_user_failed">Не удалось установить для %1$s.</string>
 </resources>

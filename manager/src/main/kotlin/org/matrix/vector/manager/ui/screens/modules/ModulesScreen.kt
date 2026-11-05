@@ -157,24 +157,6 @@ fun ModulesScreen(
 ) {
     val tabs by viewModel.userModulesTabs.collectAsStateWithLifecycle()
 
-    // Which users already hold a given module, read off the tabs rather than asked of the daemon:
-    // the tabs are built from the same per-user scan, so this costs nothing and cannot disagree
-    // with what the list is showing. A user with no modules has no tab and therefore holds none,
-    // which is the right answer for every package — and is exactly the user the install action
-    // below exists to reach.
-    //
-    // Built once per tab set rather than computed per row. A lambda that walked the tabs on each
-    // call ran once for every visible row on every recomposition, and handed each row a freshly
-    // built set — equal to the last one but not the same object, which is enough to stop the row
-    // skipping. One map, and every row gets back the identical instance it had before.
-    val holders: Map<String, Set<Int>> =
-        remember(tabs) {
-            buildMap<String, MutableSet<Int>> {
-                tabs.forEach { tab ->
-                    tab.modules.forEach { getOrPut(it.packageName) { mutableSetOf() }.add(tab.user.id) }
-                }
-            }
-        }
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
@@ -435,7 +417,7 @@ fun ModulesScreen(
                             stickyHeader(key = "h:active") {
                                 SectionHeader(stringResource(R.string.modules_section_active), active.size)
                             }
-                            moduleRows(active, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(active, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                         if (inactive.isNotEmpty()) {
                             stickyHeader(key = "h:inactive") {
@@ -444,10 +426,10 @@ fun ModulesScreen(
                                     inactive.size,
                                 )
                             }
-                            moduleRows(inactive, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(inactive, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                     } else {
-                        moduleRows(modules, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                        moduleRows(modules, facts, selection, upgradable, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                     }
                 }
               }
@@ -932,7 +914,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
     facts: Map<ModuleKey, ModuleFacts>,
     selection: Set<ModuleKey>,
     upgradable: Set<String>,
-    holders: Map<String, Set<Int>>,
     onModuleClick: (String, Int) -> Unit,
     onOpenStore: (String) -> Unit,
     onSelect: (InstalledModule) -> Unit,
@@ -945,7 +926,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
             hasUpdate = module.packageName in upgradable,
             selected = ModuleKey(module.packageName, module.userId) in selection,
             selectionActive = selection.isNotEmpty(),
-            holders = holders[module.packageName].orEmpty(),
             onClick = { onModuleClick(module.packageName, module.userId) },
             onOpenStore = { onOpenStore(module.packageName) },
             onSelect = { onSelect(module) },
@@ -977,7 +957,6 @@ private fun ModuleListItem(
     hasUpdate: Boolean,
     selected: Boolean,
     selectionActive: Boolean,
-    holders: Set<Int>,
     onClick: () -> Unit,
     onOpenStore: () -> Unit,
     onSelect: () -> Unit,
@@ -1013,7 +992,6 @@ private fun ModuleListItem(
             appName = module.appName,
             applicationInfo = module.applicationInfo,
             isModule = true,
-            installedUserIds = holders,
             onDismiss = { menuOpen = false },
             onResult = onAction,
             onOpenStore = { onOpenStore() },

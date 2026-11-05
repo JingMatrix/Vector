@@ -403,7 +403,9 @@
     <string name="launcher_prompt_never">今後表示しない</string>
     <string name="action_install_other_user">他のユーザーにインストール</string>
     <string name="action_install_other_user_summary">このモジュールを持っていないプロファイルに追加し、そこでスコープを設定できるようにします</string>
+    <string name="action_install_other_user_summary_app">このアプリを、持っていないプロファイルに追加します。そのプロファイルのモジュールが対象にできるようになります</string>
     <string name="action_install_other_user_prompt">このモジュールをインストールするユーザーを選択してください。</string>
+    <string name="action_install_other_user_prompt_app">このアプリをインストールするユーザーを選択してください。</string>
     <string name="action_installed_other_user">%1$s にインストールしました。</string>
     <string name="action_install_other_user_failed">%1$s にインストールできませんでした。</string>
 </resources>

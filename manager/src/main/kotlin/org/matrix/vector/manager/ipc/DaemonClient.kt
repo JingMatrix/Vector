@@ -276,6 +276,20 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
 
     suspend fun isSepolicyLoaded(): Result<Boolean> = runIpc { it.isSepolicyLoaded }
 
+    /**
+     * Which users hold [packageName].
+     *
+     * Answered by the daemon per user rather than read out of a package list here: the lists this
+     * manager caches are each filtered for their own purpose — the app list drops packages with no
+     * process, the module scan is only modules — so neither can be asked about an arbitrary
+     * package. Empty is also what a daemon that cannot reach the user service answers, which is
+     * why callers subtract this from [getUsers] rather than inverting it against a user list of
+     * their own.
+     */
+    suspend fun getPackageUsers(packageName: String): Result<List<Int>> = runIpc {
+        it.getPackageUsers(packageName).toList()
+    }
+
     suspend fun getUsers(): Result<List<org.matrix.vector.ipc.DeviceUser>> = runIpc { it.users
     }
 

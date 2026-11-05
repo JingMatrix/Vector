@@ -467,6 +467,25 @@ object ManagerService : IManagerService.Stub() {
     } ?: emptyList()
   }
 
+  /**
+   * The users holding [packageName].
+   *
+   * `isPackageAvailable` with hidden packages allowed, which is exactly the predicate
+   * [getInstalledPackagesFromAllUsers] filters each user's rows by — so a user this reports and a
+   * user whose apps the manager draws mean the same thing by "holds". One transaction per user
+   * rather than an enumeration: the question is about one package, and enumerating every package of
+   * every user to answer it is what exhausts this process's binder heap.
+   *
+   * Empty when the user service cannot be reached, which is the same answer as "no user holds it".
+   * Callers subtract this from [getUsers], which is empty under that same failure, so the
+   * difference stays empty rather than becoming every user.
+   */
+  override fun getPackageUsers(packageName: String): IntArray {
+    val pm = packageManager ?: return IntArray(0)
+    val users = userManager?.getRealUsers() ?: return IntArray(0)
+    return users.filter { pm.isPackageAvailable(packageName, it.id, true) }.map { it.id }.toIntArray()
+  }
+
   override fun isSystemServerAttached() = SystemServerService.systemServerRequested
 
   override fun startActivityAsUser(intent: Intent, userId: Int, noUserSwitch: Boolean): Int {

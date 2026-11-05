@@ -424,7 +424,9 @@
     <string name="launcher_prompt_never">No volver a preguntar</string>
     <string name="action_install_other_user">Instalar para otro usuario</string>
     <string name="action_install_other_user_summary">Añade este módulo a un perfil que no lo tiene, para poder darle un ámbito allí</string>
+    <string name="action_install_other_user_summary_app">Añade esta app a un perfil que no la tiene, para que un módulo de ese perfil pueda alcanzarla</string>
     <string name="action_install_other_user_prompt">Elige el usuario para el que instalar este módulo.</string>
+    <string name="action_install_other_user_prompt_app">Elige el usuario para el que instalar esta app.</string>
     <string name="action_installed_other_user">Instalado para %1$s.</string>
     <string name="action_install_other_user_failed">No se pudo instalar para %1$s.</string>
 </resources>
