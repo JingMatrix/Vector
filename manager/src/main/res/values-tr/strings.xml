@@ -425,6 +425,9 @@
     <string name="action_install_other_user">Başka kullanıcı için yükle</string>
     <string name="action_install_other_user_summary">Bu modülü, onda olmayan bir profile ekler; böylece orada kapsam verilebilir</string>
     <string name="action_install_other_user_summary_app">Bu uygulamayı, ona sahip olmayan bir profile ekler; böylece o profildeki bir modül ona erişebilir</string>
+    <string name="action_reorder">Bu eylemleri yeniden sırala</string>
+    <string name="action_move_up">Yukarı taşı</string>
+    <string name="action_move_down">Aşağı taşı</string>
     <string name="action_install_other_user_prompt">Bu modülün yükleneceği kullanıcıyı seçin.</string>
     <string name="action_install_other_user_prompt_app">Bu uygulamanın yükleneceği kullanıcıyı seçin.</string>
     <string name="action_installed_other_user">%1$s için yüklendi.</string>

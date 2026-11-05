@@ -32,12 +32,18 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Launch
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
@@ -177,6 +183,11 @@ fun PackageActionSheet(
                 .getOrNull() != null
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
+
+    // Collected rather than emitted where written, so the order can be the reader's. Each keeps
+    // its own condition: an unusable row is absent, not present and inert.
+    val rows = remember { mutableListOf<Pair<ActionId, @Composable () -> Unit>>() }
+    var reordering by remember { mutableStateOf(false) }
 
     // Every user the device has, less the ones already holding this package. Asked of the
     // daemon about *this* package rather than filtered from a cached list, since each of those is
@@ -365,6 +376,19 @@ LocalizedOverlay {
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            // Every sheet but the framework's carries at least three rows -- app info, force
+            // stop, and either uninstall or re-optimize -- so there is always an order to change.
+            // The framework's has one row and no use for this. Deliberately not `rows.size`: the
+            // list is filled below this point, so reading it here sees the previous composition.
+            if (!isSystemFramework) {
+                IconButton(onClick = { reordering = !reordering }) {
+                    Icon(
+                        if (reordering) Icons.Rounded.Check else Icons.Rounded.SwapVert,
+                        contentDescription = stringResource(R.string.action_reorder),
+                        tint = if (reordering) colors.primary else colors.onSurfaceVariant,
+                    )
+                }
+            }
         }
 
         HorizontalDivider(Modifier.padding(horizontal = 24.dp))
@@ -379,9 +403,6 @@ LocalizedOverlay {
             )
         }
 
-        // Collected rather than emitted where written, so the order can be the reader's. Each
-        // keeps its own condition: an unusable row is absent, not present and inert.
-        val rows = remember { mutableListOf<Pair<ActionId, @Composable () -> Unit>>() }
         rows.clear()
         fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
             if (show) rows.add(id to content)
@@ -573,7 +594,11 @@ LocalizedOverlay {
             }
         }
 
-        OrderedActions(kind = if (isModule) "module" else "app", rows = rows.toList())
+        OrderedActions(
+            kind = if (isModule) "module" else "app",
+            reordering = reordering,
+            rows = rows.toList(),
+        )
 
         Spacer(Modifier.height(24.dp))
     }
@@ -581,15 +606,23 @@ LocalizedOverlay {
 }
 
 /**
- * The collected rows, in the reader's order, each draggable into another place.
+ * The collected rows, in the reader's order, with a way to change it.
  *
- * Long press then drag, not a handle behind an edit mode: a plain drag already means "move the
- * sheet" and has to keep working, and `detectDragGesturesAfterLongPress` consumes nothing until
- * the press is held, so the two never contend. Heights are measured because the rows differ —
- * a swap decided on an average would jump two places one way and none the other.
+ * Arrows behind a toggle, not a drag. A drag has to be discovered before it can be used, it is
+ * invisible to a screen reader, and on this sheet it contends with the sheet's own drag for the
+ * same movement — which it loses, since the sheet takes the pointer back whenever the finger
+ * strays sideways. Two buttons say what they do, move exactly one place, and work the same for
+ * everyone.
+ *
+ * The rows keep their ordinary appearance while being moved, so what is reordered is what the
+ * reader sees. They are only made inert: in this mode a tap belongs to the arrows.
  */
 @Composable
-private fun ColumnScope.OrderedActions(kind: String, rows: List<Pair<ActionId, @Composable () -> Unit>>) {
+private fun ColumnScope.OrderedActions(
+    kind: String,
+    reordering: Boolean,
+    rows: List<Pair<ActionId, @Composable () -> Unit>>,
+) {
     val settings = ServiceLocator.settings
     val revision by settings.actionOrderRevision.collectAsStateWithLifecycle()
     // Sorted by where the stored order names each id, with anything it does not name kept in
@@ -604,53 +637,53 @@ private fun ColumnScope.OrderedActions(kind: String, rows: List<Pair<ActionId, @
             )
         }
 
-    val content = rows.toMap()
-    val heights = remember { mutableStateMapOf<ActionId, Int>() }
-    var dragging by remember { mutableStateOf<ActionId?>(null) }
-    var offset by remember { mutableFloatStateOf(0f) }
+    fun move(id: ActionId, by: Int) {
+        val at = order.indexOf(id)
+        val to = at + by
+        if (at < 0 || to !in order.indices) return
+        order = order.toMutableList().apply { add(to, removeAt(at)) }
+        settings.setActionOrder(kind, order.map { it.name })
+    }
 
-    order.forEach { id ->
-        val draw = content[id] ?: return@forEach
-        Box(
-            modifier =
-                Modifier.zIndex(if (id == dragging) 1f else 0f)
-                    .offset { IntOffset(0, if (id == dragging) offset.roundToInt() else 0) }
-                    .onSizeChanged { heights[id] = it.height }
-                    .pointerInput(id, order) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = {
-                                dragging = id
-                                offset = 0f
-                            },
-                            onDragEnd = {
-                                dragging = null
-                                offset = 0f
-                            },
-                            onDragCancel = {
-                                dragging = null
-                                offset = 0f
-                            },
-                        ) { change, amount ->
-                            change.consume()
-                            offset += amount.y
-                            val at = order.indexOf(id)
-                            // One neighbour at a time: past half the row being crossed they
-                            // swap and its height comes off the offset, so the dragged row stays
-                            // under the finger.
-                            val step = if (offset > 0) 1 else -1
-                            val next = order.getOrNull(at + step) ?: return@detectDragGesturesAfterLongPress
-                            val span = heights[next] ?: return@detectDragGesturesAfterLongPress
-                            if (abs(offset) > span / 2f) {
-                                order = order.toMutableList().apply { add(at + step, removeAt(at)) }
-                                offset -= step * span
-                                // On the swap, not when the finger lifts: the sheet takes the
-                                // pointer back if the drag strays, ending the gesture as a cancel.
-                                settings.setActionOrder(kind, order.map { it.name })
-                            }
-                        }
-                    }
-        ) {
+    val content = rows.toMap()
+    order.forEachIndexed { index, id ->
+        val draw = content[id] ?: return@forEachIndexed
+        if (!reordering) {
             draw()
+            return@forEachIndexed
+        }
+        Box(contentAlignment = Alignment.CenterEnd) {
+            // In a Column, because an entry may emit more than the row itself -- uninstall brings
+            // its own divider -- and a Box would stack them on top of one another. Narrowed by
+            // the width of the two buttons, so a long subtitle wraps clear of them rather than
+            // running underneath; the row reflowing is also what says the mode is on.
+            Column(Modifier.padding(end = 96.dp)) { draw() }
+            // The row keeps its own look and is only made inert: this box swallows the tap it
+            // would otherwise take, since here a tap belongs to the arrows.
+            Box(
+                Modifier.matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) {}
+            )
+            Row(
+                modifier = Modifier.padding(end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = { move(id, -1) }, enabled = index > 0) {
+                    Icon(
+                        Icons.Rounded.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.action_move_up),
+                    )
+                }
+                IconButton(onClick = { move(id, 1) }, enabled = index < order.lastIndex) {
+                    Icon(
+                        Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.action_move_down),
+                    )
+                }
+            }
         }
     }
 }

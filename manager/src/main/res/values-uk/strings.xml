@@ -467,6 +467,9 @@
     <string name="action_install_other_user">Встановити для іншого користувача</string>
     <string name="action_install_other_user_summary">Додає модуль до профілю, де його немає, щоб задати там його область дії</string>
     <string name="action_install_other_user_summary_app">Додає цей застосунок до профілю, який його не має, щоб модуль у тому профілі міг до нього дістатися</string>
+    <string name="action_reorder">Змінити порядок цих дій</string>
+    <string name="action_move_up">Перемістити вгору</string>
+    <string name="action_move_down">Перемістити вниз</string>
     <string name="action_install_other_user_prompt">Виберіть користувача, для якого встановити модуль.</string>
     <string name="action_install_other_user_prompt_app">Виберіть користувача, для якого встановити застосунок.</string>
     <string name="action_installed_other_user">Встановлено для %1$s.</string>

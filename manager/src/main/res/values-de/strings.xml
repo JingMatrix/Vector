@@ -425,6 +425,9 @@
     <string name="action_install_other_user">Für anderen Nutzer installieren</string>
     <string name="action_install_other_user_summary">Fügt dieses Modul einem Profil hinzu, das es noch nicht hat, damit es dort einen Geltungsbereich bekommen kann</string>
     <string name="action_install_other_user_summary_app">Fügt diese App einem Profil hinzu, das sie nicht hat, damit ein Modul in jenem Profil sie erreichen kann</string>
+    <string name="action_reorder">Diese Aktionen neu anordnen</string>
+    <string name="action_move_up">Nach oben</string>
+    <string name="action_move_down">Nach unten</string>
     <string name="action_install_other_user_prompt">Wähle den Nutzer, für den dieses Modul installiert werden soll.</string>
     <string name="action_install_other_user_prompt_app">Wähle den Nutzer, für den diese App installiert werden soll.</string>
     <string name="action_installed_other_user">Für %1$s installiert.</string>

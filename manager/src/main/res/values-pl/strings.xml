@@ -487,6 +487,9 @@
     <string name="action_install_other_user">Zainstaluj dla innego użytkownika</string>
     <string name="action_install_other_user_summary">Dodaje ten moduł do profilu, który go nie ma, aby można było określić tam jego zakres</string>
     <string name="action_install_other_user_summary_app">Dodaje tę aplikację do profilu, który jej nie ma, aby moduł w tym profilu mógł ją objąć</string>
+    <string name="action_reorder">Zmień kolejność tych działań</string>
+    <string name="action_move_up">Przenieś w górę</string>
+    <string name="action_move_down">Przenieś w dół</string>
     <string name="action_install_other_user_prompt">Wybierz użytkownika, dla którego zainstalować ten moduł.</string>
     <string name="action_install_other_user_prompt_app">Wybierz użytkownika, dla którego zainstalować tę aplikację.</string>
     <string name="action_installed_other_user">Zainstalowano dla %1$s.</string>

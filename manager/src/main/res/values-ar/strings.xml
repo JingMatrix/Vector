@@ -469,6 +469,9 @@
     <string name="action_install_other_user">تثبيت لمستخدم آخر</string>
     <string name="action_install_other_user_summary">يضيف هذه الوحدة إلى ملف تعريف لا يملكها، ليتسنّى تحديد نطاقها هناك</string>
     <string name="action_install_other_user_summary_app">يضيف هذا التطبيق إلى ملف تعريف لا يملكه، لتتمكن وحدة في ذلك الملف من الوصول إليه</string>
+    <string name="action_reorder">إعادة ترتيب هذه الإجراءات</string>
+    <string name="action_move_up">تحريك لأعلى</string>
+    <string name="action_move_down">تحريك لأسفل</string>
     <string name="action_install_other_user_prompt">اختر المستخدم الذي تريد تثبيت هذه الوحدة له.</string>
     <string name="action_install_other_user_prompt_app">اختر المستخدم الذي تريد تثبيت هذا التطبيق له.</string>
     <string name="action_installed_other_user">تم التثبيت لـ %1$s.</string>

@@ -425,6 +425,9 @@
     <string name="action_install_other_user">نصب برای کاربر دیگر</string>
     <string name="action_install_other_user_summary">این ماژول را به نمایه‌ای که آن را ندارد اضافه می‌کند تا بتوان دامنه‌اش را آنجا تعیین کرد</string>
     <string name="action_install_other_user_summary_app">این برنامه را به نمایه‌ای که آن را ندارد اضافه می‌کند تا ماژولی در آن نمایه بتواند به آن برسد</string>
+    <string name="action_reorder">مرتب‌سازی دوبارهٔ این کنش‌ها</string>
+    <string name="action_move_up">انتقال به بالا</string>
+    <string name="action_move_down">انتقال به پایین</string>
     <string name="action_install_other_user_prompt">کاربری را که می‌خواهید این ماژول برایش نصب شود انتخاب کنید.</string>
     <string name="action_install_other_user_prompt_app">کاربری را که می‌خواهید این برنامه برایش نصب شود انتخاب کنید.</string>
     <string name="action_installed_other_user">برای %1$s نصب شد.</string>

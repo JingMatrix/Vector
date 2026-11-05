@@ -414,6 +414,9 @@
     <string name="action_install_other_user">Cài cho người dùng khác</string>
     <string name="action_install_other_user_summary">Thêm mô-đun này vào hồ sơ chưa có nó, để có thể đặt phạm vi ở đó</string>
     <string name="action_install_other_user_summary_app">Thêm ứng dụng này vào một hồ sơ chưa có nó, để mô-đun trong hồ sơ đó có thể nhắm tới nó</string>
+    <string name="action_reorder">Sắp xếp lại các thao tác này</string>
+    <string name="action_move_up">Chuyển lên</string>
+    <string name="action_move_down">Chuyển xuống</string>
     <string name="action_install_other_user_prompt">Chọn người dùng để cài mô-đun này.</string>
     <string name="action_install_other_user_prompt_app">Chọn người dùng để cài ứng dụng này.</string>
     <string name="action_installed_other_user">Đã cài cho %1$s.</string>

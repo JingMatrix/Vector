@@ -415,6 +415,9 @@
     <string name="action_install_other_user">為其他使用者安裝</string>
     <string name="action_install_other_user_summary">把此模組加入尚未安裝它的使用者空間，以便在那裡設定作用域</string>
     <string name="action_install_other_user_summary_app">將此應用程式加入尚未擁有它的設定檔，使該設定檔中的模組可以作用於它</string>
+    <string name="action_reorder">重新排列這些操作</string>
+    <string name="action_move_up">上移</string>
+    <string name="action_move_down">下移</string>
     <string name="action_install_other_user_prompt">選擇要為其安裝此模組的使用者。</string>
     <string name="action_install_other_user_prompt_app">選擇要為其安裝此應用程式的使用者。</string>
     <string name="action_installed_other_user">已為 %1$s 安裝。</string>
