@@ -486,6 +486,23 @@ object ManagerService : IManagerService.Stub() {
     return users.filter { pm.isPackageAvailable(packageName, it.id, true) }.map { it.id }.toIntArray()
   }
 
+  /**
+   * The user's photo, opened for the manager to read. Null for a user that has none, which is most.
+   *
+   * Reflectively, because the `IUserManager` this compiles against is a stub in a plain Java
+   * library with no Android SDK on its classpath: it can only name classes it declares itself, and
+   * `ParcelFileDescriptor` is not one of them.
+   */
+  override fun getUserIcon(userId: Int): ParcelFileDescriptor? {
+    val manager = userManager ?: return null
+    return runCatching {
+          manager.javaClass
+              .getMethod("getUserIcon", Int::class.javaPrimitiveType)
+              .invoke(manager, userId) as? ParcelFileDescriptor
+        }
+        .getOrNull()
+  }
+
   override fun isSystemServerAttached() = SystemServerService.systemServerRequested
 
   override fun startActivityAsUser(intent: Intent, userId: Int, noUserSwitch: Boolean): Int {

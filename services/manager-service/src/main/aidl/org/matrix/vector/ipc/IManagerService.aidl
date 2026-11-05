@@ -564,6 +564,16 @@ interface IManagerService {
      */
     int[] getPackageUsers(String packageName);
 
+    /**
+     * The photo a user has, as a readable descriptor, or null when it has none.
+     *
+     * <p>A descriptor rather than the bytes: the daemon opens a file the manager cannot reach, and
+     * handing over the open file is the whole of what it has to do. Most users have never been
+     * given a photo and answer null, which is the ordinary case and not a failure - the caller
+     * draws its own avatar for them.</p>
+     */
+    @nullable ParcelFileDescriptor getUserIcon(int userId);
+
     // ---- things done to the device on the manager's behalf ------------------------------------------
 
     /**

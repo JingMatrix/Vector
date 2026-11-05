@@ -9,6 +9,10 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +20,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Launch
@@ -38,6 +44,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -256,6 +267,22 @@ fun PackageActionSheet(
         scope.launch(Dispatchers.Main) { onResult(block()) }
     }
 
+    fun install(target: DeviceUser, label: String) = finish {
+        val result = daemon.installExistingPackageAsUser(packageName, target.id)
+        val ok = result.getOrDefault(false)
+        // A device-policy refusal and a user that has gone away both come back as a plain false,
+        // which onFailure never sees.
+        if (!ok) {
+            logE("actions: install of $packageName for user ${target.id} failed", result.exceptionOrNull())
+        }
+        PackageActionResult(
+            if (ok) R.string.action_installed_other_user
+            else R.string.action_install_other_user_failed,
+            label,
+            tone = if (ok) SnackbarTone.Success else SnackbarTone.Failure,
+        )
+    }
+
     // A list rather than a confirmation, because the question is *which* user and there is no
     // sensible default to preselect: on a device with a work profile and a private space, either
     // may be the one meant.
@@ -273,39 +300,23 @@ fun PackageActionSheet(
                         )
                     )
                     Spacer(Modifier.height(8.dp))
+                    // A row rather than a text button: a profile is recognised by its picture
+                    // before its name, and on a device where two of them are called something
+                    // like "Work" and "Work profile" the picture is the only thing that tells
+                    // them apart at a glance.
                     installTargets.forEach { target ->
-                        TextButton(
-                            onClick = {
-                                choosingUser = false
-                                finish {
-                                    val result =
-                                        daemon.installExistingPackageAsUser(packageName, target.id)
-                                    val ok = result.getOrDefault(false)
-                                    // A device-policy refusal and a user that has gone away both
-                                    // come back as a plain false, which onFailure never sees.
-                                    if (!ok) {
-                                        logE(
-                                            "actions: install of $packageName for user " +
-                                                "${target.id} failed",
-                                            result.exceptionOrNull(),
-                                        )
-                                    }
-                                    PackageActionResult(
-                                        if (ok) R.string.action_installed_other_user
-                                        else R.string.action_install_other_user_failed,
-                                        target.name ?: target.id.toString(),
-                                        tone =
-                                            if (ok) SnackbarTone.Success
-                                            else SnackbarTone.Failure,
-                                    )
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                        val label = target.name ?: target.id.toString()
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.large)
+                                    .clickable { choosingUser = false; install(target, label) }
+                                    .padding(horizontal = 8.dp, vertical = 10.dp),
                         ) {
-                            Text(
-                                text = target.name ?: target.id.toString(),
-                                modifier = Modifier.weight(1f),
-                            )
+                            UserAvatar(userId = target.id, name = label)
+                            Spacer(Modifier.width(16.dp))
+                            Text(text = label, modifier = Modifier.weight(1f))
                         }
                     }
                 }
@@ -741,6 +752,56 @@ private fun ModuleUpdateSection(
                 onDismiss()
                 onResult(PackageActionResult(R.string.action_update_started))
             },
+        )
+    }
+}
+
+/**
+ * A user's photo, or a letter in a circle when it has none.
+ *
+ * Most users have never been given one, so the circle is the ordinary case rather than a failure.
+ * Its colour comes from the user id, so two profiles are told apart at a glance and the same
+ * profile looks the same every time it is offered.
+ */
+@Composable
+private fun UserAvatar(userId: Int, name: String) {
+    var photo by remember(userId) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(userId) {
+        photo =
+            ServiceLocator.daemon
+                .getUserIcon(userId)
+                .onFailure { e -> logW("actions: photo of user $userId unavailable", e) }
+                .getOrNull()
+                ?.asImageBitmap()
+    }
+
+    val shown = photo
+    if (shown != null) {
+        Image(
+            bitmap = shown,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(36.dp).clip(CircleShape),
+        )
+        return
+    }
+
+    val colors = MaterialTheme.colorScheme
+    val tones: List<Pair<Color, Color>> =
+        listOf(
+            colors.primaryContainer to colors.onPrimaryContainer,
+            colors.tertiaryContainer to colors.onTertiaryContainer,
+            colors.secondaryContainer to colors.onSecondaryContainer,
+        )
+    val (fill, ink) = tones[userId.mod(tones.size)]
+    Box(
+        modifier = Modifier.size(36.dp).clip(CircleShape).background(fill),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = name.firstOrNull()?.uppercase() ?: "?",
+            style = MaterialTheme.typography.titleMedium,
+            color = ink,
         )
     }
 }

@@ -262,6 +262,9 @@ class FakeManagerService(
 
     override fun getUsers(): MutableList<DeviceUser> = real?.users ?: mutableListOf()
 
+    override fun getUserIcon(userId: Int): android.os.ParcelFileDescriptor? =
+        real?.getUserIcon(userId)
+
     override fun getPackageUsers(packageName: String?): IntArray =
         real?.getPackageUsers(packageName) ?: IntArray(0)
 

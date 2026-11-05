@@ -6,6 +6,8 @@ import kotlinx.coroutines.withContext
 import org.matrix.vector.ipc.IFrameworkInstallReceiver
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.logE
 import org.matrix.vector.manager.logW
@@ -288,6 +290,16 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
      */
     suspend fun getPackageUsers(packageName: String): Result<List<Int>> = runIpc {
         it.getPackageUsers(packageName).toList()
+    }
+
+    /**
+     * A user's photo, decoded, or null when it has none - which is most users.
+     *
+     * Decoded here rather than handed on as a descriptor, because a descriptor has to be closed
+     * and a composable that forgets leaks one per recomposition.
+     */
+    suspend fun getUserIcon(userId: Int): Result<Bitmap?> = runIpc { service ->
+        service.getUserIcon(userId)?.use { BitmapFactory.decodeFileDescriptor(it.fileDescriptor) }
     }
 
     suspend fun getUsers(): Result<List<org.matrix.vector.ipc.DeviceUser>> = runIpc { it.users
