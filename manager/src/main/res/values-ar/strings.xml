@@ -178,6 +178,7 @@
     <string name="scope_modules">وحدات أخرى</string>
     <string name="scope_include_new_apps">إضافة التطبيقات الجديدة تلقائيًا</string>
     <string name="scope_include_new_apps_summary">التطبيقات التي تُثبَّت من الآن تنضم إلى نطاق هذه الوحدة.</string>
+    <string name="scope_include_new_apps_summary_user">التطبيقات التي تُثبَّت لهذا المستخدم من الآن تنضم إلى نطاق هذه الوحدة. لكل مستخدم إعداده الخاص.</string>
     <string name="scope_backup">نسخ هذا النطاق احتياطيًا</string>
     <string name="scope_restore">استعادة هذا النطاق</string>
     <string name="scope_sort_package">حسب اسم الحزمة</string>

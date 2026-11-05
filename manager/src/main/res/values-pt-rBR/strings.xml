@@ -154,6 +154,7 @@
     <string name="scope_modules">Outros módulos</string>
     <string name="scope_include_new_apps">Adicionar novos apps automaticamente</string>
     <string name="scope_include_new_apps_summary">Apps instalados de agora em diante entram no escopo deste módulo.</string>
+    <string name="scope_include_new_apps_summary_user">Apps instalados para este usuário de agora em diante entram no escopo deste módulo. Cada usuário é definido separadamente.</string>
     <string name="scope_backup">Fazer backup deste escopo</string>
     <string name="scope_restore">Restaurar este escopo</string>
     <string name="scope_sort_package">Por nome do pacote</string>

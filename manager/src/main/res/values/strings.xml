@@ -244,6 +244,7 @@
     <string name="scope_modules">Other modules</string>
     <string name="scope_include_new_apps">Add new apps automatically</string>
     <string name="scope_include_new_apps_summary">Apps installed from now on join this module\'s scope.</string>
+    <string name="scope_include_new_apps_summary_user">Apps installed into this user from now on join this module\'s scope. Each user is set separately.</string>
     <string name="scope_backup">Back up this scope</string>
     <string name="scope_restore">Restore this scope</string>
     <string name="scope_sort_package">By package name</string>

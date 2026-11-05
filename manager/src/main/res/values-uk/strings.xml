@@ -166,6 +166,7 @@
     <string name="scope_modules">Інші модулі</string>
     <string name="scope_include_new_apps">Додавати нові застосунки автоматично</string>
     <string name="scope_include_new_apps_summary">Застосунки, встановлені відтепер, потраплять в область дії цього модуля.</string>
+    <string name="scope_include_new_apps_summary_user">Застосунки, встановлені відтепер для цього користувача, потраплять в область дії цього модуля. Для кожного користувача налаштовується окремо.</string>
     <string name="scope_backup">Зберегти цю область дії</string>
     <string name="scope_restore">Відновити цю область дії</string>
     <string name="scope_sort_package">За назвою пакета</string>

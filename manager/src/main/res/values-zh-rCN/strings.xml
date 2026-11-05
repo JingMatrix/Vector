@@ -148,6 +148,7 @@
     <string name="scope_modules">其他模块</string>
     <string name="scope_include_new_apps">自动加入新安装的应用</string>
     <string name="scope_include_new_apps_summary">此后安装的应用会自动加入此模块的作用域。</string>
+    <string name="scope_include_new_apps_summary_user">此后为该用户安装的应用会自动加入此模块的作用域。每个用户分别设置。</string>
     <string name="scope_backup">备份此作用域</string>
     <string name="scope_restore">恢复此作用域</string>
     <string name="scope_sort_package">按包名</string>

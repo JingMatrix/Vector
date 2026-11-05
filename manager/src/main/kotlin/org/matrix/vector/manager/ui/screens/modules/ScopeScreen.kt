@@ -360,6 +360,7 @@ fun ScopeScreen(
                 ScopeSelectMenu(
                     hasRecommended = !state.recommended.isEmpty,
                     includeNewApps = state.includeNewApps,
+                    multipleUsers = state.multipleUsers,
                     onUseRecommended = viewModel::useRecommended,
                     onSelectAll = viewModel::selectAllVisible,
                     onSelectNone = viewModel::clearAllVisible,
@@ -597,6 +598,15 @@ fun ScopeScreen(
 private fun ScopeSelectMenu(
     hasRecommended: Boolean,
     includeNewApps: Boolean,
+    /**
+     * Whether the device has more than one user, which is the only case where the switch needs to
+     * say whose apps it means.
+     *
+     * The setting is per user either way. On a single-user device naming the user would raise a
+     * distinction the reader cannot act on, so the shorter sentence stays there — the same
+     * arrangement the framework row above this uses.
+     */
+    multipleUsers: Boolean,
     onUseRecommended: () -> Unit,
     onSelectAll: () -> Unit,
     onSelectNone: () -> Unit,
@@ -648,7 +658,11 @@ private fun ScopeSelectMenu(
             // present, so its label says exactly that and not something narrower.
             ToggleRow(
                 title = stringResource(R.string.scope_include_new_apps),
-                subtitle = stringResource(R.string.scope_include_new_apps_summary),
+                subtitle =
+                    stringResource(
+                        if (multipleUsers) R.string.scope_include_new_apps_summary_user
+                        else R.string.scope_include_new_apps_summary
+                    ),
                 icon = Icons.AutoMirrored.Rounded.PlaylistAdd,
                 checked = includeNewApps,
                 onCheckedChange = onIncludeNewApps,

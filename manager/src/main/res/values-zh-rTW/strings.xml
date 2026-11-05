@@ -148,6 +148,7 @@
     <string name="scope_modules">其他模組</string>
     <string name="scope_include_new_apps">自動加入新安裝的應用程式</string>
     <string name="scope_include_new_apps_summary">此後安裝的應用程式會自動加入此模組的作用域。</string>
+    <string name="scope_include_new_apps_summary_user">此後為該使用者安裝的應用程式會自動加入此模組的作用域。每位使用者分別設定。</string>
     <string name="scope_backup">備份此範圍</string>
     <string name="scope_restore">還原此範圍</string>
     <string name="scope_sort_package">依套件名稱</string>

@@ -170,6 +170,7 @@
     <string name="scope_modules">מודולים אחרים</string>
     <string name="scope_include_new_apps">הוספת אפליקציות חדשות אוטומטית</string>
     <string name="scope_include_new_apps_summary">אפליקציות שיותקנו מעכשיו יצטרפו לטווח של המודול הזה.</string>
+    <string name="scope_include_new_apps_summary_user">אפליקציות שיותקנו למשתמש הזה מעכשיו יצטרפו לטווח של המודול הזה. כל משתמש מוגדר בנפרד.</string>
     <string name="scope_backup">גיבוי התחום הזה</string>
     <string name="scope_restore">שחזור התחום הזה</string>
     <string name="scope_sort_package">לפי שם החבילה</string>

@@ -148,6 +148,7 @@
     <string name="scope_modules">ほかのモジュール</string>
     <string name="scope_include_new_apps">新しいアプリを自動で追加</string>
     <string name="scope_include_new_apps_summary">今後インストールされるアプリは、このモジュールの適用範囲に含まれます。</string>
+    <string name="scope_include_new_apps_summary_user">今後このユーザーにインストールされるアプリは、このモジュールの適用範囲に含まれます。設定はユーザーごとに別です。</string>
     <string name="scope_backup">この適用範囲をバックアップ</string>
     <string name="scope_restore">この適用範囲を復元</string>
     <string name="scope_sort_package">パッケージ名順</string>

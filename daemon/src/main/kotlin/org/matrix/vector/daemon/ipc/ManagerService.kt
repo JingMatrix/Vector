@@ -567,10 +567,11 @@ object ManagerService : IManagerService.Stub() {
   override fun getDex2OatWrapperState() =
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Dex2OatServer.compatibility else 0
 
-  override fun setIncludeNewApps(packageName: String, enabled: Boolean) =
-      ModuleDatabase.setIncludeNewApps(packageName, enabled)
+  override fun setIncludeNewApps(packageName: String, userId: Int, enabled: Boolean) =
+      ModuleDatabase.setIncludeNewApps(packageName, userId, enabled)
 
-  override fun getIncludeNewApps(packageName: String) = ModuleDatabase.getIncludeNewApps(packageName)
+  override fun getIncludeNewApps(packageName: String, userId: Int) =
+      ModuleDatabase.getIncludeNewApps(packageName, userId)
 
   override fun getRootImplementation() = RootImplementation.implementation
 

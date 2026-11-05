@@ -549,7 +549,9 @@ class ScopeViewModel(
                             info?.loadLabel(packageManager)?.toString() ?: modulePackageName,
                         isEnabled = modulePackageName in moduleRepository.enabledModulesState.value,
                         includeNewApps =
-                            daemonClient.getIncludeNewApps(modulePackageName).getOrDefault(false),
+                            daemonClient
+                                .getIncludeNewApps(modulePackageName, userId)
+                                .getOrDefault(false),
                         recommended = recommended,
                         loading = false,
                         multipleUsers = userCount > 1,
@@ -729,7 +731,7 @@ class ScopeViewModel(
     fun setIncludeNewApps(enabled: Boolean) {
         viewModelScope.launch {
             daemonClient
-                .setIncludeNewApps(modulePackageName, enabled)
+                .setIncludeNewApps(modulePackageName, userId, enabled)
                 .onSuccess { stored ->
                     // The daemon's answer, not merely the fact that it answered: it refuses a
                     // package it holds no row for, and moving the switch on a refusal would show a
@@ -739,14 +741,15 @@ class ScopeViewModel(
                     } else {
                         logE(
                             "scope: daemon refused include-new-apps=$enabled for " +
-                                modulePackageName,
+                                "$modulePackageName in user $userId",
                         )
                         _message.value = ScopeMessage.IncludeNewAppsFailed
                     }
                 }
                 .onFailure { e ->
                     logE(
-                        "scope: setting include-new-apps=$enabled for $modulePackageName failed",
+                        "scope: setting include-new-apps=$enabled for $modulePackageName " +
+                            "in user $userId failed",
                         e,
                     )
                     _message.value = ScopeMessage.IncludeNewAppsFailed

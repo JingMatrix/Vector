@@ -8,7 +8,7 @@ import java.io.File
 import org.matrix.vector.daemon.utils.FakeContext
 
 private const val TAG = "VectorDatabase"
-private const val DB_VERSION = 4
+private const val DB_VERSION = 5
 
 class Database(context: Context? = FakeContext()) :
     SQLiteOpenHelper(context, FileSystem.dbPath.absolutePath, null, DB_VERSION) {
@@ -30,12 +30,14 @@ class Database(context: Context? = FakeContext()) :
             module_pkg_name text NOT NULL UNIQUE,
             apk_path text NOT NULL,
             enabled BOOLEAN DEFAULT 0 CHECK (enabled IN (0, 1)),
-            -- `include new apps` everywhere else: when set, a package installed from now on is
-            -- added to this module's scope. The column keeps the older name on purpose. SQLite
-            -- gained ALTER TABLE RENAME COLUMN in 3.25 and this project supports API 27, whose
-            -- SQLite is older, so renaming means rebuilding the table behind a version bump —
-            -- and onDowngrade wipes the module configuration, so anyone who then flashed an
-            -- older build would lose theirs. That is a real cost for a name no user ever sees.
+            -- Dead since v5, and read by nothing. `include new apps` is per user now and lives
+            -- in the table below, because this column cannot be: a module is one row keyed by
+            -- package name, so one flag here is one answer for every user at once, and turning
+            -- it on while looking at a work profile turned it on for the owner too.
+            --
+            -- Kept rather than dropped. SQLite gained DROP COLUMN in 3.35 and this project
+            -- supports API 27, whose SQLite is older, so removing it means rebuilding the table
+            -- for a column that costs one byte a module and is never selected.
             auto_include BOOLEAN DEFAULT 0 CHECK (auto_include IN (0, 1))
         );
         """
@@ -65,6 +67,28 @@ class Database(context: Context? = FakeContext()) :
             user_id integer NOT NULL,
             PRIMARY KEY (mid, app_pkg_name, user_id),
             CONSTRAINT scope_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
+        );
+        """
+            .trimIndent())
+
+    db.execSQL(
+        """
+        CREATE TABLE IF NOT EXISTS auto_include (
+            -- One row per (module, user) that is auto-including, and the row's existence is the
+            -- whole value: there is no `enabled` column to disagree with it.
+            --
+            -- Per user because the switch is read from a module's scope screen, and that screen is
+            -- opened for one installed copy of the module. A module the owner and a work profile
+            -- both hold is two scopes, so it is two answers to this question as well, and the
+            -- single column this replaces could only ever give one.
+            --
+            -- Keyed by mid rather than by package name so that uninstalling a module takes these
+            -- rows with it, exactly as it takes its scope: a package name that comes back later is
+            -- a different install and inherits nothing it was never given.
+            mid integer NOT NULL,
+            user_id integer NOT NULL,
+            PRIMARY KEY (mid, user_id),
+            CONSTRAINT auto_include_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
         );
         """
             .trimIndent())
@@ -195,6 +219,40 @@ class Database(context: Context? = FakeContext()) :
         db.execSQL(
             "ALTER TABLE modules ADD COLUMN auto_include BOOLEAN DEFAULT 0 CHECK (auto_include IN (0, 1));")
       }
+    }
+    if (oldVersion < 5) {
+      db.execSQL(
+          """
+          CREATE TABLE IF NOT EXISTS auto_include (
+              mid integer NOT NULL,
+              user_id integer NOT NULL,
+              PRIMARY KEY (mid, user_id),
+              CONSTRAINT auto_include_module_constraint FOREIGN KEY (mid) REFERENCES modules (mid) ON DELETE CASCADE
+          );
+          """
+              .trimIndent())
+      // What the old column meant in effect was every user: the install handler read it without a
+      // user and added the new package for whichever user the install was in. So the rows that
+      // preserve a person's setting are one per user, and the users are taken from the
+      // configuration itself rather than from `IUserManager` -- a migration runs wherever the
+      // database is first opened, which is early and is not a place to need a system service, and
+      // one that silently found no users would read as "you never turned this on".
+      //
+      // `scope` is the only table that names users, so a device that has scoped something into a
+      // work profile is a device whose profile is kept here. User 0 is unioned in because it
+      // always exists and may well name nothing. A user that neither holds scope nor is 0 loses
+      // the setting, and a user created after the upgrade never had it: both are the new meaning
+      // of the switch rather than a gap in it, since nothing can say a person wanted this in a
+      // profile they have never configured.
+      db.execSQL(
+          """
+          INSERT OR IGNORE INTO auto_include (mid, user_id)
+          SELECT m.mid, u.user_id
+          FROM modules m
+          JOIN (SELECT DISTINCT user_id FROM scope UNION SELECT 0 AS user_id) u
+          WHERE m.auto_include = 1;
+          """
+              .trimIndent())
     }
   }
 }

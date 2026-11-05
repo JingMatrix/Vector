@@ -303,11 +303,11 @@ class FakeManagerService(
         real?.setStatusNotificationEnabled(enabled)
     }
 
-    override fun getIncludeNewApps(packageName: String?): Boolean =
-        real?.getIncludeNewApps(packageName) ?: false
+    override fun getIncludeNewApps(packageName: String?, userId: Int): Boolean =
+        real?.getIncludeNewApps(packageName, userId) ?: false
 
-    override fun setIncludeNewApps(packageName: String?, enable: Boolean): Boolean =
-        real?.setIncludeNewApps(packageName, enable) ?: false
+    override fun setIncludeNewApps(packageName: String?, userId: Int, enable: Boolean): Boolean =
+        real?.setIncludeNewApps(packageName, userId, enable) ?: false
 }
 
 /**

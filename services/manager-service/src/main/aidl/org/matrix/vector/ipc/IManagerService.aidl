@@ -73,7 +73,7 @@ interface IManagerService {
      * transaction ids follow declaration order, this number is the only thing standing between a
      * mismatched pair and a call that lands on the wrong method.</p>
      */
-    const int PROTOCOL_VERSION = 1;
+    const int PROTOCOL_VERSION = 2;
 
     /**
      * Which generation of this interface the daemon implements, never below 1.
@@ -312,21 +312,32 @@ interface IManagerService {
     boolean setModuleScope(String packageName, in List<ScopeEntry> scope);
 
     /**
-     * Whether a module is given each newly installed app automatically.
+     * Whether this copy of a module is given each newly installed app automatically.
+     *
+     * <p>Per user, and {@code userId} names which copy is being asked about - not which apps it
+     * would take. A module the owner and a work profile both hold is two copies with two scopes,
+     * so it is two answers here; a new app is offered only to the copies in the user it was
+     * installed into. This was one flag for the whole device until it was keyed by user, which
+     * meant turning it on from a work profile's scope screen turned it on for the owner, and the
+     * next app installed anywhere was added to both.</p>
      *
      * @return false for a package the daemon holds no module row for, and for the framework's own
      *         pseudo-module - so a false here is not evidence that a module exists
      */
-    boolean getIncludeNewApps(String packageName);
+    boolean getIncludeNewApps(String packageName, int userId);
 
     /**
-     * Sets that flag.
+     * Sets that flag for one user.
+     *
+     * <p>Changes nothing about the other users' copies, and changes no scope that already exists:
+     * it decides what the next install does. Switching it off likewise leaves behind the rows it
+     * previously added, as {@link #getModuleScope} describes.</p>
      *
      * @return whether the daemon stored it, which is not whether the call arrived: no row is
      *         written for a package that is not a known module, or for the framework's own
-     *         pseudo-module. Writing the value the row already held still answers true
+     *         pseudo-module. Writing the value the table already held still answers true
      */
-    boolean setIncludeNewApps(String packageName, boolean enable);
+    boolean setIncludeNewApps(String packageName, int userId, boolean enable);
 
     /**
      * Every module that is installed and switched on and that the framework still cannot load, with

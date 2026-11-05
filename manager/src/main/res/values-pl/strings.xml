@@ -246,6 +246,7 @@
     <string name="scope_modules">Inne moduły</string>
     <string name="scope_include_new_apps">Dodaj nowe aplikacje automatycznie</string>
     <string name="scope_include_new_apps_summary">Aplikacje zainstalowane od teraz trafią do zakresu tego modułu.</string>
+    <string name="scope_include_new_apps_summary_user">Aplikacje zainstalowane od teraz dla tego użytkownika trafią do zakresu tego modułu. Każdy użytkownik ma własne ustawienie.</string>
     <string name="scope_backup">Utwórz kopię tego zakresu</string>
     <string name="scope_restore">Przywróć ten zakres</string>
     <string name="scope_sort_package">Według nazwy pakietu</string>

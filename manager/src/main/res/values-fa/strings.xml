@@ -154,6 +154,7 @@
     <string name="scope_modules">ماژول‌های دیگر</string>
     <string name="scope_include_new_apps">افزودن خودکار برنامه‌های جدید</string>
     <string name="scope_include_new_apps_summary">برنامه‌هایی که از این پس نصب شوند به دامنهٔ این ماژول افزوده می‌شوند.</string>
+    <string name="scope_include_new_apps_summary_user">برنامه‌هایی که از این پس برای این کاربر نصب شوند به دامنهٔ این ماژول افزوده می‌شوند. هر کاربر جداگانه تنظیم می‌شود.</string>
     <string name="scope_backup">پشتیبان‌گیری از این دامنه</string>
     <string name="scope_restore">بازگردانی این دامنه</string>
     <string name="scope_sort_package">بر پایهٔ نام بسته</string>

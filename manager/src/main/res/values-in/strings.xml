@@ -152,6 +152,7 @@
     <string name="scope_modules">Modul lain</string>
     <string name="scope_include_new_apps">Tambahkan aplikasi baru otomatis</string>
     <string name="scope_include_new_apps_summary">Aplikasi yang dipasang mulai sekarang masuk ke cakupan modul ini.</string>
+    <string name="scope_include_new_apps_summary_user">Aplikasi yang dipasang untuk pengguna ini mulai sekarang masuk ke cakupan modul ini. Setiap pengguna diatur terpisah.</string>
     <string name="scope_backup">Cadangkan cakupan ini</string>
     <string name="scope_restore">Pulihkan cakupan ini</string>
     <string name="scope_sort_package">Menurut nama paket</string>

@@ -63,35 +63,50 @@ object ModuleDatabase {
     return result
   }
 
-  fun getIncludeNewApps(packageName: String): Boolean {
+  /**
+   * Whether this copy of the module takes every newly installed app.
+   *
+   * Per user, because a module the owner and a work profile both hold is two copies with two
+   * scopes, and this question is about one of them. The column it replaces could hold only one
+   * answer for the whole device, so turning the switch on from a work profile's scope screen also
+   * turned it on for the owner -- and the next app installed anywhere was then added to both.
+   */
+  fun getIncludeNewApps(packageName: String, userId: Int): Boolean {
     if (packageName == "lspd") return false
 
-    var isIncludeNewApps = false
-    dbHelper.readableDatabase
-        .query(
-            "modules",
-            arrayOf("auto_include"),
-            "module_pkg_name = ?",
-            arrayOf(packageName),
-            null,
-            null,
-            null)
-        .use { cursor ->
-          if (cursor.moveToFirst()) {
-            isIncludeNewApps = cursor.getInt(0) == 1
-          }
-        }
-    return isIncludeNewApps
+    return dbHelper.readableDatabase
+        .rawQuery(
+            """
+            SELECT 1 FROM auto_include a
+            JOIN modules m ON m.mid = a.mid
+            WHERE m.module_pkg_name = ? AND a.user_id = ?
+            """
+                .trimIndent(),
+            arrayOf(packageName, userId.toString()))
+        .use { it.moveToFirst() }
   }
 
-  fun modulesIncludingNewApps(): List<String> {
+  /**
+   * The modules auto-including in [userId], which is the user an app has just been installed into.
+   *
+   * Asked per user rather than once for the device: a module that wants new apps in a work profile
+   * is not thereby asking for the owner's, and answering the device-wide question here is what put
+   * an app installed in one user into the scope of a module configured in another.
+   */
+  fun modulesIncludingNewApps(userId: Int): List<String> {
     val result = mutableListOf<String>()
     dbHelper.readableDatabase
-        .query("modules", arrayOf("module_pkg_name"), "auto_include = 1", null, null, null, null)
+        .rawQuery(
+            """
+            SELECT m.module_pkg_name FROM auto_include a
+            JOIN modules m ON m.mid = a.mid
+            WHERE a.user_id = ?
+            """
+                .trimIndent(),
+            arrayOf(userId.toString()))
         .use { cursor ->
-          val idx = cursor.getColumnIndexOrThrow("module_pkg_name")
           while (cursor.moveToNext()) {
-            val pkgName = cursor.getString(idx)
+            val pkgName = cursor.getString(0)
             if (pkgName != "lspd") result.add(pkgName)
           }
         }
@@ -409,20 +424,56 @@ object ModuleDatabase {
     return res
   }
 
-  fun setIncludeNewApps(packageName: String, enabled: Boolean): Boolean {
+  /**
+   * Sets it for one user.
+   *
+   * Refuses a package no module row exists for, which is what the single `UPDATE` this replaces did
+   * by matching nothing: the manager shows the switch as unsaved on a false, and a row written
+   * against a module the daemon does not know would be a setting nothing could ever read back.
+   *
+   * On rather than off is `INSERT OR REPLACE` instead of `OR IGNORE`, so that setting a value the
+   * table already holds still answers true -- the AIDL promises that, and a switch that reported
+   * failure for being already correct would be worse than one that said nothing.
+   */
+  fun setIncludeNewApps(packageName: String, userId: Int, enabled: Boolean): Boolean {
     if (packageName == "lspd") return false
 
-    val values = ContentValues().apply { put("auto_include", if (enabled) 1 else 0) }
+    val db = dbHelper.writableDatabase
+    val mid = moduleIdOf(db, packageName) ?: return false
 
-    val changed =
-        dbHelper.writableDatabase.update(
-            "modules", values, "module_pkg_name = ?", arrayOf(packageName)) > 0
-
-    // If the auto_include flag changes, we should rebuild the scope cache
-    if (changed) {
-      ConfigCache.requestCacheUpdate()
+    if (enabled) {
+      val values =
+          ContentValues().apply {
+            put("mid", mid)
+            put("user_id", userId)
+          }
+      if (db.insertWithOnConflict(
+          "auto_include", null, values, SQLiteDatabase.CONFLICT_REPLACE) == -1L) {
+        Log.e(TAG, "Failed to store include-new-apps for $packageName in user $userId")
+        return false
+      }
+    } else {
+      db.delete("auto_include", "mid = ? AND user_id = ?", arrayOf(mid.toString(), userId.toString()))
     }
 
-    return changed
+    // As the column this replaces did. The switch changes no scope by itself -- it decides what a
+    // future install does -- so this is kept only because removing it is a separate question from
+    // whether the flag is per user.
+    ConfigCache.requestCacheUpdate()
+    return true
   }
+
+  /**
+   * The `mid` of a module row, or null when there is none.
+   *
+   * `simpleQueryForLong` throws `SQLiteDoneException` on no row rather than answering, so the
+   * callers that have to tell an unknown package from a known one cannot use it bare.
+   */
+  private fun moduleIdOf(db: SQLiteDatabase, packageName: String): Long? =
+      runCatching {
+            db.compileStatement("SELECT mid FROM modules WHERE module_pkg_name = ?")
+                .apply { bindString(1, packageName) }
+                .simpleQueryForLong()
+          }
+          .getOrNull()
 }

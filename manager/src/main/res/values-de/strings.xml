@@ -154,6 +154,7 @@
     <string name="scope_modules">Andere Module</string>
     <string name="scope_include_new_apps">Neue Apps automatisch hinzufügen</string>
     <string name="scope_include_new_apps_summary">Ab jetzt installierte Apps kommen in den Geltungsbereich dieses Moduls.</string>
+    <string name="scope_include_new_apps_summary_user">Ab jetzt für diesen Benutzer installierte Apps kommen in den Geltungsbereich dieses Moduls. Jeder Benutzer wird einzeln eingestellt.</string>
     <string name="scope_backup">Diesen Geltungsbereich sichern</string>
     <string name="scope_restore">Diesen Geltungsbereich wiederherstellen</string>
     <string name="scope_sort_package">Nach Paketname</string>

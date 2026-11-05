@@ -154,6 +154,7 @@
     <string name="scope_modules">Autres modules</string>
     <string name="scope_include_new_apps">Ajouter automatiquement les nouvelles applis</string>
     <string name="scope_include_new_apps_summary">Les applis installées à partir de maintenant rejoignent la portée de ce module.</string>
+    <string name="scope_include_new_apps_summary_user">Les applis installées pour cet utilisateur à partir de maintenant rejoignent la portée de ce module. Chaque utilisateur se règle séparément.</string>
     <string name="scope_backup">Sauvegarder cette portée</string>
     <string name="scope_restore">Restaurer cette portée</string>
     <string name="scope_sort_package">Par nom de paquet</string>

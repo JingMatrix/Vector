@@ -148,6 +148,7 @@
     <string name="scope_modules">Mô-đun khác</string>
     <string name="scope_include_new_apps">Tự động thêm ứng dụng mới</string>
     <string name="scope_include_new_apps_summary">Ứng dụng cài từ nay sẽ vào phạm vi của mô-đun này.</string>
+    <string name="scope_include_new_apps_summary_user">Ứng dụng cài cho người dùng này từ nay sẽ vào phạm vi của mô-đun này. Mỗi người dùng được đặt riêng.</string>
     <string name="scope_backup">Sao lưu phạm vi này</string>
     <string name="scope_restore">Khôi phục phạm vi này</string>
     <string name="scope_sort_package">Theo tên gói</string>

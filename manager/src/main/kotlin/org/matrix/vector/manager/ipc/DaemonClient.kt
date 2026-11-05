@@ -343,19 +343,28 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
         it.setForcedLauncherIcons(force)
     }
 
-    suspend fun getIncludeNewApps(packageName: String): Result<Boolean> = runIpc { it.getIncludeNewApps(packageName)
+    /**
+     * Whether this module's copy in [userId] takes newly installed apps.
+     *
+     * [userId] is the module's own user, the one whose scope screen is open — not a user whose
+     * apps are being asked about. The same module in another profile answers separately.
+     */
+    suspend fun getIncludeNewApps(packageName: String, userId: Int): Result<Boolean> = runIpc {
+        it.getIncludeNewApps(packageName, userId)
     }
 
     /**
      * Returns whether the daemon stored it, which is not the same as whether the call arrived.
      *
-     * `ModuleDatabase.setIncludeNewApps` answers false when no row was updated — the package is
-     * not a known module, or it is the framework itself — and the switch has to follow that answer
-     * rather than assume the write landed.
+     * `ModuleDatabase.setIncludeNewApps` answers false when it has no module row to hang the
+     * setting on — the package is not a known module, or it is the framework itself — and the
+     * switch has to follow that answer rather than assume the write landed.
      */
-    suspend fun setIncludeNewApps(packageName: String, enable: Boolean): Result<Boolean> = runIpc {
-        it.setIncludeNewApps(packageName, enable)
-    }
+    suspend fun setIncludeNewApps(
+        packageName: String,
+        userId: Int,
+        enable: Boolean
+    ): Result<Boolean> = runIpc { it.setIncludeNewApps(packageName, userId, enable) }
 
     suspend fun getRootImplementation(): Result<Int> = runIpc { it.rootImplementation }
 

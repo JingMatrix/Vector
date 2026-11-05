@@ -154,6 +154,7 @@
     <string name="scope_modules">Altri moduli</string>
     <string name="scope_include_new_apps">Aggiungi automaticamente le nuove app</string>
     <string name="scope_include_new_apps_summary">Le app installate d’ora in poi entrano nell’ambito di questo modulo.</string>
+    <string name="scope_include_new_apps_summary_user">Le app installate per questo utente d’ora in poi entrano nell’ambito di questo modulo. Ogni utente si imposta separatamente.</string>
     <string name="scope_backup">Salva una copia di questo ambito</string>
     <string name="scope_restore">Ripristina questo ambito</string>
     <string name="scope_sort_package">Per nome del pacchetto</string>

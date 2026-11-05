@@ -154,6 +154,7 @@
     <string name="scope_modules">Diğer modüller</string>
     <string name="scope_include_new_apps">Yeni uygulamaları otomatik ekle</string>
     <string name="scope_include_new_apps_summary">Bundan sonra kurulan uygulamalar bu modülün kapsamına girer.</string>
+    <string name="scope_include_new_apps_summary_user">Bundan sonra bu kullanıcıya kurulan uygulamalar bu modülün kapsamına girer. Her kullanıcı ayrı ayarlanır.</string>
     <string name="scope_backup">Bu kapsamı yedekle</string>
     <string name="scope_restore">Bu kapsamı geri yükle</string>
     <string name="scope_sort_package">Paket adına göre</string>

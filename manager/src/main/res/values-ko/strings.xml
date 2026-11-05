@@ -148,6 +148,7 @@
     <string name="scope_modules">다른 모듈</string>
     <string name="scope_include_new_apps">새 앱 자동 추가</string>
     <string name="scope_include_new_apps_summary">지금부터 설치되는 앱이 이 모듈의 범위에 포함됩니다.</string>
+    <string name="scope_include_new_apps_summary_user">지금부터 이 사용자에 설치되는 앱이 이 모듈의 범위에 포함됩니다. 설정은 사용자별로 따로입니다.</string>
     <string name="scope_backup">이 적용 범위 백업</string>
     <string name="scope_restore">이 적용 범위 복원</string>
     <string name="scope_sort_package">패키지 이름순</string>
