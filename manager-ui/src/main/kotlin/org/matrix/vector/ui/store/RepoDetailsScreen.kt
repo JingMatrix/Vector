@@ -331,7 +331,6 @@ fun RepoDetailsScreen(
                     icon = Icons.Rounded.NotificationsOff,
                     checked = muted,
                     onCheckedChange = viewModel::setUpdatesMuted,
-                    subtitle = stringResource(UiR.string.store_mute_updates_summary),
                 )
             }
         }

@@ -540,7 +540,6 @@ private fun ModuleUpdateSection(
         icon = Icons.Rounded.NotificationsOff,
         checked = packageName in muted,
         onCheckedChange = { settings.setUpdatesMuted(packageName, it) },
-        subtitle = stringResource(UiR.string.store_mute_updates_summary),
     )
 
     if (onOpenStore != null) {
