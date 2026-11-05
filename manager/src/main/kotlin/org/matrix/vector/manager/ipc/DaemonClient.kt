@@ -267,11 +267,8 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     }
 
     /**
-     * Installs a module another user already holds into [userId].
-     *
-     * No APK travels: the device keeps one copy per package name and this flips whether [userId]
-     * has it. It is the only way the manager can put a module into a profile it does not run in,
-     * and so the only way a profile with no modules ever gets its first one.
+     * Installs a package another user already holds into [userId]. No APK travels: the device
+     * keeps one copy per package name and this flips whether [userId] has it.
      */
     suspend fun installExistingPackageAsUser(packageName: String, userId: Int): Result<Boolean> =
         runIpc { it.installExistingPackageAsUser(packageName, userId) }
@@ -279,25 +276,15 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     suspend fun isSepolicyLoaded(): Result<Boolean> = runIpc { it.isSepolicyLoaded }
 
     /**
-     * Which users hold [packageName].
-     *
-     * Answered by the daemon per user rather than read out of a package list here: the lists this
-     * manager caches are each filtered for their own purpose — the app list drops packages with no
-     * process, the module scan is only modules — so neither can be asked about an arbitrary
-     * package. Empty is also what a daemon that cannot reach the user service answers, which is
-     * why callers subtract this from [getUsers] rather than inverting it against a user list of
-     * their own.
+     * Which users hold [packageName]. Asked of the daemon rather than read from a cached list,
+     * since each of those is filtered for its own purpose. Empty also means a user service out of
+     * reach, which is why callers subtract it from [getUsers] rather than inverting it.
      */
     suspend fun getPackageUsers(packageName: String): Result<List<Int>> = runIpc {
         it.getPackageUsers(packageName).toList()
     }
 
-    /**
-     * A user's photo, decoded, or null when it has none - which is most users.
-     *
-     * Decoded here rather than handed on as a descriptor, because a descriptor has to be closed
-     * and a composable that forgets leaks one per recomposition.
-     */
+    /** A user's photo, decoded, or null when it has none. Decoded here so no descriptor escapes. */
     suspend fun getUserIcon(userId: Int): Result<Bitmap?> = runIpc { service ->
         service.getUserIcon(userId)?.use { BitmapFactory.decodeFileDescriptor(it.fileDescriptor) }
     }
@@ -370,10 +357,8 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
     }
 
     /**
-     * Whether this module's copy in [userId] takes newly installed apps.
-     *
-     * [userId] is the module's own user, the one whose scope screen is open — not a user whose
-     * apps are being asked about. The same module in another profile answers separately.
+     * Whether this module's copy in [userId] takes newly installed apps. [userId] is the module's
+     * own user, not a user whose apps are being asked about.
      */
     suspend fun getIncludeNewApps(packageName: String, userId: Int): Result<Boolean> = runIpc {
         it.getIncludeNewApps(packageName, userId)

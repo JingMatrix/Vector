@@ -93,27 +93,18 @@ class AppRepository(
      * held only by a work profile is still seen, and it must *not* set `filterNoProcess`, because a
      * module with no components of its own is still a module.
      *
-     * Shared because the module list is the heaviest caller of it and had nothing stopping it
-     * running against itself. Every package event drops the caches and bumps the revision this
-     * feeds, and that event arrives twice by design — once from the platform, once from the
-     * daemon's re-broadcast — so a single install started two full enumerations, and a device whose
-     * packages churn kept dozens alive at once. That is not a slow path, it is a broken one: each
-     * enumeration pulls every package with its metadata, per user, as a chunked
-     * `ParceledListSlice`, and the daemon's binder heap is a fixed megabyte. One report has 409
-     * `binder_alloc_buf ... failed, no address space` against the daemon, with 687 buffers
-     * outstanding and 577 KB free in blocks too small to hold a 197 KB reply — system_server's
-     * answers failing with ENOSPC not because any one of them was too large, but because sixty
-     * threads were asking at once.
+     * Shared because a package event arrives twice by design — once from the platform, once from
+     * the daemon's re-broadcast — so one install started two full enumerations and a churning
+     * device kept dozens alive. Each pulls every package with its metadata, per user, against a
+     * binder heap that is a fixed megabyte: one report has 409 `binder_alloc_buf ... failed, no
+     * address space` with 687 buffers outstanding.
      *
      * Answers a [Result] rather than a bare list: a failed enumeration is not a device with no
      * packages, and the caller has to be able to tell. Only a success is cached.
      *
-     * [refresh] is for the caller who already knows the cache is stale — a pull on the Modules
-     * panel, or a reload straight after an uninstall. Sharing the enumeration made the cache
-     * authoritative for every reader, and those two readers are exactly the ones for whom it is
-     * not: the cache is dropped only by a package broadcast, so a pull-to-refresh would otherwise
-     * hand back the list it was pulled to replace, and a post-uninstall reload would redraw the
-     * module it had just removed until the broadcast caught up.
+     * [refresh] is for the caller that already knows the cache is stale. Only a package
+     * broadcast drops it, so a pull would otherwise hand back the list it was pulled to replace,
+     * and a post-uninstall reload would redraw what it had just removed.
      */
     suspend fun moduleScanPackages(refresh: Boolean = false): Result<List<PackageInfo>> {
         if (!refresh) {
@@ -132,11 +123,9 @@ class AppRepository(
                         return Result.success(it)
                     }
                 }
-                // A refresh joins a live enumeration rather than racing a second one against it.
-                // One already in flight is at most a few hundred milliseconds old, and never
-                // running two of these at once is the whole point of sharing them — the daemon's
-                // binder heap is a fixed megabyte, and a pull is the one input a person can
-                // repeat as fast as they can move their thumb.
+                // A refresh joins a live enumeration rather than racing a second one: never
+                // running two at once is the point of sharing them, and a pull is the one input a
+                // person can repeat as fast as they can move their thumb.
                 moduleScanInFlight?.takeIf { it.isActive }
                     ?: scope.async(Dispatchers.IO) { fetchModuleScanPackages() }
                         .also { moduleScanInFlight = it }

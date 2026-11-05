@@ -178,17 +178,10 @@ fun PackageActionSheet(
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
-    // The users this package could still be put into: every user the device has, less the ones
-    // already holding it. Both halves come from the daemon, which is the only side that can see
-    // another profile at all — and which is asked about *this* package rather than handed a list
-    // to filter, because every package list the manager caches is filtered for its own purpose.
-    // The module list's own tabs would have answered for a module, but only for the users it
-    // draws: a profile holding no modules has no tab, and that is exactly the profile worth
-    // offering.
-    //
-    // Offered for an app as well as a module. A profile cannot be given a module it lacks from
-    // anywhere else in the product, and it cannot be given an app to hook either; the sheet is
-    // where a package's own actions already live.
+    // Every user the device has, less the ones already holding this package. Asked of the
+    // daemon about *this* package rather than filtered from a cached list, since each of those is
+    // filtered for its own purpose — and the module list's tabs cover only users it draws, while
+    // a profile holding no modules has no tab and is exactly the one worth offering.
     var installTargets by remember(packageName) { mutableStateOf<List<DeviceUser>>(emptyList()) }
     var choosingUser by remember { mutableStateOf(false) }
     // Not the framework: it is a scope target rather than an installed package, so there is no
@@ -201,11 +194,9 @@ fun PackageActionSheet(
                     .getUsers()
                     .onFailure { e -> logW("actions: user list for $packageName failed", e) }
                     .getOrDefault(emptyList())
-            // Subtracted from the user list rather than inverted on its own, because the daemon
-            // answers empty both for "no user holds it" and for a user service it cannot reach.
-            // Under that failure the user list is empty too, so the difference is empty and the
-            // row stays away — where inverting an empty holder set against a user list of our own
-            // would offer every user on the device.
+            // Subtracted from the user list rather than inverted: the daemon answers empty
+            // both for "no user holds it" and for a user service out of reach, and under that
+            // failure the user list is empty too, so the difference stays empty.
             val holders =
                 daemonService
                     .getPackageUsers(packageName)
@@ -264,24 +255,14 @@ fun PackageActionSheet(
     // screen would open at full height and could not be made smaller.
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
 
-    // The sheet is never shorter than the stop it is supposed to open at.
+    // Never shorter than the stop it opens at.
     //
-    // Material offers the PartiallyExpanded anchor only to a sheet taller than half its container,
-    // and places it at exactly half. Three of the rows below are decided by a binder call -- the
-    // companion row by `findAppUi`, the install row by `getUsers` and `getPackageUsers` -- so the
-    // sheet is first measured without them, lands on the short side of that line, and is given no
-    // such anchor: `show()` picks PartiallyExpanded, loses it one frame later, and retargets to
-    // Expanded. The rows then arrive mid-animation, the sheet crosses the line, the anchor appears,
-    // and the correction is deferred until the animation ends and applied as a snap. Measured on a
-    // 2400px screen: 1131px without those rows, 1483 with, against a stop at 1200 -- it opened at
-    // full height and jumped down a third of a second later.
-    //
-    // A floor at the stop takes the question away rather than racing it. The anchor exists at the
-    // first measure whatever has answered by then, so the target chosen when the sheet is shown is
-    // the one it keeps, on any screen, in any locale, however slow the daemon is. Dragging up to
-    // Expanded is untouched, and a sheet with little in it now opens at the same height as every
-    // other rather than at its own -- which is the point: where it opens stops depending on what
-    // happens to be in it.
+    // Material offers the PartiallyExpanded anchor only to a sheet taller than half its container
+    // and places it at exactly half. Three rows below wait on a binder call, so the sheet is first
+    // measured without them, lands short of that line and is given no anchor: it retargets to
+    // Expanded, the rows arrive mid-animation, and the correction lands as a snap. Measured at
+    // 1131px without them and 1483 with, against a stop at 1200. A floor at the stop makes the
+    // first target the one it keeps, whatever has answered by then. Dragging up is untouched.
     val minSheetHeight =
         with(LocalDensity.current) {
             // One pixel past half, because the anchor is offered to a sheet *taller* than half.
@@ -329,9 +310,7 @@ fun PackageActionSheet(
                     )
                     Spacer(Modifier.height(8.dp))
                     // A row rather than a text button: a profile is recognised by its picture
-                    // before its name, and on a device where two of them are called something
-                    // like "Work" and "Work profile" the picture is the only thing that tells
-                    // them apart at a glance.
+                    // before its name.
                     installTargets.forEach { target ->
                         val label = target.name ?: target.id.toString()
                         Row(
@@ -400,9 +379,8 @@ LocalizedOverlay {
             )
         }
 
-        // Collected rather than emitted where they are written, so the order can be the
-        // reader's. Each entry keeps its own condition: a row nobody can use is still absent
-        // rather than present and inert.
+        // Collected rather than emitted where written, so the order can be the reader's. Each
+        // keeps its own condition: an unusable row is absent, not present and inert.
         val rows = remember { mutableListOf<Pair<ActionId, @Composable () -> Unit>>() }
         rows.clear()
         fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
@@ -549,17 +527,14 @@ LocalizedOverlay {
             }
         }
 
-        // Only when there is a user this package is not already in. One every profile holds would
-        // otherwise carry a row whose whole function is to report that there is nowhere to send
-        // it, and on a single-user device — which is most of them — the row would never do
-        // anything at all.
+        // Only when some user lacks it. Otherwise the row's whole function is to report that
+        // there is nowhere to send it, and on a single-user device it would never do anything.
         row(ActionId.InstallOtherUser, installTargets.isNotEmpty()) {
             ActionDrawerItem(
                 icon = Icons.Rounded.PersonAdd,
                 title = stringResource(R.string.action_install_other_user),
-                // A module is put into a profile so it can be scoped there; an app is put there so
-                // a module already in that profile can reach it. Same call, opposite ends of the
-                // same relation, so saying "this module" over a hook target would be wrong.
+                // Opposite ends of the same relation: a module goes into a profile to be
+                // scoped there, an app so a module already there can reach it.
                 subtitle =
                     stringResource(
                         if (isModule) R.string.action_install_other_user_summary
@@ -606,16 +581,12 @@ LocalizedOverlay {
 }
 
 /**
- * The collected rows, in the reader's order, each one draggable into another place.
+ * The collected rows, in the reader's order, each draggable into another place.
  *
- * Long press then drag, rather than a handle behind an edit mode. A plain drag anywhere on this
- * sheet already means "move the sheet", and that has to keep working; long press is the one
- * gesture these rows do not use, and `detectDragGesturesAfterLongPress` only starts consuming
- * once the press has been held, so the two never contend for the same movement.
- *
- * Heights are measured rather than assumed, because the rows are not the same height: one with a
- * subtitle is half again as tall as one without, and a swap decided on an average would jump two
- * places in one direction and none in the other.
+ * Long press then drag, not a handle behind an edit mode: a plain drag already means "move the
+ * sheet" and has to keep working, and `detectDragGesturesAfterLongPress` consumes nothing until
+ * the press is held, so the two never contend. Heights are measured because the rows differ —
+ * a swap decided on an average would jump two places one way and none the other.
  */
 @Composable
 private fun ColumnScope.OrderedActions(kind: String, rows: List<Pair<ActionId, @Composable () -> Unit>>) {
@@ -663,20 +634,17 @@ private fun ColumnScope.OrderedActions(kind: String, rows: List<Pair<ActionId, @
                             change.consume()
                             offset += amount.y
                             val at = order.indexOf(id)
-                            // One neighbour at a time: past half of the row being crossed, the two
-                            // swap and that row's height comes off the offset, so the dragged row
-                            // stays under the finger rather than drifting from it.
+                            // One neighbour at a time: past half the row being crossed they
+                            // swap and its height comes off the offset, so the dragged row stays
+                            // under the finger.
                             val step = if (offset > 0) 1 else -1
                             val next = order.getOrNull(at + step) ?: return@detectDragGesturesAfterLongPress
                             val span = heights[next] ?: return@detectDragGesturesAfterLongPress
                             if (abs(offset) > span / 2f) {
                                 order = order.toMutableList().apply { add(at + step, removeAt(at)) }
                                 offset -= step * span
-                                // Stored on the swap rather than when the finger lifts. The sheet
-                                // is itself draggable and takes the pointer back if the drag
-                                // strays, which ends the gesture as a cancel -- and an order kept
-                                // until an end that never comes is an order the reader watched
-                                // move and then lost.
+                                // On the swap, not when the finger lifts: the sheet takes the
+                                // pointer back if the drag strays, ending the gesture as a cancel.
                                 settings.setActionOrder(kind, order.map { it.name })
                             }
                         }
@@ -883,11 +851,8 @@ private fun ModuleUpdateSection(
 }
 
 /**
- * A user's photo, or a letter in a circle when it has none.
- *
- * Most users have never been given one, so the circle is the ordinary case rather than a failure.
- * Its colour comes from the user id, so two profiles are told apart at a glance and the same
- * profile looks the same every time it is offered.
+ * A user's photo, or a letter in a circle when it has none — which is most users, so the circle is
+ * the ordinary case. Its colour comes from the user id, so one profile looks the same every time.
  */
 @Composable
 private fun UserAvatar(userId: Int, name: String) {

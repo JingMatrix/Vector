@@ -121,12 +121,9 @@ class ModulesViewModel(
     /**
      * Whether the last scan failed to read the installed packages at all.
      *
-     * Separate from [daemonAvailable], which is set from the user list: the daemon can answer that
-     * and still fail to enumerate packages, because enumerating is the expensive half and the half
-     * that runs its binder heap out. Both of those come back as no modules, and "no modules
-     * installed" is a claim about the device that neither of them supports. Without this the panel
-     * reported a failed enumeration as an empty one, which is the same mistake one level up that
-     * the daemon stopped making per user.
+     * Separate from [daemonAvailable], which comes from the user list: the daemon can answer that
+     * and still fail to enumerate, since enumerating is the half that runs its binder heap out.
+     * Both arrive as no modules, and "no modules installed" is a claim neither supports.
      */
     private val _scanFailed = MutableStateFlow(false)
     val scanFailed: StateFlow<Boolean> = _scanFailed.asStateFlow()
@@ -398,12 +395,8 @@ class ModulesViewModel(
     }
 
     /**
-     * Rediscovers the installed modules.
-     *
-     * [refresh] goes through to the shared enumeration and says "do not answer me from the cache".
-     * Set by a pull and by the reload after an uninstall, which are the two callers who know the
-     * cached list is behind the device; everything else arrives either on a package broadcast,
-     * which has already dropped the cache, or on first open, where there is nothing to be behind.
+     * Rediscovers the installed modules. [refresh] says "not from the cache", and is set by a pull
+     * and by the reload after an uninstall — the two callers that know the cache is behind.
      */
     fun loadModules(refresh: Boolean = false) {
         viewModelScope.launch {
@@ -505,12 +498,10 @@ class ModulesViewModel(
         _daemonAvailable.value = usersResult.isSuccess
         val users = usersResult.getOrNull() ?: emptyList()
 
-        // Through the repository rather than straight to the daemon, so that concurrent rescans
-        // join one enumeration instead of each starting their own. This collector is driven by a
-        // package event that is delivered twice on purpose, and the daemon's binder heap is a
-        // fixed megabyte that a handful of these in flight together will exhaust — at which point
-        // it stops being a performance question and becomes a wrong answer, because a per-user
-        // query that fails takes that whole profile out of the list.
+        // Through the repository, so concurrent rescans join one enumeration. The package
+        // event driving this is delivered twice on purpose, and a handful of enumerations at once
+        // exhausts the daemon's binder heap — at which point a failed per-user query takes a whole
+        // profile out of the list.
         val scan = ServiceLocator.apps.moduleScanPackages(refresh)
         scan.onFailure { e -> logE("modules: installed package list unavailable", e) }
         _scanFailed.value = scan.isFailure
@@ -551,10 +542,9 @@ class ModulesViewModel(
                 )
             }
 
-        // Not on a failed scan. [ModuleDetectionCache.flush] retains only the keys whose package
-        // is in the set it is handed, so flushing an empty set while anything else in the process
-        // has marked the cache dirty writes an empty cache to disk — and the next scan that does
-        // succeed then reopens every APK on the device instead of reading a line each.
+        // Not on a failed scan: `flush` keeps only the keys whose package is in the set handed
+        // to it, so flushing the empty set writes an empty cache and makes the next good scan
+        // reopen every APK on the device.
         if (scan.isSuccess) detection.flush(packages.mapTo(mutableSetOf()) { it.packageName })
         // The one number that explains a slow Modules panel: how many APKs this scan had to open.
         // Everything else is a map lookup, so a large figure here on a second run means the cache

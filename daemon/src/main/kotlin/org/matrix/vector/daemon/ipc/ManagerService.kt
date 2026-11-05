@@ -62,11 +62,8 @@ object ManagerService : IManagerService.Stub() {
   private const val UNINSTALL_TIMEOUT_SECONDS = 60L
 
   /**
-   * `PackageManager.INSTALL_SUCCEEDED`, which is hidden and so cannot be named from here.
-   *
-   * The one non-negative code the installer answers with; every failure is a negative
-   * `INSTALL_FAILED_*`. Written out rather than tested as `>= 0` so that a future code that is
-   * neither is treated as the refusal it would be.
+   * `PackageManager.INSTALL_SUCCEEDED`, which is hidden. Written out rather than tested as `>= 0`,
+   * so a future code that is neither success nor a negative `INSTALL_FAILED_*` reads as refusal.
    */
   private const val INSTALL_SUCCEEDED = 1
 
@@ -326,14 +323,8 @@ object ManagerService : IManagerService.Stub() {
   /**
    * Puts a package an existing user already holds into another user.
    *
-   * The platform grew a fifth parameter in Android 10 — the permissions to allowlist — and the
-   * daemon still runs on 8.1, so the call is split on the version the parameter arrived in.
-   * Passing `null` for that list is what the shell's own `pm install-existing` passes: it means
-   * "allowlist nothing extra", not "grant nothing", and the package keeps the grants its install
-   * state already implies.
-   *
-   * `INSTALL_REASON_USER` rather than `UNKNOWN`, because a person tapped this in the module list.
-   * The platform records the reason and shows it in `dumpsys package`.
+   * Android 10 grew a fifth parameter, the permissions to allowlist, and this runs on 8.1 too.
+   * `null` there is what `pm install-existing` passes: allowlist nothing extra, not grant nothing.
    */
   override fun installExistingPackageAsUser(packageName: String, userId: Int): Boolean {
     val pm = packageManager ?: return false
@@ -346,10 +337,8 @@ object ManagerService : IManagerService.Stub() {
                 pm.installExistingPackageAsUser(
                     packageName, userId, 0, PackageManager.INSTALL_REASON_USER)
               }
-          // The platform answers with an INSTALL_* code, where the single success is
-          // INSTALL_SUCCEEDED (1) and every refusal is negative. Anything else is a refusal we
-          // have no name for, and reporting it as success would leave the manager claiming a
-          // module is in a profile that never received it.
+          // Reporting an unnamed code as success would leave the manager claiming a module is
+          // in a profile that never received it.
           if (status != INSTALL_SUCCEEDED) {
             Log.w(TAG, "install-existing of $packageName for user $userId answered $status")
           }
@@ -468,17 +457,13 @@ object ManagerService : IManagerService.Stub() {
   }
 
   /**
-   * The users holding [packageName].
+   * The users holding [packageName], by the same `isPackageAvailable` predicate
+   * [getInstalledPackagesFromAllUsers] filters each user's rows by, so both mean one thing by
+   * "holds". One transaction per user: enumerating every package of every user to answer a
+   * question about one package is what exhausts this process's binder heap.
    *
-   * `isPackageAvailable` with hidden packages allowed, which is exactly the predicate
-   * [getInstalledPackagesFromAllUsers] filters each user's rows by — so a user this reports and a
-   * user whose apps the manager draws mean the same thing by "holds". One transaction per user
-   * rather than an enumeration: the question is about one package, and enumerating every package of
-   * every user to answer it is what exhausts this process's binder heap.
-   *
-   * Empty when the user service cannot be reached, which is the same answer as "no user holds it".
-   * Callers subtract this from [getUsers], which is empty under that same failure, so the
-   * difference stays empty rather than becoming every user.
+   * Empty both for "no user holds it" and for a user service out of reach, which is why callers
+   * subtract it from [getUsers] rather than inverting it.
    */
   override fun getPackageUsers(packageName: String): IntArray {
     val pm = packageManager ?: return IntArray(0)
@@ -489,9 +474,8 @@ object ManagerService : IManagerService.Stub() {
   /**
    * The user's photo, opened for the manager to read. Null for a user that has none, which is most.
    *
-   * Reflectively, because the `IUserManager` this compiles against is a stub in a plain Java
-   * library with no Android SDK on its classpath: it can only name classes it declares itself, and
-   * `ParcelFileDescriptor` is not one of them.
+   * Reflectively: the `IUserManager` stub is a plain Java library with no Android SDK on its
+   * classpath, so it can name only the classes it declares and `ParcelFileDescriptor` is not one.
    */
   override fun getUserIcon(userId: Int): ParcelFileDescriptor? {
     val manager = userManager ?: return null

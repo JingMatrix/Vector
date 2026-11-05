@@ -66,10 +66,8 @@ object ModuleDatabase {
   /**
    * Whether this copy of the module takes every newly installed app.
    *
-   * Per user, because a module the owner and a work profile both hold is two copies with two
-   * scopes, and this question is about one of them. The column it replaces could hold only one
-   * answer for the whole device, so turning the switch on from a work profile's scope screen also
-   * turned it on for the owner -- and the next app installed anywhere was then added to both.
+   * Per user: a module two profiles hold is two copies with two scopes, and the column this
+   * replaces held one answer for the whole device.
    */
   fun getIncludeNewApps(packageName: String, userId: Int): Boolean {
     if (packageName == "lspd") return false
@@ -87,11 +85,8 @@ object ModuleDatabase {
   }
 
   /**
-   * The modules auto-including in [userId], which is the user an app has just been installed into.
-   *
-   * Asked per user rather than once for the device: a module that wants new apps in a work profile
-   * is not thereby asking for the owner's, and answering the device-wide question here is what put
-   * an app installed in one user into the scope of a module configured in another.
+   * The modules auto-including in [userId], the user an app has just been installed into. A module
+   * wanting new apps in a work profile is not asking for the owner's.
    */
   fun modulesIncludingNewApps(userId: Int): List<String> {
     val result = mutableListOf<String>()
@@ -427,13 +422,9 @@ object ModuleDatabase {
   /**
    * Sets it for one user.
    *
-   * Refuses a package no module row exists for, which is what the single `UPDATE` this replaces did
-   * by matching nothing: the manager shows the switch as unsaved on a false, and a row written
-   * against a module the daemon does not know would be a setting nothing could ever read back.
-   *
-   * On rather than off is `INSERT OR REPLACE` instead of `OR IGNORE`, so that setting a value the
-   * table already holds still answers true -- the AIDL promises that, and a switch that reported
-   * failure for being already correct would be worse than one that said nothing.
+   * Refuses a package no module row exists for, as the `UPDATE` this replaces did by matching
+   * nothing. `INSERT OR REPLACE` rather than `OR IGNORE`, so writing a value the table already
+   * holds still answers true, which the AIDL promises.
    */
   fun setIncludeNewApps(packageName: String, userId: Int, enabled: Boolean): Boolean {
     if (packageName == "lspd") return false
@@ -456,18 +447,15 @@ object ModuleDatabase {
       db.delete("auto_include", "mid = ? AND user_id = ?", arrayOf(mid.toString(), userId.toString()))
     }
 
-    // As the column this replaces did. The switch changes no scope by itself -- it decides what a
-    // future install does -- so this is kept only because removing it is a separate question from
-    // whether the flag is per user.
+    // As the column this replaces did. The switch changes no scope by itself, so dropping this
+    // is a separate question from whether the flag is per user.
     ConfigCache.requestCacheUpdate()
     return true
   }
 
   /**
-   * The `mid` of a module row, or null when there is none.
-   *
-   * `simpleQueryForLong` throws `SQLiteDoneException` on no row rather than answering, so the
-   * callers that have to tell an unknown package from a known one cannot use it bare.
+   * The `mid` of a module row, or null. `simpleQueryForLong` throws on no row, so a caller that
+   * must tell an unknown package from a known one cannot use it bare.
    */
   private fun moduleIdOf(db: SQLiteDatabase, packageName: String): Long? =
       runCatching {

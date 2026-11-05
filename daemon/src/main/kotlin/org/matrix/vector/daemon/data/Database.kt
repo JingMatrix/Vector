@@ -30,14 +30,10 @@ class Database(context: Context? = FakeContext()) :
             module_pkg_name text NOT NULL UNIQUE,
             apk_path text NOT NULL,
             enabled BOOLEAN DEFAULT 0 CHECK (enabled IN (0, 1)),
-            -- Dead since v5, and read by nothing. `include new apps` is per user now and lives
-            -- in the table below, because this column cannot be: a module is one row keyed by
-            -- package name, so one flag here is one answer for every user at once, and turning
-            -- it on while looking at a work profile turned it on for the owner too.
-            --
-            -- Kept rather than dropped. SQLite gained DROP COLUMN in 3.35 and this project
-            -- supports API 27, whose SQLite is older, so removing it means rebuilding the table
-            -- for a column that costs one byte a module and is never selected.
+            -- Dead since v5, read by nothing: `include new apps` is per user now and lives in
+            -- the table below, which this column cannot be -- one row per package is one answer
+            -- for every user at once. Kept because SQLite gained DROP COLUMN in 3.35 and this
+            -- supports API 27, so removing it means rebuilding the table.
             auto_include BOOLEAN DEFAULT 0 CHECK (auto_include IN (0, 1))
         );
         """
@@ -74,17 +70,10 @@ class Database(context: Context? = FakeContext()) :
     db.execSQL(
         """
         CREATE TABLE IF NOT EXISTS auto_include (
-            -- One row per (module, user) that is auto-including, and the row's existence is the
-            -- whole value: there is no `enabled` column to disagree with it.
-            --
-            -- Per user because the switch is read from a module's scope screen, and that screen is
-            -- opened for one installed copy of the module. A module the owner and a work profile
-            -- both hold is two scopes, so it is two answers to this question as well, and the
-            -- single column this replaces could only ever give one.
-            --
-            -- Keyed by mid rather than by package name so that uninstalling a module takes these
-            -- rows with it, exactly as it takes its scope: a package name that comes back later is
-            -- a different install and inherits nothing it was never given.
+            -- One row per (module, user) that is auto-including; its existence is the whole
+            -- value, with no `enabled` column to disagree with it. Per user because a module two
+            -- profiles hold is two scopes, so it is two answers here too. Keyed by mid, so
+            -- uninstalling takes these rows with it exactly as it takes the module's scope.
             mid integer NOT NULL,
             user_id integer NOT NULL,
             PRIMARY KEY (mid, user_id),
@@ -231,19 +220,10 @@ class Database(context: Context? = FakeContext()) :
           );
           """
               .trimIndent())
-      // What the old column meant in effect was every user: the install handler read it without a
-      // user and added the new package for whichever user the install was in. So the rows that
-      // preserve a person's setting are one per user, and the users are taken from the
-      // configuration itself rather than from `IUserManager` -- a migration runs wherever the
-      // database is first opened, which is early and is not a place to need a system service, and
-      // one that silently found no users would read as "you never turned this on".
-      //
-      // `scope` is the only table that names users, so a device that has scoped something into a
-      // work profile is a device whose profile is kept here. User 0 is unioned in because it
-      // always exists and may well name nothing. A user that neither holds scope nor is 0 loses
-      // the setting, and a user created after the upgrade never had it: both are the new meaning
-      // of the switch rather than a gap in it, since nothing can say a person wanted this in a
-      // profile they have never configured.
+      // The old column meant every user in effect, so one row per user preserves it. The users
+      // come from `scope`, the only table naming any, unioned with user 0 -- not from
+      // `IUserManager`: a migration runs wherever the database is first opened, which is early,
+      // and one that silently found no users would read as a setting nobody ever made.
       db.execSQL(
           """
           INSERT OR IGNORE INTO auto_include (mid, user_id)

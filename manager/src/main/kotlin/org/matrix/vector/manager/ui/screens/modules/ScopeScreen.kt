@@ -599,12 +599,9 @@ private fun ScopeSelectMenu(
     hasRecommended: Boolean,
     includeNewApps: Boolean,
     /**
-     * Whether the device has more than one user, which is the only case where the switch needs to
-     * say whose apps it means.
-     *
-     * The setting is per user either way. On a single-user device naming the user would raise a
-     * distinction the reader cannot act on, so the shorter sentence stays there — the same
-     * arrangement the framework row above this uses.
+     * Whether the device has more than one user — the only case where the switch needs to say
+     * whose apps it means. On a single-user device that distinction is one the reader cannot act
+     * on, so the shorter sentence stays, as the framework row above does.
      */
     multipleUsers: Boolean,
     onUseRecommended: () -> Unit,

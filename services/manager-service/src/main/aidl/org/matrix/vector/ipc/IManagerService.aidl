@@ -314,12 +314,10 @@ interface IManagerService {
     /**
      * Whether this copy of a module is given each newly installed app automatically.
      *
-     * <p>Per user, and {@code userId} names which copy is being asked about - not which apps it
-     * would take. A module the owner and a work profile both hold is two copies with two scopes,
-     * so it is two answers here; a new app is offered only to the copies in the user it was
-     * installed into. This was one flag for the whole device until it was keyed by user, which
-     * meant turning it on from a work profile's scope screen turned it on for the owner, and the
-     * next app installed anywhere was added to both.</p>
+     * <p>{@code userId} names which copy is being asked about, not which apps it would take. A
+     * module two profiles hold is two copies with two scopes, so it is two answers here, and a new
+     * app is offered only to the copies in the user it arrived in. One flag for the whole device
+     * until it was keyed by user.</p>
      *
      * @return false for a package the daemon holds no module row for, and for the framework's own
      *         pseudo-module - so a false here is not evidence that a module exists
@@ -329,9 +327,8 @@ interface IManagerService {
     /**
      * Sets that flag for one user.
      *
-     * <p>Changes nothing about the other users' copies, and changes no scope that already exists:
-     * it decides what the next install does. Switching it off likewise leaves behind the rows it
-     * previously added, as {@link #getModuleScope} describes.</p>
+     * <p>Changes no other user's copy and no scope that already exists: it decides what the next
+     * install does, and switching it off leaves behind the rows it added.</p>
      *
      * @return whether the daemon stored it, which is not whether the call arrived: no row is
      *         written for a package that is not a known module, or for the framework's own
@@ -549,28 +546,19 @@ interface IManagerService {
     /**
      * Which of those users hold this package, by id.
      *
-     * <p>Asked of the platform per user rather than derived from a package list, so it is cheap and
-     * it answers for a package no list the manager holds would carry: {@link
-     * #getInstalledPackagesFromAllUsers} filtered to apps with a process does not include a module
-     * that ships no components, and neither list says anything about a package the caller has not
-     * enumerated. The predicate is the one that call filters each user's rows by, so a user here
-     * and a user whose apps the manager draws are the same notion of "holds".</p>
+     * <p>Asked per user rather than derived from a package list, so it answers for a package no
+     * list the manager caches would carry - each is filtered for its own purpose. The predicate is
+     * the one {@link #getInstalledPackagesFromAllUsers} filters each user's rows by.</p>
      *
-     * <p>Empty for a package no user holds, and empty when the user service cannot be reached -
-     * the two are not distinguished, and a caller that offers an action per user it is missing from
-     * would offer every user on a device whose daemon has just lost that service. Subtract it from
-     * {@link #getUsers}, which is empty under the same failure, and the difference is empty too.
-     * </p>
+     * <p>Empty both for a package no user holds and for a user service out of reach. Subtract it
+     * from {@link #getUsers}, which is empty under the same failure, and the difference is too.</p>
      */
     int[] getPackageUsers(String packageName);
 
     /**
-     * The photo a user has, as a readable descriptor, or null when it has none.
-     *
-     * <p>A descriptor rather than the bytes: the daemon opens a file the manager cannot reach, and
-     * handing over the open file is the whole of what it has to do. Most users have never been
-     * given a photo and answer null, which is the ordinary case and not a failure - the caller
-     * draws its own avatar for them.</p>
+     * The photo a user has, as a readable descriptor, or null when it has none - which is most
+     * users, and the ordinary case rather than a failure. A descriptor rather than the bytes,
+     * since opening a file the manager cannot reach is the whole of the daemon's part.
      */
     @nullable ParcelFileDescriptor getUserIcon(int userId);
 
@@ -636,17 +624,10 @@ interface IManagerService {
     /**
      * Installs a package another user already holds into {@code userId}, without an APK.
      *
-     * <p>Android keeps one APK per package name for the whole device and varies only who has it
-     * installed, so putting a module into a work profile is not a copy - it is the platform's own
-     * {@code installExistingPackageAsUser}, which flips the install state for that user and
-     * nothing else. The module keeps its version, its signature and its uid derivation; only the
-     * user's set of installed packages changes.</p>
-     *
-     * <p>This is what the module list needs to be able to offer at all. A module reaches a
-     * profile's apps only from inside that profile, so a module the owner holds and the profile
-     * does not can never be scoped there - and the manager runs in one user, so without this call
-     * there is nothing in the product that can put it in the other. A profile with no modules is
-     * then a profile that can never get one.</p>
+     * <p>Android keeps one APK per package name and varies only who has it installed, so this is
+     * no copy: the package keeps its version, signature and uid derivation, and only the user's
+     * set of installed packages changes. Without it nothing in the product can put a module into
+     * a profile that lacks one, and a module reaches a profile's apps only from inside it.</p>
      *
      * @return whether the platform reported the install. A user that does not exist, a package no
      *         user holds, and a device-policy refusal all come back false

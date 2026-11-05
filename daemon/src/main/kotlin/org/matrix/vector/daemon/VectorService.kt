@@ -357,10 +357,9 @@ object VectorService : IVectorDaemon.Stub() {
               !intent.getBooleanExtra(Intent.EXTRA_REPLACING, false) &&
               moduleName != null) {
 
-            // Only the modules auto-including in the user this app was installed into. Asked
-            // without a user, this handed the new package to every auto-including module on the
-            // device and then wrote it under the installing user, so an app installed in a work
-            // profile landed in the scope of a module configured only for the owner.
+            // Only the modules auto-including in the user this app arrived in. Asked without
+            // one, an app installed in a work profile landed in the scope of a module configured
+            // only for the owner.
             ModuleDatabase.modulesIncludingNewApps(userId).forEach { xposedModule ->
               val scopeList = ModuleDatabase.getModuleScope(xposedModule) ?: mutableListOf()
 

@@ -382,9 +382,8 @@ fun ModulesScreen(
               // that catches it does not fire for every route in.
               PullToRefreshBox(
                 isRefreshing = isLoading,
-                // Forced past the shared cache: that cache is dropped only by a package
-                // broadcast, and a pull is precisely the gesture for the change no broadcast
-                // brought — one made while the daemon was down, or on a route in that missed it.
+                // Past the shared cache, which only a package broadcast drops: a pull is the
+                // gesture for the change no broadcast brought.
                 onRefresh = { viewModel.loadModules(refresh = true) },
               ) {
                 val modules = tabs[page].modules
@@ -878,9 +877,8 @@ private fun EmptyState(daemonAvailable: Boolean, scanFailed: Boolean, filtered: 
                     stringResource(
                         when {
                             !daemonAvailable -> R.string.modules_no_daemon
-                            // Before the filter, because a narrowed list over a scan that never
-                            // happened is still a scan that never happened, and "no modules match"
-                            // would invite the reader to widen the filter and find nothing.
+                            // Before the filter: "no modules match" would invite the reader to
+                            // widen it and find nothing.
                             scanFailed -> R.string.modules_scan_failed
                             filtered -> R.string.modules_no_match
                             else -> R.string.modules_empty
