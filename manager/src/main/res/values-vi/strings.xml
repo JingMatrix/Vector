@@ -91,6 +91,7 @@
     <string name="egg_one_more">Một lần nữa…</string>
 
     <string name="modules_empty">Chưa cài mô-đun nào.</string>
+    <string name="modules_scan_failed">Không đọc được danh sách gói đã cài nên không rõ thiết bị này có những mô-đun nào. Kéo xuống để thử lại.</string>
     <string name="modules_active_of">%1$d trong %2$d đang bật</string>
     <string name="modules_no_match">Không có mô-đun nào khớp với tìm kiếm hoặc bộ lọc đó.</string>
     <string name="modules_backup">Sao lưu mô-đun</string>

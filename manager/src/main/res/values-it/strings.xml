@@ -96,6 +96,7 @@
     <string name="egg_one_more">Ancora una volta…</string>
 
     <string name="modules_empty">Nessun modulo installato.</string>
+    <string name="modules_scan_failed">Non è stato possibile leggere l\'elenco dei pacchetti installati, quindi non si sa quali moduli abbia questo dispositivo. Tira per riprovare.</string>
     <string name="modules_active_of">%1$d di %2$d attivi</string>
     <string name="modules_no_match">Nessun modulo corrisponde a questa ricerca o a questo filtro.</string>
     <string name="modules_backup">Salva una copia dei moduli</string>

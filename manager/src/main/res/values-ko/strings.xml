@@ -91,6 +91,7 @@
     <string name="egg_one_more">한 번 더…</string>
 
     <string name="modules_empty">설치된 모듈이 없습니다.</string>
+    <string name="modules_scan_failed">설치된 패키지 목록을 읽지 못해 이 기기에 어떤 모듈이 있는지 알 수 없습니다. 당겨서 다시 시도하세요.</string>
     <string name="modules_active_of">%2$d개 중 %1$d개 활성</string>
     <string name="modules_no_match">그 검색어나 필터와 일치하는 모듈이 없습니다.</string>
     <string name="modules_backup">모듈 백업</string>

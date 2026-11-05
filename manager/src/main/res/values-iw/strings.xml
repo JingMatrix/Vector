@@ -110,6 +110,7 @@
     <string name="egg_one_more">עוד פעם אחת…</string>
 
     <string name="modules_empty">לא מותקנים מודולים.</string>
+    <string name="modules_scan_failed">לא ניתן היה לקרוא את רשימת החבילות המותקנות, ולכן לא ידוע אילו מודולים יש במכשיר הזה. משכו כדי לנסות שוב.</string>
     <string name="modules_active_of">%1$d מתוך %2$d פעילים</string>
     <string name="modules_no_match">אין מודול שתואם לחיפוש הזה או לסינון הזה.</string>
     <string name="modules_backup">גיבוי המודולים</string>

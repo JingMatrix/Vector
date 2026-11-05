@@ -96,6 +96,7 @@
     <string name="egg_one_more">Noch ein Mal…</string>
 
     <string name="modules_empty">Keine Module installiert.</string>
+    <string name="modules_scan_failed">Die Liste der installierten Pakete konnte nicht gelesen werden, deshalb ist unbekannt, welche Module dieses Gerät hat. Zum erneuten Versuch ziehen.</string>
     <string name="modules_active_of">%1$d von %2$d aktiv</string>
     <string name="modules_no_match">Kein Modul passt zu dieser Suche oder diesem Filter.</string>
     <string name="modules_backup">Module sichern</string>

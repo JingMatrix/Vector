@@ -223,14 +223,23 @@ fun IPackageManager.getInstalledPackagesFromAllUsers(
     filterNoProcess: Boolean
 ): List<PackageInfo> {
   val result = mutableListOf<PackageInfo>()
-  // Assuming userManager is available in this scope as in original code
-  val users = userManager?.getRealUsers() ?: emptyList()
+  // The same refusal as the per-user term below, one level up, and for the same reason.
+  // `getRealUsers` swallows a null binder and any failure of `IUserManager.getUsers` into an empty
+  // list, so a union over no users is a list of no packages — and there is no device where that is
+  // the truth, because user 0 always exists. Answering it would hand the manager an empty app and
+  // module list and let it draw "No modules installed." over a device full of them, which is the
+  // symptom this whole call is being fixed for. `ConfigCache.rebuild` already refuses an empty
+  // user list for the same reason; this is the call the manager builds every list from.
+  val users = userManager?.getRealUsers().orEmpty()
+  if (users.isEmpty()) throw IllegalStateException("No users to enumerate packages for")
+
+  // Loop-invariant: the reflective method is chosen once by the same version test, so hoisting
+  // this only stops it being recomputed per user.
+  // Passed as Any so the reflective invoke boxes it as Long or Int to match.
+  val flagParam: Any =
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) flags.toLong() else flags
 
   for (user in users) {
-    // We pass flags as Any so the reflective invoke handles Long or Int correctly
-    val flagParam: Any =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) flags.toLong() else flags
-
     // A user the platform would not answer for fails the whole call, as it did before the daemon
     // was rewritten in Kotlin: `PackageService.getInstalledPackagesFromAllUsers` was declared
     // `throws RemoteException` and called `getInstalledPackages` straight, so a dead transaction

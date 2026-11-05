@@ -97,6 +97,7 @@
     <string name="egg_two_more">Ещё два раза…</string>
     <string name="egg_one_more">Ещё раз…</string>
     <string name="modules_empty">Модули не установлены.</string>
+    <string name="modules_scan_failed">Не удалось прочитать список установленных пакетов, поэтому неизвестно, какие модули есть на этом устройстве. Потяните, чтобы повторить.</string>
     <string name="modules_active_of">%1$d из %2$d активны</string>
     <string name="modules_no_match">Ни один модуль не подходит под этот запрос или фильтр.</string>
     <string name="modules_backup">Сохранить модули</string>

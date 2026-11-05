@@ -116,6 +116,7 @@
     <string name="egg_one_more">مرة أخرى…</string>
 
     <string name="modules_empty">لا وحدات مثبّتة.</string>
+    <string name="modules_scan_failed">تعذّرت قراءة قائمة الحِزم المثبّتة، فلا يُعرف ما الوحدات الموجودة على هذا الجهاز. اسحب للمحاولة مرة أخرى.</string>
     <string name="modules_active_of">%1$d من %2$d نشطة</string>
     <string name="modules_no_match">لا وحدة تطابق هذا البحث أو هذه التصفية.</string>
     <string name="modules_backup">نسخ الوحدات احتياطيًا</string>

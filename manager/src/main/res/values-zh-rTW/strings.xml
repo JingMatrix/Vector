@@ -91,6 +91,7 @@
     <string name="egg_one_more">還差一次…</string>
 
     <string name="modules_empty">尚未安裝任何模組。</string>
+    <string name="modules_scan_failed">無法讀取已安裝的套件清單，因此無從得知本裝置有哪些模組。下拉即可重試。</string>
     <string name="modules_active_of">%2$d 個模組中有 %1$d 個已啟用</string>
     <string name="modules_no_match">沒有符合該搜尋或篩選條件的模組。</string>
     <string name="modules_backup">備份模組</string>

@@ -95,6 +95,7 @@
     <string name="egg_one_more">Sekali lagi…</string>
 
     <string name="modules_empty">Belum ada modul terpasang.</string>
+    <string name="modules_scan_failed">Daftar paket terpasang tidak dapat dibaca, jadi tidak diketahui modul apa saja yang ada di perangkat ini. Tarik untuk mencoba lagi.</string>
     <string name="modules_active_of">%1$d dari %2$d aktif</string>
     <string name="modules_no_match">Tidak ada modul yang cocok dengan pencarian atau saringan itu.</string>
     <string name="modules_backup">Cadangkan modul</string>

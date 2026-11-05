@@ -91,6 +91,7 @@
     <string name="egg_one_more">あと 1 回…</string>
 
     <string name="modules_empty">モジュールがインストールされていません。</string>
+    <string name="modules_scan_failed">インストール済みパッケージの一覧を取得できなかったため、この端末にどのモジュールがあるか分かりません。下にスワイプすると再試行します。</string>
     <string name="modules_active_of">%2$d 個中 %1$d 個が有効</string>
     <string name="modules_no_match">その検索や絞り込みに一致するモジュールはありません。</string>
     <string name="modules_backup">モジュールをバックアップ</string>

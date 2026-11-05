@@ -106,6 +106,7 @@
     <string name="egg_one_more">Ще раз…</string>
 
     <string name="modules_empty">Модулів не встановлено.</string>
+    <string name="modules_scan_failed">Не вдалося прочитати перелік установлених пакетів, тож невідомо, які модулі є на цьому пристрої. Потягніть, щоб повторити.</string>
     <string name="modules_active_of">%1$d з %2$d активні</string>
     <string name="modules_no_match">Жоден модуль не відповідає цьому запиту чи фільтру.</string>
     <string name="modules_backup">Створити копію модулів</string>

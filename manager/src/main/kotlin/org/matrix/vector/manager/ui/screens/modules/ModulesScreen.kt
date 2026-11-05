@@ -162,12 +162,17 @@ fun ModulesScreen(
     // with what the list is showing. A user with no modules has no tab and therefore holds none,
     // which is the right answer for every package — and is exactly the user the install action
     // below exists to reach.
-    val holdersOf: (String) -> Set<Int> =
+    //
+    // Built once per tab set rather than computed per row. A lambda that walked the tabs on each
+    // call ran once for every visible row on every recomposition, and handed each row a freshly
+    // built set — equal to the last one but not the same object, which is enough to stop the row
+    // skipping. One map, and every row gets back the identical instance it had before.
+    val holders: Map<String, Set<Int>> =
         remember(tabs) {
-            { pkg ->
-                tabs.filter { tab -> tab.modules.any { it.packageName == pkg } }
-                    .map { it.user.id }
-                    .toSet()
+            buildMap<String, MutableSet<Int>> {
+                tabs.forEach { tab ->
+                    tab.modules.forEach { getOrPut(it.packageName) { mutableSetOf() }.add(tab.user.id) }
+                }
             }
         }
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -177,6 +182,7 @@ fun ModulesScreen(
     val facts by viewModel.facts.collectAsStateWithLifecycle()
     val counts by viewModel.counts.collectAsStateWithLifecycle()
     val daemonAvailable by viewModel.daemonAvailable.collectAsStateWithLifecycle()
+    val scanFailed by viewModel.scanFailed.collectAsStateWithLifecycle()
 
     val selection by viewModel.selection.collectAsStateWithLifecycle()
     val upgradable by viewModel.upgradable.collectAsStateWithLifecycle()
@@ -370,6 +376,7 @@ fun ModulesScreen(
                 // have no modules installed" over a list the filter had just hidden.
                 EmptyState(
                     daemonAvailable = daemonAvailable,
+                    scanFailed = scanFailed,
                     filtered = query.isNotBlank() || filter != ModuleFilter.All,
                 )
                 return@Column
@@ -393,7 +400,10 @@ fun ModulesScreen(
               // that catches it does not fire for every route in.
               PullToRefreshBox(
                 isRefreshing = isLoading,
-                onRefresh = { viewModel.loadModules() },
+                // Forced past the shared cache: that cache is dropped only by a package
+                // broadcast, and a pull is precisely the gesture for the change no broadcast
+                // brought — one made while the daemon was down, or on a route in that missed it.
+                onRefresh = { viewModel.loadModules(refresh = true) },
               ) {
                 val modules = tabs[page].modules
                 // Sections only make sense when the order is by state. Under any other sort the
@@ -425,7 +435,7 @@ fun ModulesScreen(
                             stickyHeader(key = "h:active") {
                                 SectionHeader(stringResource(R.string.modules_section_active), active.size)
                             }
-                            moduleRows(active, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(active, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                         if (inactive.isNotEmpty()) {
                             stickyHeader(key = "h:inactive") {
@@ -434,10 +444,10 @@ fun ModulesScreen(
                                     inactive.size,
                                 )
                             }
-                            moduleRows(inactive, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                            moduleRows(inactive, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                         }
                     } else {
-                        moduleRows(modules, facts, selection, upgradable, holdersOf, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
+                        moduleRows(modules, facts, selection, upgradable, holders, onModuleClick, onOpenStore, viewModel::toggleSelected, ::report)
                     }
                 }
               }
@@ -871,7 +881,7 @@ private fun ApiBadge(module: InstalledModule, incompatible: Boolean) {
 }
 
 @Composable
-private fun EmptyState(daemonAvailable: Boolean, filtered: Boolean) {
+private fun EmptyState(daemonAvailable: Boolean, scanFailed: Boolean, filtered: Boolean) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
@@ -886,6 +896,10 @@ private fun EmptyState(daemonAvailable: Boolean, filtered: Boolean) {
                     stringResource(
                         when {
                             !daemonAvailable -> R.string.modules_no_daemon
+                            // Before the filter, because a narrowed list over a scan that never
+                            // happened is still a scan that never happened, and "no modules match"
+                            // would invite the reader to widen the filter and find nothing.
+                            scanFailed -> R.string.modules_scan_failed
                             filtered -> R.string.modules_no_match
                             else -> R.string.modules_empty
                         }
@@ -918,7 +932,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
     facts: Map<ModuleKey, ModuleFacts>,
     selection: Set<ModuleKey>,
     upgradable: Set<String>,
-    holdersOf: (String) -> Set<Int>,
+    holders: Map<String, Set<Int>>,
     onModuleClick: (String, Int) -> Unit,
     onOpenStore: (String) -> Unit,
     onSelect: (InstalledModule) -> Unit,
@@ -931,7 +945,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.moduleRows(
             hasUpdate = module.packageName in upgradable,
             selected = ModuleKey(module.packageName, module.userId) in selection,
             selectionActive = selection.isNotEmpty(),
-            holders = holdersOf(module.packageName),
+            holders = holders[module.packageName].orEmpty(),
             onClick = { onModuleClick(module.packageName, module.userId) },
             onOpenStore = { onOpenStore(module.packageName) },
             onSelect = { onSelect(module) },

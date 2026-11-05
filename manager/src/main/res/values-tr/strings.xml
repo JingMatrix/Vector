@@ -96,6 +96,7 @@
     <string name="egg_one_more">Bir kez daha…</string>
 
     <string name="modules_empty">Kurulu modül yok.</string>
+    <string name="modules_scan_failed">Kurulu paketlerin listesi okunamadı, bu yüzden bu cihazda hangi modüllerin bulunduğu bilinmiyor. Yeniden denemek için çekin.</string>
     <string name="modules_active_of">%2$d modülden %1$d tanesi etkin</string>
     <string name="modules_no_match">Bu arama veya süzgeçle eşleşen modül yok.</string>
     <string name="modules_backup">Modülleri yedekle</string>

@@ -107,16 +107,36 @@ class AppRepository(
      *
      * Answers a [Result] rather than a bare list: a failed enumeration is not a device with no
      * packages, and the caller has to be able to tell. Only a success is cached.
+     *
+     * [refresh] is for the caller who already knows the cache is stale — a pull on the Modules
+     * panel, or a reload straight after an uninstall. Sharing the enumeration made the cache
+     * authoritative for every reader, and those two readers are exactly the ones for whom it is
+     * not: the cache is dropped only by a package broadcast, so a pull-to-refresh would otherwise
+     * hand back the list it was pulled to replace, and a post-uninstall reload would redraw the
+     * module it had just removed until the broadcast caught up.
      */
-    suspend fun moduleScanPackages(): Result<List<PackageInfo>> {
-        cachedModuleScan?.let {
-            return Result.success(it)
+    suspend fun moduleScanPackages(refresh: Boolean = false): Result<List<PackageInfo>> {
+        if (!refresh) {
+            cachedModuleScan?.let {
+                return Result.success(it)
+            }
         }
         val job =
             moduleScanLock.withLock {
-                cachedModuleScan?.let {
-                    return Result.success(it)
+                if (refresh) {
+                    // Under the lock, so a reader arriving behind this one cannot still be served
+                    // the list the refresh exists to replace.
+                    cachedModuleScan = null
+                } else {
+                    cachedModuleScan?.let {
+                        return Result.success(it)
+                    }
                 }
+                // A refresh joins a live enumeration rather than racing a second one against it.
+                // One already in flight is at most a few hundred milliseconds old, and never
+                // running two of these at once is the whole point of sharing them — the daemon's
+                // binder heap is a fixed megabyte, and a pull is the one input a person can
+                // repeat as fast as they can move their thumb.
                 moduleScanInFlight?.takeIf { it.isActive }
                     ?: scope.async(Dispatchers.IO) { fetchModuleScanPackages() }
                         .also { moduleScanInFlight = it }

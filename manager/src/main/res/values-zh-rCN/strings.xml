@@ -91,6 +91,7 @@
     <string name="egg_one_more">还差一次…</string>
 
     <string name="modules_empty">尚未安装任何模块。</string>
+    <string name="modules_scan_failed">无法读取已安装的软件包列表，因此无从得知本设备有哪些模块。下拉可重试。</string>
     <string name="modules_active_of">%2$d 个模块中有 %1$d 个已启用</string>
     <string name="modules_no_match">没有符合该搜索或筛选条件的模块。</string>
     <string name="modules_backup">备份模块</string>

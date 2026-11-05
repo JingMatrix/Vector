@@ -159,6 +159,7 @@
     <string name="egg_one_more">Jeszcze raz…</string>
     <!-- Modules -->
     <string name="modules_empty">Nie zainstalowano żadnych modułów.</string>
+    <string name="modules_scan_failed">Nie udało się odczytać listy zainstalowanych pakietów, więc nie wiadomo, jakie moduły ma to urządzenie. Pociągnij, aby spróbować ponownie.</string>
     <plurals name="modules_updates">
         <item quantity="one">%1$d moduł można zaktualizować</item>
         <item quantity="few">%1$d moduły można zaktualizować</item>

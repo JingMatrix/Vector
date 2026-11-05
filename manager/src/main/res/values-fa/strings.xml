@@ -96,6 +96,7 @@
     <string name="egg_one_more">یک بار دیگر…</string>
 
     <string name="modules_empty">هیچ ماژولی نصب نشده است.</string>
+    <string name="modules_scan_failed">خواندن فهرست بسته‌های نصب‌شده ممکن نشد، پس دانسته نیست این دستگاه چه ماژول‌هایی دارد. برای تلاش دوباره بکشید.</string>
     <string name="modules_active_of">%1$d از %2$d فعال</string>
     <string name="modules_no_match">ماژولی با این جستجو یا پالایه هم‌خوان نیست.</string>
     <string name="modules_backup">پشتیبان‌گیری از ماژول‌ها</string>
