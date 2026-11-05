@@ -156,7 +156,6 @@ fun ModulesScreen(
     viewModel: ModulesViewModel = viewModel(factory = ModulesViewModelFactory()),
 ) {
     val tabs by viewModel.userModulesTabs.collectAsStateWithLifecycle()
-
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val query by viewModel.query.collectAsStateWithLifecycle()
     val filter by viewModel.filter.collectAsStateWithLifecycle()
@@ -353,14 +352,32 @@ fun ModulesScreen(
             }
 
             if (tabs.isEmpty() || tabs.all { it.modules.isEmpty() }) {
-                // A filter empties the list exactly as a search does, so both count as narrowing.
-                // Otherwise picking "Inactive" on a device where everything is on would say "you
-                // have no modules installed" over a list the filter had just hidden.
-                EmptyState(
-                    daemonAvailable = daemonAvailable,
-                    scanFailed = scanFailed,
-                    filtered = query.isNotBlank() || filter != ModuleFilter.All,
-                )
+                // Pullable like the list is, because this is the state that most needs a retry:
+                // a scan the daemon could not answer says to pull, and there would otherwise be
+                // nothing here to pull. It costs the other two states nothing.
+                PullToRefreshBox(
+                    isRefreshing = isLoading,
+                    onRefresh = { viewModel.loadModules(refresh = true) },
+                ) {
+                    // In a lazy list holding one full-height item, not a plain Box: the pull is
+                    // seen through nested scroll, and something that does not scroll dispatches
+                    // nothing to see. Measured on the device -- over a Box the indicator never
+                    // appeared, however far down the gesture went.
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item {
+                            // A filter empties the list exactly as a search does, so both count
+                            // as narrowing. Otherwise picking "Inactive" on a device where
+                            // everything is on would say "you have no modules installed" over a
+                            // list the filter had just hidden.
+                            EmptyState(
+                                daemonAvailable = daemonAvailable,
+                                scanFailed = scanFailed,
+                                filtered = query.isNotBlank() || filter != ModuleFilter.All,
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
+                        }
+                    }
+                }
                 return@Column
             }
 
@@ -862,8 +879,13 @@ private fun ApiBadge(module: InstalledModule, incompatible: Boolean) {
 }
 
 @Composable
-private fun EmptyState(daemonAvailable: Boolean, scanFailed: Boolean, filtered: Boolean) {
-    Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+private fun EmptyState(
+    daemonAvailable: Boolean,
+    scanFailed: Boolean,
+    filtered: Boolean,
+    modifier: Modifier = Modifier.fillMaxSize(),
+) {
+    Box(modifier = modifier.padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 Icons.Rounded.Extension,

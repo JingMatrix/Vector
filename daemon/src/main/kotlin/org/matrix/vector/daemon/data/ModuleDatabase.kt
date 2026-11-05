@@ -459,9 +459,10 @@ object ModuleDatabase {
    */
   private fun moduleIdOf(db: SQLiteDatabase, packageName: String): Long? =
       runCatching {
-            db.compileStatement("SELECT mid FROM modules WHERE module_pkg_name = ?")
-                .apply { bindString(1, packageName) }
-                .simpleQueryForLong()
+            db.compileStatement("SELECT mid FROM modules WHERE module_pkg_name = ?").use {
+              it.bindString(1, packageName)
+              it.simpleQueryForLong()
+            }
           }
           .getOrNull()
 }
