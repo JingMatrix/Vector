@@ -133,6 +133,23 @@ object VectorDaemon {
 
     applyNotificationWorkaround()
 
+    // Built here, on the way up, rather than by whoever asks about a process first.
+    //
+    // The readiness latch is reached from `attachProcess`, and `attachProcess` is answered inside
+    // the fork it is about: the Zygisk module transacts for its framework binder during
+    // specialization and the process does not continue until the reply arrives. Whichever fork
+    // got there first therefore paid for the whole rebuild — every enabled module's APK parsed,
+    // its dexes read and rewritten, its scope expanded over every user with a package manager
+    // call apiece — and every fork behind it waited on `rebuildLock` for the same work. Each of
+    // those processes is one AMS started and is killed at `PROC_START_TIMEOUT`, ten seconds, with
+    // `failed to attach` and nothing to say what it was waiting for.
+    //
+    // Nothing can attach yet: the binder an injected process looks us up through is published by
+    // `sendToBridge` below, and the four services the rebuild needs are up by the time we get
+    // here. So this is the one point where the work costs nobody anything, and after it the latch
+    // is closed and `attachProcess` never takes the lock again.
+    ConfigCache.ensureCacheReady()
+
     // Read this before `sendToBridge`, which leaves the main thread at euid 1000: the config
     // database lives under a directory only root can enter, so the first process to open it has
     // to do so while we still have root. On a successful injection a binder thread opens it for

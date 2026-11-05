@@ -65,7 +65,15 @@ object ConfigCache {
     applySqliteHelperWorkaround()
   }
 
-  private fun ensureCacheReady() {
+  /**
+   * Builds the module set and the scope map unless they have been built already.
+   *
+   * Not private, because the daemon's `main` calls it on the way up. Every other caller reaches it
+   * through a query that must not be answered from an empty cache, and the first of those used to
+   * be an app process attaching — which paid for the whole rebuild inside its own fork. The note
+   * in `main` has the rest of it.
+   */
+  internal fun ensureCacheReady() {
     if (!state.isCacheReady && packageManager?.asBinder()?.isBinderAlive == true) {
       // The rebuild lock, not `this`: this is the one place that starts a rebuild without going
       // through the channel, so it has to queue behind a rebuild already in flight rather than
@@ -75,8 +83,14 @@ object ConfigCache {
           Log.i(TAG, "System services are ready. Mapping modules and scopes.")
           updateManager(false)
           setupMiscPath()
-          performCacheUpdate()
-          synchronized(this) { state = state.copy(isCacheReady = true) }
+          // Latched only if a state was actually published. It used to be latched whatever
+          // happened, so a rebuild that bailed because the user service had not answered left an
+          // empty module set marked as the finished one: every process skipped, for the life of
+          // the daemon, with the framework reporting itself as up. The two reasons a rebuild bails
+          // are both cheap to re-reach, so the next caller simply tries again.
+          if (performCacheUpdate()) {
+            synchronized(this) { state = state.copy(isCacheReady = true) }
+          }
         }
       }
     }
@@ -142,10 +156,16 @@ object ConfigCache {
     cacheUpdateChannel.trySend(Unit)
   }
 
-  /** Builds a completely new Immutable State and atomically swaps it. */
-  private fun performCacheUpdate() {
+  /**
+   * Builds a completely new Immutable State and atomically swaps it.
+   *
+   * @return whether a state was published. False means the question could not be asked — no
+   *   package manager, or no user list — which is not the same answer as "nothing is configured"
+   *   and must not be latched as a finished rebuild.
+   */
+  private fun performCacheUpdate(): Boolean {
     synchronized(rebuildLock) {
-      if (packageManager == null) return
+      if (packageManager == null) return false
 
       Log.d(TAG, "Executing Cache Update...")
       val oldState = state
@@ -187,7 +207,7 @@ object ConfigCache {
         if (users.isEmpty()) {
           Log.w(
               TAG, "No users available; skipping this rebuild rather than assuming nothing exists")
-          return
+          return false
         }
         // Every user, not the first one that answers, because which users hold the module is what
         // keeps it out of a user that never installed it.
@@ -453,6 +473,7 @@ object ConfigCache {
       //   Log.d(TAG, "${ps.processName}/${ps.uid}")
       //   modules.forEach { mod -> Log.d(TAG, "\t${mod.packageName}") }
       // }
+      return true
     }
   }
 
