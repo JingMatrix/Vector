@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
@@ -59,6 +60,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.matrix.vector.ui.ActionDrawerItem
 import org.matrix.vector.ui.store.ConfirmInstall
@@ -219,9 +222,32 @@ fun PackageActionSheet(
     val colors = MaterialTheme.colorScheme
     // Every value left enabled, rather than dropping PartiallyExpanded: that stop is the only
     // thing a drag on a sheet can *do* other than dismiss it, so a sheet taller than half the
-    // screen would open at full height and could not be made smaller. Material caps the stop at
-    // the sheet's own height, so short sheets still open at that height and gain no useless drag.
+    // screen would open at full height and could not be made smaller.
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+
+    // The sheet is never shorter than the stop it is supposed to open at.
+    //
+    // Material offers the PartiallyExpanded anchor only to a sheet taller than half its container,
+    // and places it at exactly half. Three of the rows below are decided by a binder call -- the
+    // companion row by `findAppUi`, the install row by `getUsers` and `getPackageUsers` -- so the
+    // sheet is first measured without them, lands on the short side of that line, and is given no
+    // such anchor: `show()` picks PartiallyExpanded, loses it one frame later, and retargets to
+    // Expanded. The rows then arrive mid-animation, the sheet crosses the line, the anchor appears,
+    // and the correction is deferred until the animation ends and applied as a snap. Measured on a
+    // 2400px screen: 1131px without those rows, 1483 with, against a stop at 1200 -- it opened at
+    // full height and jumped down a third of a second later.
+    //
+    // A floor at the stop takes the question away rather than racing it. The anchor exists at the
+    // first measure whatever has answered by then, so the target chosen when the sheet is shown is
+    // the one it keeps, on any screen, in any locale, however slow the daemon is. Dragging up to
+    // Expanded is untouched, and a sheet with little in it now opens at the same height as every
+    // other rather than at its own -- which is the point: where it opens stops depending on what
+    // happens to be in it.
+    val minSheetHeight =
+        with(LocalDensity.current) {
+            // One pixel past half, because the anchor is offered to a sheet *taller* than half.
+            (LocalWindowInfo.current.containerSize.height / 2 + 1).toDp()
+        }
 
     // `Dispatchers.Main` because [onResult] reaches a snackbar on the screen underneath, and
     // because that is the thread the composition scope this replaces used to resume on.
@@ -293,7 +319,11 @@ fun PackageActionSheet(
         )
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.heightIn(min = minSheetHeight),
+        sheetState = sheetState,
+    ) {
 LocalizedOverlay {
 
         Row(
