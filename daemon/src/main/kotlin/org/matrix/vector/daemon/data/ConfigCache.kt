@@ -489,9 +489,18 @@ object ConfigCache {
 
   fun getModulesForSystemServer(): List<LoadedModule> {
     val modules = mutableListOf<LoadedModule>()
+    // AOSP grants this one — `allow system_server self:process execmem` is in system_server.te —
+    // so unlike the rules in `sepolicy.rule` there is nothing of ours to have failed to apply, and
+    // nothing this framework can add. Named in full all the same: the message said "execmem
+    // denied" and left a reader to guess which domain was refused what, on the one path whose
+    // failure is an empty module set and a system server that looks injected.
     if (!android.os.SELinux.checkSELinuxAccess(
         "u:r:system_server:s0", "u:r:system_server:s0", "process", "execmem")) {
-      Log.e(TAG, "Skipping system_server injection: sepolicy execmem denied")
+      Log.e(
+          TAG,
+          "Skipping system_server injection: sepolicy denies " +
+              "`u:r:system_server:s0 u:r:system_server:s0:process execmem`, which LSPlant needs " +
+              "to write a trampoline")
       return modules
     }
 

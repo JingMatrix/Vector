@@ -443,9 +443,87 @@ object ManagerService : IManagerService.Stub() {
     return result
   }
 
-  override fun isSepolicyLoaded() =
-      SELinux.checkSELinuxAccess(
-          "u:r:dex2oat:s0", "u:object_r:dex2oat_exec:s0", "file", "execute_no_trans")
+  /**
+   * One access `sepolicy.rule` grants, and what stops working without it.
+   *
+   * Spelled as the four arguments of [SELinux.checkSELinuxAccess], in that order, so that what the
+   * log names is what a reader can check for themselves.
+   */
+  private class SepolicyGrant(
+      val source: String,
+      val target: String,
+      val clazz: String,
+      val permission: String,
+      val needs: String,
+  ) {
+    override fun toString() = "$source $target $clazz $permission"
+  }
+
+  /**
+   * What `zygisk/module/sepolicy.rule` has to have granted for this framework to work.
+   *
+   * Not the whole file: these are the accesses something later fails without, and each one also
+   * stands for the statements it depends on — a probe against `xposed_file` answers false if the
+   * `type` that declares it never landed either.
+   *
+   * The root solution applies that file, and some of them apply it a statement at a time and
+   * carry on past one they reject: KernelSU answers `sepol: cmd #N failed` in the kernel log for
+   * each, and a late-loaded LKM may never reach the stage that applies it at all. So a partly
+   * applied policy is an ordinary state, not a corrupt one, and it is why one probe is not enough
+   * to describe it.
+   */
+  private val sepolicyGrants =
+      listOf(
+          SepolicyGrant(
+              "u:r:system_server:s0",
+              "u:object_r:default_android_service:s0",
+              "service_manager",
+              "find",
+              "system_server cannot look up the rendezvous service, so nothing is injected"),
+          SepolicyGrant(
+              "u:r:dex2oat:s0",
+              "u:object_r:dex2oat_exec:s0",
+              "file",
+              "execute_no_trans",
+              "the dex2oat wrapper cannot run, so module code is not compiled"),
+          SepolicyGrant(
+              "u:r:dex2oat:s0",
+              "u:object_r:xposed_file:s0",
+              "file",
+              "read",
+              "dex2oat cannot read what it is asked to compile"),
+          SepolicyGrant(
+              "u:r:system_server:s0",
+              "u:object_r:xposed_data:s0",
+              "file",
+              "read",
+              "a module cannot read its own preferences in system_server"),
+      )
+
+  /** What [isSepolicyLoaded] last wrote to the log, so a status refresh does not repeat it. */
+  @Volatile private var reportedSepolicyDenials: List<String>? = null
+
+  /**
+   * Whether every access in [sepolicyGrants] is granted, naming each one that is not.
+   *
+   * The manager shows one row for this, which is all it can show: none of these is individually
+   * actionable by a user, and what to do about any of them is the same thing. The log is where the
+   * answer stops being a single bit, because "not loaded" on its own sends a reader looking at
+   * their modules. Written once per distinct answer, since the status page asks again on every
+   * refresh.
+   */
+  override fun isSepolicyLoaded(): Boolean {
+    val denied =
+        sepolicyGrants.filterNot {
+          SELinux.checkSELinuxAccess(it.source, it.target, it.clazz, it.permission)
+        }
+    val names = denied.map { it.toString() }
+    if (names != reportedSepolicyDenials) {
+      reportedSepolicyDenials = names
+      denied.forEach { Log.w(TAG, "sepolicy denies `$it`: ${it.needs}") }
+    }
+    return denied.isEmpty()
+  }
 
   override fun getUsers(): List<DeviceUser> {
     return userManager?.getRealUsers()?.map {
