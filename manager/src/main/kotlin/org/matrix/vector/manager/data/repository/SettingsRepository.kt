@@ -519,6 +519,25 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
         _dohEnabled.value = enabled
     }
 
+    /**
+     * The order the long-press sheet lists its actions in, per kind of package.
+     *
+     * Ids rather than indices, so an action added or retired in a later build does not shuffle the
+     * rest: one the stored order does not name keeps its place in declaration order, and a name the
+     * build no longer has is ignored. Empty until someone drags something, which is the usual case.
+     */
+    fun actionOrder(kind: String): List<String> =
+        prefs.getString("action_order_$kind", "").orEmpty().split(',').filter { it.isNotEmpty() }
+
+    fun setActionOrder(kind: String, ids: List<String>) {
+        prefs.edit().putString("action_order_$kind", ids.joinToString(",")).apply()
+        _actionOrderRevision.value++
+    }
+
+    /** Bumped on every write, so a sheet already open re-reads the order it is drawing from. */
+    private val _actionOrderRevision = MutableStateFlow(0)
+    val actionOrderRevision: StateFlow<Int> = _actionOrderRevision.asStateFlow()
+
     private companion object {
         /** The Winged Victory's patina. Kept as a literal so this file needs no UI imports. */
         const val DEFAULT_SEED_COLOR = 0xFF6ABFCF.toInt()

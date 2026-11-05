@@ -1,5 +1,7 @@
 package org.matrix.vector.manager.ui.components
 
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import org.matrix.vector.ui.AppIcon
 import org.matrix.vector.ui.SnackbarTone
 import org.matrix.vector.ui.SharedAlertDialog
@@ -13,13 +15,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -44,6 +49,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -68,6 +77,8 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -86,6 +97,23 @@ import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel
 import org.matrix.vector.manager.ui.screens.modules.ScopeViewModel.Companion.SYSTEM_FRAMEWORK_PACKAGE
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.ui.theme.Mono
+
+/**
+ * The actions the long-press sheet can offer, named so an order can outlive them.
+ *
+ * Declaration order is the default order. A stored order names ids, so an action added or retired
+ * in a later build leaves the rest where they are: one nobody has dragged keeps its place here, and
+ * a name this build no longer has is ignored when the order is read back.
+ */
+private enum class ActionId {
+    Open,
+    AppInfo,
+    SoftReboot,
+    ForceStop,
+    Reoptimize,
+    InstallOtherUser,
+    Uninstall,
+}
 
 /** What a long press did, and how it went. */
 data class PackageActionResult(
@@ -372,11 +400,20 @@ LocalizedOverlay {
             )
         }
 
+        // Collected rather than emitted where they are written, so the order can be the
+        // reader's. Each entry keeps its own condition: a row nobody can use is still absent
+        // rather than present and inert.
+        val rows = remember { mutableListOf<Pair<ActionId, @Composable () -> Unit>>() }
+        rows.clear()
+        fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
+            if (show) rows.add(id to content)
+        }
+
         // A module is not an app you "open" — most have nothing to look at. What it may have is a
         // companion: the screen its author wrote to configure it, which is what the Xposed settings
         // category marks. Naming it that way is the difference between a control that looks
         // pointless and one that says what it is for.
-        if (!isSystemFramework && openable == true)
+        row(ActionId.Open, !isSystemFramework && openable == true) {
         ActionDrawerItem(
             icon = Icons.AutoMirrored.Rounded.Launch,
             title =
@@ -404,7 +441,9 @@ LocalizedOverlay {
             }
         }
 
-        if (!isSystemFramework)
+        }
+
+        row(ActionId.AppInfo, !isSystemFramework) {
         ActionDrawerItem(icon = Icons.Rounded.Info, title = stringResource(R.string.action_app_info)) {
             finish {
                 val intent =
@@ -432,13 +471,14 @@ LocalizedOverlay {
                 PackageActionResult(R.string.action_opened_info)
             }
         }
+        }
 
         // Force-stopping the framework is a soft reboot, and calling it anything else would hide
         // what the button does: the daemon restarts the primary zygote, so `system_server` and
         // every app forked from it go down together. Named and explained accordingly, and
         // confirmed first — this is the one action on this sheet that ends what the reader is
         // doing everywhere else on the phone.
-        if (isSystemFramework) {
+        row(ActionId.SoftReboot, isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.RestartAlt,
                 title = stringResource(R.string.action_soft_reboot),
@@ -447,7 +487,9 @@ LocalizedOverlay {
             ) {
                 confirmSoftReboot = true
             }
-        } else {
+        }
+
+        row(ActionId.ForceStop, !isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.Stop,
                 title = stringResource(R.string.action_force_stop),
@@ -474,7 +516,7 @@ LocalizedOverlay {
         // Only for a hook target. Re-optimizing recompiles an app so that ART stops inlining the
         // methods a module wants to hook — which is about the app being hooked, not about the
         // module doing the hooking, so on a module it would be an expensive button for nothing.
-        if (!isModule && !isSystemFramework) {
+        row(ActionId.Reoptimize, !isModule && !isSystemFramework) {
             ActionDrawerItem(
                 icon = Icons.Rounded.Bolt,
                 title = stringResource(R.string.action_optimize),
@@ -511,7 +553,7 @@ LocalizedOverlay {
         // otherwise carry a row whose whole function is to report that there is nowhere to send
         // it, and on a single-user device — which is most of them — the row would never do
         // anything at all.
-        if (installTargets.isNotEmpty()) {
+        row(ActionId.InstallOtherUser, installTargets.isNotEmpty()) {
             ActionDrawerItem(
                 icon = Icons.Rounded.PersonAdd,
                 title = stringResource(R.string.action_install_other_user),
@@ -529,7 +571,7 @@ LocalizedOverlay {
             }
         }
 
-        if (isModule) {
+        row(ActionId.Uninstall, isModule) {
             HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
             ActionDrawerItem(
                 icon = Icons.Rounded.Delete,
@@ -556,9 +598,93 @@ LocalizedOverlay {
             }
         }
 
+        OrderedActions(kind = if (isModule) "module" else "app", rows = rows.toList())
+
         Spacer(Modifier.height(24.dp))
     }
 }
+}
+
+/**
+ * The collected rows, in the reader's order, each one draggable into another place.
+ *
+ * Long press then drag, rather than a handle behind an edit mode. A plain drag anywhere on this
+ * sheet already means "move the sheet", and that has to keep working; long press is the one
+ * gesture these rows do not use, and `detectDragGesturesAfterLongPress` only starts consuming
+ * once the press has been held, so the two never contend for the same movement.
+ *
+ * Heights are measured rather than assumed, because the rows are not the same height: one with a
+ * subtitle is half again as tall as one without, and a swap decided on an average would jump two
+ * places in one direction and none in the other.
+ */
+@Composable
+private fun ColumnScope.OrderedActions(kind: String, rows: List<Pair<ActionId, @Composable () -> Unit>>) {
+    val settings = ServiceLocator.settings
+    val revision by settings.actionOrderRevision.collectAsStateWithLifecycle()
+    // Sorted by where the stored order names each id, with anything it does not name kept in
+    // declaration order behind what it does.
+    var order by
+        remember(rows.map { it.first }, revision) {
+            val stored = settings.actionOrder(kind)
+            mutableStateOf(
+                rows.map { it.first }.sortedBy { id ->
+                    stored.indexOf(id.name).takeIf { it >= 0 } ?: (stored.size + id.ordinal)
+                }
+            )
+        }
+
+    val content = rows.toMap()
+    val heights = remember { mutableStateMapOf<ActionId, Int>() }
+    var dragging by remember { mutableStateOf<ActionId?>(null) }
+    var offset by remember { mutableFloatStateOf(0f) }
+
+    order.forEach { id ->
+        val draw = content[id] ?: return@forEach
+        Box(
+            modifier =
+                Modifier.zIndex(if (id == dragging) 1f else 0f)
+                    .offset { IntOffset(0, if (id == dragging) offset.roundToInt() else 0) }
+                    .onSizeChanged { heights[id] = it.height }
+                    .pointerInput(id, order) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = {
+                                dragging = id
+                                offset = 0f
+                            },
+                            onDragEnd = {
+                                dragging = null
+                                offset = 0f
+                            },
+                            onDragCancel = {
+                                dragging = null
+                                offset = 0f
+                            },
+                        ) { change, amount ->
+                            change.consume()
+                            offset += amount.y
+                            val at = order.indexOf(id)
+                            // One neighbour at a time: past half of the row being crossed, the two
+                            // swap and that row's height comes off the offset, so the dragged row
+                            // stays under the finger rather than drifting from it.
+                            val step = if (offset > 0) 1 else -1
+                            val next = order.getOrNull(at + step) ?: return@detectDragGesturesAfterLongPress
+                            val span = heights[next] ?: return@detectDragGesturesAfterLongPress
+                            if (abs(offset) > span / 2f) {
+                                order = order.toMutableList().apply { add(at + step, removeAt(at)) }
+                                offset -= step * span
+                                // Stored on the swap rather than when the finger lifts. The sheet
+                                // is itself draggable and takes the pointer back if the drag
+                                // strays, which ends the gesture as a cancel -- and an order kept
+                                // until an end that never comes is an order the reader watched
+                                // move and then lost.
+                                settings.setActionOrder(kind, order.map { it.name })
+                            }
+                        }
+                    }
+        ) {
+            draw()
+        }
+    }
 }
 
 /**
