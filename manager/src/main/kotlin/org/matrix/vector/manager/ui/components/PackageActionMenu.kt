@@ -175,12 +175,6 @@ fun PackageActionSheet(
     }
     var confirmSoftReboot by remember { mutableStateOf(false) }
 
-    // Collected rather than emitted where written, so the order can be the reader's. Each keeps
-    // its own condition: an unusable row is absent, not present and inert.
-    //
-    // Built afresh each composition rather than remembered and refilled: the entries close over
-    // values this pass computed, so one kept across passes would hand the next one stale captures.
-    val rows = mutableListOf<Pair<ActionId, @Composable () -> Unit>>()
     var reordering by remember { mutableStateOf(false) }
 
     // Every user the device has, less the ones already holding this package. Asked of the
@@ -397,6 +391,13 @@ LocalizedOverlay {
             )
         }
 
+        // Collected rather than emitted where written, so the order can be the reader's. Each
+        // keeps its own condition: an unusable row is absent, not present and inert.
+        //
+        // Declared here, in the same scope as the calls that fill it, and not in the function
+        // body above: this lambda is its own recomposition scope and runs without the body
+        // around it, so a list made out there would be filled twice and draw every row twice.
+        val rows = mutableListOf<Pair<ActionId, @Composable () -> Unit>>()
         fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
             if (show) rows.add(id to content)
         }
