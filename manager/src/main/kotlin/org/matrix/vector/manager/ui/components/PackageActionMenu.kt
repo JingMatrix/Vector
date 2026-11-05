@@ -609,11 +609,11 @@ LocalizedOverlay {
 /**
  * The collected rows, in the reader's order, with a way to change it.
  *
- * Arrows behind a toggle, not a drag. A drag has to be discovered before it can be used, it is
- * invisible to a screen reader, and on this sheet it contends with the sheet's own drag for the
- * same movement — which it loses, since the sheet takes the pointer back whenever the finger
- * strays sideways. Two buttons say what they do, move exactly one place, and work the same for
- * everyone.
+ * Arrows behind a toggle, rather than the drag `PanelBar` reorders the navigation panels with. A
+ * drag works there because the bar itself does not move, so the others can be watched stepping
+ * aside. This sheet is draggable, and it wins the gesture: stray sideways and it takes the pointer
+ * back, which ends the reorder as a cancel. The toggle is that screen's edit mode by another name,
+ * and buttons have the side benefit of working for a screen reader, which no drag does.
  *
  * The rows keep their ordinary appearance while being moved, so what is reordered is what the
  * reader sees. They are only made inert: in this mode a tap belongs to the arrows.
