@@ -32,6 +32,15 @@ val injectedPackageName = rootProject.extra["injectedPackageName"] as String
 val injectedPackageUid = rootProject.extra["injectedPackageUid"] as Int
 val defaultManagerPackageName = rootProject.extra["defaultManagerPackageName"] as String
 
+// Read rather than repeated: the install directory below is named by it, and a copy here that
+// drifted from module.prop would push the manager into a directory no daemon is running from.
+val moduleId =
+    file("$projectDir/module/module.prop")
+        .readLines()
+        .first { it.startsWith("id=") }
+        .removePrefix("id=")
+        .trim()
+
 android {
     namespace = "org.matrix.vector"
 
@@ -227,6 +236,75 @@ androidComponents {
                 dependsOn(installTask)
                 commandLine("adb", "reboot")
             }
+        }
+
+        // The manager alone, for the edit-build-look loop.
+        //
+        // Every root provider's install stages into /data/adb/modules_update and lets the next
+        // boot promote the directory, while the daemon resolves the manager APK beside its own -
+        // in /data/adb/modules, the live one. So through the tasks above, a one-line change to a
+        // Compose file costs a reboot. These three put the APK where the daemon will actually read
+        // it and restart the process holding it, which is the whole loop in a few seconds.
+        //
+        // Deliberately not solved by teaching the daemon to prefer modules_update. A staged update
+        // sits beside a daemon still running from the last boot, so serving a manager out of it
+        // pairs a new manager with an old daemon - the exact mismatch PROTOCOL_VERSION exists to
+        // refuse, and it would duly refuse it, having gained nothing.
+        //
+        // The manager only. A daemon, AIDL or native change still needs a full install and a
+        // reboot, and nothing here checks that: the handshake does, at runtime, and says which
+        // side is the old one.
+        val pushManagerTask =
+            tasks.register<Exec>("pushManagerApk$variantCapped") {
+                group = "Zygisk Module Installation"
+                description = "Pushes the ${variant.name} manager APK to the device."
+                dependsOn(prepareModuleFilesTask)
+                commandLine(
+                    "adb",
+                    "push",
+                    tempModuleDir.get().asFile.resolve("manager.apk"),
+                    "/data/local/tmp/manager.apk",
+                )
+            }
+
+        val replaceManagerTask =
+            tasks.register<Exec>("replaceManager$variantCapped") {
+                group = "Zygisk Module Installation"
+                description = "Swaps the live ${variant.name} manager APK for the pushed one."
+                dependsOn(pushManagerTask)
+                // Written *through* the existing file rather than moved over it, so the owner and
+                // the SELinux label the flash gave it survive. A fresh file would carry the label
+                // of whatever created it, and the daemon only reasserts that label at startup -
+                // which is the reboot this task exists to avoid.
+                // Quoted so that the redirection reaches the shell `su` starts. `adb shell`
+                // joins its arguments and hands them to a shell running as `shell`, which would
+                // otherwise be the process trying to create the file - and it cannot.
+                commandLine(
+                    "adb",
+                    "shell",
+                    "su",
+                    "-c",
+                    "'cat /data/local/tmp/manager.apk > /data/adb/modules/$moduleId/manager.apk && " +
+                        "rm -f /data/local/tmp/manager.apk'",
+                )
+            }
+
+        // Stopping the host is what unloads the old APK; the category is what brings the manager
+        // back rather than the host's own activity, since the redirection in system_server only
+        // fires for an intent carrying it. The same line module/action.sh uses.
+        tasks.register<Exec>("restartManager$variantCapped") {
+            group = "Zygisk Module Installation"
+            description = "Replaces the live ${variant.name} manager APK and restarts it."
+            dependsOn(replaceManagerTask)
+            commandLine(
+                "adb",
+                "shell",
+                "su",
+                "-c",
+                "am force-stop $injectedPackageName; " +
+                    "am start -c $defaultManagerPackageName.LAUNCH_MANAGER " +
+                    "$injectedPackageName/.BugreportWarningActivity",
+            )
         }
 
         createInstallTasks("Magisk", "magisk --install-module")
