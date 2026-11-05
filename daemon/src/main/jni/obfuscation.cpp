@@ -22,6 +22,13 @@ namespace {
 
 std::once_flag init_flag;
 
+// What is rewritten, and the whole of what is rewritten: the string table of a dex. A module that
+// names one of these prefixes anywhere a dex writer cannot reach keeps the original name and stops
+// matching the one its classes now carry. A native library is the case that occurs: the JNI
+// signature strings compiled into it still read Lde/robv/android/xposed/..., so RegisterNatives
+// finds no method of that shape and the module loads without its native entry points. Nothing here
+// can fix that -- the library is the module's own build output -- which is why
+// `enable_dex_obfuscate` is a setting a user can turn off rather than a build type.
 std::map<std::string, std::string> signatures = {
     {"Lde/robv/android/xposed/", ""},         {"Landroid/app/AndroidApp", ""},
     {"Landroid/content/res/XRes", ""},        {"Landroid/content/res/XModule", ""},

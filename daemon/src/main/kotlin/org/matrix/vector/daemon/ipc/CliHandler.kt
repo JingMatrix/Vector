@@ -186,6 +186,11 @@ object CliHandler {
             when (key) {
               "status-notification" -> ManagerService.isStatusNotificationEnabled()
               "verbose-log" -> ManagerService.isVerboseLogEnabled()
+              // What the stored preference says, which after a write is not yet what this daemon
+              // is doing. `ConfigCache.state.isDexObfuscateEnabled` is what it is doing, and the
+              // two disagree until the next boot; reporting the setting is what lets a reader see
+              // that their write landed.
+              "dex-obfuscation" -> PreferenceStore.isDexObfuscateEnabled()
               else -> throw IllegalArgumentException("Unknown config key: $key")
             }
         mapOf("KEY" to key, "VALUE" to value)
@@ -200,9 +205,15 @@ object CliHandler {
         when (key) {
           "status-notification" -> ManagerService.setStatusNotificationEnabled(value)
           "verbose-log" -> ManagerService.setVerboseLogEnabled(value)
+          "dex-obfuscation" -> PreferenceStore.setDexObfuscate(value)
           else -> throw IllegalArgumentException("Unknown config key: $key")
         }
-        "Successfully set $key to $value."
+        if (key == "dex-obfuscation" && value != ConfigCache.state.isDexObfuscateEnabled) {
+          "Set $key to $value. The framework dex this daemon handed out names its classes the " +
+              "other way, so reboot to apply."
+        } else {
+          "Successfully set $key to $value."
+        }
       }
       else -> throw IllegalArgumentException("Unknown config action: ${request.action}")
     }

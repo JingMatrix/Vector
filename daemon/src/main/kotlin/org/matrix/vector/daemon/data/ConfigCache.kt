@@ -63,6 +63,21 @@ object ConfigCache {
       }
     }
     applySqliteHelperWorkaround()
+
+    // After the workaround, which has to be in place before the configuration database is opened,
+    // and this read may well be what opens it. Caught, because a daemon that cannot read its own
+    // preference must still start: the fallback in `DaemonState` is the build-type default this
+    // setting used to be.
+    //
+    // Read once and held, not consulted per use. `FileSystem.getPreloadDex` caches the framework
+    // dex the first time it is asked for, so the answer that produced it is the only one the rest
+    // of this process may act on; a module loaded with the other answer would look for class names
+    // the framework does not have. Writing the preference therefore takes effect on the next boot.
+    runCatching { PreferenceStore.isDexObfuscateEnabled() }
+        .onSuccess { synchronized(this) { state = state.copy(isDexObfuscateEnabled = it) } }
+        .onFailure {
+          Log.w(TAG, "Cannot read the dex obfuscation preference; using the default", it)
+        }
   }
 
   private fun ensureCacheReady() {

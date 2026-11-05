@@ -314,7 +314,16 @@ class ScopeCommand {
   }
 }
 
-@Command(name = "config", description = ["Manage daemon preferences natively"])
+@Command(
+    name = "config",
+    description =
+        [
+            "Manage daemon preferences natively",
+            "Keys: status-notification, verbose-log, dex-obfuscation.",
+            "dex-obfuscation renames the legacy Xposed API classes in the framework dex",
+            "and in every module dex; a module whose native code names those classes",
+            "cannot bind its methods while it is on. Takes effect on the next boot.",
+        ])
 class ConfigCommand {
   @ParentCommand lateinit var parent: Cli
 

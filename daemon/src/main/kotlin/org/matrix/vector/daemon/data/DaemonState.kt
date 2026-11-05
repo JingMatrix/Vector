@@ -11,7 +11,15 @@ data class ProcessScope(val processName: String, val uid: Int)
  * and atomically swap the reference.
  */
 data class DaemonState(
-    // State non configurable for users
+    /**
+     * Whether the legacy API classes are renamed, seeded from
+     * [PreferenceStore.isDexObfuscateEnabled] when [ConfigCache] is first touched.
+     *
+     * The default here is only what a daemon that cannot read its own configuration falls back to.
+     * It used to be the entire setting, which is why it was marked as not configurable: the
+     * framework dex and every module dex were obfuscated in a release build and not in a debug
+     * one, with nothing able to say otherwise.
+     */
     val isDexObfuscateEnabled: Boolean = !BuildConfig.DEBUG,
     // States initialized after system services are ready
     val isCacheReady: Boolean = false,

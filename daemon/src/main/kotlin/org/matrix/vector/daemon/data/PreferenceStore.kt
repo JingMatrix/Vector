@@ -3,6 +3,7 @@ package org.matrix.vector.daemon.data
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import org.apache.commons.lang3.SerializationUtilsX
+import org.matrix.vector.daemon.BuildConfig
 
 private const val TAG = "VectorPreferenceStore"
 
@@ -96,6 +97,21 @@ object PreferenceStore {
 
   fun setVerboseLog(enabled: Boolean) =
       updateModulePref("lspd", 0, "config", "enable_verbose_log", enabled)
+
+  /**
+   * Whether the legacy Xposed API classes are renamed in the framework dex and in every module
+   * dex, under the key LSPosed wrote and this daemon has only ever read a build-type default for.
+   *
+   * A release build obfuscates and a debug build does not, which is the default below and was the
+   * whole of it: the row existed in the database, nothing read it, and the manager and the CLI
+   * offered no way to write it. The difference is not cosmetic — it decides whether a module whose
+   * native code names those classes can bind its methods at all — so it is a setting.
+   */
+  fun isDexObfuscateEnabled(): Boolean =
+      getModulePrefs("lspd", 0, "config")["enable_dex_obfuscate"] as? Boolean ?: !BuildConfig.DEBUG
+
+  fun setDexObfuscate(enabled: Boolean) =
+      updateModulePref("lspd", 0, "config", "enable_dex_obfuscate", enabled)
 
   fun isScopeRequestBlocked(pkg: String): Boolean =
       (getModulePrefs("lspd", 0, "config")["scope_request_blocked"] as? Set<*>)?.contains(pkg) ==

@@ -4,6 +4,7 @@
 #include <elf/symbol_cache.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <string_view>
 #include <thread>
@@ -469,7 +470,14 @@ std::map<std::string, std::string> IPCBridge::FetchObfuscationMap(JNIEnv *env, j
         result_map[key_str.get()] = val_str.get();
     }
 
-    LOGV("Fetched obfuscation map with {} entries.", result_map.size());
+    // Whether the names actually differ, and not merely how many arrived. The daemon answers with
+    // every prefix either way and maps each to itself when obfuscation is off, so a count alone
+    // reads the same in both configurations -- which is the one thing a reader looking at a module
+    // that will not bind its native methods needs to tell apart.
+    const bool renamed = std::any_of(result_map.begin(), result_map.end(),
+                                     [](const auto &entry) { return entry.first != entry.second; });
+    LOGV("Fetched obfuscation map with {} entries, dex obfuscation {}.", result_map.size(),
+         renamed ? "on" : "off");
     return result_map;
 }
 
