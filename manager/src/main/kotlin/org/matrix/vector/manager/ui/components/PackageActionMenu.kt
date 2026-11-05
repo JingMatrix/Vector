@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.ui.components
 
-import kotlin.math.abs
-import kotlin.math.roundToInt
 import org.matrix.vector.ui.AppIcon
 import org.matrix.vector.ui.SnackbarTone
 import org.matrix.vector.ui.SharedAlertDialog
@@ -15,7 +13,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -55,10 +51,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -67,6 +59,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -83,8 +76,6 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -186,7 +177,10 @@ fun PackageActionSheet(
 
     // Collected rather than emitted where written, so the order can be the reader's. Each keeps
     // its own condition: an unusable row is absent, not present and inert.
-    val rows = remember { mutableListOf<Pair<ActionId, @Composable () -> Unit>>() }
+    //
+    // Built afresh each composition rather than remembered and refilled: the entries close over
+    // values this pass computed, so one kept across passes would hand the next one stale captures.
+    val rows = mutableListOf<Pair<ActionId, @Composable () -> Unit>>()
     var reordering by remember { mutableStateOf(false) }
 
     // Every user the device has, less the ones already holding this package. Asked of the
@@ -403,7 +397,6 @@ LocalizedOverlay {
             )
         }
 
-        rows.clear()
         fun row(id: ActionId, show: Boolean, content: @Composable () -> Unit) {
             if (show) rows.add(id to content)
         }
@@ -662,6 +655,9 @@ private fun ColumnScope.OrderedActions(
             // would otherwise take, since here a tap belongs to the arrows.
             Box(
                 Modifier.matchParentSize()
+                    // No semantics of its own: it exists to swallow a touch, and an unlabelled
+                    // button announced over every row would be noise to a screen reader.
+                    .clearAndSetSemantics {}
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
