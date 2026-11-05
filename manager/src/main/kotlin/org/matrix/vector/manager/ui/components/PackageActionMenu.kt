@@ -372,7 +372,14 @@ LocalizedOverlay {
                 IconButton(onClick = { reordering = !reordering }) {
                     Icon(
                         if (reordering) Icons.Rounded.Check else Icons.Rounded.SwapVert,
-                        contentDescription = stringResource(R.string.action_reorder),
+                        // The check means "finished", not "reorder", and a screen reader reads
+                        // only this. `panels_done` is the same word the navigation bar's own
+                        // reorder ends on, and is already translated.
+                        contentDescription =
+                            stringResource(
+                                if (reordering) UiR.string.panels_done
+                                else R.string.action_reorder
+                            ),
                         tint = if (reordering) colors.primary else colors.onSurfaceVariant,
                     )
                 }
