@@ -1,5 +1,8 @@
 package org.matrix.vector.manager.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
@@ -77,6 +81,7 @@ import org.matrix.vector.ui.store.RepoScreen
 @Composable
 fun VectorApp() {
     val navigator = rememberNavigator(VectorNavPanelStore, TOP_LEVEL_DESTINATIONS)
+    val context = LocalContext.current
 
     // Where the launch intent asked to open. The activity has no back stack to act on, so it leaves
     // the destination here and this is the first place there is one — on a cold start the splash is
@@ -163,7 +168,7 @@ fun VectorApp() {
                             rememberSaveableStateHolderNavEntryDecorator(),
                             rememberViewModelStoreNavEntryDecorator(),
                         ),
-                    entryProvider = entryProvider { registerRoutes(navigator) },
+                    entryProvider = entryProvider { registerRoutes(navigator, context) },
                 )
                 // Last child of the Box so it draws over the destination, and inside the app window
                 // rather than in one of its own: parasitically this app is com.android.shell, which
@@ -195,11 +200,11 @@ fun VectorApp() {
  * its keys by class, and entryProvider throws for one it was never given, so dropping the
  * registration of a hidden panel would turn a stale saved stack into a crash.
  */
-private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
+private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator, context: Context) {
     entry<TopLevelRoute.Home> {
         HomeScreen(
             onOpenStatus = { navigator.go(SystemStatus) },
-            onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenUrl = { url -> openLink(context, navigator, url) },
             onOpenCanary = { navigator.go(Canary) },
             onOpenReport = { navigator.go(Troubleshoot) },
             onOpenUpdate = { navigator.go(FrameworkUpdate()) },
@@ -234,7 +239,7 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
         RepoDetailsScreen(
             packageName = route.packageName,
             onNavigateBack = { navigator.back() },
-            onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenUrl = { url -> openLink(context, navigator, url) },
             dataSource = ServiceLocator.store,
             settings = ServiceLocator.settings,
             host = remember(route.packageName) { VectorStoreInstallHost(route.packageName) },
@@ -255,14 +260,14 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
     entry<Troubleshoot> {
         TroubleshootScreen(
             onNavigateBack = { navigator.back() },
-            onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenUrl = { url -> openLink(context, navigator, url) },
             onOpenCanary = { navigator.go(Canary) },
         )
     }
     entry<Canary> {
         CanaryScreen(
             onNavigateBack = { navigator.back() },
-            onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenUrl = { url -> openLink(context, navigator, url) },
             onInstall = { versionCode -> navigator.go(FrameworkUpdate(versionCode)) },
             onOpenReport = { navigator.go(Troubleshoot) },
         )
@@ -271,8 +276,26 @@ private fun EntryProviderScope<NavKey>.registerRoutes(navigator: Navigator) {
         FrameworkUpdateScreen(
             openOnVersionCode = route.versionCode.takeIf { it > 0 },
             onNavigateBack = { navigator.back() },
-            onOpenUrl = { url -> navigator.go(Web(url)) },
+            onOpenUrl = { url -> openLink(context, navigator, url) },
         )
     }
     entry<Web> { route -> WebScreen(url = route.url, onNavigateBack = { navigator.back() }) }
+}
+
+/**
+ * Opens a link in the in-app viewer, or in a browser with "Open links in a browser" on. Every
+ * screen's `onOpenUrl` lands here, so the setting is asked in one place, and read at the tap.
+ */
+private fun openLink(context: Context, navigator: Navigator, url: String) {
+    if (ServiceLocator.settings.openLinksExternally.value) {
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            return
+        } catch (_: Exception) {
+            // No app took it, or it was refused (a file:// URI): the viewer beats a dead tap.
+        }
+    }
+    navigator.go(Web(url))
 }
