@@ -1,7 +1,5 @@
 package org.matrix.vector.manager.demo
 
-import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -28,11 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.manager.ui.VectorApp
 import org.matrix.vector.manager.ui.theme.LocalizedContent
 import org.matrix.vector.manager.ui.theme.VectorTheme
+import org.matrix.vector.ui.watchSecondaryButton
 
 /**
  * The way in to the scripted states, and the reason this whole thing is a separate source set.
@@ -45,12 +46,12 @@ import org.matrix.vector.manager.ui.theme.VectorTheme
  * `org.matrix.vector.manager.demo` in a release APK's classes and finding nothing.
  *
  * It hosts the app itself rather than launching MainActivity, and that is not a stylistic choice.
- * The first version did launch it, and every scenario silently did nothing: `ParasiticManagerHooker`
- * intercepts the manager activity starting and hands the *real* binder to `Constants.setBinder`,
- * overwriting whatever was bound a moment earlier. Even "no daemon at all" came up reporting a
- * healthy framework — the failure mode a test harness can least afford, since it looks like a pass.
- * Rendering VectorApp here means no manager activity is ever launched, so nothing re-binds behind
- * us.
+ * The first version did launch it, and every scenario silently did nothing:
+ * `ParasiticManagerHooker` intercepts the manager activity starting and hands the *real* binder to
+ * `Constants.setBinder`, overwriting whatever was bound a moment earlier. Even "no daemon at all"
+ * came up reporting a healthy framework — the failure mode a test harness can least afford, since
+ * it looks like a pass. Rendering VectorApp here means no manager activity is ever launched, so
+ * nothing re-binds behind us.
  */
 class DemoActivity : ComponentActivity() {
 
@@ -80,6 +81,8 @@ class DemoActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         ServiceLocator.attach(this)
+        // The same watch the real host installs.
+        watchSecondaryButton()
 
         lifecycleScope.launch {
             ServiceLocator.service.collect { current ->
@@ -116,8 +119,7 @@ class DemoActivity : ComponentActivity() {
             pinned = null
             return scenario
         }
-        pinned =
-            if (!scenario.connected) null else FakeManagerService(scenario, realService)
+        pinned = if (!scenario.connected) null else FakeManagerService(scenario, realService)
         pinning = true
         ServiceLocator.bind(pinned)
         return scenario
@@ -150,7 +152,9 @@ private fun ScenarioList(onPick: (DemoScenario) -> Unit) {
                 ListItem(
                     modifier = Modifier.clickable { onPick(scenario) },
                     supportingContent = { Text(scenario.summary) },
-                ) { Text(scenario.title) }
+                ) {
+                    Text(scenario.title)
+                }
             }
         }
     }
