@@ -104,15 +104,43 @@ object CliHandler {
     val modulePkg = request.targets[0]
     val apps = request.targets.drop(1)
 
+    // `pkg` or `pkg/user_id`, parsed once for every action: the three that take targets each
+    // spelled this out, and the check below has to read a target exactly as the write does.
+    fun target(appStr: String): ScopeEntry =
+        ScopeEntry().apply {
+          packageName = appStr.substringBefore('/')
+          userId = appStr.substringAfter('/', "").toIntOrNull() ?: 0
+        }
+
     // staticScope fixes the scope, so the CLI may still read it and take apps out of it, but not
     // put new ones in. Checked here as well as in the database so the answer names the packages.
-    fun rejectBeyondStaticScope(apps: List<String>) {
+    fun rejectBeyondStaticScope(targets: List<ScopeEntry>) {
       val claimed = ConfigCache.staticScopeOf(modulePkg) ?: return
-      val beyond = apps.map { it.substringBefore('/') }.filterNot { claimed.contains(it) }
+      val beyond = targets.map { it.packageName }.filterNot { claimed.contains(it) }
       if (beyond.isNotEmpty()) {
         throw IllegalArgumentException(
             "$modulePkg fixes its scope in module.prop, so ${beyond.joinToString()} cannot be " +
                 "added. It claims: ${claimed.sorted().joinToString().ifEmpty { "nothing" }}.")
+      }
+    }
+
+    // A target the daemon cannot reach is refused rather than written. Nothing checked, and the
+    // scope table takes any string: a name that resolves for nobody was accepted, listed back by
+    // `scope ls`, and reached nothing, which is a module that is configured and never loads with
+    // no error anywhere to say why. `scope rm` deliberately does not check, since a row already
+    // written this way has to stay removable.
+    //
+    // Refused on `false` alone and never on a null: this socket answers before the daemon has
+    // waited for the package service, and in that window nothing can be told apart from nothing.
+    fun rejectUnreachable(targets: List<ScopeEntry>) {
+      val unknown =
+          targets
+              .filter { ConfigCache.isScopeTargetAvailable(it.packageName, it.userId) == false }
+              .map { "${it.packageName}/${it.userId}" }
+      if (unknown.isNotEmpty()) {
+        throw IllegalArgumentException(
+            "Not installed: ${unknown.joinToString()}. The system server is scoped as `system`; " +
+                "every other target is a package name, optionally `package/user_id`.")
       }
     }
 
@@ -125,19 +153,14 @@ object CliHandler {
       }
       "add" -> {
         if (apps.isEmpty()) throw IllegalArgumentException("No target apps provided.")
-        rejectBeyondStaticScope(apps)
+        val targets = apps.map(::target)
+        rejectBeyondStaticScope(targets)
+        rejectUnreachable(targets)
         val scope = ModuleDatabase.getModuleScope(modulePkg) ?: mutableListOf()
 
-        apps.forEach { appStr ->
-          val parts = appStr.split("/")
-          val pkg = parts[0]
-          val user = parts.getOrNull(1)?.toIntOrNull() ?: 0
-          if (scope.none { it.packageName == pkg && it.userId == user }) {
-            scope.add(
-                ScopeEntry().apply {
-                  packageName = pkg
-                  userId = user
-                })
+        targets.forEach { entry ->
+          if (scope.none { it.packageName == entry.packageName && it.userId == entry.userId }) {
+            scope.add(entry)
           }
         }
         ModuleDatabase.setModuleScope(modulePkg, scope)
@@ -146,29 +169,19 @@ object CliHandler {
       "set" -> {
         if (apps.isEmpty())
             throw IllegalArgumentException("No target apps provided for scope overwrite.")
-        rejectBeyondStaticScope(apps)
-        val scope = mutableListOf<ScopeEntry>()
-        apps.forEach { appStr ->
-          val parts = appStr.split("/")
-          val pkg = parts[0]
-          val user = parts.getOrNull(1)?.toIntOrNull() ?: 0
-          scope.add(
-              ScopeEntry().apply {
-                packageName = pkg
-                userId = user
-              })
-        }
-        ModuleDatabase.setModuleScope(modulePkg, scope)
+        val targets = apps.map(::target)
+        rejectBeyondStaticScope(targets)
+        rejectUnreachable(targets)
+        ModuleDatabase.setModuleScope(modulePkg, targets.toMutableList())
         "Successfully overwrote scope for $modulePkg (${apps.size} apps)."
       }
       "rm" -> {
         if (apps.isEmpty()) throw IllegalArgumentException("No target apps provided to remove.")
         var removedCount = 0
-        apps.forEach { appStr ->
-          val parts = appStr.split("/")
-          val pkg = parts[0]
-          val user = parts.getOrNull(1)?.toIntOrNull() ?: 0
-          if (ModuleDatabase.removeModuleScope(modulePkg, pkg, user)) removedCount++
+        apps.map(::target).forEach { entry ->
+          if (ModuleDatabase.removeModuleScope(modulePkg, entry.packageName, entry.userId)) {
+            removedCount++
+          }
         }
         "Successfully removed $removedCount apps from $modulePkg scope."
       }

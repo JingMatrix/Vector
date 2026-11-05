@@ -276,7 +276,15 @@ class ModulesCommand {
   }
 }
 
-@Command(name = "scope", description = ["Manage granular application injection scopes"])
+@Command(
+    name = "scope",
+    description =
+        [
+            "Manage granular application injection scopes",
+            "A target is a package name, optionally `package/user_id`.",
+            "The system server is `system`; `android` is the framework package, whose",
+            "injectable process is android:ui.",
+        ])
 class ScopeCommand {
   @ParentCommand lateinit var parent: Cli
 
@@ -286,7 +294,7 @@ class ScopeCommand {
     return OutputFormatter.print(VectorIPC.transmit(req), parent.json)
   }
 
-  @Command(name = "add", description = ["Append apps to scope (format: pkg/user_id)"])
+  @Command(name = "add", description = ["Append apps to scope (format: pkg/user_id, or `system`)"])
   fun add(
       @Parameters(index = "0", paramLabel = "MODULE_PKG") modulePkg: String,
       @Parameters(index = "1..*") apps: List<String>
@@ -295,7 +303,9 @@ class ScopeCommand {
     return OutputFormatter.print(VectorIPC.transmit(req), parent.json)
   }
 
-  @Command(name = "set", description = ["Overwrite entire scope (format: pkg/user_id)"])
+  @Command(
+      name = "set",
+      description = ["Overwrite entire scope (format: pkg/user_id, or `system`)"])
   fun set(
       @Parameters(index = "0", paramLabel = "MODULE_PKG") modulePkg: String,
       @Parameters(index = "1..*") apps: List<String>
@@ -304,7 +314,7 @@ class ScopeCommand {
     return OutputFormatter.print(VectorIPC.transmit(req), parent.json)
   }
 
-  @Command(name = "rm", description = ["Remove apps from scope (format: pkg/user_id)"])
+  @Command(name = "rm", description = ["Remove apps from scope (format: pkg/user_id, or `system`)"])
   fun rm(
       @Parameters(index = "0", paramLabel = "MODULE_PKG") modulePkg: String,
       @Parameters(index = "1..*") apps: List<String>

@@ -495,12 +495,6 @@ object VectorService : IVectorDaemon.Stub() {
 
           when (action) {
             "approve" -> {
-              // "system" is the framework and not a package: it names system_server, which belongs
-              // to no package and resolves for nobody. The lookup below therefore came back null
-              // for every framework prompt, and the approval the user had just given was answered
-              // "Package not found" — the request was closed, its notification cancelled, and no
-              // row written. The normalisation to user 0 further down could never once have run.
-              //
               // Package by package rather than all-or-nothing: the prompt may have been up for an
               // hour and one of the packages it named can have been uninstalled in the meantime,
               // which is no reason to throw away the user's answer about the rest.
@@ -511,7 +505,7 @@ object VectorService : IVectorDaemon.Stub() {
               // actually happened was that the user turned it down.
               val granted =
                   scopePackageNames.filter {
-                    it == "system" || packageManager?.getPackageInfoCompat(it, 0, userId) != null
+                    ConfigCache.isScopeTargetAvailable(it, userId) == true
                   }
               if (granted.isEmpty()) {
                 // Logged, because until now this said nothing anywhere: the module was told

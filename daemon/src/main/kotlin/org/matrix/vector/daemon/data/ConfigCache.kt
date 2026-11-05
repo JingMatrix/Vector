@@ -42,6 +42,31 @@ object ConfigCache {
   /** The packages [modulePackage] claims, or null when it does not fix its scope. */
   fun staticScopeOf(modulePackage: String): Set<String>? = staticScopes[modulePackage]
 
+  /**
+   * Whether a scope row naming [packageName] under [userId] points at something that exists, or
+   * null when there is no package manager to ask.
+   *
+   * Three answers rather than two, for the reason the rebuild below refuses an empty user list:
+   * not being able to ask is not the same as being told no, and the CLI socket is listening before
+   * `main` has waited for the package service. A caller that acts on `false` must not act on
+   * `null`.
+   *
+   * `system` is the framework and not a package: it names the system server, which belongs to no
+   * package and resolves for nobody, so the package manager is the wrong thing to ask about it.
+   * Every other target is an ordinary package name, and a row naming one that is not installed
+   * reaches nothing — there is no process for the rebuild below to expand it into, and nothing
+   * anywhere said so.
+   *
+   * `isPackageAvailable` and not a plain `getPackageInfo`, because that is the predicate
+   * [getInstalledPackagesFromAllUsers] filters the manager's own list by: what the editor offers
+   * and what a write is allowed to name then mean one thing, hidden packages included.
+   */
+  fun isScopeTargetAvailable(packageName: String, userId: Int): Boolean? {
+    if (packageName == "system") return true
+    val pm = packageManager ?: return null
+    return pm.isPackageAvailable(packageName, userId, true)
+  }
+
   private val cacheUpdateChannel = Channel<Unit>(Channel.CONFLATED)
 
   // Held for the whole of a rebuild, so that only one runs at a time. The channel serialises the
@@ -376,6 +401,20 @@ object ConfigCache {
         val appUid = pkgInfo.applicationInfo!!.uid
 
         for (processName in processNames) {
+          // `system` at uid 1000 is the system server, and its module set is not read from here:
+          // `getModulesForSystemServer` asks the scope table for the rows spelled `system`,
+          // because it answers before any package manager exists to expand a package name with.
+          // So a row naming a package that runs a component in the system server expands to an
+          // entry nothing ever queries, and the module appeared to hold the framework while never
+          // being loaded into it. The entry goes; the row is still reported, so it can be removed.
+          if (processName == "system" && appUid == 1000) {
+            Log.w(
+                TAG,
+                "$appPkg runs a component in the system server, which is scoped as `system`; " +
+                    "the row naming $appPkg cannot take $modPkg there")
+            continue
+          }
+
           addToScope(processName, appUid, module)
 
           // A module in its own scope hooks itself in every user that has it — the copies share
