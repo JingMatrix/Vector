@@ -39,6 +39,16 @@ object GrapheneDclHooker {
             "android.ext.settings.app.AswRestrictMemoryDynCodeLoading",
             "android.ext.settings.app.AswRestrictStorageDynCodeLoading",
             "android.ext.settings.app.AswRestrictWebViewDynCodeLoading",
+            // DENY_PROCESS_PTRACE (SELinuxFlags bit 1<<8). SELinuxFlags.get() leaves it armed
+            // unless AswDenyNativeDebug returns false, and that switch is immutably true for every
+            // system app — including the manager's host, com.android.shell. The parasitic manager
+            // is injected over ptrace (NeoZygisk/Zygisk), so with this flag set the host's
+            // specialization aborts in selinux_android_setcontext2():
+            //   "selinux_android_setcontext(2000, 0, "platform:privapp:...", "<manager>",
+            //    grapheneos_flags: "100") failed" -> zygote SIGABRT, crash-looping the manager.
+            // (The three DCL switches above already strip bits 0..7, which is why the surviving
+            // flag is exactly 0x100.) Exempting the host clears it so the spawn succeeds.
+            "android.ext.settings.app.AswDenyNativeDebug",
         )
 
     @JvmStatic
