@@ -270,13 +270,17 @@ androidComponents {
                 // the daemon only reasserts that label at startup, the reboot being avoided.
                 // Quoted so the redirection reaches the shell `su` starts: `adb shell` joins
                 // its arguments and runs them as `shell`, which cannot create that file.
+                //
+                // The pushed copy is left where it is when a daemon is being run from
+                // /data/local/tmp, because that daemon resolves the manager beside its own class
+                // path and would otherwise go on serving the APK from before this task ran.
                 commandLine(
                     "adb",
                     "shell",
                     "su",
                     "-c",
                     "'cat /data/local/tmp/manager.apk > /data/adb/modules/$moduleId/manager.apk && " +
-                        "rm -f /data/local/tmp/manager.apk'",
+                        "{ [ -r /data/local/tmp/daemon.apk ] || rm -f /data/local/tmp/manager.apk; }'",
                 )
             }
 
