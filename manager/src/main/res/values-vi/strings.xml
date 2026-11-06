@@ -42,6 +42,7 @@
     <string name="info_loaded">Đã nạp</string>
     <string name="info_not_loaded">Chưa nạp</string>
     <string name="info_injected">Đã tiêm</string>
+    <string name="info_mounted">Đã gắn kết</string>
     <string name="info_not_injected">Chưa tiêm</string>
     <string name="status_notification">Thông báo trạng thái</string>
     <string name="status_notification_summary">Một thông báo thường trực cho biết Vector đang chạy.</string>

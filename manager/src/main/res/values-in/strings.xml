@@ -46,6 +46,7 @@
     <string name="info_loaded">Dimuat</string>
     <string name="info_not_loaded">Tidak dimuat</string>
     <string name="info_injected">Terinjeksi</string>
+    <string name="info_mounted">Terpasang</string>
     <string name="info_not_injected">Tidak terinjeksi</string>
     <string name="status_notification">Notifikasi status</string>
     <string name="status_notification_summary">Notifikasi permanen yang menandakan Vector sedang berjalan.</string>

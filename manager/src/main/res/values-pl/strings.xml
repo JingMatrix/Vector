@@ -83,6 +83,7 @@
     <string name="info_loaded">Załadowane</string>
     <string name="info_not_loaded">Niezaładowane</string>
     <string name="info_injected">Wstrzyknięty</string>
+    <string name="info_mounted">Zamontowany</string>
     <string name="info_not_injected">Niewstrzyknięty</string>
     <string name="status_notification">Powiadomienie o stanie</string>
     <string name="status_notification_summary">Stałe powiadomienie pokazujące, że Vector jest uruchomiony.</string>

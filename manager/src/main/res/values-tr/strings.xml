@@ -42,6 +42,7 @@
     <string name="info_loaded">Yüklendi</string>
     <string name="info_not_loaded">Yüklenmedi</string>
     <string name="info_injected">Enjekte edildi</string>
+    <string name="info_mounted">Bağlandı</string>
     <string name="info_not_injected">Enjekte edilmedi</string>
     <string name="status_notification">Durum bildirimi</string>
     <string name="status_notification_summary">Vector\'ün çalıştığını gösteren kalıcı bir bildirim.</string>
