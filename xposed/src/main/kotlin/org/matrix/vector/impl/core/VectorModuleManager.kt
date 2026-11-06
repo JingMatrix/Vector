@@ -264,13 +264,19 @@ object VectorModuleManager {
         // only: module code never runs inside it.
         synchronized(VectorHookBuilder.lockOf(packageName)) { old.context.freeze() }
 
+        // Modules may retain callback parameters. Copy values instead of capturing the old
+        // generation; the private monitor below keeps it alive for the callback itself.
+        val retiredLoader = WeakReference(old.classLoader)
+        val callbackIsSystemServer = old.isSystemServer
+        val callbackProcessName = old.processName
         var savedState: Any? = null
         val reloadingParam =
             object : HotReloadingParam {
                 override fun getExtras(): Bundle? = extras
 
                 override fun setSavedInstanceState(outState: Any?) {
-                    rejectOldGenerationState(outState, old.classLoader)
+                    // A live value defined by this loader would itself keep the loader alive.
+                    retiredLoader.get()?.let { rejectOldGenerationState(outState, it) }
                     savedState = outState
                 }
             }
@@ -299,9 +305,9 @@ object VectorModuleManager {
 
         val reloadedParam =
             object : HotReloadedParam {
-                override fun isSystemServer(): Boolean = old.isSystemServer
+                override fun isSystemServer(): Boolean = callbackIsSystemServer
 
-                override fun getProcessName(): String = old.processName
+                override fun getProcessName(): String = callbackProcessName
 
                 override fun getExtras(): Bundle? = extras
 
@@ -319,12 +325,17 @@ object VectorModuleManager {
 
         var failure: Throwable? = null
         // The default onHotReloaded already unhooks these; doing both would double-unhook.
-        newEntries
-            .filter { VectorLifecycleManager.isActive(it) }
-            .forEach {
-                if (failure != null) return@forEach
-                runCatching { it.onHotReloaded(reloadedParam) }.onFailure { t -> failure = t }
-            }
+        // API 102 retains the old generation through onHotReloaded. This private monitor
+        // provides that lifetime on API 26+, without a lasting root or a registry lock held
+        // across module code. No other code acquires the Generation monitor.
+        synchronized(old) {
+            newEntries
+                .filter { VectorLifecycleManager.isActive(it) }
+                .forEach {
+                    if (failure != null) return@forEach
+                    runCatching { it.onHotReloaded(reloadedParam) }.onFailure { t -> failure = t }
+                }
+        }
 
         // The last framework-owned reference to the old generation goes with this frame: its map
         // entry is gone, its entries are out of activeModules, and oldEntries dies on return.

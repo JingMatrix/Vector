@@ -889,6 +889,10 @@ VECTOR_DEF_NATIVE_METHOD(jobjectArray, HookBridge, callbackSnapshot, jclass call
     // Lock to ensure a consistent snapshot of the callback lists.
     lsplant::JNIMonitor monitor(env, backup);
 
+    // The existing dispatcher invokes the original when no callback remains. Avoid allocating
+    // snapshot arrays for an empty hook while retaining the backup used by in-flight calls.
+    if (hook_item->modern_callbacks.empty() && hook_item->legacy_callbacks.empty()) return nullptr;
+
     // Get the generic Object class
     jclass obj_class = env->FindClass("java/lang/Object");
 

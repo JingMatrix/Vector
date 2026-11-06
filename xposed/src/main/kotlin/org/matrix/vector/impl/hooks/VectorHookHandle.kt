@@ -47,7 +47,9 @@ internal object VectorHookRegistry {
         byModule[moduleId]?.remove(handle)
     }
 
-    /** The hooks of [moduleId] that are still installed, for `HotReloadedParam#getOldHookHandles`. */
+    /**
+     * The hooks of [moduleId] that are still installed, for `HotReloadedParam#getOldHookHandles`.
+     */
     fun liveHandles(moduleId: String): List<HookHandle> =
         byModule[moduleId]?.filter { it.isLive } ?: emptyList()
 }
@@ -70,35 +72,35 @@ internal constructor(
     initialRecord: VectorHookRecord,
 ) : HookHandle {
 
-    @Volatile
-    internal var record: VectorHookRecord = initialRecord
-        private set
+    // An invalid handle can still be retained by a module (including through HotReloadedParam).
+    // Keep its public identity, but release the callback and its generation when ownership ends.
+    private val id = initialRecord.id
+    @Volatile private var record: VectorHookRecord? = initialRecord
 
-    @Volatile
-    internal var isLive: Boolean = true
-        private set
+    internal val isLive: Boolean
+        get() = record != null
 
     override fun getExecutable(): Executable = origin
 
-    override fun getId(): String? = record.id
+    override fun getId(): String? = id
 
     override fun unhook() {
         if (moduleId == null) {
             synchronized(this) {
-                if (!isLive) return
-                isLive = false
+                val record = record ?: return
+                HookBridge.unhookMethod(true, origin, record)
+                this.record = null
             }
-            HookBridge.unhookMethod(true, origin, record)
             return
         }
         synchronized(VectorHookRegistry.lockOf(moduleId)) {
             // Idempotent, as the interface requires - and a handle that has already been superseded
             // has to stay quiet here rather than tear down its own replacement.
-            if (!isLive) return
-            isLive = false
-            record.id?.let { VectorHookRegistry.releaseId(moduleId, origin, it, this) }
-            VectorHookRegistry.forget(moduleId, this)
+            val record = record ?: return
             HookBridge.unhookMethod(true, origin, record)
+            this.record = null
+            id?.let { VectorHookRegistry.releaseId(moduleId, origin, it, this) }
+            VectorHookRegistry.forget(moduleId, this)
         }
     }
 
@@ -110,7 +112,8 @@ internal constructor(
             this.moduleId ?: throw IllegalStateException("This hook does not belong to a module")
 
         synchronized(VectorHookRegistry.lockOf(moduleId)) {
-            if (!isLive) throw IllegalStateException("This hook handle is no longer valid")
+            val record =
+                record ?: throw IllegalStateException("This hook handle is no longer valid")
             // Everything but the hooker is inherited, which is what distinguishes this from
             // registering a new hook that happens to carry the same id.
             return swapLocked(
@@ -125,18 +128,19 @@ internal constructor(
      */
     internal fun swapLocked(replacement: VectorHookRecord): VectorHookHandle {
         val moduleId = checkNotNull(moduleId)
-        if (
-            !HookBridge.replaceCallback(true, origin, record, replacement, replacement.priority)
-        ) {
+        val record = record ?: throw IllegalStateException("This hook handle is no longer valid")
+        val handle = VectorHookHandle(origin, moduleId, replacement)
+        if (!HookBridge.replaceCallback(true, origin, record, replacement, replacement.priority)) {
             // The record was not where we left it, and nothing was changed, so whatever hook is
             // installed now stays installed.
             throw HookFailedError("Cannot replace the hook on $origin")
         }
 
-        isLive = false
+        // Only this handle drops the immutable record. Snapshots already handed to running
+        // invocations still own it, so their callbacks finish on the generation they entered.
+        this.record = null
         VectorHookRegistry.forget(moduleId, this)
 
-        val handle = VectorHookHandle(origin, moduleId, replacement)
         VectorHookRegistry.track(moduleId, handle)
         replacement.id?.let { VectorHookRegistry.claimId(moduleId, origin, it, handle) }
         return handle
