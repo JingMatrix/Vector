@@ -26,6 +26,7 @@ extern "C" char **environ;
 namespace {
 
 constexpr char kSockName[] = "5291374ceda0aef7c5d86cd2a4f6a3ac";
+constexpr char kWrapperPidEnv[] = "VECTOR_DEX2OAT_WRAPPER_PID";
 
 /**
  * Calculates a vector ID based on architecture and debug status.
@@ -109,6 +110,20 @@ void write_int(int fd, int val) {
 }  // namespace
 
 int main(int argc, char **argv) {
+    // execve preserves the PID. If the daemon accidentally sent a wrapper FD instead of the
+    // stock compiler, stop before receiving more FDs or copying another hook library. A PID
+    // marker (rather than a boolean) allows a compiler child to inherit the environment.
+    const auto pid = std::to_string(getpid());
+    const char *previous_pid = getenv(kWrapperPidEnv);
+    if (previous_pid && pid == previous_pid) {
+        LOGE("Refusing recursive dex2oat wrapper execution; check for stale wrapper mounts");
+        return 1;
+    }
+    if (setenv(kWrapperPidEnv, pid.c_str(), 1) != 0) {
+        PLOGE("failed to set dex2oat wrapper recursion guard");
+        return 1;
+    }
+
     LOGD("dex2oat wrapper ppid=%d", getppid());
 
     // Prepare Unix domain socket address (Abstract Namespace)

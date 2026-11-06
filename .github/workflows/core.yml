@@ -50,6 +50,9 @@ jobs:
           python3 manager/tools/check_translations.py manager/src/main/res
           python3 manager/tools/check_translations.py daemon/src/main/res
 
+      - name: Test dex2oat recursion guard
+        run: python3 dex2oat/tests/test_wrapper_recursion.py
+
       # A missing secret used to be skipped over in silence, and the build carried on to publish a
       # canary or a tag signed with the debug key — which the daemon's InstallerVerifier rejects,
       # and which nobody notices until someone tries to install the manager. On this repository the
