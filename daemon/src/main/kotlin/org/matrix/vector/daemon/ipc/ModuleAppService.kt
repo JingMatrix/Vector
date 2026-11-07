@@ -14,8 +14,6 @@ import io.github.libxposed.service.IHotReloadCallback
 import io.github.libxposed.service.IXposedScopeCallback
 import io.github.libxposed.service.IXposedService
 import java.io.Serializable
-import java.util.Collections
-import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -109,8 +107,18 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
      */
     private val deliveryLock = Any()
 
-    private val serviceMap =
-        Collections.synchronizedMap(WeakHashMap<LoadedModule, ModuleAppService>())
+    private val serviceMap = ConcurrentHashMap<String, ModuleAppService>()
+
+    private fun serviceFor(module: LoadedModule): ModuleAppService =
+        serviceMap.compute(module.packageName) { _, current ->
+          current?.takeIf { it.loadedModule === module } ?: ModuleAppService(module)
+        }!!
+
+    fun forgetReplacedModules(modules: Map<String, LoadedModule>) {
+      serviceMap.entries.removeIf { (packageName, service) ->
+        modules[packageName] !== service.loadedModule
+      }
+    }
 
     /**
      * Consecutive failed sends per uid, and when the last one was.
@@ -171,7 +179,7 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
         sending.remove(uid, attempt)
         return
       }
-      val service = serviceMap.getOrPut(module) { ModuleAppService(module) }
+      val service = serviceFor(module)
       // Off the observer thread, and never inline: see [binderExecutor]. Caught, because a uid
       // left in [sending] by a rejected submission is one this never looks at again.
       runCatching {
@@ -300,7 +308,7 @@ class ModuleAppService(private val loadedModule: LoadedModule) : IXposedService.
     // Drives the same cycle as a service request, so onHotReloading can still refuse it.
     fun autoHotReload(module: LoadedModule) {
       if (!module.code.autoHotReload) return
-      val service = serviceMap.getOrPut(module) { ModuleAppService(module) }
+      val service = serviceFor(module)
       FrameworkService.staleHotReloadTargets(module.packageName).forEach { target ->
         if (target.hotReloadable && FrameworkService.beginHotReload(target)) {
           Log.d(TAG, "Auto hot reloading ${module.packageName} in ${target.processName}")

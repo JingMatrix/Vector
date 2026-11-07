@@ -441,6 +441,7 @@ object ConfigCache {
       (oldState.modules.keys - newModules.keys).forEach {
         FrameworkService.forgetHotReloadTargets(it)
       }
+      ModuleAppService.forgetReplacedModules(newModules)
       FrameworkService.backfillLoadedVersions()
 
       // Ask stale opt-in targets to load the generation that was just installed.
