@@ -29,6 +29,31 @@ const val PER_USER_RANGE = 100000
  * by [PER_USER_RANGE] is only a user test for uids on this side of the line.
  */
 const val FIRST_APPLICATION_UID = 10000
+
+/**
+ * The Private Compute Core uid range of each user, as `android.os.Process.FIRST_PCC_UID` and
+ * `LAST_PCC_UID` (Android 17).
+ *
+ * Android 17 can run an app's processes in a Private Compute Core sandbox. Such a process belongs
+ * to the app — its package, its process names, its data directory — but runs under a uid of its
+ * own, the app's uid moved by `FIRST_PCC_UID - FIRST_APPLICATION_UID` into this range (dumpsys
+ * shows it as `u0a202p202`). Android System Intelligence runs its main process this way.
+ */
+const val FIRST_PCC_UID = 30000
+const val LAST_PCC_UID = 39999
+
+/**
+ * The uid of the app a process belongs to: [uid] itself, or for a Private Compute Core process the
+ * app uid it was derived from, as `android.os.Process.getAppUidForPrivateComputeCoreUid`.
+ *
+ * Scopes are recorded under the app's uid, so a process is looked up by this one.
+ */
+fun appUidOf(uid: Int): Int {
+  val appId = uid % PER_USER_RANGE
+  return if (appId in FIRST_PCC_UID..LAST_PCC_UID) uid - (FIRST_PCC_UID - FIRST_APPLICATION_UID)
+  else uid
+}
+
 const val MATCH_ANY_USER = 0x00400000 // PackageManager.MATCH_ANY_USER
 const val MATCH_ALL_FLAGS =
     PackageManager.MATCH_DISABLED_COMPONENTS or
