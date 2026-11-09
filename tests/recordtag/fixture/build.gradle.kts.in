@@ -1,0 +1,41 @@
+import com.android.build.api.artifact.SingleArtifact
+import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.Opcodes
+import java.util.zip.ZipFile
+import org.gradle.process.ExecOperations
+buildscript {
+    repositories { mavenCentral() }
+    dependencies { classpath("com.android.tools.smali:smali-dexlib2:3.0.10") }
+}
+plugins { id("com.android.application") version "@AGP@" }
+android {
+    namespace = "org.matrix.vector.recordtest"
+    lint { checkReleaseBuilds = false }
+    compileSdk = @COMPILE_SDK@
+    buildToolsVersion = "@BUILD_TOOLS@"
+    defaultConfig { minSdk = @MIN_SDK@; multiDexEnabled = !providers.gradleProperty("monoDex").isPresent && @MULTIDEX@ }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    buildTypes { release { isMinifyEnabled = true; proguardFiles("fixture-rules.pro") } }
+}
+@PREPARE_FRAMEWORK_DEX@
+
+androidComponents { onVariants(selector().all()) { variant ->
+    val variantCapped = variant.name.replaceFirstChar { it.uppercase() }
+    val variantLowered = variant.name.lowercase()
+@REGISTER_FRAMEWORK_DEX@
+    tasks.register<Zip>("testFrameworkZip$variantCapped") {
+        dependsOn(prepareFrameworkDex)
+        destinationDirectory.set(layout.buildDirectory.dir("test-zips"))
+        archiveFileName.set("framework-${variant.name}.zip")
+        into("framework") {
+            from(dexOutPath) {
+                include("classes.dex")
+                rename("classes.dex", "vector.dex")
+            }
+        }
+    }
+
+} }

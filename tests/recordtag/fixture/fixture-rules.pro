@@ -1,0 +1,1 @@
+-keep class org.matrix.vector.recordtest.** { *; }
