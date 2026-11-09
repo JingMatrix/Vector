@@ -48,13 +48,53 @@ ElfImage::ElfImage(std::string_view lib_name) : path_(lib_name) {
         base_ = nullptr;
         return;
     }
+
+    /*
+     * To avoid selecting a read-only ELF file mapping intended for symbol resolution
+     * when duplicate ELF file mappings appear in `/proc/self/maps`, attempts to use
+     * an anonymous memory mapping for the ELF file used in symbol resolution.
+     */
     file_size_ = file_info.st_size;
 
-    file_map_ = mmap(nullptr, file_size_, PROT_READ, MAP_SHARED, fd, 0);
+    file_map_ = mmap(nullptr, file_size_, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (file_map_ == MAP_FAILED) {
+        PLOGE("Anonymous mmap failed for {}", path_.c_str());
+        file_map_ = nullptr;
+        close(fd);
+        base_ = nullptr;
+        return;
+    }
+
+    size_t copied = 0;
+    while (copied < file_size_) {
+        const size_t remaining = file_size_ - copied;
+        const size_t chunk =
+            std::min(remaining, static_cast<size_t>(std::numeric_limits<ssize_t>::max()));
+        const ssize_t read_size =
+            pread(fd, static_cast<char *>(file_map_) + copied, chunk,
+                  static_cast<off_t>(copied));
+
+        if (read_size < 0 && errno == EINTR) continue;
+        if (read_size <= 0) {
+            if (read_size < 0) {
+                PLOGE("Failed to read ELF file: {}", path_.c_str());
+            } else {
+                LOGE("Unexpected EOF while reading ELF file: {}", path_.c_str());
+            }
+            close(fd);
+            munmap(file_map_, file_size_);
+            file_map_ = nullptr;
+            base_ = nullptr;
+            return;
+        }
+        copied += static_cast<size_t>(read_size);
+    }
     close(fd);
 
-    if (file_map_ == MAP_FAILED) {
-        PLOGE("mmap failed for {}", path_.c_str());
+    if (mprotect(file_map_, file_size_, PROT_READ) != 0) {
+        PLOGE("Failed to make ELF image read-only: {}", path_.c_str());
+        munmap(file_map_, file_size_);
         file_map_ = nullptr;
         base_ = nullptr;
         return;
