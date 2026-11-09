@@ -297,13 +297,13 @@ void VectorModule::preAppSpecialize(zygisk::AppSpecializeArgs *args) {
         return;
     }
 
-    // Skip isolated processes, which are heavily sandboxed.
+    // Isolated processes may host explicitly scoped application services (for example,
+    // Android's on-device ML runtimes).  Let the daemon make the final scope decision so a
+    // module scoped to the owning package can opt in to those services.
     const uid_t app_id = args->uid % PER_USER_RANGE;
-    if ((app_id >= FIRST_ISOLATED_UID && app_id <= LAST_ISOLATED_UID) ||
-        (app_id >= FIRST_APP_ZYGOTE_ISOLATED_UID && app_id <= LAST_APP_ZYGOTE_ISOLATED_UID) ||
-        app_id == SHARED_RELRO_UID) {
-        LOGV("Skipping injection for '{}': is an isolated process (UID: {}).", nice_name_str.get(),
-             app_id);
+    if (app_id == SHARED_RELRO_UID) {
+        LOGV("Skipping injection for '{}': is the shared RELRO process (UID: {}).",
+             nice_name_str.get(), app_id);
         return;
     }
 
