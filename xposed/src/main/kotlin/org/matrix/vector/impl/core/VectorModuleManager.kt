@@ -12,6 +12,8 @@ import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam
 import io.github.libxposed.service.IXposedService
 import java.io.File
 import java.lang.ref.WeakReference
+import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import org.matrix.vector.ipc.HotReloadOutcome
@@ -30,6 +32,7 @@ import org.matrix.vector.nativebridge.NativeAPI
 object VectorModuleManager {
 
     private const val TAG = "VectorModuleManager"
+    private const val NOT_ATTACHED = "Framework not attached"
 
     // Entries are weak on purpose: activeModules owns the only strong reference, and detach()
     // removes it. A reload holds a local strong list for the cycle instead.
@@ -80,20 +83,77 @@ object VectorModuleManager {
                 }
         }
 
-        // Native entry points are recorded by buildGeneration, which has to do it before the entry
-        // classes run. Recording them again here would put every library name in the list the dlopen
-        // hook walks twice over, and that list never shrinks.
+        // Native entry points are recorded while the generation is instantiated, which has to do it
+        // before the entry classes run. Recording them again here would put every library name in
+        // the list the dlopen hook walks twice over, and that list never shrinks.
 
         Log.d(TAG, "Loaded module ${module.packageName} successfully.")
         return true
     }
 
-    // Publishes nothing, so a reload can fail before the old generation is touched.
+    // nothing can be published until the entries exist.
     private fun buildGeneration(
         module: LoadedModule,
         isSystemServer: Boolean,
         processName: String,
-    ): Pair<Generation, List<XposedModule>>? {
+    ): Pair<Generation, List<XposedModule>>? =
+        stageGeneration(module, isSystemServer, processName)?.instantiate()
+
+    private class StagedGeneration(
+        private val module: LoadedModule,
+        private val isSystemServer: Boolean,
+        private val processName: String,
+        private val classLoader: ClassLoader,
+        private val context: VectorContext,
+        private val entryConstructors: List<Constructor<*>>,
+    ) {
+        fun instantiate(): Pair<Generation, List<XposedModule>>? {
+            module.code.moduleLibraryNames.forEach { libraryName ->
+                NativeAPI.recordNativeEntrypoint(libraryName)
+            }
+
+            val entries = mutableListOf<XposedModule>()
+            val failed = mutableListOf<String>()
+            for (constructor in entryConstructors) {
+                val className = constructor.declaringClass.name
+                try {
+                    constructor.isAccessible = true
+                    val moduleInstance = constructor.newInstance() as XposedModule
+
+                    moduleInstance.attachFramework(context) {
+                        VectorLifecycleManager.detach(moduleInstance)
+                    }
+
+                    entries.add(moduleInstance)
+                } catch (t: Throwable) {
+                    Log.e(TAG, "Failed to instantiate class $className", t)
+                    failed += describeInstantiationFailure(className, t)
+                }
+            }
+
+            if (entries.isEmpty()) {
+                Log.e(
+                    TAG,
+                    "No entry class of ${module.packageName} could be instantiated: " +
+                        failed.joinToString("; "),
+                )
+                return null
+            }
+
+            val generation = Generation(classLoader, context, entries, isSystemServer, processName)
+            return generation to entries
+        }
+    }
+
+    /**
+     * Resolves a module's entry classes without running any of its code. Returns null when not one
+     * of them can be used, having logged which ones and why.
+     */
+    private fun stageGeneration(
+        module: LoadedModule,
+        isSystemServer: Boolean,
+        processName: String,
+    ): StagedGeneration? {
         try {
             Log.d(TAG, "Loading module ${module.packageName}")
 
@@ -147,60 +207,84 @@ object VectorModuleManager {
                         else ExceptionMode.PROTECTIVE,
                 )
 
-            // Register any native JNI entrypoints declared by the module. This has to happen before
-            // the entry classes run: a module is free to load its libraries from its constructor or
-            // from onModuleLoaded, and an entrypoint recorded afterwards is one the dlopen hook has
-            // already missed. The legacy loader has always done it in this order.
-            module.code.moduleLibraryNames.forEach { libraryName ->
-                NativeAPI.recordNativeEntrypoint(libraryName)
-            }
-
-            // Instantiate the module entry classes
-            val entries = mutableListOf<XposedModule>()
+            val entryConstructors = mutableListOf<Constructor<*>>()
+            val unusable = mutableListOf<String>()
             for (className in module.code.moduleClassNames) {
-                runCatching {
-                        val moduleClass = moduleClassLoader.loadClass(className)
-                        Log.v(TAG, "Loading class $moduleClass")
-
-                        if (!XposedModule::class.java.isAssignableFrom(moduleClass)) {
-                            Log.e(TAG, "Class does not extend XposedModule, skipping.")
-                            return@runCatching
-                        }
-
-                        val constructor = moduleClass.getDeclaredConstructor()
-                        constructor.isAccessible = true
-                        val moduleInstance = constructor.newInstance() as XposedModule
-
-                        // detach() is per entry: only the instance that calls it stops.
-                        moduleInstance.attachFramework(vectorContext) {
-                            VectorLifecycleManager.detach(moduleInstance)
-                        }
-
-                        entries.add(moduleInstance)
+                val entryClass =
+                    try {
+                        moduleClassLoader.loadClass(className)
+                    } catch (t: Throwable) {
+                        Log.e(TAG, "Failed to load class $className", t)
+                        unusable += "$className could not be loaded: ${describe(t)}"
+                        continue
                     }
-                    .onFailure { e -> Log.e(TAG, "Failed to instantiate class $className", e) }
+                Log.v(TAG, "Loading class $entryClass")
+
+                if (!XposedModule::class.java.isAssignableFrom(entryClass)) {
+                    Log.e(TAG, "Class $className does not extend XposedModule, skipping it")
+                    unusable += "$className does not extend XposedModule"
+                    continue
+                }
+
+                try {
+                    entryConstructors += entryClass.getDeclaredConstructor()
+                } catch (e: NoSuchMethodException) {
+                    Log.e(TAG, "Class $className declares no no-argument constructor", e)
+                    unusable +=
+                        "$className declares no no-argument constructor, which the API requires " +
+                            "of an entry class; it declares ${describeConstructors(entryClass)}"
+                }
             }
 
-            // A generation with nothing in it is not a generation. Every entry class can fail to
-            // instantiate - a constructor that throws, a class that does not extend XposedModule -
-            // and each of those is logged and skipped above, which used to leave an empty list that
-            // every caller then treated as success: the initial load reported the module loaded,
-            // and a hot reload committed the empty generation, never called onHotReloaded, never
-            // unhooked the old hooks, and answered SUCCEEDED while the process went on running the
-            // previous generation. The module was then wedged, because the committed generation had
-            // no live entry for any later reload to hand over to.
-            if (entries.isEmpty()) {
-                Log.e(TAG, "No entry class of ${module.packageName} could be instantiated")
+            if (entryConstructors.isEmpty()) {
+                // Same as the instantiation message: the reasons travel with it.
+                Log.e(
+                    TAG,
+                    "No entry class of ${module.packageName} could be loaded: " +
+                        unusable.joinToString("; "),
+                )
                 return null
             }
 
-            val generation =
-                Generation(moduleClassLoader, vectorContext, entries, isSystemServer, processName)
-            return generation to entries
+            return StagedGeneration(
+                module,
+                isSystemServer,
+                processName,
+                moduleClassLoader,
+                vectorContext,
+                entryConstructors,
+            )
         } catch (e: Throwable) {
             Log.e(TAG, "Fatal error loading module ${module.packageName}", e)
             return null
         }
+    }
+
+    private fun describeConstructors(clazz: Class<*>): String =
+        clazz.declaredConstructors.joinToString(", ", "(", ")") { constructor ->
+            constructor.parameterTypes.joinToString(", ") { it.name }
+        }
+
+    private fun describeInstantiationFailure(className: String, t: Throwable): String {
+        if (calledFrameworkBeforeAttach(t)) {
+            return "$className calls the framework from its constructor, which runs before " +
+                "attachFramework; module initialization belongs in onModuleLoaded"
+        }
+        val cause = if (t is InvocationTargetException) t.targetException else t
+        return "$className: ${describe(cause)}"
+    }
+
+    private fun calledFrameworkBeforeAttach(t: Throwable): Boolean {
+        var current: Throwable? = t
+        while (current != null) {
+            val message = (current as? IllegalStateException)?.message
+            if (message != null && message.contains(NOT_ATTACHED)) {
+                return true
+            }
+            val next = current.cause
+            current = if (next === current) null else next
+        }
+        return false
     }
 
     fun hotReload(
@@ -252,10 +336,9 @@ object VectorModuleManager {
             return unsupported("Every entry of $packageName has detached in this process")
         }
 
-        val built =
-            buildGeneration(newModule, old.isSystemServer, old.processName)
-                ?: return unsupported("Cannot build a new generation of $packageName")
-        val (newGeneration, newEntries) = built
+        val staged =
+            stageGeneration(newModule, old.isSystemServer, old.processName)
+                ?: return unsupported("Cannot stage a new generation of $packageName")
 
         // Before the callback, so registrations from inside it fail while unhook and replace work.
         // Under the hook registry's lock for this module, because a registration on another thread
@@ -292,6 +375,13 @@ object VectorModuleManager {
 
         // Captured after the freeze and after old code had its chance to unhook.
         val oldHandles = VectorHookBuilder.snapshotHandles(packageName)
+
+        val built = staged.instantiate()
+        if (built == null) {
+            old.context.unfreeze()
+            return failed("Cannot instantiate the new generation of $packageName")
+        }
+        val (newGeneration, newEntries) = built
 
         oldEntries.forEach { VectorLifecycleManager.activeModules.remove(it) }
         // Active before the callback, so an entry detaching from inside it is honoured.
