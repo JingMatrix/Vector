@@ -172,8 +172,6 @@ class HomeViewModel(
     private val github: GitHubRepository,
 ) : ViewModel() {
 
-    val openLinksExternally: StateFlow<Boolean> = ServiceLocator.settings.openLinksExternally
-
     val headerAmbience: StateFlow<String> = ServiceLocator.settings.headerAmbience
 
     private val _status = MutableStateFlow(FrameworkStatus())
