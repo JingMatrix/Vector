@@ -1,7 +1,12 @@
 import com.android.build.api.artifact.SingleArtifact
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipFile
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import org.gradle.process.ExecOperations
 buildscript {
     repositories { mavenCentral() }
@@ -26,6 +31,61 @@ androidComponents { onVariants(selector().all()) { variant ->
     val variantCapped = variant.name.replaceFirstChar { it.uppercase() }
     val variantLowered = variant.name.lowercase()
 @REGISTER_FRAMEWORK_DEX@
+    val failure = providers.gradleProperty("failureApk")
+    if (failure.isPresent) {
+        val sourceApk = variant.artifacts.get(SingleArtifact.APK)
+        val failureDirectory = layout.buildDirectory.dir("failure-apk/${variant.name}")
+        val damage = tasks.register("makeFailureApk$variantCapped") {
+            inputs.dir(sourceApk)
+            inputs.property("failure", failure)
+            outputs.dir(failureDirectory)
+            doLast {
+                val original = sourceApk.get().asFile.listFiles { f -> f.extension == "apk" }!!.single()
+                val destination = failureDirectory.get().asFile.apply { mkdirs() }.resolve("test.apk")
+                ZipFile(original).use { archive ->
+                    val dex = archive.getInputStream(archive.getEntry("classes.dex")).use { it.readBytes() }
+                    ZipOutputStream(destination.outputStream()).use { zip ->
+                        zip.putNextEntry(ZipEntry("classes.dex"))
+                        zip.write(dex)
+                        zip.closeEntry()
+                        zip.putNextEntry(ZipEntry("classes2.dex"))
+                        zip.write(if (failure.get() == "duplicate") dex else byteArrayOf(0, 1, 2))
+                        zip.closeEntry()
+                    }
+                }
+            }
+        }
+        prepareFrameworkDex.configure {
+            dependsOn(damage)
+            apkDirectory.set(failureDirectory)
+        }
+    }
+
+    tasks.register("verifyFrameworkClasses$variantCapped") {
+        dependsOn(prepareFrameworkDex)
+        doLast {
+            val apk = variant.artifacts.get(SingleArtifact.APK).get().asFile
+                .listFiles { f -> f.extension == "apk" }!!.single()
+            val expected = mutableSetOf<String>()
+            ZipFile(apk).use { archive ->
+                archive.entries().asSequence()
+                    .filter { Regex("classes(?:[2-9]|[1-9][0-9]+)?\\.dex").matches(it.name) }
+                    .forEach { entry ->
+                        val dex = temporaryDir.resolve(entry.name)
+                        archive.getInputStream(entry).use { input -> dex.outputStream().use { input.copyTo(it) } }
+                        DexFileFactory.loadDexFile(dex, Opcodes.getDefault()).classes.forEach {
+                            check(expected.add(it.type)) { "Duplicate input class: ${it.type}" }
+                        }
+                    }
+            }
+            val actual = DexFileFactory.loadDexFile(
+                prepareFrameworkDex.get().outputFile.get().asFile, Opcodes.getDefault()
+            ).classes.map { it.type }.toSet()
+            check(expected == actual) {
+                "Merged class mismatch: missing=${expected - actual}, extra=${actual - expected}"
+            }
+        }
+    }
     tasks.register<Zip>("testFrameworkZip$variantCapped") {
         dependsOn(prepareFrameworkDex)
         destinationDirectory.set(layout.buildDirectory.dir("test-zips"))

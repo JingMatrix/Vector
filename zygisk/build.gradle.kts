@@ -6,6 +6,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 import org.apache.commons.codec.binary.Hex
@@ -101,7 +104,7 @@ abstract class PrepareFrameworkDex : DefaultTask() {
     @TaskAction
     fun prepare() {
         val output = outputFile.get().asFile
-        output.delete()
+        check(!output.exists() || output.delete()) { "Cannot remove previous framework DEX: $output" }
         val apks = apkDirectory.get().asFile.listFiles { file -> file.extension == "apk" }.orEmpty()
         check(apks.size == 1) { "Expected one framework APK, found ${apks.size}" }
         val work = temporaryDir.resolve("dex")
@@ -110,6 +113,10 @@ abstract class PrepareFrameworkDex : DefaultTask() {
         val inputs = ZipFile(apks.single()).use { apk ->
             apk.entries().asSequence()
                 .filter { Regex("classes(?:[2-9]|[1-9][0-9]+)?\\.dex").matches(it.name) }
+                .sortedBy {
+                    if (it.name == "classes.dex") 1
+                    else it.name.removePrefix("classes").removeSuffix(".dex").toInt()
+                }
                 .map { entry ->
                     work.resolve(entry.name).also { file ->
                         apk.getInputStream(entry).use { source ->
@@ -137,7 +144,24 @@ abstract class PrepareFrameworkDex : DefaultTask() {
             "Framework DEX references RecordTag without defining it; global synthetics are missing"
         }
         output.parentFile.mkdirs()
-        candidate.copyTo(output, overwrite = true)
+        val staged = output.resolveSibling("${output.name}.pending")
+        try {
+            candidate.copyTo(staged, overwrite = true)
+            try {
+                Files.move(
+                    staged.toPath(), output.toPath(),
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
+            } catch (_: AtomicMoveNotSupportedException) {
+                Files.move(staged.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
+        } catch (failure: Exception) {
+            output.delete()
+            throw failure
+        } finally {
+            staged.delete()
+        }
     }
 }
 
