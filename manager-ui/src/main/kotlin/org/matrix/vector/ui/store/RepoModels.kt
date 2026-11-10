@@ -17,6 +17,10 @@ import com.google.gson.annotations.SerializedName
  * **The list payload is nearly a detail payload.** Each list entry already carries exactly one
  * release — the newest — with its `.apk` asset and download URL. Installing the current version of
  * a module needs no second request, which is what lets the Store work on a bad connection.
+ *
+ * **Except where the list is the site's.** An entry from `module-list/<n>.json` names its
+ * `latestRelease` and carries no release, scope or collaborators at all, so `releases` being empty
+ * means "ask for the detail record", not "nothing was ever published".
  */
 data class OnlineModule(
     @SerializedName("name") val name: String,

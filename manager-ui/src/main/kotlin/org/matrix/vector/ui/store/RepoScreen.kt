@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CloudOff
@@ -46,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -124,8 +126,24 @@ fun RepoScreen(
                 return@Column
             }
 
+            // A list holds its first visible row where it is when rows arrive above it, and rows do:
+            // the mirror's catalogue is shown before the site has corrected it, and what the site
+            // adds is the newest releases. A reader who has not scrolled is at the top to see what
+            // is newest, so the top is where they stay.
+            val listState = rememberLazyListState()
+            // Read out here on purpose: the rows are otherwise read only inside the list's own
+            // content, so a new first row would not recompose this scope and the effect, which is
+            // what has to run before the list is measured again, would not run at all.
+            val firstRow = entries.firstOrNull()?.module?.name
+            SideEffect {
+                if (firstRow != null && !listState.canScrollBackward) {
+                    listState.requestScrollToItem(0)
+                }
+            }
+
             PullToRefreshBox(isRefreshing = refreshing, onRefresh = viewModel::refresh) {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 20.dp),
                 ) {

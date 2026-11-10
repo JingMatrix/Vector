@@ -27,7 +27,8 @@ enum class DetailFetch {
  * the whole design of this screen: the catalogue already carries the description, the summary, the
  * scope, the collaborators and the newest release *with its APK*, so the page can paint — and be
  * installed from — before any request is made, and a failed request costs the README rather than
- * the page.
+ * the page. The exception is an entry the site has corrected since the mirror's snapshot: it names
+ * its version and carries no release, so that page installs once its record has arrived.
  */
 data class RepoDetailsState(
     val module: OnlineModule? = null,
