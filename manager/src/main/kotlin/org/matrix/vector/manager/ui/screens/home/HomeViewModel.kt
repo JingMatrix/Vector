@@ -47,6 +47,18 @@ data class FrameworkStatus(
     val sepolicyLoaded: Boolean = false,
     val systemServerInjected: Boolean = false,
     /**
+     * Whether the two booleans above are answers rather than defaults.
+     *
+     * Both default to false, so the status page used to render "not loaded" and "not injected" for
+     * a framework it had never asked: two refusals that name the wrong fault on a device whose
+     * daemon cannot start — a root implementation that loads its kernel module after boot leaves
+     * post-fs-data unrun, so no policy is applied and nothing rendezvouses — and that hide the one
+     * fact the manager does hold, which is that nothing was asked. Unlike [daemonUsable], which
+     * asks whether the daemon can be used, this asks whether it was asked:
+     * [FrameworkState.Checking] is false here and true there.
+     */
+    val daemonReachable: Boolean = false,
+    /**
      * Which build the running framework is: what commit it came from and where it was built.
      *
      * The version code is a commit count, so it cannot tell a branch build from the official build
@@ -384,6 +396,9 @@ class HomeViewModel(
             // interface, which is not the same thing as there being no framework — and saying "not
             // activated" for it sends the reader to reinstall something that is already running.
             val mismatch = ServiceLocator.peerMismatch.value
+            // daemonReachable keeps its false default here on purpose: there is no daemon, so the
+            // two health booleans were never read and the status page must say so instead of
+            // presenting their defaults as the framework's own report.
             _status.value =
                 FrameworkStatus(
                     state =
@@ -443,6 +458,9 @@ class HomeViewModel(
                 dex2oatWrapperState = dex2oat,
                 sepolicyLoaded = sepolicy,
                 systemServerInjected = systemServer,
+                // The binder answered, so the two booleans above are this framework's report and
+                // the status page may render them as such.
+                daemonReachable = true,
             )
 
         if (versionCode > 0) {
