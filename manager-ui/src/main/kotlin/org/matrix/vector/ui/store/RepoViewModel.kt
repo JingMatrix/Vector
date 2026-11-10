@@ -54,27 +54,28 @@ enum class StoreChannel(val preference: String) {
 /**
  * Every release the chosen channel admits, newest first.
  *
- * **A beta is not a flagged element of `releases`; it is a different array.** In the live catalogue
- * not one entry of any module's `releases` carries `isPrerelease`, and each of the 14 modules that
- * publish a beta keeps it exclusively in `betaReleases`. Selecting the prerelease channel by
- * filtering `releases` on `isPrerelease` therefore matches nothing at all, and the install bar
- * takes the newest release with an APK straight off this list.
+ * **Where a beta lives depends on the payload.** In the catalogue it is not a flagged element of
+ * `releases` but a different array: not one list entry's `releases` carries `isPrerelease`, and
+ * each module that publishes a beta keeps it exclusively in `betaReleases`. In a detail record it
+ * is the reverse: there is no `betaReleases`, and the betas sit in `releases` with `isPrerelease`
+ * set. Both shapes are read here, because the install bar takes the newest release with an APK
+ * straight off this list whichever payload it came from.
  *
- * Merged, the order has to come from the version code rather than from either array's position,
- * because the two are sorted independently and a beta is not automatically newer: of today's 14,
- * `com.luoshui.paycardeditor` publishes beta code 1 against stable code 8.
+ * On the prerelease channel the order has to come from the version code rather than from position
+ * in either shape. The two arrays are sorted independently, a detail record is sorted by date, and
+ * a beta is not automatically newer: `com.luoshui.paycardeditor` publishes beta code 1 against
+ * stable code 8, and `io.github.wumisc.antiburn` a stable code 10 two weeks after beta
+ * code 45. [latestOn] names the highest code, so the first element here has to be that release.
  */
 public fun OnlineModule.releasesOn(channel: StoreChannel): List<Release> {
     val published = releases.orEmpty().filter { it.isDraft != true }
     if (channel == StoreChannel.Prerelease) {
         val beta = betaReleases.orEmpty().filter { it.isDraft != true }
-        if (beta.isEmpty()) return published
         return (published + beta)
             .distinctBy { it.tagName ?: it.id ?: it.name }
             .sortedByDescending { it.version?.versionCode ?: Long.MIN_VALUE }
     }
-    // Defensive rather than load-bearing, and it stays because the mirror's shape is not ours to
-    // promise: a module that has only ever prereleased still has releases worth listing.
+    // A module that has only ever prereleased still has releases worth listing.
     val stable = published.filter { it.isPrerelease != true }
     return stable.ifEmpty { published }
 }

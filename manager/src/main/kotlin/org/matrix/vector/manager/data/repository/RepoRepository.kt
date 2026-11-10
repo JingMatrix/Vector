@@ -1,21 +1,20 @@
 package org.matrix.vector.manager.data.repository
 
-import com.google.gson.Gson
-import com.google.gson.JsonParser
-import com.google.gson.stream.JsonReader
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import okhttp3.CacheControl
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import org.matrix.vector.ui.store.StoreDataSource
 import org.matrix.vector.ui.store.OnlineModule
 import org.matrix.vector.ui.store.RepoVersion
@@ -29,27 +28,28 @@ import org.matrix.vector.manager.logW
 /**
  * The Store's data: the online catalogue, and what this device already has of it.
  *
- * **The mirror list is two lists, and that is not an oversight.** The full `modules.json` is served
- * Per-module `module/<package>.json` is served by both hosts, with `modules.lsposed.org` providing the latest data and `backup.modules.lsposed.org` serving as fallback.
+ * Where the catalogue comes from, and why from two hosts, is [StoreApi]'s business. What is decided
+ * here is when to ask and what to do when asking fails.
  *
  * **Caching is declared, not hoped for.** Every request states its own freshness, so the 16 MB disk
- * cache in `HttpClientFactory` is actually used: the catalogue revalidates against the server's own
- * ten-minute `max-age` and its ETag, pull-to-refresh forces the network, and when every mirror
- * fails the same request is replayed against the cache alone. That last step is why a cold start
- * with no network renders the last known catalogue rather than an error, and it is also what gives
- * the DNS-over-HTTPS setting an effect here, since the shared client is the one carrying the DoH
- * resolver.
+ * cache in `HttpClientFactory` is actually used: the mirror's snapshot revalidates against the
+ * server's own ten-minute `max-age` and its ETag, pull-to-refresh forces the network, and when the
+ * network yields nothing the same requests are replayed against the cache alone. That last step is
+ * why a cold start with no network renders the last known catalogue rather than an error, and it is
+ * also what gives the DNS-over-HTTPS setting an effect here, since the shared client is the one
+ * carrying the DoH resolver.
  *
  * There is deliberately **no snapshot file** of our own, unlike `GitHubRepository`. The OkHttp
- * cache already holds these exact bytes; a 1.2 MB duplicate in the same cache directory would buy
+ * cache already holds these exact bytes; a 2 MB duplicate in the same cache directory would buy
  * nothing but a second thing to keep in sync.
  */
 class RepoRepository(
-    private val client: OkHttpClient,
+    client: OkHttpClient,
     private val daemon: DaemonClient,
     private val scope: CoroutineScope,
-    private val gson: Gson = Gson(),
 ) : StoreDataSource {
+
+    private val api = StoreApi(client)
 
     private val _catalog = MutableStateFlow(StoreCatalog())
     override val catalog: StateFlow<StoreCatalog> = _catalog.asStateFlow()
@@ -58,7 +58,9 @@ class RepoRepository(
     override val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private val _installed = MutableStateFlow<Map<String, RepoVersion>>(emptyMap())
-    private var lastFullSyncTimeMillis: Long = 0L
+
+    /** Detail records fetched for installed modules, by package name. See [completeInstalled]. */
+    @Volatile private var records = emptyMap<String, OnlineModule>()
 
     /**
      * What each package on this device is at, keyed by package name.
@@ -81,31 +83,26 @@ class RepoRepository(
             // because the daemon died would state something untrue.
             ServiceLocator.service.collect { service -> if (service != null) loadInstalled() }
         }
+        scope.launch { completeInstalled() }
     }
 
     /**
      * Reloads the catalogue.
      *
-     * [force] is pull-to-refresh: it bypasses the cache rather than revalidating against it,
-     * because a user who pulls is telling us they think what they are looking at is stale.
+     * [force] is pull-to-refresh: it bypasses the cache rather than revalidating against it, and
+     * reads the site to its last page, because a user who pulls is telling us they think what they
+     * are looking at is stale.
      */
     override suspend fun refresh(force: Boolean) {
-        // A second caller during a refresh is a no-op rather than a queued duplicate
+        // A second caller during a refresh is a no-op rather than a queued duplicate of a 2 MB
+        // download.
         if (!refreshing.tryLock()) return
         try {
+            if (!force && isCurrent(_catalog.value)) return
             _isRefreshing.value = true
+            // Nothing in the block suspends, so a caller cancelled half way — a tab switch takes
+            // the Store's `viewModelScope` with it — still leaves a whole catalogue behind.
             withContext(Dispatchers.IO) {
-                // If not forcing a refresh, check if we already have a fully synced catalog within 1 hour
-                if (!force) {
-                    val current = _catalog.value
-                    val ageMillis = System.currentTimeMillis() - lastFullSyncTimeMillis
-                    val isFresh = lastFullSyncTimeMillis > 0L && ageMillis < TimeUnit.MINUTES.toMillis(CATALOG_MAX_AGE_MINUTES.toLong())
-                    if (current.isFullySynced && isFresh) {
-                        logI("store: catalog is fresh (age: ${TimeUnit.MILLISECONDS.toMinutes(ageMillis)}m), skipping sync")
-                        return@withContext
-                    }
-                }
-
                 val freshness =
                     if (force) CacheControl.FORCE_NETWORK
                     else
@@ -113,87 +110,117 @@ class RepoRepository(
                             .maxAge(CATALOG_MAX_AGE_MINUTES, TimeUnit.MINUTES)
                             .build()
 
-                // Fetch page 1 immediately to show the initial modules instantly
-                val firstPage = fetchPaginatedCatalog(1, freshness)
-                    ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, freshness) }
+                // The mirror's list goes up as soon as it is read, before the site has corrected
+                // it, but only onto an empty screen: over a list already showing it would take
+                // the corrections away, and update badges with them, only to bring them back.
+                val blank = _catalog.value.isEmpty
+                val paint = { base: StoreCatalog -> if (blank) _catalog.value = complete(base) }
 
-                if (firstPage != null) {
-                    val initialCatalog = firstPage.copy(
-                        isSyncing = firstPage.page < firstPage.pageCount,
-                        syncProgress = if (firstPage.pageCount > 0) 1f / firstPage.pageCount else 1f,
-                    )
-                    _catalog.value = initialCatalog
+                // Before reporting nothing, ask the cache — the bytes from the last successful
+                // visit are usually still on disk, and a stale catalogue is far more use than an
+                // empty screen.
+                val fetched =
+                    api.catalog(freshness, everyPage = force, paint)
+                        ?: api.catalog(CacheControl.FORCE_CACHE, everyPage = false, paint)
+                            ?.copy(fromCache = true)
 
-                    // If more pages exist, sync them sequentially in the background
-                    if (firstPage.page < firstPage.pageCount) {
-                        syncRemainingPages(firstPage, freshness)
-                    } else {
-                        lastFullSyncTimeMillis = System.currentTimeMillis()
-                    }
-                    return@withContext
-                }
-
-                // If network failed, check cache for page 1
-                val cached = fetchPaginatedCatalog(1, CacheControl.FORCE_CACHE)
-                    ?: LIST_MIRRORS.firstNotNullOfOrNull { fetchCatalog(it, CacheControl.FORCE_CACHE) }
-
-                when {
-                    cached != null -> _catalog.value = cached.copy(fromCache = true, isSyncing = false)
-                    else -> _catalog.value = _catalog.value.copy(loaded = true, isSyncing = false)
-                }
+                // Nothing on the network and nothing on disk. `loaded` still flips, so the screen
+                // can say the repository is unreachable instead of sitting forever on a spinner
+                // that means nothing.
+                _catalog.value = fetched?.let(::complete) ?: _catalog.value.copy(loaded = true)
             }
         } finally {
+            // In a `finally` rather than after the block: a cancelled `viewModelScope` — a
+            // rotation mid-refresh — would otherwise strand the flag at true, and with
+            // pull-to-refresh reading it that is a spinner that never stops.
             _isRefreshing.value = false
             refreshing.unlock()
         }
     }
 
-    private suspend fun syncRemainingPages(initial: StoreCatalog, cacheControl: CacheControl) {
-        var accumulated = initial.modules.toMutableList()
-        val totalPages = initial.pageCount
-        for (p in (initial.page + 1)..totalPages) {
-            val pageResult = fetchPaginatedCatalog(p, cacheControl)
-            if (pageResult != null) {
-                accumulated.addAll(pageResult.modules)
-                val distinct = usable(accumulated)
-                accumulated = distinct.toMutableList()
-                val progress = p.toFloat() / totalPages
-                _catalog.value = _catalog.value.copy(
-                    modules = distinct,
-                    page = p,
-                    pageCount = totalPages,
-                    total = pageResult.total,
-                    isSyncing = p < totalPages,
-                    syncProgress = progress,
-                )
-            } else {
-                // If a page fails, stop syncing and keep current state
-                _catalog.value = _catalog.value.copy(isSyncing = false)
-                break
-            }
-        }
-        _catalog.value = _catalog.value.copy(isSyncing = false, syncProgress = 1f)
-        if (_catalog.value.isFullySynced) {
-            lastFullSyncTimeMillis = System.currentTimeMillis()
-        }
+    /**
+     * Whether an unforced refresh would only fetch again what is already here.
+     *
+     * The mirror's snapshot answers that for itself through its `max-age`, but the site's pages
+     * carry no cache headers and never answer 304, so without this every launch and every visit to
+     * the Modules screen would download them again.
+     */
+    private fun isCurrent(catalog: StoreCatalog): Boolean {
+        // Bounded below as well: a clock set back would otherwise hold a refresh off for as long
+        // as it was set back by.
+        val age = System.currentTimeMillis() - catalog.loadedAtMillis
+        val limit = TimeUnit.MINUTES.toMillis(CATALOG_MAX_AGE_MINUTES.toLong())
+        return !catalog.isEmpty && !catalog.fromCache && age in 0 until limit
     }
 
     /**
      * The full record for one module: its README, and every release rather than only the newest.
      *
-     * Returns null when no mirror answers. Callers are expected to fall back to the catalogue entry
-     * they already hold, which carries the description, the scope, the collaborators and the newest
-     * release with its APK — a usable page, and much better than an error screen.
+     * Returns null when no host answers. Callers are expected to fall back to the catalogue entry
+     * they already hold, which carries the description and, where the mirror supplied it, the
+     * scope, the collaborators and the newest release with its APK — a usable page, and much better
+     * than an error screen.
      */
     override suspend fun details(packageName: String): OnlineModule? =
         withContext(Dispatchers.IO) {
             val freshness =
                 CacheControl.Builder().maxAge(DETAIL_MAX_AGE_MINUTES, TimeUnit.MINUTES).build()
-            DETAIL_MIRRORS.firstNotNullOfOrNull { fetchDetails(it, packageName, freshness) }
-                ?: DETAIL_MIRRORS.firstNotNullOfOrNull {
-                    fetchDetails(it, packageName, CacheControl.FORCE_CACHE)
-                }
+            api.details(packageName, freshness)
+                ?: api.details(packageName, CacheControl.FORCE_CACHE)
         }
+
+    /**
+     * Gives every installed module its releases, where the catalogue came without them.
+     *
+     * An entry the site corrected, or one read from the site alone, names a version and carries no
+     * APK. For most of the catalogue that costs nothing, since the detail page fetches its own
+     * record. For an installed module it would leave the Modules screen offering an update it then
+     * cannot install, so those few are fetched here.
+     *
+     * Driven by the two flows rather than called from [refresh], because the daemon's package list
+     * and the catalogue arrive in either order. A record that fails to arrive leaves the names as
+     * they were, and `distinctUntilChanged` then keeps this from asking in a loop.
+     */
+    private suspend fun completeInstalled() {
+        combine(_catalog, _installed) { catalog, installed ->
+                catalog.modules
+                    .filter { it.releases.isNullOrEmpty() && it.name in installed }
+                    .map { it.name }
+            }
+            .distinctUntilChanged()
+            .collectLatest { names ->
+                val fetched = names.mapNotNull { details(it) }
+                if (fetched.isEmpty()) return@collectLatest
+                logI("store: ${fetched.size} of ${names.size} installed modules given releases")
+                // Without the README: these stay in memory for as long as the process does.
+                records = records + fetched.associate { it.name to it.copy(readmeHTML = null) }
+                _catalog.update(::complete)
+            }
+    }
+
+    /**
+     * [catalog] with the [records] laid over the entries that lack releases.
+     *
+     * Applied to everything published and not only once after a fetch, because every reload brings
+     * the same bare entries back.
+     *
+     * Only a record of the very releases the entry names: the mirror answers when the site does
+     * not, and its record may be older.
+     */
+    private fun complete(catalog: StoreCatalog): StoreCatalog {
+        val records = records
+        if (records.isEmpty()) return catalog
+        return catalog.copy(
+            modules =
+                catalog.modules.map { module ->
+                    records[module.name]?.takeIf {
+                        module.releases.isNullOrEmpty() &&
+                            it.latestRelease == module.latestRelease &&
+                            it.latestBetaReleaseTime == module.latestBetaReleaseTime
+                    } ?: module
+                }
+        )
+    }
 
     /** Re-reads installed versions; called on opening the Store and after an install lands. */
     override fun refreshInstalled() {
@@ -238,171 +265,9 @@ class RepoRepository(
         _installed.value = versions
     }
 
-    private fun fetchCatalog(baseUrl: String, cacheControl: CacheControl): StoreCatalog? {
-        val url = baseUrl + "modules.json"
-        return try {
-            // `use` covers the failure branch as well as the success one, and the failure branch is
-            // the one that runs whenever a mirror is down.
-            client.newCall(request(url, cacheControl)).execute().use { response ->
-                if (!response.isSuccessful) {
-                    // The FORCE_CACHE replay synthesises 504 without contacting the mirror, so
-                    // only report a status the network actually produced.
-                    if (response.networkResponse != null) {
-                        logW("store: $url returned HTTP ${response.code}")
-                    }
-                    return null
-                }
-                val parsed = parseCatalog(response)
-                if (parsed.isEmpty()) return null
-                logI("store: ${parsed.size} modules from $url")
-                // `fromCache` is deliberately *not* derived from `response.networkResponse`. A hit
-                // inside the ten-minute freshness window is served from disk without touching the
-                // network, and calling that "the saved catalogue" would put an offline notice on
-                // a perfectly current list. Staleness is a property of which branch produced this,
-                // so the caller sets the flag on the fallback path and only there.
-                StoreCatalog(
-                    modules = usable(parsed),
-                    loaded = true,
-                    loadedAtMillis = response.receivedResponseAtMillis,
-                )
-            }
-        } catch (e: Exception) {
-            logW("store: $url unavailable", e)
-            null
-        }
-    }
-
-    private fun fetchDetails(
-        baseUrl: String,
-        packageName: String,
-        cacheControl: CacheControl,
-    ): OnlineModule? {
-        val url = "${baseUrl}module/$packageName.json"
-        return try {
-            client.newCall(request(url, cacheControl)).execute().use { response ->
-                if (!response.isSuccessful) return null
-                gson.fromJson(response.body.string(), OnlineModule::class.java)
-            }
-        } catch (e: Exception) {
-            logW("store: $url unavailable", e)
-            null
-        }
-    }
-
-
-    private fun fetchPaginatedCatalog(page: Int, cacheControl: CacheControl): StoreCatalog? {
-        val url = "https://modules.lsposed.org/module-list/$page.json"
-        return try {
-            client.newCall(request(url, cacheControl)).execute().use { response ->
-                if (!response.isSuccessful) {
-                    if (response.networkResponse != null) {
-                        logW("store: $url returned HTTP ${response.code}")
-                    }
-                    return null
-                }
-                val parsed = parsePaginatedCatalog(response) ?: return null
-                logI("store: page ${parsed.page}/${parsed.pageCount} (${parsed.modules.size} modules) from $url")
-                StoreCatalog(
-                    modules = usable(parsed.modules),
-                    loaded = true,
-                    loadedAtMillis = response.receivedResponseAtMillis,
-                    page = parsed.page,
-                    pageCount = parsed.pageCount,
-                    total = parsed.total,
-                )
-            }
-        } catch (e: Exception) {
-            logW("store: $url unavailable", e)
-            null
-        }
-    }
-
-    private data class PaginatedResponse(
-        val modules: List<OnlineModule> = emptyList(),
-        val page: Int = 1,
-        val pageCount: Int = 1,
-        val total: Int = 0,
-    )
-
-    private fun parsePaginatedCatalog(response: Response): PaginatedResponse? {
-        return try {
-            val json = JsonParser.parseReader(response.body.charStream()).asJsonObject
-            val page = json.get("page")?.asInt ?: 1
-            val pageCount = json.get("pageCount")?.asInt ?: 1
-            val total = json.get("total")?.asInt ?: 0
-            val modulesArray = json.getAsJsonArray("modules") ?: return null
-            val modules = ArrayList<OnlineModule>(modulesArray.size())
-            for (element in modulesArray) {
-                val module = runCatching { gson.fromJson(element, OnlineModule::class.java) }
-                if (module.isSuccess) module.getOrNull()?.let(modules::add)
-            }
-            PaginatedResponse(modules = modules, page = page, pageCount = pageCount, total = total)
-        } catch (e: Exception) {
-            logW("store: failed to parse paginated catalog", e)
-            null
-        }
-    }
-
-    private fun request(url: String, cacheControl: CacheControl): Request =
-        Request.Builder().url(url).cacheControl(cacheControl).build()
-
-    /**
-     * Reads the catalogue one entry at a time, and survives a bad one.
-     *
-     * Binding the whole array in a single `fromJson` call fails the entire Store on one unexpected
-     * field — `additionalAuthors` holds objects rather than the strings its name suggests, and
-     * `AdditionalAuthor` exists because of it. This is third-party data written by hundreds of
-     * authors, so an entry the model does not expect must cost that entry and nothing else.
-     *
-     * Streamed off the response rather than through a `String`, which also keeps the 1.2 MB body
-     * from being materialised twice.
-     */
-    private fun parseCatalog(response: Response): List<OnlineModule> {
-        val modules = ArrayList<OnlineModule>(1024)
-        var rejected = 0
-        JsonReader(response.body.charStream()).use { reader ->
-            reader.beginArray()
-            while (reader.hasNext()) {
-                // Parsing to a JsonElement first cannot fail on well-formed JSON, so a binding
-                // failure below leaves the reader cleanly positioned on the next entry.
-                val element = JsonParser.parseReader(reader)
-                val module = runCatching { gson.fromJson(element, OnlineModule::class.java) }
-                if (module.isSuccess) module.getOrNull()?.let(modules::add) else rejected++
-            }
-            reader.endArray()
-        }
-        if (rejected > 0) logW("store: skipped $rejected unreadable entries")
-        return modules
-    }
-
-    /**
-     * What is worth showing of a parsed catalogue.
-     *
-     * `distinctBy` is not superstition about today's data — it is what stops a mirror serving the
-     * same package twice from crashing the Store's `LazyColumn`, which is keyed by package name.
-     * Entries with no release or latestRelease are dropped.
-     */
-    private fun usable(parsed: List<OnlineModule>): List<OnlineModule> =
-        parsed
-            .asSequence()
-            .filter { it.hide != true }
-            .filter { !it.releases.isNullOrEmpty() || !it.latestRelease.isNullOrBlank() }
-            .distinctBy { it.name }
-            .toList()
-
     private companion object {
-        /**
-         * The only host serving the full list. Probed rather than assumed: roughly 1.2 MB and 800
-         * entries here, against a 403 from `modules.lsposed.org`.
-         */
-        val LIST_MIRRORS = listOf("https://backup.modules.lsposed.org/")
-
-        /** Detail is served by both hosts; primary site carries the latest data while backup is fallback. */
-        val DETAIL_MIRRORS =
-            listOf("https://modules.lsposed.org/", "https://backup.modules.lsposed.org/")
-
-        /** Matches 1 hour cache duration so full catalogue sync only happens once an hour or on pull-to-refresh. */
-        const val CATALOG_MAX_AGE_MINUTES = 60
+        /** Matches the mirror's own `cache-control: max-age=600`, so revalidation stays free. */
+        const val CATALOG_MAX_AGE_MINUTES = 10
 
         /** Longer: a module's release history changes far less often than the index does. */
         const val DETAIL_MAX_AGE_MINUTES = 60

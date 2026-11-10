@@ -42,19 +42,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -113,7 +111,7 @@ fun RepoScreen(
             StoreHeader(
                 catalog = catalog,
                 updates = updates,
-                search = { StoreSearch(query, viewModel, sort, priorities, channel, isSyncing = catalog.isSyncing) },
+                search = { StoreSearch(query, viewModel, sort, priorities, channel) },
                 actions = actions,
             )
 
@@ -128,63 +126,44 @@ fun RepoScreen(
                 return@Column
             }
 
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                PullToRefreshBox(isRefreshing = refreshing, onRefresh = viewModel::refresh) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 20.dp),
-                    ) {
-                        if (entries.isEmpty()) {
-                            // Inside the list rather than beside it: an empty Box has nothing to
-                            // scroll, and pull-to-refresh is exactly what the reader wants when the
-                            // reason the list is empty is that the network was down.
-                            item {
-                                EmptyState(
-                                    modifier = Modifier.fillParentMaxSize(),
-                                    catalog = catalog,
-                                    filtered = query.isNotBlank(),
-                                )
-                            }
-                        } else {
-                            items(entries, key = { it.module.name }) { entry ->
-                                StoreRow(entry = entry, onClick = { onModuleClick(entry.module.name) })
-                                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                            }
-                        }
-                    }
+            // A list holds its first visible row where it is when rows arrive above it, and rows do:
+            // the mirror's catalogue is shown before the site has corrected it, and what the site
+            // adds is the newest releases. A reader who has not scrolled is at the top to see what
+            // is newest, so the top is where they stay.
+            val listState = rememberLazyListState()
+            // Read out here on purpose: the rows are otherwise read only inside the list's own
+            // content, so a new first row would not recompose this scope and the effect, which is
+            // what has to run before the list is measured again, would not run at all.
+            val firstRow = entries.firstOrNull()?.module?.name
+            SideEffect {
+                if (firstRow != null && !listState.canScrollBackward) {
+                    listState.requestScrollToItem(0)
                 }
             }
 
-            // Sync progress bar positioned above the bottom bar
-            if (catalog.isSyncing) {
-                Column(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 6.dp)
+            PullToRefreshBox(isRefreshing = refreshing, onRefresh = viewModel::refresh) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 20.dp),
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Syncing modules (${catalog.page}/${catalog.pageCount})...",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "${(catalog.syncProgress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                    if (entries.isEmpty()) {
+                        // Inside the list rather than beside it: an empty Box has nothing to
+                        // scroll, and pull-to-refresh is exactly what the reader wants when the
+                        // reason the list is empty is that the network was down.
+                        item {
+                            EmptyState(
+                                modifier = Modifier.fillParentMaxSize(),
+                                catalog = catalog,
+                                filtered = query.isNotBlank(),
+                            )
+                        }
+                    } else {
+                        items(entries, key = { it.module.name }) { entry ->
+                            StoreRow(entry = entry, onClick = { onModuleClick(entry.module.name) })
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        }
                     }
-                    Spacer(Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { catalog.syncProgress },
-                        modifier = Modifier.fillMaxWidth().height(3.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    )
                 }
             }
         }
@@ -204,12 +183,11 @@ private fun StoreHeader(
         actions = actions,
         description = {
             if (catalog.modules.isNotEmpty()) {
-                val count = if (catalog.total > 0) catalog.total else catalog.modules.size
                 val total =
                     context.resources.getQuantityString(
                         R.plurals.store_module_count,
-                        count,
-                        count,
+                        catalog.modules.size,
+                        catalog.modules.size,
                     )
                 // "Up to date" is stated in words rather than as a zero, because a zero in a row
                 // of counts reads as a failure to load rather than as good news.
@@ -240,7 +218,6 @@ private fun StoreSearch(
     sort: StoreSort,
     priorities: List<StorePriority>,
     channel: StoreChannel,
-    isSyncing: Boolean,
 ) {
     SearchField(
         query = query,
@@ -254,7 +231,6 @@ private fun StoreSearch(
             onTogglePriority = viewModel::togglePriority,
             channel = channel,
             onChannelChange = viewModel::setChannel,
-            isSyncing = isSyncing,
         )
     }
 }
@@ -277,7 +253,6 @@ private fun StoreFilterButton(
     onTogglePriority: (StorePriority) -> Unit,
     channel: StoreChannel,
     onChannelChange: (StoreChannel) -> Unit,
-    isSyncing: Boolean = false,
 ) {
     var sheetOpen by remember { mutableStateOf(false) }
     val narrowed =
@@ -285,17 +260,14 @@ private fun StoreFilterButton(
             channel != StoreChannel.Stable ||
             priorities != listOf(StorePriority.Updates)
 
-    IconButton(onClick = { if (!isSyncing) sheetOpen = true }, enabled = !isSyncing) {
+    IconButton(onClick = { sheetOpen = true }) {
         BadgedBox(badge = { if (narrowed) Badge(modifier = Modifier.size(6.dp)) }) {
             Icon(
                 Icons.Rounded.FilterList,
                 contentDescription = stringResource(R.string.store_filter),
                 tint =
-                    when {
-                        isSyncing -> MaterialTheme.colorScheme.outlineVariant
-                        narrowed -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    if (narrowed) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -472,7 +444,6 @@ private fun StoreRow(entry: StoreEntry, onClick: () -> Unit) {
         }
     }
 }
-
 
 @Composable
 private fun RowBadge(icon: ImageVector, text: String, tint: Color, modifier: Modifier = Modifier) {

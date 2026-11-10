@@ -17,6 +17,10 @@ import com.google.gson.annotations.SerializedName
  * **The list payload is nearly a detail payload.** Each list entry already carries exactly one
  * release — the newest — with its `.apk` asset and download URL. Installing the current version of
  * a module needs no second request, which is what lets the Store work on a bad connection.
+ *
+ * **Except where the list is the site's.** An entry from `module-list/<n>.json` names its
+ * `latestRelease` and carries no release, scope or collaborators at all, so `releases` being empty
+ * means "ask for the detail record", not "nothing was ever published".
  */
 data class OnlineModule(
     @SerializedName("name") val name: String,
@@ -49,7 +53,6 @@ data class OnlineModule(
     val repoUrl: String
         get() = url ?: "https://github.com/Xposed-Modules-Repo/$name"
 }
-
 
 data class Collaborator(
     @SerializedName("login") val login: String?,
@@ -269,15 +272,7 @@ data class StoreCatalog(
     val loaded: Boolean = false,
     val fromCache: Boolean = false,
     val loadedAtMillis: Long = 0L,
-    val page: Int = 1,
-    val pageCount: Int = 1,
-    val total: Int = 0,
-    val isSyncing: Boolean = false,
-    val syncProgress: Float = 0f,
 ) {
     val isEmpty: Boolean
         get() = modules.isEmpty()
-
-    val isFullySynced: Boolean
-        get() = page >= pageCount && pageCount > 0
 }
