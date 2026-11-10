@@ -1,5 +1,6 @@
-package org.matrix.vector.manager.data.repository
+package org.matrix.vector.ui.store
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -13,10 +14,6 @@ import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.matrix.vector.manager.logI
-import org.matrix.vector.manager.logW
-import org.matrix.vector.ui.store.OnlineModule
-import org.matrix.vector.ui.store.StoreCatalog
 
 /**
  * The module repository's two hosts, and how one catalogue is made of them.
@@ -35,13 +32,14 @@ import org.matrix.vector.ui.store.StoreCatalog
  * and the mirror has only been seen *behind*, everything the mirror lacks sits at the front: the
  * walk stops at the first page that agrees with the mirror entirely, typically the fifth. An entry
  * the site knows better loses its now-outdated releases rather than keep an APK that is no longer
- * the one its version names; [RepoRepository] fetches the detail record for the installed ones.
+ * the one its version names; [StoreRepository] fetches the detail record for the installed ones.
  *
  * Either host can vanish. Without the site the mirror is shown as it is, which is what the Store
  * did before. Without the mirror every page is read, and the catalogue is the site's alone.
  */
 internal class StoreApi(
     client: OkHttpClient,
+    private val log: StoreLog,
     private val gson: Gson = Gson(),
     private val site: String = "https://modules.lsposed.org/",
     private val mirror: String = "https://backup.modules.lsposed.org/",
@@ -255,6 +253,10 @@ internal class StoreApi(
         if (rejected > 0) logW("store: skipped $rejected unreadable entries")
         return modules
     }
+
+    private fun logI(message: String) = log.log(Log.INFO, message, null)
+
+    private fun logW(message: String, cause: Throwable? = null) = log.log(Log.WARN, message, cause)
 
     /** Null for an entry the model cannot hold, including one with no name to key it by. */
     private fun bind(entry: JsonObject): OnlineModule? {
