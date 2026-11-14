@@ -18,24 +18,24 @@ import okhttp3.Response
 /**
  * The module repository's two hosts, and how one catalogue is made of them.
  *
- * **Neither host serves what the Store needs on its own.** Probed rather than assumed:
+ * **Neither host serves what the Store needs on its own.**
  * - the mirror, `backup.modules.lsposed.org`, serves `modules.json`: every module in one cacheable
- *   2 MB response, each entry carrying its newest release with the APK. It is regenerated daily but
- *   ran three days behind when measured, so a release published since is not in it.
+ *   response, each entry carrying its newest release with the APK. It is a periodic rebuild, so a
+ *   release published since the last one is not in it.
  * - the site, `modules.lsposed.org`, answers `modules.json` with a 403 and serves the index only as
- *   `module-list/<n>.json`: thirty entries a page, newest release first, current to the minute.
- *   Those entries state `latestRelease` but carry no release, scope or collaborators, and the pages
- *   answer no conditional request with a 304, so walking all of them costs 45 requests and 1.3 MB
- *   every time.
+ *   `module-list/<n>.json`, a page of entries at a time, newest release first and current. Those
+ *   entries state `latestRelease` but carry no release, scope or collaborators, and the pages
+ *   answer a conditional request with the whole page rather than a 304, so walking all of them
+ *   costs the whole index every time.
  *
- * So the mirror is the base and the site corrects it. Because the pages are ordered by release time
- * and the mirror has only been seen *behind*, everything the mirror lacks sits at the front: the
- * walk stops at the first page that agrees with the mirror entirely, typically the fifth. An entry
- * the site knows better loses its now-outdated releases rather than keep an APK that is no longer
- * the one its version names; [StoreRepository] fetches the detail record for the installed ones.
+ * So the mirror is the base and the site corrects it. The pages are ordered by release time and the
+ * mirror only ever trails, so everything it lacks sits at the front: the walk stops at the first
+ * page that agrees with the mirror entirely. An entry the site knows better loses its now-outdated
+ * releases rather than keep an APK that is no longer the one its version names; [StoreRepository]
+ * fetches the detail record for the installed ones.
  *
- * Either host can vanish. Without the site the mirror is shown as it is, which is what the Store
- * did before. Without the mirror every page is read, and the catalogue is the site's alone.
+ * Either host can vanish. Without the site the mirror is shown as it is; without the mirror every
+ * page is read, and the catalogue is the site's alone.
  */
 internal class StoreApi(
     client: OkHttpClient,
@@ -50,9 +50,9 @@ internal class StoreApi(
      *
      * Two things otherwise empty it. OkHttp stores a 404 as readily as a 200, and under the same
      * key, so a host that starts answering 404 — how a retired static site fails — would overwrite
-     * the last good catalogue with its own error page. And the site marks its pages
-     * `must-revalidate`, which forbids exactly the stale read a cold start with no network is: a
-     * `FORCE_CACHE` request for one is refused although the bytes are on disk.
+     * the last good catalogue with its own error page. And `must-revalidate` forbids exactly the
+     * stale read a cold start with no network is: a `FORCE_CACHE` request for such a response is
+     * refused although the bytes are on disk.
      */
     private val client =
         client
@@ -158,11 +158,11 @@ internal class StoreApi(
             val parsed = usable(parseSnapshot(response))
             if (parsed.isEmpty()) return@fetch null
             logI("store: ${parsed.size} modules from $url")
-            // `fromCache` is deliberately *not* derived from `response.networkResponse`. A hit
-            // inside the ten-minute freshness window is served from disk without touching the
-            // network, and calling that "the saved catalogue" would put an offline notice on
-            // a perfectly current list. Staleness is a property of which branch produced this,
-            // so the caller sets the flag on the fallback path and only there.
+            // `fromCache` is not `networkResponse == null`: a hit inside the freshness window
+            // is served from disk without touching the network, and calling that "the saved
+            // catalogue" would put an offline notice on a perfectly current list. Staleness is a
+            // property of the branch that produced the catalogue, so the caller sets the flag on
+            // the fallback path and only there.
             StoreCatalog(parsed, loaded = true, loadedAtMillis = response.receivedResponseAtMillis)
         }
     }
@@ -176,9 +176,9 @@ internal class StoreApi(
     /**
      * [numbers] in order, each null where its page could not be read.
      *
-     * Together rather than in turn, because the site takes a third of a second over each page
-     * however small it is: 45 of those in a row is a quarter of a minute under a spinner, and at
-     * once, down the one HTTP/2 connection, they are half a second.
+     * Together rather than in turn, because a page costs a round trip whatever its size: in a row
+     * the whole index is a wait under a spinner, and at once, down the one HTTP/2 connection, it is
+     * about the cost of one.
      */
     private fun fetchPages(numbers: IntRange, cacheControl: CacheControl): List<Page?> =
         if (numbers.first == numbers.last) {
@@ -231,11 +231,11 @@ internal class StoreApi(
      *
      * Binding the whole array in a single `fromJson` call fails the entire Store on one unexpected
      * field — `additionalAuthors` holds objects rather than the strings its name suggests, and
-     * `AdditionalAuthor` exists because of it. This is third-party data written by hundreds of
-     * authors, so an entry the model does not expect must cost that entry and nothing else.
+     * `AdditionalAuthor` exists because of it. This is third-party data, so an entry the model does
+     * not expect must cost that entry and nothing else.
      *
-     * Streamed off the response rather than through a `String`, which also keeps the 2 MB body from
-     * being materialised twice.
+     * Streamed off the response rather than through a `String`, which also keeps a body of this
+     * size from being materialised twice.
      */
     private fun parseSnapshot(response: Response): List<OnlineModule> {
         val modules = ArrayList<OnlineModule>(1536)
@@ -270,22 +270,25 @@ internal class StoreApi(
         /** Pages read together past the first, where the walk expects to stop early. */
         const val READ_AHEAD = 4
 
-        /** Four times today's index; past it a `pageCount` is a mistake, not a catalogue. */
+        /** Well past what the index needs; beyond it a `pageCount` is a mistake, not a list. */
         const val MAX_PAGES = 200
 
         /**
          * Folds one page entry into [modules]; true when the page knew something they did not.
          *
          * The stable version and the time of the newest beta are the whole comparison. The two
-         * hosts word `summary` and `sourceUrl` differently for hundreds of unchanged modules, so
+         * hosts word `summary` and `sourceUrl` differently for modules that have not changed, so
          * comparing more would report a difference on every page and the walk would never stop
          * early.
          *
-         * **The later statement wins, not the site.** That the mirror is the one behind is what was
-         * measured, not what is promised, and a site that stopped being rebuilt would otherwise
+         * **The later statement wins, not the site, and one channel at a time.** The mirror is only
+         * known to trail, never promised to, so a site that stopped being rebuilt would otherwise
          * take every version the mirror has since learnt back to its own. The cost is a withdrawn
-         * release, which the site states by naming an older one: that waits for the mirror, as it
-         * did when the mirror was all there was.
+         * release, which the site states by naming an older one: that waits for the mirror.
+         *
+         * A page is the later of the two on one channel and the earlier on the other often enough —
+         * a beta published since the snapshot, a stable release the page has yet to name — so each
+         * channel keeps what it holds unless this page states something newer on it.
          *
          * The beta is compared by its time because that is all a page says of it: there is no
          * `latestBetaRelease` to read. A newer beta therefore leaves the entry naming none, and the
@@ -305,12 +308,15 @@ internal class StoreApi(
                     description = entry.description ?: known.description,
                     stargazerCount = entry.stargazerCount ?: known.stargazerCount,
                     updatedAt = entry.updatedAt ?: known.updatedAt,
-                    latestRelease = entry.latestRelease,
-                    latestReleaseTime = entry.latestReleaseTime,
+                    latestRelease = if (newerRelease) entry.latestRelease else known.latestRelease,
+                    latestReleaseTime =
+                        if (newerRelease) entry.latestReleaseTime else known.latestReleaseTime,
                     latestBetaRelease = known.latestBetaRelease.takeUnless { newerBeta },
-                    latestBetaReleaseTime = entry.latestBetaReleaseTime,
-                    // Both lists are the base's, and its newest is no longer the newest: left in
-                    // place, a one-tap update would install the old APK under the new version.
+                    latestBetaReleaseTime =
+                        if (newerBeta) entry.latestBetaReleaseTime else known.latestBetaReleaseTime,
+                    // Both lists are the base's, and one of its newest is no longer the newest:
+                    // left in place, a one-tap update would install the old APK under the new
+                    // version. The detail record carries both channels, so both go together.
                     releases = null,
                     betaReleases = null,
                 ) ?: entry

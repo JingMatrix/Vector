@@ -37,9 +37,9 @@ enum class StoreSort {
 /**
  * Which releases count.
  *
- * Two options, not three. Of the 809 modules in the catalogue 14 publish a beta and **none**
- * publishes a snapshot, so a snapshot channel would have no data behind it at all — and a control
- * that can never change anything is a control that lies.
+ * Two options, not three. The payload carries a beta release list and nothing a snapshot channel
+ * could select from, so such a channel would have no data behind it — and a control that can never
+ * change anything is a control that lies.
  */
 enum class StoreChannel(val preference: String) {
     Stable("stable"),
@@ -63,9 +63,9 @@ enum class StoreChannel(val preference: String) {
  *
  * On the prerelease channel the order has to come from the version code rather than from position
  * in either shape. The two arrays are sorted independently, a detail record is sorted by date, and
- * a beta is not automatically newer: `com.luoshui.paycardeditor` publishes beta code 1 against
- * stable code 8, and `io.github.wumisc.antiburn` a stable code 10 two weeks after beta
- * code 45. [latestOn] names the highest code, so the first element here has to be that release.
+ * a beta is not automatically newer: a module's newest beta can carry a lower code than its newest
+ * stable release. [latestOn] names the highest code, so the first element here has to be that
+ * release.
  */
 public fun OnlineModule.releasesOn(channel: StoreChannel): List<Release> {
     val published = releases.orEmpty().filter { it.isDraft != true }
@@ -84,8 +84,8 @@ public fun OnlineModule.releasesOn(channel: StoreChannel): List<Release> {
  * The version the channel says is current — which is what every "Update to …" label states.
  *
  * On the prerelease channel that is whichever of the two channels is genuinely newer, not the beta
- * unconditionally. Advertising `latestBetaRelease` on its own offers `paycardeditor`'s readers a
- * downgrade from code 8 to code 1 and calls it an update.
+ * unconditionally. Advertising `latestBetaRelease` on its own would offer a reader whose newest
+ * beta is older than their stable release a downgrade, and call it an update.
  */
 public fun OnlineModule.latestOn(channel: StoreChannel): RepoVersion? {
     val stable = RepoVersion.parse(latestRelease)
@@ -139,7 +139,7 @@ class RepoViewModel(
      * Every catalogue entry paired with what this device has, before any filtering.
      *
      * Shared rather than recomputed per consumer: both the list and the "n updates" count need it,
-     * and it walks 809 entries.
+     * and it walks the whole catalogue.
      */
     private val allEntries: StateFlow<List<StoreEntry>> =
         combine(
@@ -166,8 +166,8 @@ class RepoViewModel(
                 entries.filter { it.matches(query) }.sortedWith(comparatorFor(view))
             }
             // Off the main thread, for the reason ModulesViewModel records: stateIn on its own
-            // collects on Dispatchers.Main.immediate, which would put a filter and a sort over 809
-            // entries on the UI thread on every keystroke.
+            // collects on Dispatchers.Main.immediate, which would put a filter and a sort over the
+            // whole catalogue on the UI thread on every keystroke.
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

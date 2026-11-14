@@ -5,14 +5,13 @@ import com.google.gson.annotations.SerializedName
 /**
  * The module repository's JSON, as types.
  *
- * These mirror what the server actually sends, measured against a live `modules.json` of 809
- * entries. Two things shape the file:
+ * These mirror what the server sends. Two things shape the file:
  *
- * **Nullability is not decoration here.** `scope` is null on 506 of the 809 entries, `sourceUrl` on
- * 369 and `summary` on 121. Gson constructs through `Unsafe` and runs neither Kotlin's
- * default-argument logic nor its null checks, so a non-null type on a field the server omits yields
- * a `null` that only explodes at the first dereference, far from the parse. Every field the payload
- * does not guarantee is therefore declared optional.
+ * **Nullability is not decoration here.** Many entries leave `scope`, `sourceUrl` or `summary`
+ * null. Gson constructs through `Unsafe` and runs neither Kotlin's default-argument logic nor its
+ * null checks, so a non-null type on a field the server omits yields a `null` that only explodes at
+ * the first dereference, far from the parse. Every field the payload does not guarantee is
+ * therefore declared optional.
  *
  * **The list payload is nearly a detail payload.** Each list entry already carries exactly one
  * release — the newest — with its `.apk` asset and download URL. Installing the current version of
@@ -62,8 +61,8 @@ data class Collaborator(
 /**
  * Someone credited beyond the repository's collaborators.
  *
- * An object, not a bare name, though the field reads like a list of names: the 49 entries that
- * carry one hold `{type, name, link}`. Typed as a list of strings it makes Gson throw `Expected a
+ * An object, not a bare name, though the field reads like a list of names: an entry that carries
+ * one holds `{type, name, link}`. Typed as a list of strings it makes Gson throw `Expected a
  * string but was BEGIN_OBJECT`, which takes the whole catalogue parse — and with it the entire
  * Store — rather than the one module.
  */
@@ -92,11 +91,11 @@ data class Release(
     /**
      * A stable identity for a lazy list.
      *
-     * Release *names* are not unique in real data: `com.rww.wetypeswipe` currently publishes two
-     * releases both named `1.11.4`, under tags `43-` and `42-`. `LazyColumn` throws
-     * `IllegalArgumentException` on a duplicate key, so identity comes from `id`, which is unique
-     * by construction, with the tag as fallback and the index as last resort — a malformed payload
-     * then degrades into an odd-looking list rather than a crash.
+     * Release *names* are not unique in real data: a module can publish two releases under one name
+     * and different tags. `LazyColumn` throws `IllegalArgumentException` on a duplicate key, so
+     * identity comes from `id`, which is unique by construction, with the tag as fallback and the
+     * index as last resort — a malformed payload then degrades into an odd-looking list rather than
+     * a crash.
      */
     fun key(index: Int): String = id ?: tagName ?: "release:$index"
 
@@ -120,10 +119,8 @@ data class ReleaseAsset(
     /**
      * Whether this asset is an APK.
      *
-     * Judged on the declared content type *and* the filename: 923 of the 946 assets in the
-     * catalogue declare `application/vnd.android.package-archive`, but a few authors upload theirs
-     * as `application/octet-stream`, and trusting the type alone would hide the only download those
-     * modules have.
+     * Judged on the declared content type *and* the filename: an APK uploaded under a generic
+     * content type is still the only download its module has, and the type alone would hide it.
      */
     val isApk: Boolean
         get() =

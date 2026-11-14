@@ -36,16 +36,15 @@ fun interface StoreLog {
  * here is when to ask and what to do when asking fails.
  *
  * **Caching is declared, not hoped for.** Every request states its own freshness, so the client's
- * disk cache is actually used: the mirror's snapshot revalidates against the server's own
- * ten-minute `max-age` and its ETag, pull-to-refresh forces the network, and when the network
- * yields nothing the same requests are replayed against the cache alone. That last step is why a
- * cold start with no network renders the last known catalogue rather than an error, and it is also
- * what gives the DNS-over-HTTPS setting an effect here, since the shared client is the one carrying
- * the DoH resolver.
+ * disk cache is actually used: the mirror's snapshot revalidates against the host's own `max-age`
+ * and its ETag, pull-to-refresh forces the network, and when the network yields nothing the same
+ * requests are replayed against the cache alone. That last step is why a cold start with no network
+ * renders the last known catalogue rather than an error, and it is also what gives the
+ * DNS-over-HTTPS setting an effect here, since the shared client is the one carrying the DoH
+ * resolver.
  *
- * There is deliberately **no snapshot file** of our own. The OkHttp cache already holds these exact
- * bytes; a 2 MB duplicate in the same cache directory would buy nothing but a second thing to keep
- * in sync.
+ * **No snapshot file of its own.** The OkHttp cache already holds these exact bytes; a duplicate in
+ * the same cache directory would buy nothing but a second thing to keep in sync.
  */
 open class StoreRepository(
     client: OkHttpClient,
@@ -86,7 +85,7 @@ open class StoreRepository(
      * are looking at is stale.
      */
     override suspend fun refresh(force: Boolean) {
-        // A second caller during a refresh is a no-op rather than a queued duplicate of a 2 MB
+        // A second caller during a refresh is a no-op rather than a queued duplicate of the whole
         // download.
         if (!refreshing.tryLock()) return
         try {
@@ -241,10 +240,14 @@ open class StoreRepository(
     }
 
     private companion object {
-        /** Matches the mirror's own `cache-control: max-age=600`, so revalidation stays free. */
+        /** Matches the mirror's own `max-age`, so an unforced refresh revalidates. */
         const val CATALOG_MAX_AGE_MINUTES = 10
 
-        /** Longer: a module's release history changes far less often than the index does. */
+        /**
+         * A ceiling, not an extension: a host states its own `max-age` for a record and OkHttp
+         * takes whichever of the two is shorter. This only bounds a record that arrives without
+         * one.
+         */
         const val DETAIL_MAX_AGE_MINUTES = 60
     }
 }
