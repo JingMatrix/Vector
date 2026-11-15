@@ -90,6 +90,9 @@
     <string name="info_not_injected">Not injected</string>
     <string name="status_notification">Status notification</string>
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>
+    <string name="settings_shortcut">Settings launcher shortcut</string>
+    <string name="settings_shortcut_summary">Open Android Settings after changing this option. On supported launchers, touch and hold the Settings icon to open Vector.</string>
+    <string name="settings_shortcut_save_failed">Could not save the Settings shortcut preference.</string>
     <string name="force_launcher_icons">Stop apps hiding their launcher icons</string>
     <string name="force_launcher_icons_summary">Since Android 10, an app that hides its own launcher icon gets one back that opens its app info page. Turn this off to let it stay hidden — your launcher may not catch up until it restarts. Apps that never had a launcher icon, including most modules, are unaffected.</string>
     <!-- Home: the community feed -->

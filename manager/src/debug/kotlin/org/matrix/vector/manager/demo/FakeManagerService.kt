@@ -309,6 +309,12 @@ class FakeManagerService(
         real?.setStatusNotificationEnabled(enabled)
     }
 
+    override fun getSettingsShortcutMode(): Int =
+        real?.settingsShortcutMode ?: IManagerService.SETTINGS_SHORTCUT_UNAVAILABLE
+
+    override fun setSettingsShortcutEnabled(enabled: Boolean): Boolean =
+        real?.setSettingsShortcutEnabled(enabled) == true
+
     override fun getIncludeNewApps(packageName: String?, userId: Int): Boolean =
         real?.getIncludeNewApps(packageName, userId) ?: false
 

@@ -9,6 +9,7 @@ import org.matrix.vector.BuildConfig
 import org.matrix.vector.GrapheneDclHooker
 import org.matrix.vector.ParasiticManagerHooker
 import org.matrix.vector.ParasiticManagerSystemHooker
+import org.matrix.vector.SettingsShortcut
 import org.matrix.vector.Startup
 import org.matrix.vector.impl.core.VectorServiceClient
 
@@ -44,6 +45,7 @@ object Main {
         // Initialize Xposed bridge components
         val appService = IFrameworkService.Stub.asInterface(binder)
         Startup.initXposed(isSystem, niceName, appDir, appService)
+        if (!isSystem) SettingsShortcut.install(niceName)
 
         // Configure logging levels from the service client
         runCatching { Log.muted = VectorServiceClient.isLogMuted }

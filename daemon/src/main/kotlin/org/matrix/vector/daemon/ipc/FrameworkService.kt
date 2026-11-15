@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
 import org.matrix.vector.ipc.LoadedModule
 import org.matrix.vector.ipc.IProcessChannel
 import org.matrix.vector.ipc.IFrameworkService
+import org.matrix.vector.ipc.SettingsShortcutInfo
 import org.matrix.vector.daemon.data.ConfigCache
 import org.matrix.vector.daemon.data.FileSystem
 import org.matrix.vector.daemon.system.FIRST_APPLICATION_UID
@@ -274,6 +275,14 @@ object FrameworkService : IFrameworkService.Stub() {
       return emptyList()
     }
     return ConfigCache.getModulesForProcess(info.processName, info.key.uid)
+  }
+
+  override fun getSettingsShortcut(): SettingsShortcutInfo {
+    val info = ensureRegistered()
+    if (!SettingsShortcut.isPublisher(info.key.uid, info.processName)) {
+      throw SecurityException("Only Android Settings may read the launcher shortcut")
+    }
+    return SettingsShortcut.get()
   }
 
   override fun getModules() =
