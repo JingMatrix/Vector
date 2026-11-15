@@ -4,7 +4,6 @@
 #include <dobby.h>
 
 #include <string>
-#include <utils/hook_helper.hpp>
 
 #include "common/config.h"
 #include "common/logging.h"
@@ -95,11 +94,45 @@ namespace vector::native {
 using NativeInit = NativeOnModuleLoaded (*)(const NativeAPIEntries *entries);
 
 /**
- * @brief Installs the hooks required for the native API to function.
- * @param handler The LSPlant hook handler.
- * @return True on success, false on failure.
+ * @brief Replaces the hooking primitives handed to native modules and used for the API's own
+ * interception of the dynamic loader.
+ *
+ * Dobby is the default and is what an ART process wants. A runtime that brings its own hook engine
+ * should install it here instead, before the first call to RegisterNativeLib: the engine that
+ * already owns the runtime's code knows which addresses it has patched, and two engines patching
+ * the same address destroy each other's trampolines. The HyperOS Rust Runtime path, which receives
+ * Zygisk Next's hook API, is the reason this exists.
+ *
+ * Both callbacks use the same calling convention as Dobby's: return 0 on success.
+ *
+ * @param hook The primitives that install a hook.
+ * @param unhook The primitives that remove one.
  */
-bool InstallNativeAPI(const lsplant::HookHandler &handler);
+void SetHookBackend(HookFunType hook, UnhookFunType unhook);
+
+/**
+ * @brief Returns the entries handed to native modules, building them on first use.
+ *
+ * A caller that must initialize a module itself — because it cannot rely on the loader hook being
+ * in place, or because it loads the library deliberately rather than waiting for someone else to —
+ * needs the same entries the hook would have passed, and needs them whether or not the hook was
+ * installed.
+ *
+ * @return The read-only entries, or nullptr when the page they live on could not be allocated.
+ */
+const NativeAPIEntries *GetNativeAPIEntries();
+
+/**
+ * @brief Installs the interception of the dynamic loader that the native API is built on.
+ *
+ * RegisterNativeLib calls this on its first use; a caller that must own the hook itself — to
+ * install it before anything it cares about is loaded, or to report the failure — can call it
+ * earlier. The installed hook lives as long as the process and is never removed.
+ *
+ * @return True when the interception is live, false when it could not be placed. A false here is
+ *         not fatal: without it native modules are simply never initialized.
+ */
+bool InstallNativeAPI();
 
 /**
  * @brief Registers a native library by its filename for module initialization.

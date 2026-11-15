@@ -18,6 +18,15 @@ import org.matrix.vector.manager.ipc.DaemonClient
 import org.matrix.vector.manager.logW
 import org.matrix.vector.ui.module.MATCH_ANY_USER
 
+/**
+ * The manifest metadata entry a HyperOS application uses to name its Rust runtime library.
+ *
+ * Recovered from LSPosed 2.2.0's manager, which reads this same key for the same label. The entry
+ * is written by the application, so what it says is a claim rather than a fact; the framework only
+ * ever shows it next to the app, which is why that is an acceptable way to learn it.
+ */
+private const val HYPEROS_APP_LIB_NAME = "hyperos_app_lib_name"
+
 /** Fetches and caches the list of installed applications from the daemon. */
 class AppRepository(
     private val daemonClient: DaemonClient,
@@ -193,12 +202,18 @@ class AppRepository(
 
                 val userId = appInfo.uid / PER_USER_RANGE
 
+                // GET_META_DATA is part of the flags the daemon is asked with, so the bundle is
+                // already here and reading it costs nothing. An absent entry and an empty one mean
+                // the same thing, and both are the ordinary case.
+                val hyperOsLibrary = appInfo.metaData?.getString(HYPEROS_APP_LIB_NAME)
+
                 AppInfo(
                     packageName = pkg.packageName,
                     userId = userId,
                     appName = appInfo.loadLabel(packageManager).toString(),
                     isSystemApp = isSystem,
                     isGame = isGame,
+                    isHyperOsRuntime = !hyperOsLibrary.isNullOrEmpty(),
                     isSelectedInScope = false, // To be merged later in the ViewModel
                     isRecommended = false,
                     lastUpdateTime = pkg.lastUpdateTime,

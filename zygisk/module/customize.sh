@@ -86,6 +86,14 @@ for file in module.prop action.sh service.sh uninstall.sh sepolicy.rule framewor
     extract "$ZIPFILE" "$file" "$MODPATH"
 done
 
+if [ "$IS64BIT" = true ]; then
+    extract "$ZIPFILE" "zn_modules.$ABI64.txt" "$MODPATH"
+    mv "$MODPATH/zn_modules.$ABI64.txt" "$MODPATH/zn_modules.txt"
+else
+    extract "$ZIPFILE" "zn_modules.$ABI32.txt" "$MODPATH"
+    mv "$MODPATH/zn_modules.$ABI32.txt" "$MODPATH/zn_modules.txt"
+fi
+
 ui_print "- Extracting Zygisk libraries"
 mkdir -p "$MODPATH/zygisk"
 
