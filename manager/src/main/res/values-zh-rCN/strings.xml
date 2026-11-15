@@ -42,6 +42,7 @@
     <string name="info_loaded">已加载</string>
     <string name="info_not_loaded">未加载</string>
     <string name="info_injected">已注入</string>
+    <string name="info_mounted">已挂载</string>
     <string name="info_not_injected">未注入</string>
     <string name="status_notification">状态通知</string>
     <string name="status_notification_summary">一条常驻通知，用于显示 Vector 正在运行。</string>

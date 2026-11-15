@@ -46,6 +46,7 @@
     <string name="info_loaded">נטענה</string>
     <string name="info_not_loaded">לא נטענה</string>
     <string name="info_injected">הוזרק</string>
+    <string name="info_mounted">מחובר</string>
     <string name="info_not_injected">לא הוזרק</string>
     <string name="status_notification">התראת מצב</string>
     <string name="status_notification_summary">התראה קבועה שמראה ש-Vector פועל.</string>

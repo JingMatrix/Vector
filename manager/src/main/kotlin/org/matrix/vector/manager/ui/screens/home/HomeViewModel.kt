@@ -427,7 +427,9 @@ class HomeViewModel(
             // deletes `dalvik.vm.dex2oat-flags` when it mounts the wrapper over dex2oat and sets
             // it when it unmounts, so either route suppresses the inlining. A wrapper that is not
             // OK therefore only costs anything when the property is not carrying the flag either.
-            if (dex2oat != IManagerService.DEX2OAT_OK && !inliningDisabled) {
+            if (dex2oat != IManagerService.DEX2OAT_OK &&
+                dex2oat != IManagerService.DEX2OAT_INJECTED &&
+                !inliningDisabled) {
                 add(HealthIssue.Dex2oatWrapperBroken)
             }
         }

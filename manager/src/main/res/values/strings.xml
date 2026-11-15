@@ -87,6 +87,7 @@
     <string name="info_loaded">Loaded</string>
     <string name="info_not_loaded">Not loaded</string>
     <string name="info_injected">Injected</string>
+    <string name="info_mounted">Mounted</string>
     <string name="info_not_injected">Not injected</string>
     <string name="status_notification">Status notification</string>
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>

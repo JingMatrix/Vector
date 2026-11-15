@@ -42,6 +42,7 @@
     <string name="info_loaded">بارگذاری‌شده</string>
     <string name="info_not_loaded">بارگذاری‌نشده</string>
     <string name="info_injected">تزریق‌شده</string>
+    <string name="info_mounted">متصل‌شده</string>
     <string name="info_not_injected">تزریق‌نشده</string>
     <string name="status_notification">اعلان وضعیت</string>
     <string name="status_notification_summary">اعلانی ماندگار که نشان می‌دهد Vector در حال اجراست.</string>

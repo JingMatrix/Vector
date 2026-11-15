@@ -1,0 +1,2 @@
+name=artd companion zygisk/armeabi-v7a.so
+name=installd companion zygisk/armeabi-v7a.so

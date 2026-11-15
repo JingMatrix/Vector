@@ -38,6 +38,7 @@
     <string name="info_loaded">Загружена</string>
     <string name="info_not_loaded">Не загружена</string>
     <string name="info_injected">Внедрён</string>
+    <string name="info_mounted">Смонтировано</string>
     <string name="info_not_injected">Не внедрён</string>
     <string name="status_notification">Уведомление о состоянии</string>
     <string name="status_notification_summary">Постоянное уведомление о том, что Vector работает.</string>

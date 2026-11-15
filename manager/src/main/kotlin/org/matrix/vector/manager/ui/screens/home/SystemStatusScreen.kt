@@ -814,7 +814,8 @@ private fun buildSections(
                         str(R.string.info_dex2oat),
                         dex2oatLabel(context, status.dex2oatWrapperState),
                         health =
-                            if (status.dex2oatWrapperState == IManagerService.DEX2OAT_OK)
+                            if (status.dex2oatWrapperState == IManagerService.DEX2OAT_OK ||
+                                status.dex2oatWrapperState == IManagerService.DEX2OAT_INJECTED)
                                 Health.Good
                             else Health.Bad,
                         monospace = false,
@@ -832,17 +833,29 @@ private fun buildSections(
     )
 }
 
-private fun dex2oatLabel(context: Context, state: Int): String =
-    context.getString(
-        when (state) {
-            IManagerService.DEX2OAT_OK -> R.string.info_supported
-            IManagerService.DEX2OAT_CRASHED -> R.string.info_dex2oat_crashed
-            IManagerService.DEX2OAT_MOUNT_FAILED -> R.string.info_dex2oat_mount_failed
-            IManagerService.DEX2OAT_SELINUX_PERMISSIVE -> R.string.info_dex2oat_selinux_permissive
-            IManagerService.DEX2OAT_SEPOLICY_INCORRECT -> R.string.info_dex2oat_sepolicy_incorrect
-            else -> R.string.info_unsupported
-        }
-    )
+private fun dex2oatLabel(context: Context, state: Int): String {
+    val label =
+        context.getString(
+            when (state) {
+                IManagerService.DEX2OAT_OK -> R.string.info_supported
+                IManagerService.DEX2OAT_INJECTED -> R.string.info_supported
+                IManagerService.DEX2OAT_CRASHED -> R.string.info_dex2oat_crashed
+                IManagerService.DEX2OAT_MOUNT_FAILED -> R.string.info_dex2oat_mount_failed
+                IManagerService.DEX2OAT_SELINUX_PERMISSIVE ->
+                    R.string.info_dex2oat_selinux_permissive
+                IManagerService.DEX2OAT_SEPOLICY_INCORRECT ->
+                    R.string.info_dex2oat_sepolicy_incorrect
+                else -> R.string.info_unsupported
+            }
+        )
+    return when (state) {
+        IManagerService.DEX2OAT_OK ->
+            "$label (${context.getString(R.string.info_mounted)})"
+        IManagerService.DEX2OAT_INJECTED ->
+            "$label (${context.getString(R.string.info_injected)})"
+        else -> label
+    }
+}
 
 @Composable
 private fun FrameworkToggle(
