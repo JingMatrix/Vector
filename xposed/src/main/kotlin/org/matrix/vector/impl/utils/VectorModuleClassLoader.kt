@@ -15,7 +15,6 @@ import java.nio.ByteBuffer
 import java.util.Collections
 import java.util.Enumeration
 import java.util.jar.JarFile
-import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import org.matrix.vector.nativebridge.HookBridge
 
@@ -184,22 +183,7 @@ class VectorModuleClassLoader : ByteBufferDexClassLoader {
             parent: ClassLoader?,
             blockLegacyApi: Boolean = false,
         ): ClassLoader {
-            val dexBuffers =
-                dexes
-                    .parallelStream()
-                    .map { dex ->
-                        try {
-                            dex.mapReadOnly()
-                        } catch (e: ErrnoException) {
-                            Log.w(TAG, "Cannot map $dex", e)
-                            null
-                        }
-                    }
-                    .collect(Collectors.toList())
-                    .filterNotNull()
-                    .toTypedArray()
-
-            val cl =
+            return withConsumedDexBuffers(dexes) { dexBuffers ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     VectorModuleClassLoader(
                         dexBuffers,
@@ -217,11 +201,7 @@ class VectorModuleClassLoader : ByteBufferDexClassLoader {
                         blockLegacyApi,
                     )
                 }
-
-            dexBuffers.toList().parallelStream().forEach { SharedMemory.unmap(it) }
-            dexes.parallelStream().forEach { it.close() }
-
-            return cl
+            }
         }
     }
 }
