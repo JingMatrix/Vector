@@ -34,6 +34,7 @@ object Dex2OatServer {
 
   private val dex2oatArray = arrayOfNulls<String>(6)
   private val fdArray = arrayOfNulls<FileDescriptor>(6)
+  private var compilerOpenFailed = false
 
   @Volatile
   var compatibility = DEX2OAT_OK
@@ -181,12 +182,27 @@ object Dex2OatServer {
 
             if (index != -1 && dex2oatArray[index] == null) {
               dex2oatArray[index] = path
-              fdArray[index] = Os.open(path, OsConstants.O_RDONLY, 0)
+              val fd = Os.open(path, OsConstants.O_RDONLY, 0)
+              try {
+                // A restarted daemon can inherit the previous daemon's bind mounts. Validate
+                // the opened FD, not just the path, before treating it as the stock compiler.
+                val candidate = Os.fstat(fd)
+                val wrapper = Os.stat(if (is32Bit) WRAPPER32 else WRAPPER64)
+                check(candidate.st_dev != wrapper.st_dev || candidate.st_ino != wrapper.st_ino) {
+                  "Refusing wrapper as stock compiler: $path"
+                }
+                fdArray[index] = fd
+              } finally {
+                if (fdArray[index] !== fd) Os.close(fd)
+              }
               Log.i(TAG, "Detected $path -> Assigned Index $index")
             }
           }
         }
-        .onFailure { dex2oatArray[dex2oatArray.indexOf(path)] = null }
+        .onFailure {
+          compilerOpenFailed = true
+          Log.e(TAG, "Cannot open stock compiler $path", it)
+        }
   }
 
   private fun notMounted(): Boolean {
@@ -210,6 +226,19 @@ object Dex2OatServer {
   }
 
   fun start() {
+    if (compilerOpenFailed) {
+      // Keep the paths for cleanup, but never serve suspect descriptors. doMount(false) also
+      // restores the no-inline property used when the wrapper is unavailable. Do not start
+      // the SELinux observer: it could otherwise re-enable these mounts later.
+      doMount(false)
+      fdArray.indices.forEach { i ->
+        fdArray[i]?.let { fd -> runCatching { Os.close(fd) } }
+        fdArray[i] = null
+      }
+      compatibility = DEX2OAT_MOUNT_FAILED
+      return
+    }
+
     if (notMounted()) {
       doMount(true)
       if (notMounted()) {
