@@ -71,6 +71,7 @@ import org.matrix.vector.manager.data.model.XposedApi
 import org.matrix.vector.manager.data.log.CrashReport
 import org.matrix.vector.manager.data.model.buildStamp
 import org.matrix.vector.manager.data.repository.ManagerInstallStep
+import org.matrix.vector.manager.ui.components.FrameworkState
 import org.matrix.vector.ui.SnackbarTone
 import org.matrix.vector.ui.SharedSnackbarHost
 import org.matrix.vector.ui.copyToClipboard
@@ -182,6 +183,14 @@ fun SystemStatusScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
+            // First, because everything under it is unanswered: the page reads as a report, and a
+            // reader who sees one has to know whether there was anything to report on.
+            if (status.state == FrameworkState.Inactive) {
+                item(key = "daemon") {
+                    DaemonDownCard()
+                    Spacer(Modifier.height(4.dp))
+                }
+            }
             if (status.issues.isNotEmpty()) {
                 items(status.issues, key = { it.name }) { issue -> IssueCard(issue) }
                 item { Spacer(Modifier.height(4.dp)) }
@@ -538,6 +547,43 @@ private fun IssueCard(issue: HealthIssue) {
 }
 
 /**
+ * The reason nothing else on this page is a report: there is no daemon.
+ *
+ * The state is in the header already; what the card adds is the two checks worth making, in the
+ * order they are worth making, because "not activated" on its own invites a reinstall that would
+ * change nothing. The second is the one a root implementation that loads its kernel module after
+ * boot creates for itself: that boot's post-fs-data was skipped, so nothing applied Vector's policy
+ * and nothing was started, and only a boot stage that runs again replays it — a soft reboot, or the
+ * root manager's post-fs-data replay — because a cold reboot reloads the kernel module and lands in
+ * the same late-load.
+ */
+@Composable
+private fun DaemonDownCard() {
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+            Icon(
+                Icons.Rounded.WarningAmber,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+            )
+            Spacer(Modifier.padding(horizontal = 6.dp))
+            Column {
+                Text(
+                    stringResource(R.string.daemon_down_title),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.daemon_down_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/**
  * The manager's own crashes, which nothing else on the device keeps.
  *
  * On this page rather than under Logs, because every log there is the daemon's and because this is
@@ -750,6 +796,13 @@ private fun buildSections(
 ): List<Pair<String, List<InfoItem>>> {
     val unknown = "—"
     fun str(id: Int) = context.getString(id)
+    // What the health rows below say when there was no daemon to ask. Their three values default
+    // to false, false and DEX2OAT_OK, which render as two failures and one success for a framework
+    // that was never queried — the shape of a device where nothing started at all. The reason is
+    // named only on Inactive, which is a missing daemon; Checking and Mismatched say what they mean
+    // in the header already, and a bare dash there does not guess at it.
+    val unasked =
+        if (status.state == FrameworkState.Inactive) str(R.string.info_daemon_not_running) else unknown
     return listOf(
         str(R.string.info_section_build) to
             listOf(
@@ -788,20 +841,32 @@ private fun buildSections(
             listOfNotNull(
                 InfoItem(
                     str(R.string.info_selinux),
-                    str(
-                        if (status.sepolicyLoaded) R.string.info_loaded
-                        else R.string.info_not_loaded
-                    ),
-                    health = if (status.sepolicyLoaded) Health.Good else Health.Bad,
+                    when {
+                        !status.daemonReachable -> unasked
+                        status.sepolicyLoaded -> str(R.string.info_loaded)
+                        else -> str(R.string.info_not_loaded)
+                    },
+                    health =
+                        when {
+                            !status.daemonReachable -> Health.Neutral
+                            status.sepolicyLoaded -> Health.Good
+                            else -> Health.Bad
+                        },
                     monospace = false,
                 ),
                 InfoItem(
                     str(R.string.info_system_server),
-                    str(
-                        if (status.systemServerInjected) R.string.info_injected
-                        else R.string.info_not_injected
-                    ),
-                    health = if (status.systemServerInjected) Health.Good else Health.Bad,
+                    when {
+                        !status.daemonReachable -> unasked
+                        status.systemServerInjected -> str(R.string.info_injected)
+                        else -> str(R.string.info_not_injected)
+                    },
+                    health =
+                        when {
+                            !status.daemonReachable -> Health.Neutral
+                            status.systemServerInjected -> Health.Good
+                            else -> Health.Bad
+                        },
                     monospace = false,
                 ),
                 // Omitted below Android 10, where there is no wrapper to report on: the daemon only
@@ -812,11 +877,15 @@ private fun buildSections(
                 else
                     InfoItem(
                         str(R.string.info_dex2oat),
-                        dex2oatLabel(context, status.dex2oatWrapperState),
+                        if (!status.daemonReachable) unasked
+                        else dex2oatLabel(context, status.dex2oatWrapperState),
                         health =
-                            if (status.dex2oatWrapperState == IManagerService.DEX2OAT_OK)
-                                Health.Good
-                            else Health.Bad,
+                            when {
+                                !status.daemonReachable -> Health.Neutral
+                                status.dex2oatWrapperState == IManagerService.DEX2OAT_OK ->
+                                    Health.Good
+                                else -> Health.Bad
+                            },
                         monospace = false,
                     ),
             ),

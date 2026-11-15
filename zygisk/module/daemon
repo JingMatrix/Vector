@@ -49,5 +49,24 @@ fi
 
 [ "$debug" = "true" ] && log -p d -t "Vector" "Starting daemon $*"
 
-# Launch the daemon
-exec /system/bin/app_process $java_options /system/bin --nice-name=vectord org.matrix.vector.daemon.VectorDaemon "$@" >/dev/null 2>&1
+# Where a start that dies on the way up leaves a word. The daemon opens its own log only after
+# main has begun, so a classpath the runtime refuses, a crash in main, or a start that ends before
+# main used to arrive at /dev/null and nothing else: the boot then simply had no daemon and no way
+# to say why. The file sits in the daemon's own log directory, which the next boot rotates with the
+# rest of it.
+logDir="/data/adb/lspd/log"
+bootstrapLog="$logDir/bootstrap.log"
+mkdir -p "$logDir" 2>/dev/null
+# In a subshell, so an unwritable path costs the log and not the daemon: a redirection that fails
+# on the launch below would end the script before app_process starts.
+( : >>"$bootstrapLog" ) 2>/dev/null || bootstrapLog=/dev/null
+
+# Launch the daemon, and keep this shell as its parent. exec would hand the script's PID and its
+# exit status to app_process, and the starts worth explaining are the ones that end before main
+# writes a line: they leave no stderr, only a status the exec would carry away. The parent waits
+# while the daemon runs, writes the status down, and exits with it — one small process, not a
+# second daemon.
+/system/bin/app_process $java_options /system/bin --nice-name=vectord org.matrix.vector.daemon.VectorDaemon "$@" >/dev/null 2>>"$bootstrapLog"
+status=$?
+echo "vectord exited with code $status" >>"$bootstrapLog" 2>/dev/null
+exit $status

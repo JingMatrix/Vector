@@ -81,7 +81,15 @@ object VectorDaemon {
 
   @JvmStatic
   fun main(args: Array<String>) {
-    if (!FileSystem.tryLock()) kotlin.system.exitProcess(0)
+    // The daemon's own log is not opened until later in main, so a start that stopped here exited 0
+    // a fraction of a second after the module started it and left nothing anywhere: the boot simply
+    // had no daemon. The line claims only what is known here — tryLock answers false both for a lock
+    // another process holds and for a lock file that could not be opened at all — and FileSystem
+    // logs which of the two it was before returning.
+    if (!FileSystem.tryLock()) {
+      Log.w(TAG, "Could not acquire the daemon lock; exiting")
+      kotlin.system.exitProcess(0)
+    }
 
     // `activity` is system_server's own, registered long after the specialization in which the
     // module comes looking for us, so at boot nothing answers it and a binder there means someone

@@ -183,6 +183,7 @@ object FileSystem {
             // A daemon that loses the race exits in a moment anyway, but it closes its own
             // descriptor on the way rather than leave that to the finalizer this method exists
             // not to depend on.
+            Log.w(TAG, "Lock $lockPath is held by another process")
             channel.close()
             return@runCatching false
           }
@@ -194,6 +195,10 @@ object FileSystem {
                   })
           true
         }
+        // A refusal is the answer to "why is there no daemon" as often as a held lock is, and it
+        // used to be indistinguishable from one: the false went to the caller, the caller exited
+        // 0, and the boot was quiet. The exception is what tells the two apart.
+        .onFailure { Log.w(TAG, "Could not lock $lockPath", it) }
         .getOrDefault(false)
   }
 

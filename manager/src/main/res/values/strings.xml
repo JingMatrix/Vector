@@ -33,6 +33,9 @@
     <string name="status_mismatched">Version mismatch</string>
     <string name="status_checking">Checking…</string>
     <string name="status_open_details">Open system status</string>
+    <!-- Inactive because nothing answered at all, which is not the framework reporting a failure -->
+    <string name="daemon_down_title">Vector\'s daemon is not running</string>
+    <string name="daemon_down_summary">Nothing on this page could be asked of Vector, so the rows that report on the framework do not know the answer. Check that the Vector module is installed and enabled in your root manager. If the root implementation loads its kernel module after boot — KernelSU and SukiSU call this late-load — that boot skipped the post-fs-data stage, so Vector\'s policy was never applied and nothing was started; soft reboot once after loading the module (or use the root manager\'s post-fs-data replay) — a cold reboot reloads the kernel module and repeats the late-load — then open this page again.</string>
 
     <!-- Degraded causes, in the priority order the daemon reports them -->
     <string name="issue_sepolicy_title">SELinux policy not loaded</string>
@@ -88,6 +91,8 @@
     <string name="info_not_loaded">Not loaded</string>
     <string name="info_injected">Injected</string>
     <string name="info_not_injected">Not injected</string>
+    <!-- The value of a health row when there was no daemon to ask; the dash matches the others -->
+    <string name="info_daemon_not_running">— (daemon not running)</string>
     <string name="status_notification">Status notification</string>
     <string name="status_notification_summary">A persistent notification showing that Vector is running.</string>
     <string name="force_launcher_icons">Stop apps hiding their launcher icons</string>
