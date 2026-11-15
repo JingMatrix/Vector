@@ -37,9 +37,9 @@ enum class StoreSort {
 /**
  * Which releases count.
  *
- * Two options, not three. Of the 809 modules in the catalogue 14 publish a beta and **none**
- * publishes a snapshot, so a snapshot channel would have no data behind it at all — and a control
- * that can never change anything is a control that lies.
+ * Two options, not three. The payload carries a beta release list and nothing a snapshot channel
+ * could select from, so such a channel would have no data behind it — and a control that can never
+ * change anything is a control that lies.
  */
 enum class StoreChannel(val preference: String) {
     Stable("stable"),
@@ -54,27 +54,28 @@ enum class StoreChannel(val preference: String) {
 /**
  * Every release the chosen channel admits, newest first.
  *
- * **A beta is not a flagged element of `releases`; it is a different array.** In the live catalogue
- * not one entry of any module's `releases` carries `isPrerelease`, and each of the 14 modules that
- * publish a beta keeps it exclusively in `betaReleases`. Selecting the prerelease channel by
- * filtering `releases` on `isPrerelease` therefore matches nothing at all, and the install bar
- * takes the newest release with an APK straight off this list.
+ * **Where a beta lives depends on the payload.** In the catalogue it is not a flagged element of
+ * `releases` but a different array: not one list entry's `releases` carries `isPrerelease`, and
+ * each module that publishes a beta keeps it exclusively in `betaReleases`. In a detail record it
+ * is the reverse: there is no `betaReleases`, and the betas sit in `releases` with `isPrerelease`
+ * set. Both shapes are read here, because the install bar takes the newest release with an APK
+ * straight off this list whichever payload it came from.
  *
- * Merged, the order has to come from the version code rather than from either array's position,
- * because the two are sorted independently and a beta is not automatically newer: of today's 14,
- * `com.luoshui.paycardeditor` publishes beta code 1 against stable code 8.
+ * On the prerelease channel the order has to come from the version code rather than from position
+ * in either shape. The two arrays are sorted independently, a detail record is sorted by date, and
+ * a beta is not automatically newer: a module's newest beta can carry a lower code than its newest
+ * stable release. [latestOn] names the highest code, so the first element here has to be that
+ * release.
  */
 public fun OnlineModule.releasesOn(channel: StoreChannel): List<Release> {
     val published = releases.orEmpty().filter { it.isDraft != true }
     if (channel == StoreChannel.Prerelease) {
         val beta = betaReleases.orEmpty().filter { it.isDraft != true }
-        if (beta.isEmpty()) return published
         return (published + beta)
             .distinctBy { it.tagName ?: it.id ?: it.name }
             .sortedByDescending { it.version?.versionCode ?: Long.MIN_VALUE }
     }
-    // Defensive rather than load-bearing, and it stays because the mirror's shape is not ours to
-    // promise: a module that has only ever prereleased still has releases worth listing.
+    // A module that has only ever prereleased still has releases worth listing.
     val stable = published.filter { it.isPrerelease != true }
     return stable.ifEmpty { published }
 }
@@ -83,8 +84,8 @@ public fun OnlineModule.releasesOn(channel: StoreChannel): List<Release> {
  * The version the channel says is current — which is what every "Update to …" label states.
  *
  * On the prerelease channel that is whichever of the two channels is genuinely newer, not the beta
- * unconditionally. Advertising `latestBetaRelease` on its own offers `paycardeditor`'s readers a
- * downgrade from code 8 to code 1 and calls it an update.
+ * unconditionally. Advertising `latestBetaRelease` on its own would offer a reader whose newest
+ * beta is older than their stable release a downgrade, and call it an update.
  */
 public fun OnlineModule.latestOn(channel: StoreChannel): RepoVersion? {
     val stable = RepoVersion.parse(latestRelease)
@@ -138,7 +139,7 @@ class RepoViewModel(
      * Every catalogue entry paired with what this device has, before any filtering.
      *
      * Shared rather than recomputed per consumer: both the list and the "n updates" count need it,
-     * and it walks 809 entries.
+     * and it walks the whole catalogue.
      */
     private val allEntries: StateFlow<List<StoreEntry>> =
         combine(
@@ -165,8 +166,8 @@ class RepoViewModel(
                 entries.filter { it.matches(query) }.sortedWith(comparatorFor(view))
             }
             // Off the main thread, for the reason ModulesViewModel records: stateIn on its own
-            // collects on Dispatchers.Main.immediate, which would put a filter and a sort over 809
-            // entries on the UI thread on every keystroke.
+            // collects on Dispatchers.Main.immediate, which would put a filter and a sort over the
+            // whole catalogue on the UI thread on every keystroke.
             .flowOn(Dispatchers.Default)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

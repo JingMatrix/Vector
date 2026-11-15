@@ -3,9 +3,10 @@ package org.matrix.vector.ui.store
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Everything the shared Store screen needs from its host to reach the catalogue and the device — the
- * one place Vector's daemon+OkHttp and LSPatch's Shizuku+HttpURLConnection differ. Each app provides
- * an implementation; the [RepoViewModel] and screen are otherwise identical.
+ * Everything the shared Store screen needs from its host to reach the catalogue and the device.
+ * [StoreRepository] implements it for every app that hosts the Store, since how the repository is
+ * read is a fact about the repository; what an app supplies is how the device is asked what is
+ * installed and where a log line goes.
  */
 interface StoreDataSource {
     /** The online module catalogue, updated by [refresh]. */
