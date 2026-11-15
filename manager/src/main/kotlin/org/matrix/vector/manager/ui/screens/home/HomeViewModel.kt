@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlin.random.Random
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.matrix.vector.ipc.IManagerService
 import org.matrix.vector.manager.data.github.CommunityFeed
 import org.matrix.vector.manager.data.github.GitHubRepository
@@ -208,6 +210,10 @@ class HomeViewModel(
     // optimistically: the first contradicts something the reader can see.
     private val _statusNotification = MutableStateFlow(true)
     val statusNotification: StateFlow<Boolean> = _statusNotification.asStateFlow()
+
+    private val _settingsShortcut = MutableStateFlow<Boolean?>(null)
+    val settingsShortcut: StateFlow<Boolean?> = _settingsShortcut.asStateFlow()
+    private val settingsShortcutMutex = Mutex()
 
     // True is the platform's own default for `show_hidden_icon_apps_enabled`, so the switch shows
     // what the system is doing on a device where nobody has touched it rather than reading "off"
@@ -552,7 +558,25 @@ class HomeViewModel(
             .isForcedLauncherIcons()
             .onSuccess { _hiddenIcon.value = it }
             .onFailure { e -> logW("status: launcher-icon toggle unread", e) }
+        settingsShortcutMutex.withLock {
+            _settingsShortcut.value =
+                when (daemon.getSettingsShortcutMode().getOrNull()) {
+                    IManagerService.SETTINGS_SHORTCUT_DISABLED -> false
+                    IManagerService.SETTINGS_SHORTCUT_ENABLED -> true
+                    else -> null
+                }
+        }
     }
+
+    suspend fun setSettingsShortcut(enabled: Boolean): Boolean =
+        settingsShortcutMutex.withLock {
+            val saved =
+                daemon.setSettingsShortcutEnabled(enabled)
+                    .onFailure { e -> logE("Could not change the Settings shortcut preference", e) }
+                    .getOrDefault(false)
+            if (saved) _settingsShortcut.value = enabled
+            saved
+        }
 
     fun setStatusNotification(enabled: Boolean) {
         viewModelScope.launch {

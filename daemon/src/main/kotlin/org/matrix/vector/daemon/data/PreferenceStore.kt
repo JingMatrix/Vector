@@ -91,6 +91,12 @@ object PreferenceStore {
   fun setStatusNotification(enabled: Boolean) =
       updateModulePref("lspd", 0, "config", "enable_status_notification", enabled)
 
+  fun isSettingsShortcutEnabled(): Boolean =
+      getModulePrefs("lspd", 0, "config")["enable_settings_shortcut"] as? Boolean ?: false
+
+  fun setSettingsShortcutEnabled(enabled: Boolean) =
+      updateModulePref("lspd", 0, "config", "enable_settings_shortcut", enabled)
+
   fun isVerboseLogEnabled(): Boolean =
       getModulePrefs("lspd", 0, "config")["enable_verbose_log"] as? Boolean ?: true
 

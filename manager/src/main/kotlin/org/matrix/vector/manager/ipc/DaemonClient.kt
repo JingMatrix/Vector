@@ -215,6 +215,12 @@ class DaemonClient(private val serviceState: StateFlow<IManagerService?>) {
         it.setStatusNotificationEnabled(enabled)
     }
 
+    suspend fun getSettingsShortcutMode(): Result<Int> = runIpc { it.settingsShortcutMode }
+
+    suspend fun setSettingsShortcutEnabled(enabled: Boolean): Result<Boolean> = runIpc {
+        it.setSettingsShortcutEnabled(enabled)
+    }
+
     suspend fun isVerboseLogEnabled(): Result<Boolean> = runIpc { it.isVerboseLogEnabled }
 
     suspend fun setVerboseLogEnabled(enabled: Boolean): Result<Unit> = runIpc { it.setVerboseLogEnabled(enabled)

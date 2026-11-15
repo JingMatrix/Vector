@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo
 import android.content.pm.VersionedPackage
 import android.net.Uri
 import android.os.Build
+import android.os.Binder
 import android.os.Bundle
 import android.provider.Settings
 import android.os.IBinder
@@ -179,6 +180,8 @@ object ManagerService : IManagerService.Stub() {
         .onFailure { Log.e(TAG, "Failed to build manager intent", it) }
     return managerIntent
   }
+
+  internal fun managerShortcutIntent(): Intent? = getManagerIntent()?.let(::Intent)
 
   fun openManager(withData: Uri?) {
     val intent = getManagerIntent() ?: return
@@ -580,6 +583,21 @@ object ManagerService : IManagerService.Stub() {
     if (!isEnabled && enable) {
       NotificationManager.notifyStatusNotification()
     }
+  }
+
+  override fun getSettingsShortcutMode(): Int =
+      when {
+        Binder.getCallingUid() >= PER_USER_RANGE -> IManagerService.SETTINGS_SHORTCUT_UNAVAILABLE
+        PreferenceStore.isSettingsShortcutEnabled() -> IManagerService.SETTINGS_SHORTCUT_ENABLED
+        else -> IManagerService.SETTINGS_SHORTCUT_DISABLED
+      }
+
+  override fun setSettingsShortcutEnabled(enabled: Boolean): Boolean {
+    if (Binder.getCallingUid() >= PER_USER_RANGE) {
+      throw SecurityException("The Settings shortcut is only available to user 0")
+    }
+    PreferenceStore.setSettingsShortcutEnabled(enabled)
+    return PreferenceStore.isSettingsShortcutEnabled() == enabled
   }
 
   override fun optimizePackage(packageName: String) = PackageOptimizer.optimize(packageName)

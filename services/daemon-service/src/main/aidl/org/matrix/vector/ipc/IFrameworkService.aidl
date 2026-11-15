@@ -2,6 +2,7 @@ package org.matrix.vector.ipc;
 
 import org.matrix.vector.ipc.LoadedModule;
 import org.matrix.vector.ipc.IProcessChannel;
+import org.matrix.vector.ipc.SettingsShortcutInfo;
 
 /**
  * What an injected process asks the framework for, once the zygisk handshake has given it one.
@@ -73,4 +74,10 @@ interface IFrameworkService {
      * every later hot reload answers UNSUPPORTED with "no hot reload entry point".</p>
      */
     void attachProcessChannel(IProcessChannel channel);
+
+    /**
+     * Returns the configured shortcut state. Only the registered Settings process for user 0
+     * may call this. A missing reply does not give permission to remove a shortcut.
+     */
+    @nullable SettingsShortcutInfo getSettingsShortcut();
 }

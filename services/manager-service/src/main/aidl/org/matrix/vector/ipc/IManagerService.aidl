@@ -73,7 +73,7 @@ interface IManagerService {
      * transaction ids follow declaration order, this number is the only thing standing between a
      * mismatched pair and a call that lands on the wrong method.</p>
      */
-    const int PROTOCOL_VERSION = 3;
+    const int PROTOCOL_VERSION = 4;
 
     /**
      * Which generation of this interface the daemon implements, never below 1.
@@ -799,4 +799,12 @@ interface IManagerService {
 
     /** APatch. */
     const int ROOT_APATCH = 5;
+
+    const int SETTINGS_SHORTCUT_UNAVAILABLE = 0;
+    const int SETTINGS_SHORTCUT_DISABLED = 1;
+    const int SETTINGS_SHORTCUT_ENABLED = 2;
+
+    int getSettingsShortcutMode();
+    /** Returns true once the preference is stored. Settings applies it when next opened. */
+    boolean setSettingsShortcutEnabled(boolean enabled);
 }

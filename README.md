@@ -38,6 +38,11 @@ Vector supports devices running **Android 8.1 through Android 17 Beta**.
 4. Reboot the device.
 5. Access management settings via the system notification.
 
+On supported launchers, the primary user can also enable **Settings launcher shortcut** in
+Vector's **System status**. Open Android Settings once to apply the change, then touch and hold
+the Settings icon and select **Vector**. To remove the shortcut, turn the option off and open
+Android Settings again before disabling or uninstalling Vector.
+
 ---
 
 ### Downloads

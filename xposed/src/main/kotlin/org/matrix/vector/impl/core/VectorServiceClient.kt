@@ -5,6 +5,7 @@ import android.os.ParcelFileDescriptor
 import org.matrix.vector.ipc.LoadedModule
 import org.matrix.vector.ipc.IProcessChannel
 import org.matrix.vector.ipc.IFrameworkService
+import org.matrix.vector.ipc.SettingsShortcutInfo
 import org.matrix.vector.util.Log
 
 /**
@@ -77,6 +78,9 @@ object VectorServiceClient : IFrameworkService, IBinder.DeathRecipient {
     override fun requestManagerService(): IBinder? {
         return runCatching { service?.requestManagerService() }.getOrNull()
     }
+
+    override fun getSettingsShortcut(): SettingsShortcutInfo? =
+        checkNotNull(service) { "Daemon unavailable" }.settingsShortcut
 
     override fun asBinder(): IBinder? {
         return service?.asBinder()

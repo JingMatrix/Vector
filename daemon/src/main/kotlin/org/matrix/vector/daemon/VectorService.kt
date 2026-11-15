@@ -25,6 +25,7 @@ import org.matrix.vector.daemon.data.ProcessScope
 import org.matrix.vector.daemon.ipc.FrameworkService
 import org.matrix.vector.daemon.ipc.ManagerService
 import org.matrix.vector.daemon.ipc.ModuleAppService
+import org.matrix.vector.daemon.ipc.SettingsShortcut
 import org.matrix.vector.daemon.system.*
 
 private const val TAG = "VectorService"
@@ -79,6 +80,7 @@ object VectorService : IVectorDaemon.Stub() {
 
     val scope = ProcessScope(processName, uid)
     if (!ManagerService.tryRegisterManagerProcess(pid, uid, processName) &&
+        !SettingsShortcut.isPublisher(uid, processName) &&
         ConfigCache.shouldSkipProcess(scope)) {
       Log.d(TAG, "Skipped $processName/$uid")
       return null

@@ -96,6 +96,8 @@ fun SystemStatusScreen(
     val device = viewModel.device
     val context = LocalContext.current
     val statusNotification by viewModel.statusNotification.collectAsStateWithLifecycle()
+    val settingsShortcut by viewModel.settingsShortcut.collectAsStateWithLifecycle()
+    val settingsShortcutFailed = stringResource(R.string.settings_shortcut_save_failed)
     val hiddenIcon by viewModel.hiddenIcon.collectAsStateWithLifecycle()
     val presence by viewModel.presence.collectAsStateWithLifecycle()
     val managerInstall by viewModel.managerInstall.collectAsStateWithLifecycle()
@@ -227,6 +229,23 @@ fun SystemStatusScreen(
                     enabled = daemonAlive,
                     onCheckedChange = viewModel::setForcedLauncherIcons,
                 )
+            }
+            settingsShortcut?.let { enabled ->
+                item {
+                    FrameworkToggle(
+                        title = stringResource(R.string.settings_shortcut),
+                        subtitle = stringResource(R.string.settings_shortcut_summary),
+                        checked = enabled,
+                        enabled = daemonAlive,
+                        onCheckedChange = { requested ->
+                            scope.launch {
+                                if (!viewModel.setSettingsShortcut(requested)) {
+                                    snackbars.show(settingsShortcutFailed, SnackbarTone.Failure)
+                                }
+                            }
+                        },
+                    )
+                }
             }
 
             // How to get back in. Only parasitically: installed, the manager has a launcher icon
