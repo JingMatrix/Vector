@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
 import org.matrix.vector.manager.BuildConfig
 import org.matrix.vector.manager.di.ServiceLocator
 import org.matrix.vector.ui.locale.LocaleController
-import org.matrix.vector.ui.locale.Translator
 import org.matrix.vector.ui.locale.LocalizedContent as SharedLocalizedContent
 import org.matrix.vector.ui.locale.LocalizedOverlay as SharedLocalizedOverlay
+import org.matrix.vector.ui.locale.Translator
 import org.matrix.vector.ui.locale.availableLocales as sharedAvailableLocales
 
 /**
@@ -39,6 +39,20 @@ object VectorLocaleController : LocaleController {
 
     override val translators: Map<String, List<Translator>>
         get() = TRANSLATORS
+
+    override val autoTranslate: StateFlow<Boolean>
+        get() = ServiceLocator.settings.autoTranslate
+
+    override fun setAutoTranslate(enabled: Boolean) {
+        ServiceLocator.settings.setAutoTranslate(enabled)
+    }
+
+    override val translationTargetLanguage: StateFlow<String>
+        get() = ServiceLocator.settings.translationOverrideTag
+
+    override fun setTranslationTargetLanguage(tag: String) {
+        ServiceLocator.settings.setTranslationTargetLanguage(tag)
+    }
 }
 
 /** The chosen language, applied to everything below. See the shared implementation for how. */

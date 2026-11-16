@@ -66,8 +66,8 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
      * On by default. The mirrors this app depends on are the ones a network is most likely to
      * resolve wrongly or not at all, and someone whose Store is empty because of it has no reason
      * to suspect DNS. VectorDns only uses it when nothing is proxying the connection, and falls
-     * back to the system resolver for the rest of the session the first time a lookup fails, so
-     * the default costs nothing on a network where ordinary DNS already works.
+     * back to the system resolver for the rest of the session the first time a lookup fails, so the
+     * default costs nothing on a network where ordinary DNS already works.
      */
     private val _dohEnabled = MutableStateFlow(prefs.getBoolean("doh_enabled", true))
     override val dohEnabled: StateFlow<Boolean> = _dohEnabled.asStateFlow()
@@ -87,9 +87,9 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
     /**
      * Whether GitHub links leave the app.
      *
-     * Off by default: the built-in viewer keeps the user in Vector, which matters most in
-     * parasitic mode where "the app" is really the shell process and handing off to a browser is a
-     * jarring context switch out of something that does not look like an app to the system.
+     * Off by default: the built-in viewer keeps the user in Vector, which matters most in parasitic
+     * mode where "the app" is really the shell process and handing off to a browser is a jarring
+     * context switch out of something that does not look like an app to the system.
      */
     private val _openLinksExternally =
         MutableStateFlow(prefs.getBoolean("open_links_externally", false))
@@ -100,15 +100,16 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
      *
      * A scope is edited one module at a time, so these are settled a dozen times over in a single
      * sitting otherwise. They are ways of *reading* a list of several hundred apps rather than
-     * anything about a particular module, which is the test this app applies everywhere else —
-     * word wrap, header surface, activity window — and the reason it applies it is that the host
-     * process is killed constantly, so anything held in a ViewModel is gone by the next visit.
+     * anything about a particular module, which is the test this app applies everywhere else — word
+     * wrap, header surface, activity window — and the reason it applies it is that the host process
+     * is killed constantly, so anything held in a ViewModel is gone by the next visit.
      *
      * "Recommended only" is deliberately absent. It narrows the list to what one module asked for,
      * and a module that asks for nothing would then open to an empty screen — a filter that reads
      * as breakage. It stays per visit.
      */
-    private val _scopeShowSystemApps = MutableStateFlow(prefs.getBoolean("scope_system_apps", false))
+    private val _scopeShowSystemApps =
+        MutableStateFlow(prefs.getBoolean("scope_system_apps", false))
     val scopeShowSystemApps: StateFlow<Boolean> = _scopeShowSystemApps.asStateFlow()
 
     fun setScopeShowSystemApps(show: Boolean) {
@@ -132,7 +133,8 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
         _scopeShowModules.value = show
     }
 
-    private val _scopeSort = MutableStateFlow(prefs.getString("scope_sort", "relevance") ?: "relevance")
+    private val _scopeSort =
+        MutableStateFlow(prefs.getString("scope_sort", "relevance") ?: "relevance")
     val scopeSort: StateFlow<String> = _scopeSort.asStateFlow()
 
     fun setScopeSort(key: String) {
@@ -140,7 +142,8 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
         _scopeSort.value = key
     }
 
-    private val _scopeSortReversed = MutableStateFlow(prefs.getBoolean("scope_sort_reversed", false))
+    private val _scopeSortReversed =
+        MutableStateFlow(prefs.getBoolean("scope_sort_reversed", false))
     val scopeSortReversed: StateFlow<Boolean> = _scopeSortReversed.asStateFlow()
 
     fun setScopeSortReversed(reversed: Boolean) {
@@ -168,15 +171,50 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
      * The language the app is shown in, as a BCP-47 tag, or empty for whatever the system says.
      *
      * Not `setApplicationLocales`: that API is keyed on an installed package, and parasitically
-     * this one is never installed. Asking the framework would change the host's language or
-     * nothing at all. See LocalizedContent for how the override is applied instead.
+     * this one is never installed. Asking the framework would change the host's language or nothing
+     * at all. See LocalizedContent for how the override is applied instead.
      */
     private val _appLocale = MutableStateFlow(prefs.getString("app_locale", "") ?: "")
     val appLocale: StateFlow<String> = _appLocale.asStateFlow()
 
     fun setAppLocale(tag: String) {
-        prefs.edit().putString("app_locale", tag).apply()
+        prefs.edit().putString("app_locale", tag).commit()
         _appLocale.value = tag
+        _translationTargetLanguage.value = computeEffectiveTranslationLanguage()
+    }
+
+    /**
+     * Whether foreign modules in the Store (catalog and descriptions) are automatically translated.
+     * Default to true so users immediately benefit from native translations.
+     */
+    private val _autoTranslate = MutableStateFlow(prefs.getBoolean("store_auto_translate", true))
+    override val autoTranslate: StateFlow<Boolean> = _autoTranslate.asStateFlow()
+
+    override fun setAutoTranslate(enabled: Boolean) {
+        prefs.edit().putBoolean("store_auto_translate", enabled).commit()
+        _autoTranslate.value = enabled
+    }
+
+    private val _rawTranslationLanguage =
+        MutableStateFlow(prefs.getString("store_translation_lang", "") ?: "")
+    override val translationOverrideTag: StateFlow<String> = _rawTranslationLanguage.asStateFlow()
+
+    private fun computeEffectiveTranslationLanguage(): String {
+        val override = _rawTranslationLanguage.value
+        if (override.isNotBlank()) return override
+        val app = _appLocale.value
+        if (app.isNotBlank()) return app
+        return java.util.Locale.getDefault().toLanguageTag()
+    }
+
+    private val _translationTargetLanguage = MutableStateFlow(computeEffectiveTranslationLanguage())
+    override val translationTargetLanguage: StateFlow<String> =
+        _translationTargetLanguage.asStateFlow()
+
+    override fun setTranslationTargetLanguage(tag: String) {
+        prefs.edit().putString("store_translation_lang", tag).commit()
+        _rawTranslationLanguage.value = tag
+        _translationTargetLanguage.value = computeEffectiveTranslationLanguage()
     }
 
     /**
@@ -359,14 +397,14 @@ class SettingsRepository(context: Context) : StoreSettings, NetworkSettings {
      *
      * The badge is the only way to those settings, and nothing about a tick says so — #856. The
      * header answers that by having the tick turn into a gear now and then, and this is what stops
-     * it: a reader who has opened the page several times today plainly knows where it is, and a gear
-     * that keeps appearing after that is noise on the one part of the header whose job is to report
-     * a state. How many is several is HomeViewModel's to say — this only counts.
+     * it: a reader who has opened the page several times today plainly knows where it is, and a
+     * gear that keeps appearing after that is noise on the one part of the header whose job is to
+     * report a state. How many is several is HomeViewModel's to say — this only counts.
      *
      * Counted per day rather than for good because the hint costs nothing to offer again and the
      * knowledge does fade — and because a count that only ever grows would retire the hint on the
-     * strength of an afternoon spent on that page months ago. The day is stored beside the count and
-     * a stale one reads as zero, so no reset has to run at midnight.
+     * strength of an afternoon spent on that page months ago. The day is stored beside the count
+     * and a stale one reads as zero, so no reset has to run at midnight.
      */
     private val _statusBadgeOpens = MutableStateFlow(statusBadgeOpensToday())
     val statusBadgeOpens: StateFlow<Int> = _statusBadgeOpens.asStateFlow()

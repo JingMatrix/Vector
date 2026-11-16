@@ -6,4 +6,8 @@
     <string name="language_help">帮助翻译</string>
     <string name="language_help_short">翻译</string>
     <string name="language_translated_by">翻译：%1$s</string>
+    <string name="store_translate_modules_title">翻译模块商店内容</string>
+    <string name="store_translate_modules_summary">自动将外语模块标题、摘要和说明翻译为当前语言</string>
+    <string name="store_translate_target_title">翻译目标语言</string>
+    <string name="store_translate_target_follow_app">跟随应用语言</string>
 </resources>

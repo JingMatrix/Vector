@@ -22,8 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Translate
+import org.matrix.vector.ui.ToggleRow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -35,7 +37,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.util.Locale
 import org.matrix.vector.ui.LocalDialogLocalizer
 import org.matrix.vector.ui.R
+import org.matrix.vector.ui.SharedAlertDialog
 
 /**
  * The language, in the languages themselves — every row written in its own script, so a reader
@@ -67,8 +72,46 @@ fun LanguageSheet(
     onOpenUrl: ((String) -> Unit)? = null,
 ) {
     val current by controller.appLocale.collectAsStateWithLifecycle()
+    val autoTranslate by controller.autoTranslate.collectAsStateWithLifecycle()
+    val translationTarget by controller.translationTargetLanguage.collectAsStateWithLifecycle()
     val locales = remember(controller) { availableLocales(controller) }
     val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
+    var showTargetPicker by remember { mutableStateOf(false) }
+
+    if (showTargetPicker) {
+        SharedAlertDialog(
+            onDismissRequest = { showTargetPicker = false },
+            confirmButton = {},
+            title = { Text(stringResource(R.string.store_translate_target_title)) },
+            text = {
+                LazyColumn {
+                    item {
+                        LanguageRow(
+                            native = stringResource(R.string.store_translate_target_follow_app),
+                            english = stringResource(R.string.language_system_summary),
+                            selected = translationTarget.isBlank(),
+                            onClick = {
+                                controller.setTranslationTargetLanguage("")
+                                showTargetPicker = false
+                            },
+                        )
+                        HorizontalDivider(Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    }
+                    items(locales, key = { it.toLanguageTag() }) { locale ->
+                        LanguageRow(
+                            native = locale.nativeName(),
+                            english = locale.getDisplayName(Locale.ENGLISH),
+                            selected = translationTarget == locale.toLanguageTag(),
+                            onClick = {
+                                controller.setTranslationTargetLanguage(locale.toLanguageTag())
+                                showTargetPicker = false
+                            },
+                        )
+                    }
+                }
+            },
+        )
+    }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         LocalDialogLocalizer.current {
@@ -113,6 +156,53 @@ fun LanguageSheet(
                 HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
 
                 LazyColumn(Modifier.padding(bottom = 24.dp)) {
+                    item {
+                        ToggleRow(
+                            title = stringResource(R.string.store_translate_modules_title),
+                            subtitle = stringResource(R.string.store_translate_modules_summary),
+                            icon = Icons.Rounded.AutoAwesome,
+                            checked = autoTranslate,
+                            onCheckedChange = controller::setAutoTranslate,
+                        )
+                        if (autoTranslate) {
+                            val targetLabel =
+                                if (translationTarget.isBlank()) {
+                                    stringResource(R.string.store_translate_target_follow_app)
+                                } else {
+                                    locales.firstOrNull { it.toLanguageTag() == translationTarget }?.nativeName()
+                                        ?: translationTarget
+                                }
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .clickable { showTargetPicker = true }
+                                        .padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.store_translate_target_title),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Text(
+                                        text = targetLabel,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                Icon(
+                                    Icons.Rounded.Translate,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
+                        }
+                        HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
+                    }
                     item {
                         LanguageRow(
                             native = stringResource(R.string.language_system),

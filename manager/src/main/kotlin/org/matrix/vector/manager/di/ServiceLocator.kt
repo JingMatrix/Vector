@@ -1,41 +1,38 @@
 package org.matrix.vector.manager.di
 
-import org.matrix.vector.manager.data.model.ModuleDetectionCache
-import java.io.File
-import org.matrix.vector.ui.store.latestOn
-import org.matrix.vector.ui.store.StoreChannel
-import org.matrix.vector.ui.store.StoreEntry
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.SharingStarted
 import android.annotation.SuppressLint
 import android.content.Context
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import org.matrix.vector.ipc.IManagerService
-import org.matrix.vector.manager.data.log.CrashRecorder
 import org.matrix.vector.manager.data.github.GitHubRepository
+import org.matrix.vector.manager.data.log.CrashRecorder
+import org.matrix.vector.manager.data.model.ModuleDetectionCache
 import org.matrix.vector.manager.data.repository.AppRepository
 import org.matrix.vector.manager.data.repository.BackupRepository
 import org.matrix.vector.manager.data.repository.FrameworkInstaller
 import org.matrix.vector.manager.data.repository.FrameworkUpdateRepository
 import org.matrix.vector.manager.data.repository.ManagerInstaller
 import org.matrix.vector.manager.data.repository.ModuleInstaller
-import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.data.repository.ModuleRepository
+import org.matrix.vector.manager.data.repository.ModuleUpdateQueue
 import org.matrix.vector.manager.data.repository.RepoRepository
 import org.matrix.vector.manager.data.repository.SettingsRepository
 import org.matrix.vector.manager.ipc.DaemonClient
@@ -43,6 +40,9 @@ import org.matrix.vector.manager.ipc.daemonPackageEventsFlow
 import org.matrix.vector.manager.ipc.packageEventsFlow
 import org.matrix.vector.ui.net.HttpClientFactory
 import org.matrix.vector.ui.net.VectorDns
+import org.matrix.vector.ui.store.StoreChannel
+import org.matrix.vector.ui.store.StoreEntry
+import org.matrix.vector.ui.store.latestOn
 
 /**
  * Hand-rolled service location, deliberately not a DI framework.
@@ -83,9 +83,9 @@ object ServiceLocator {
      * What the daemon turned out to be, when it is not something this build can talk to.
      *
      * Null in the ordinary case, including "no daemon at all" — this is only ever set when a binder
-     * did arrive and was then refused. That is a distinct situation from having no daemon and has to
-     * be rendered as one: the binder is alive and the framework is plainly running, so every screen
-     * would otherwise draw it as one that answers nothing.
+     * did arrive and was then refused. That is a distinct situation from having no daemon and has
+     * to be rendered as one: the binder is alive and the framework is plainly running, so every
+     * screen would otherwise draw it as one that answers nothing.
      *
      * Two things set it, and the string says which: a descriptor that is not this interface, or a
      * protocol version this build does not speak. It is text for a log and a marker for the header
@@ -130,7 +130,9 @@ object ServiceLocator {
         ModuleDetectionCache(File(context.cacheDir, "module-detection.tsv"))
     }
 
-    val store: RepoRepository by lazy { RepoRepository(http, daemon, appScope) }
+    val store: RepoRepository by lazy {
+        RepoRepository(http, daemon, appScope, settings, context.cacheDir)
+    }
 
     val installer: ModuleInstaller by lazy { ModuleInstaller(context, http) }
 
@@ -181,7 +183,9 @@ object ServiceLocator {
      */
     val upgradablePackages: StateFlow<Set<String>> by lazy {
         storeEntries
-            .map { entries -> entries.values.filter { it.upgradable }.map { it.module.name }.toSet() }
+            .map { entries ->
+                entries.values.filter { it.upgradable }.map { it.module.name }.toSet()
+            }
             .stateIn(appScope, SharingStarted.WhileSubscribed(5_000), emptySet())
     }
 
@@ -206,7 +210,9 @@ object ServiceLocator {
     }
 
     /** Sequential module updates, outliving the sheet that started them. */
-    val moduleUpdates: ModuleUpdateQueue by lazy { ModuleUpdateQueue(installer, store, modules, settings, appScope) }
+    val moduleUpdates: ModuleUpdateQueue by lazy {
+        ModuleUpdateQueue(installer, store, modules, settings, appScope)
+    }
 
     val frameworkInstaller: FrameworkInstaller by lazy { FrameworkInstaller(context, http, daemon) }
 
@@ -278,10 +284,10 @@ object ServiceLocator {
     /**
      * Starts the expensive reads while the splash is still on screen.
      *
-     * The three panels a user actually opens first each begin with work that has nothing to do
-     * with drawing: enumerating every installed package, reading the module catalogue, fetching
-     * the activity feed. Doing that on first visit means the panel appears and then fills in;
-     * doing it here means it is usually already there.
+     * The three panels a user actually opens first each begin with work that has nothing to do with
+     * drawing: enumerating every installed package, reading the module catalogue, fetching the
+     * activity feed. Doing that on first visit means the panel appears and then fills in; doing it
+     * here means it is usually already there.
      *
      * Every one of these is idempotent and cached, so the view models that ask again on arrival get
      * the finished answer rather than starting a second copy. Failures are ignored on purpose: this

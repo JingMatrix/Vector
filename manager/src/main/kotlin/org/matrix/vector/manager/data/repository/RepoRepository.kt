@@ -20,8 +20,13 @@ import org.matrix.vector.ui.store.StoreRepository
  * are re-read whenever its binder arrives, and log lines go through [logI] and [logW], which is
  * what puts them in the Verbose tab and the exported zip.
  */
-class RepoRepository(client: OkHttpClient, daemon: DaemonClient, scope: CoroutineScope) :
-    StoreRepository(client, scope, VectorLog, { daemon.installedVersions() }) {
+class RepoRepository(
+    client: OkHttpClient,
+    daemon: DaemonClient,
+    scope: CoroutineScope,
+    settings: SettingsRepository,
+    cacheDir: java.io.File? = null,
+) : StoreRepository(client, scope, VectorLog, { daemon.installedVersions() }, settings, cacheDir) {
 
     init {
         scope.launch {

@@ -52,9 +52,13 @@ open class StoreRepository(
     private val log: StoreLog,
     /** What each installed package is at, or null when the device could not be asked. */
     private val readInstalledVersions: suspend () -> Map<String, RepoVersion>?,
+    private val settings: StoreSettings? = null,
+    cacheDir: java.io.File? = null,
 ) : StoreDataSource {
 
     private val api = StoreApi(client, log)
+    private val translator = StoreTranslator(client, scope, log, cacheDir)
+    @Volatile private var rawCatalog: StoreCatalog? = null
 
     private val _catalog = MutableStateFlow(StoreCatalog())
     override val catalog: StateFlow<StoreCatalog> = _catalog.asStateFlow()
@@ -75,6 +79,57 @@ open class StoreRepository(
 
     init {
         scope.launch { completeInstalled() }
+        settings?.autoTranslate?.let { autoTranslateFlow ->
+            scope.launch {
+                autoTranslateFlow.collect {
+                    rawCatalog?.let(::applyCatalog)
+                }
+            }
+        }
+        settings?.translationTargetLanguage?.let { langFlow ->
+            scope.launch {
+                langFlow.collect {
+                    rawCatalog?.let(::applyCatalog)
+                }
+            }
+        }
+    }
+
+    private fun applyCatalog(base: StoreCatalog) {
+        rawCatalog = base
+        val completed = complete(base)
+        val target = translator.resolveTargetLanguage(settings?.translationTargetLanguage?.value)
+        if (settings?.autoTranslate?.value == true) {
+            _catalog.value = translator.translateCatalog(completed, target)
+
+            val missing = ArrayList<String>()
+            for (m in completed.modules) {
+                val desc = m.description
+                if (
+                    !desc.isNullOrBlank() &&
+                        translator.needsTranslation(desc, target) &&
+                        translator.findCachedTranslation(desc, target) == null
+                ) {
+                    missing.add(desc)
+                }
+                val summary = m.summary
+                if (
+                    !summary.isNullOrBlank() &&
+                        translator.needsTranslation(summary, target) &&
+                        translator.findCachedTranslation(summary, target) == null
+                ) {
+                    missing.add(summary)
+                }
+            }
+            if (missing.isNotEmpty()) {
+                scope.launch {
+                    translator.translateTextsBatch(missing, target)
+                    _catalog.value = translator.translateCatalog(completed, target)
+                }
+            }
+        } else {
+            _catalog.value = completed
+        }
     }
 
     /**
@@ -105,7 +160,7 @@ open class StoreRepository(
                 // it, but only onto an empty screen: over a list already showing it would take
                 // the corrections away, and update badges with them, only to bring them back.
                 val blank = _catalog.value.isEmpty
-                val paint = { base: StoreCatalog -> if (blank) _catalog.value = complete(base) }
+                val paint = { base: StoreCatalog -> if (blank) applyCatalog(base) }
 
                 // Before reporting nothing, ask the cache — the bytes from the last successful
                 // visit are usually still on disk, and a stale catalogue is far more use than an
@@ -118,7 +173,11 @@ open class StoreRepository(
                 // Nothing on the network and nothing on disk. `loaded` still flips, so the screen
                 // can say the repository is unreachable instead of sitting forever on a spinner
                 // that means nothing.
-                _catalog.value = fetched?.let(::complete) ?: _catalog.value.copy(loaded = true)
+                if (fetched != null) {
+                    applyCatalog(fetched)
+                } else {
+                    _catalog.value = _catalog.value.copy(loaded = true)
+                }
             }
         } finally {
             // In a `finally` rather than after the block: a cancelled `viewModelScope` — a
@@ -155,8 +214,20 @@ open class StoreRepository(
         withContext(Dispatchers.IO) {
             val freshness =
                 CacheControl.Builder().maxAge(DETAIL_MAX_AGE_MINUTES, TimeUnit.MINUTES).build()
-            api.details(packageName, freshness)
-                ?: api.details(packageName, CacheControl.FORCE_CACHE)
+            val fetched =
+                api.details(packageName, freshness)
+                    ?: api.details(packageName, CacheControl.FORCE_CACHE)
+
+            log.log(Log.INFO, "store: details($packageName) fetched=${fetched != null}, autoTranslate=${settings?.autoTranslate?.value}", null)
+
+            if (fetched != null && settings?.autoTranslate?.value == true) {
+                val target = translator.resolveTargetLanguage(settings.translationTargetLanguage.value)
+                val translated = translator.translateDetails(fetched, target)
+                log.log(Log.INFO, "store: details($packageName) translated readme len=${translated.readmeHTML?.length}", null)
+                translated
+            } else {
+                fetched
+            }
         }
 
     /**
@@ -186,7 +257,7 @@ open class StoreRepository(
                 log.log(Log.INFO, message, null)
                 // Without the README: these stay in memory for as long as the process does.
                 records = records + fetched.associate { it.name to it.copy(readmeHTML = null) }
-                _catalog.update(::complete)
+                rawCatalog?.let(::applyCatalog) ?: _catalog.update(::complete)
             }
     }
 
