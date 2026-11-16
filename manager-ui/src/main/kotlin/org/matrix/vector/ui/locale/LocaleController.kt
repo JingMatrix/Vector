@@ -27,4 +27,16 @@ interface LocaleController {
      */
     val translators: Map<String, List<Translator>>
         get() = emptyMap()
+
+    /** Whether foreign modules in the Store are automatically translated. */
+    val autoTranslate: StateFlow<Boolean>
+        get() = kotlinx.coroutines.flow.MutableStateFlow(false)
+
+    fun setAutoTranslate(enabled: Boolean) {}
+
+    /** Explicit translation target language tag override, or empty to follow app locale. */
+    val translationTargetLanguage: StateFlow<String>
+        get() = kotlinx.coroutines.flow.MutableStateFlow("")
+
+    fun setTranslationTargetLanguage(tag: String) {}
 }

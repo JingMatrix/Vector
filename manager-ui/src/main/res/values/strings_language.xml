@@ -6,4 +6,8 @@
     <string name="language_help">Help translate</string>
     <string name="language_help_short">Translate</string>
     <string name="language_translated_by">Translated by %1$s</string>
+    <string name="store_translate_modules_title">Translate store modules</string>
+    <string name="store_translate_modules_summary">Automatically translate foreign module titles, summaries, and descriptions</string>
+    <string name="store_translate_target_title">Translation language</string>
+    <string name="store_translate_target_follow_app">Follow app language</string>
 </resources>

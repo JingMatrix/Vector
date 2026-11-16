@@ -46,4 +46,20 @@ interface StoreSettings {
 
     /** Mute or un-mute the available update for [packageName] (the Details screen's options sheet). */
     fun setUpdatesMuted(packageName: String, muted: Boolean)
+
+    /** Whether foreign modules in the Store are automatically translated. */
+    val autoTranslate: StateFlow<Boolean>
+        get() = kotlinx.coroutines.flow.MutableStateFlow(false)
+
+    fun setAutoTranslate(enabled: Boolean) {}
+
+    /** Effective target language tag for module translation (never empty when resolved). */
+    val translationTargetLanguage: StateFlow<String>
+        get() = kotlinx.coroutines.flow.MutableStateFlow("")
+
+    fun setTranslationTargetLanguage(tag: String) {}
+
+    /** Explicit override language tag if set, or empty to follow app locale. */
+    val translationOverrideTag: StateFlow<String>
+        get() = kotlinx.coroutines.flow.MutableStateFlow("")
 }

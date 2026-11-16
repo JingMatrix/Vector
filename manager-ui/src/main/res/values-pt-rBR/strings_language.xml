@@ -6,4 +6,8 @@
     <string name="language_help">Ajudar a traduzir</string>
     <string name="language_help_short">Traduzir</string>
     <string name="language_translated_by">Traduzido por %1$s</string>
+    <string name="store_translate_modules_title">Traduzir módulos da loja</string>
+    <string name="store_translate_modules_summary">Traduzir automaticamente títulos, resumos e descrições dos módulos para o seu idioma</string>
+    <string name="store_translate_target_title">Idioma da tradução</string>
+    <string name="store_translate_target_follow_app">Seguir idioma do aplicativo</string>
 </resources>
