@@ -341,14 +341,19 @@ object ConfigCache {
       }
 
       ModuleDatabase.enabledScopeRows().forEach { scopeRow ->
-        val appPkg = scopeRow.appPackage
+        val appPkg =
+            // The framework scope answers to two spellings in the wild (the manager's `system` and
+            // the libxposed spelling `android`); both name the same target here.
+            if (scopeRow.appPackage == ModuleDatabase.SYSTEM_FRAMEWORK_ALIAS)
+                ModuleDatabase.SYSTEM_FRAMEWORK_PACKAGE
+            else scopeRow.appPackage
         val modPkg = scopeRow.modulePackage
         val userId = scopeRow.userId
 
         val module = newModules[modPkg] ?: return@forEach
         val holders = moduleUsers[modPkg].orEmpty()
 
-        if (appPkg == "system") {
+        if (appPkg == ModuleDatabase.SYSTEM_FRAMEWORK_PACKAGE) {
           // system_server is one process for the whole device and belongs to no user, so any user
           // holding the module may hook it and the row is stored under user 0 whoever asked. It is
           // the one target the boundary below does not apply to, because there is no second copy
@@ -502,7 +507,16 @@ object ConfigCache {
             val pkgName = row.packageName
             // A row with no recorded path has never been resolved; the rebuild will fill it in,
             // and injecting from a null path is not something to attempt in the meantime.
-            val apkPath = row.apkPath ?: return@forEach
+            val apkPath = row.apkPath
+            if (apkPath == null) {
+              // The silent version of this skip sent issue #1101's reporter looking at the dispatch
+              // chain, because nothing anywhere said the module was never served.
+              Log.w(
+                  TAG,
+                  "Module $pkgName is scoped to the system framework but its APK path is not " +
+                      "resolved yet; it is not served to system_server this boot")
+              return@forEach
+            }
 
             val cached = currentState.modules[pkgName]
             if (cached != null) {

@@ -532,17 +532,26 @@ object VectorService : IVectorDaemon.Stub() {
               val scopes = ModuleDatabase.getModuleScope(packageName) ?: mutableListOf()
               var added = false
               granted.forEach { scopePackageName ->
+                // Spelled the way the row will be stored: a module asks for the framework under the
+                // libxposed name `android`, and a row under that spelling used to be invisible to
+                // the system_server reader. [ModuleDatabase.setModuleScope] normalizes on the way
+                // in as well; this is spelled up front so the duplicate check below compares like
+                // with like.
+                val storedName =
+                    if (scopePackageName == ModuleDatabase.SYSTEM_FRAMEWORK_ALIAS)
+                        ModuleDatabase.SYSTEM_FRAMEWORK_PACKAGE
+                    else scopePackageName
                 // Compared against where the row will land, not against the user who asked: the
                 // framework is stored under user 0 whoever requested it, so for "system" this test
                 // never matched and every approval appended a duplicate and rewrote the whole
                 // table.
-                val storedUserId = if (scopePackageName == "system") 0 else userId
+                val storedUserId = if (storedName == ModuleDatabase.SYSTEM_FRAMEWORK_PACKAGE) 0 else userId
                 val present =
-                    scopes.any { it.packageName == scopePackageName && it.userId == storedUserId }
+                    scopes.any { it.packageName == storedName && it.userId == storedUserId }
                 if (!present) {
                   scopes.add(
                       ScopeEntry().apply {
-                        this.packageName = scopePackageName
+                        this.packageName = storedName
                         this.userId = storedUserId
                       })
                   added = true
