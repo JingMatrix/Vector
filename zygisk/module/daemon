@@ -30,11 +30,19 @@ fi
 # framework idmaps of this boot into the cache every other process shares. Bind an empty directory
 # rather than a tmpfs: a bind mount reuses the superblock of /data, so it claims none of the
 # kernel-global anonymous device minors, whose gaps are visible from any process on the device.
-# Note that this script runs inside an isolated mount namespace (via unshare).
-emptyDir="$dir/.resource-cache"
-rm -rf "$emptyDir"
-mkdir -p "$emptyDir"
-mount -o bind "$emptyDir" /data/resource-cache
+#
+# Only while service.sh has put us in a private mount namespace (VECTOR_SHADOW_OK). In the global
+# namespace this mount would hide the cache — and with it the idmaps behind the framework-res
+# overlay redirects — from every process launched afterwards, and a system_server booting behind
+# it dies in PMS init on GMS builds: config_servicesExtensionPackage resolves to a package name
+# nothing on the system image answers to. Without a private namespace the daemon therefore runs
+# unshadowed; that costs an idmap2 write at most, while a leaked shadow costs a boot.
+if [ "$VECTOR_SHADOW_OK" = "1" ]; then
+  emptyDir="$dir/.resource-cache"
+  rm -rf "$emptyDir"
+  mkdir -p "$emptyDir"
+  mount -o bind "$emptyDir" /data/resource-cache
+fi
 
 # Wait for Zygote socket using a polling loop
 if [ ! -S "/dev/socket/zygote" ]; then
