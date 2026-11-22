@@ -36,6 +36,17 @@ private const val TAG = "VectorModuleDatabase"
  */
 object ModuleDatabase {
 
+  /**
+   * The package name the system framework is stored under. The manager uses this spelling; the
+   * libxposed API, the modules asking for the scope through it, and the CLI (which forwards what
+   * the user typed) all use [SYSTEM_FRAMEWORK_ALIAS] for the same target — and a scope stored
+   * under that spelling used to be invisible to the one reader that serves system_server, leaving
+   * every android-scoped module unloaded without a word. Writes are normalized to this spelling,
+   * and the readers accept both.
+   */
+  const val SYSTEM_FRAMEWORK_PACKAGE = "system"
+  const val SYSTEM_FRAMEWORK_ALIAS = "android"
+
   /** The one database handle. [ConfigCache], [PreferenceStore] and the CLI all borrow it. */
   val dbHelper = Database()
 
@@ -55,7 +66,12 @@ object ModuleDatabase {
           while (cursor.moveToNext()) {
             result.add(
                 ScopeEntry().apply {
-                  this.packageName = cursor.getString(0)
+                  this.packageName =
+                      cursor.getString(0).let {
+                        // One spelling out, so the manager sees its framework entry where a
+                        // pre-normalization row spells it differently.
+                        if (it == SYSTEM_FRAMEWORK_ALIAS) SYSTEM_FRAMEWORK_PACKAGE else it
+                      }
                   this.userId = cursor.getInt(1)
                 })
           }
@@ -182,8 +198,8 @@ object ModuleDatabase {
         .query(
             "scope INNER JOIN modules ON scope.mid = modules.mid",
             arrayOf("module_pkg_name", "apk_path"),
-            "app_pkg_name=? AND enabled=1",
-            arrayOf("system"),
+            "app_pkg_name IN (?, ?) AND enabled=1",
+            arrayOf(SYSTEM_FRAMEWORK_PACKAGE, SYSTEM_FRAMEWORK_ALIAS),
             null,
             null,
             null)
@@ -192,7 +208,9 @@ object ModuleDatabase {
             rows += EnabledModuleRow(cursor.getString(0), cursor.getString(1))
           }
         }
-    return rows
+    // A module scoped under both spellings (a CLI row from before the writes were normalized, then
+    // the manager's) must be served once: twice in this list is twice loaded into system_server.
+    return rows.distinctBy { it.packageName }
   }
 
   /**
@@ -319,8 +337,15 @@ object ModuleDatabase {
         // a backup written by an older manager, which recorded the framework under the module's
         // own user, silently lost the one target the module may have cared about — and said
         // nothing about it.
-        val userId = if (app.packageName == "system") 0 else app.userId
-        values.put("app_pkg_name", app.packageName)
+        //
+        // The framework target is normalized to one spelling here: the manager says `system`, the
+        // libxposed API, the modules and the CLI say `android`, and a row stored under the alias
+        // spelling used to match no reader at all.
+        val appPackage =
+            if (app.packageName == SYSTEM_FRAMEWORK_ALIAS) SYSTEM_FRAMEWORK_PACKAGE
+            else app.packageName
+        val userId = if (appPackage == SYSTEM_FRAMEWORK_PACKAGE) 0 else app.userId
+        values.put("app_pkg_name", appPackage)
         values.put("user_id", userId)
         db.insertWithOnConflict("scope", null, values, SQLiteDatabase.CONFLICT_IGNORE)
       }
@@ -369,16 +394,32 @@ object ModuleDatabase {
     // matches no row at all - which meant a module outside user 0 could take system scope and then
     // never give it back. It reached that state through the very same call: removeScope returns
     // nothing, so the module was told its request had been honoured.
-    val storedUserId = if (scopePackageName == "system") 0 else userId
+    //
+    // Both spellings go, not just the caller's: a row written before the writes were normalized
+    // must not survive a removal the caller believes removed it.
+    val isFrameworkTarget =
+        scopePackageName == SYSTEM_FRAMEWORK_PACKAGE || scopePackageName == SYSTEM_FRAMEWORK_ALIAS
+    val storedUserId = if (isFrameworkTarget) 0 else userId
     val db = dbHelper.writableDatabase
     val mid =
         db.compileStatement("SELECT mid FROM modules WHERE module_pkg_name = ?")
             .apply { bindString(1, packageName) }
             .simpleQueryForLong()
-    db.delete(
-        "scope",
-        "mid = ? AND app_pkg_name = ? AND user_id = ?",
-        arrayOf(mid.toString(), scopePackageName, storedUserId.toString()))
+    if (isFrameworkTarget) {
+      db.delete(
+          "scope",
+          "mid = ? AND app_pkg_name IN (?, ?) AND user_id = ?",
+          arrayOf(
+              mid.toString(),
+              SYSTEM_FRAMEWORK_PACKAGE,
+              SYSTEM_FRAMEWORK_ALIAS,
+              storedUserId.toString()))
+    } else {
+      db.delete(
+          "scope",
+          "mid = ? AND app_pkg_name = ? AND user_id = ?",
+          arrayOf(mid.toString(), scopePackageName, storedUserId.toString()))
+    }
     ConfigCache.requestCacheUpdate()
     return true
   }
