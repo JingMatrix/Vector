@@ -1,8 +1,8 @@
 [versions]
-agp = "9.5.0"
+agp = "9.5.2"
 kotlin = "2.4.21"
 okhttp = "5.5.1"
-ktfmt = "0.27.0"
+ktfmt = "0.28.0"
 coroutines = "1.11.0"
 lifecycle = "2.11.0"
 coil = "3.6.3"
@@ -13,11 +13,11 @@ coil = "3.6.3"
 # This pin also decides compose-ui and compose-foundation: material3 names its
 # own minimum for them and Gradle takes whichever is higher, the BOM's or this
 # one's. Check what a material3 bump brings with it.
-m3 = "1.5.0-rc01"
+m3 = "1.6.0-alpha01"
 nav3 = "1.2.1"
 navigationevent = "1.2.0"
 # Governs every androidx.compose.* artifact below; none of them pin a version.
-compose-bom = "2026.09.00"
+compose-bom = "2026.11.01"
 
 [plugins]
 agp-lib = { id = "com.android.library", version.ref = "agp" }
@@ -61,7 +61,7 @@ androidx-navigationevent-compose = { group = "androidx.navigationevent", name = 
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.12.0" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.13.0" }
 
 rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version = "2.0.1" }
 
