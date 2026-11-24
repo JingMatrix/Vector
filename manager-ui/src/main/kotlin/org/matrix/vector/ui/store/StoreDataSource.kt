@@ -42,7 +42,7 @@ interface StoreSettings {
     /** Store-tracked installs, keyed by package name. */
     val storeInstalls: StateFlow<Map<String, StoreInstall>>
 
-    fun setUpdateChannel(token: String)
+    fun setUpdateChannel(channel: String)
 
     /** Mute or un-mute the available update for [packageName] (the Details screen's options sheet). */
     fun setUpdatesMuted(packageName: String, muted: Boolean)

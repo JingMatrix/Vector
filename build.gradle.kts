@@ -3,6 +3,7 @@ import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 import com.ncorti.ktfmt.gradle.tasks.KtfmtFormatTask
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
@@ -226,6 +227,9 @@ val androidTargetSdkVersion = 37
 val androidMinSdkVersion = 27
 val androidBuildToolsVersion = "37.0.0"
 val androidCompileSdkVersion = 37
+// Compose material3 1.5.0 (the Expressive line) requires compiling against
+// API 37.1 or newer; 37.2 is the newest minor platform installed.
+val androidCompileSdkMinorVersion = 2
 val androidCompileNdkVersion = "30.0.16248370"
 val androidSourceCompatibility = JavaVersion.VERSION_21
 val androidTargetCompatibility = JavaVersion.VERSION_21
@@ -250,6 +254,8 @@ extra.set("androidBuildToolsVersion", androidBuildToolsVersion)
 
 extra.set("androidCompileSdkVersion", androidCompileSdkVersion)
 
+extra.set("androidCompileSdkMinorVersion", androidCompileSdkMinorVersion)
+
 extra.set("androidCompileNdkVersion", androidCompileNdkVersion)
 
 extra.set("androidSourceCompatibility", androidSourceCompatibility)
@@ -260,6 +266,7 @@ subprojects {
     plugins.withType(AndroidBasePlugin::class.java) {
         extensions.configure(CommonExtension::class.java) {
             compileSdk = androidCompileSdkVersion
+            compileSdkMinor = androidCompileSdkMinorVersion
             ndkVersion = androidCompileNdkVersion
             buildToolsVersion = androidBuildToolsVersion
 
@@ -299,13 +306,27 @@ subprojects {
                         "-DPHMAP_HAVE_SSSE3=0",
                     )
 
+                // A newer CMake (seen on 4.5) turns `import std` on for C++23 targets, but its
+                // probe resolves the std module to the host's libstdc++ and then cross-compiles it
+                // for Android, which the NDK sysroot cannot satisfy. Point the synthesised std
+                // target at the NDK's own libc++ module; harmless on CMake versions that skip it.
+                val sdkDir = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+                val libcxxModulesJson =
+                    sdkDir
+                        ?.let { file("$it/ndk/$androidCompileNdkVersion/toolchains/llvm/prebuilt") }
+                        ?.listFiles()
+                        ?.firstOrNull(File::isDirectory)
+                        ?.resolve("lib/x86_64-unknown-linux-gnu/libc++.modules.json")
+                        ?.takeIf(File::isFile)
+
                 val args =
-                    listOf(
+                    listOfNotNull(
                         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                         "-DVECTOR_ROOT=${rootDir.absolutePath}",
                         // Enforce 16 KB page size alignment for Android 15+ compatibility
                         "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
                         "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-z,max-page-size=16384",
+                        libcxxModulesJson?.let { "-DCMAKE_CXX_STDLIB_MODULES_JSON=$it" },
                     )
 
                 externalNativeBuild {
