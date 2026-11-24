@@ -10,6 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.matrix.vector.ipc.IManagerService
@@ -43,6 +44,14 @@ object ConfigCache {
   fun staticScopeOf(modulePackage: String): Set<String>? = staticScopes[modulePackage]
 
   private val cacheUpdateChannel = Channel<Unit>(Channel.CONFLATED)
+
+  // The service instance a module was handed before the cache had loaded it.
+  //
+  // `getModulesForSystemServer` can run before the first rebuild and builds its own instance;
+  // system_server subscribes its remote preference callback on that object, and later writes are
+  // delivered only to the cache's instance. So the rebuild adopts this one instead of making a
+  // second, which would leave the subscriber listening to an object nothing ever notifies.
+  private val preloadedServices = ConcurrentHashMap<String, InjectedModuleService>()
 
   // Held for the whole of a rebuild, so that only one runs at a time. The channel serialises the
   // requests that arrive through it, but not the rebuild the readiness latch starts directly on a
@@ -293,7 +302,10 @@ object ConfigCache {
                   appId = appInfo.uid % PER_USER_RANGE
                   versionCode = pkgInfo.longVersionCode
                   applicationInfo = appInfo
-                  service = oldModule?.service ?: InjectedModuleService(pkgName)
+                  service =
+                      oldModule?.service
+                          ?: preloadedServices.remove(pkgName)
+                          ?: InjectedModuleService(pkgName)
                   code = loaded.apk
                 }
             newModules[pkgName] = module
@@ -522,7 +534,7 @@ object ConfigCache {
                   // whichever user's directory answered above.
                   appId =
                       runCatching { Os.stat(statPath).st_uid % PER_USER_RANGE }.getOrDefault(-1)
-                  service = InjectedModuleService(pkgName)
+                  service = preloadedServices.computeIfAbsent(pkgName) { InjectedModuleService(it) }
                 }
 
                 runCatching {
