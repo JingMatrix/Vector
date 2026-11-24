@@ -85,7 +85,7 @@ jobs:
           printf '%s' "$KEY_STORE" | base64 --decode > key.jks
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -117,6 +117,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
 
+      # Drop the SDK's bundled CMake so AGP uses the runner's system CMake, which
+      # brings the system Ninja (>= 1.11) that C++20 modules need; the SDK's
+      # CMake ships Ninja 1.10.2, too old to scan modules.
       - name: Remove Android's cmake
         shell: bash
         run: rm -rf $ANDROID_HOME/cmake

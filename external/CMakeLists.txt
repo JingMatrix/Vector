@@ -19,6 +19,8 @@ target_include_directories(xz_static PRIVATE ${XZ_INCLUDES})
 option(LSPLANT_BUILD_SHARED OFF)
 option(Plugin.SymbolResolver OFF)
 option(FMT_INSTALL OFF)
+# We use fmt-header-only; fmt-module's source does `import std`, unusable on the NDK.
+option(FMT_MODULE OFF)
 
 add_subdirectory(dobby)
 add_subdirectory(fmt)

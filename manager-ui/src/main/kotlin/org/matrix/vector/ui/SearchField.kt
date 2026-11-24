@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldDecorator
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
@@ -16,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -38,6 +45,19 @@ fun SearchField(
     clearContentDescription: String = "Clear search",
     trailing: @Composable () -> Unit = {},
 ) {
+    // The field owns a TextFieldState, but the public contract stays a hoisted String so callers
+    // keep driving the query from their own ViewModels. Two one-way syncs bridge the two: each
+    // write is guarded on the values already differing, so a local edit reaches the caller and a
+    // caller-driven reset (the clear button, a tab switch) reaches the field, but neither bounces
+    // back into a loop.
+    val state = rememberTextFieldState(query)
+    LaunchedEffect(state) {
+        snapshotFlow { state.text.toString() }.collect { if (it != query) onQueryChange(it) }
+    }
+    LaunchedEffect(query) {
+        if (query != state.text.toString()) state.setTextAndPlaceCursorAtEnd(query)
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = RoundedCornerShape(28.dp),
@@ -52,34 +72,34 @@ fun SearchField(
             )
             Spacer(Modifier.width(12.dp))
             BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                singleLine = true,
+                state = state,
+                lineLimits = TextFieldLineLimits.SingleLine,
                 textStyle =
                     MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.weight(1f).padding(vertical = 16.dp),
-                decorationBox = { inner ->
-                    if (query.isEmpty()) {
-                        Text(
-                            text = placeholder,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            // A search field is a fixed-height control, so its hint may never
-                            // wrap: a long localized placeholder that runs to a second line would
-                            // grow the whole bar, breaking the fixed header every panel shares.
-                            // One line, always — the field cannot change shape by language.
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    inner()
-                },
+                decorator =
+                    TextFieldDecorator { inner ->
+                        if (state.text.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                // A search field is a fixed-height control, so its hint may never
+                                // wrap: a long localized placeholder that runs to a second line would
+                                // grow the whole bar, breaking the fixed header every panel shares.
+                                // One line, always — the field cannot change shape by language.
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        inner()
+                    },
             )
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
+            if (state.text.isNotEmpty()) {
+                IconButton(onClick = { state.clearText() }) {
                     Icon(
                         Icons.Rounded.Close,
                         contentDescription = clearContentDescription,

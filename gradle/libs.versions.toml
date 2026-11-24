@@ -1,23 +1,18 @@
 [versions]
-agp = "9.5.0"
+agp = "9.5.2"
 kotlin = "2.4.21"
 okhttp = "5.5.1"
-ktfmt = "0.27.0"
+ktfmt = "0.28.0"
 coroutines = "1.11.0"
-lifecycle = "2.11.0"
+lifecycle = "2.11.1"
 coil = "3.6.3"
-# Material 3 Expressive is not in any stable material3 release; the expressive
-# APIs graduate through the 1.5.0 line, which has reached rc. Pinned explicitly
-# OVER the Compose BOM, which resolves material3 to 1.4.0.
-#
-# This pin also decides compose-ui and compose-foundation: material3 names its
-# own minimum for them and Gradle takes whichever is higher, the BOM's or this
-# one's. Check what a material3 bump brings with it.
-m3 = "1.5.0-rc01"
-nav3 = "1.2.1"
+nav3 = "1.2.2"
 navigationevent = "1.2.0"
-# Governs every androidx.compose.* artifact below; none of them pin a version.
-compose-bom = "2026.09.00"
+# Governs every androidx.compose.* artifact below, material3 included: this BOM
+# ships material3 1.5.0 (the Expressive line, now stable), so none of them pin a
+# version. Reaching 1.5.0 needs compileSdk 37.1 or newer; the build compiles
+# against 37.2 (see androidCompileSdkMinorVersion).
+compose-bom = "2026.11.01"
 
 [plugins]
 agp-lib = { id = "com.android.library", version.ref = "agp" }
@@ -45,8 +40,8 @@ androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "m3" }
-androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "m3" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
 # Navigation 3. Stable since Nov 2025; the back stack is a plain observable list
@@ -61,7 +56,7 @@ androidx-navigationevent-compose = { group = "androidx.navigationevent", name = 
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.12.0" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.13.0" }
 
 rikkax-parcelablelist = { module = "dev.rikka.rikkax.parcelablelist:parcelablelist", version = "2.0.1" }
 
