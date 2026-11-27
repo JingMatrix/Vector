@@ -97,6 +97,10 @@ private object ServiceRegistrationWatcher {
  */
 object SystemServerService : Binder(), IBinder.DeathRecipient {
 
+  private const val DESCRIPTOR = "org.matrix.vector.daemon.ipc.SystemServerService"
+
+  override fun getInterfaceDescriptor(): String = DESCRIPTOR
+
   private var proxyServiceName: String? = null
   private var originService: IBinder? = null
 
@@ -142,7 +146,10 @@ object SystemServerService : Binder(), IBinder.DeathRecipient {
    * [onTransact] starts forwarding to it. Only ever called from [ServiceRegistrationWatcher].
    */
   internal fun adoptOriginService(name: String, binder: IBinder) {
-    if (binder === this) return
+    if (binder === this ||
+        runCatching { binder.interfaceDescriptor == DESCRIPTOR }.getOrDefault(false)) {
+      return
+    }
     Log.d(TAG, "Intercepted system service registration with name `$name`")
     originService = binder
     runCatching { binder.linkToDeath(this, 0) }
@@ -172,13 +179,6 @@ object SystemServerService : Binder(), IBinder.DeathRecipient {
   }
 
   override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
-    originService?.let {
-      // This is unlikely to happen unless system_server restarts / crashes, since we intentionally
-      // discard our proxy upon later replacements in registerProxyService.
-      Log.d(TAG, "Forwarding request to real `$proxyServiceName` service.")
-      return it.transact(code, data, reply, flags)
-    }
-
     when (code) {
       BRIDGE_TRANSACTION_CODE -> {
         val uid = data.readInt()
@@ -199,6 +199,12 @@ object SystemServerService : Binder(), IBinder.DeathRecipient {
         return FrameworkService.onTransact(code, data, reply, flags)
       }
       else -> {
+        originService?.let {
+          // This is unlikely to happen unless system_server restarts / crashes, since we intentionally
+          // discard our proxy upon later replacements in registerProxyService.
+          Log.d(TAG, "Forwarding request to real `$proxyServiceName` service.")
+          return it.transact(code, data, reply, flags)
+        }
         return super.onTransact(code, data, reply, flags)
       }
     }
