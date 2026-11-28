@@ -188,14 +188,14 @@ class VectorContext(
      * whose code the request was made from.
      */
     override fun log(priority: Int, tag: String?, msg: String, tr: Throwable?) {
-        val finalTag = tag ?: "VectorContext"
-        val prefix = if (packageName.isNotEmpty()) "$packageName: " else ""
+        val source = listOfNotNull(packageName.ifEmpty { null }, tag).joinToString("/")
         val fullMsg = buildString {
-            append(prefix).append(msg)
+            if (source.isNotEmpty()) append(source).append(": ")
+            append(msg)
             if (tr != null) {
                 append("\n").append(Log.getStackTraceString(tr))
             }
         }
-        Log.println(priority, finalTag, fullMsg)
+        Log.println(priority, TAG, fullMsg)
     }
 }
