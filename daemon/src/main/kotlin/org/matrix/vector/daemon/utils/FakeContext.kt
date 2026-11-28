@@ -45,8 +45,22 @@ class FakeContext(private val fakePackageName: String = "android") : ContextWrap
                 }
               }
               .getOrNull()
+              ?.apply {
+                // The framework package carries no android:process for some parsers (the archive
+                // parser fills in nothing at all), and MediaTek's AsyncDrawableCache dereferences
+                // processName unguarded — see FileSystem.resources.
+                if (processName == null) processName = "android"
+              }
     }
-    return systemAppInfo ?: ApplicationInfo()
+    return systemAppInfo
+        ?: ApplicationInfo().apply {
+          packageName = fakePackageName
+          // A blank info would walk MediaTek's drawable-cache guard straight into the null-base
+          // ContextWrapper (getSharedPreferences, getSystemService), so claim the system process
+          // to keep putCacheList on its early-return path. The system info above is safe on its
+          // own: it carries FLAG_SYSTEM.
+          processName = "system"
+        }
   }
 
   override fun getContentResolver(): ContentResolver? {

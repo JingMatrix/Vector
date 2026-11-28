@@ -1,5 +1,6 @@
 package org.matrix.vector.daemon.data
 
+import android.content.Context
 import android.content.res.AssetManager
 import android.content.res.Resources
 import android.os.Binder
@@ -35,6 +36,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import org.matrix.vector.ipc.ModuleCode
 import org.matrix.vector.daemon.BuildConfig
+import org.matrix.vector.daemon.utils.FakeContext
 import org.matrix.vector.daemon.utils.ObfuscationManager
 
 private const val TAG = "VectorFileSystem"
@@ -227,6 +229,16 @@ object FileSystem {
   /**
    * Lazily loads resources from the daemon's APK path via reflection. This allows FakeContext to
    * access strings/drawables without a real application context.
+   *
+   * MediaTek's "res opt" patch, which ships on MTK devices running MIUI and HyperOS, parks the
+   * process's app context in a static ResourcesImpl.mAppContext that only ContextImpl
+   * .createAppContext writes, then dereferences it from AsyncDrawableCache.putCacheList with no
+   * null guard on several builds (JingMatrix/Vector #271, #996). The daemon never calls
+   * createAppContext, so drawable loads from these bare Resources would hand that cache a null
+   * context and take the whole daemon down. Wherever the ROM exposes the setter, hand it a
+   * FakeContext whose ApplicationInfo carries a process name and FLAG_SYSTEM, which keeps
+   * putCacheList on its early-return path; everywhere else the reflection misses and this stays
+   * a no-op.
    */
   val resources: Resources by lazy {
     val am = AssetManager::class.java.getDeclaredConstructor().newInstance()
@@ -235,7 +247,15 @@ object FileSystem {
           isAccessible = true
         }
     addAssetPath.invoke(am, daemonApkPath.toString())
-    @Suppress("DEPRECATION") Resources(am, null, null)
+    @Suppress("DEPRECATION")
+    Resources(am, null, null).also { res ->
+      runCatching {
+        val impl = Resources::class.java.getDeclaredMethod("getImpl").invoke(res)
+        Class.forName("android.content.res.ResourcesImpl")
+            .getDeclaredMethod("setAppContext", Context::class.java)
+            .invoke(impl, FakeContext())
+      }
+    }
   }
 
   /** Loads a single DEX file into SharedMemory, optionally applying obfuscation. */
